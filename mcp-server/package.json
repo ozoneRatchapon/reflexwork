@@ -1,0 +1,30 @@
+{
+  "name": "reflexwork-mcp-server",
+  "version": "0.1.0",
+  "description": "ReflexWork MCP Server — JSON-RPC 2.0 tool interface for Kiro Agent",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.0.4",
+    "@aws-sdk/client-bedrock-runtime": "3.683.0",
+    "zod": "3.23.8",
+    "uuid": "10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.7.5",
+    "@types/uuid": "10.0.0",
+    "typescript": "5.6.3",
+    "tsx": "4.19.1",
+    "vitest": "2.1.2",
+    "eslint": "9.11.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

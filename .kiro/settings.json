@@ -1,0 +1,17 @@
+{
+  "mcp": {
+    "servers": {
+      "reflexwork": {
+        "command": "node",
+        "args": ["dist/mcp-server/index.js"],
+        "env": {
+          "REFLEXWORK_ENV": "devnet",
+          "SOLANA_RPC_URL": "https://api.devnet.solana.com",
+          "SOLANA_PROGRAM_ID": "REFLEXWORK_PLACEHOLDER_111111111111111111111111",
+          "LOG_LEVEL": "info"
+        },
+        "description": "ReflexWork MCP Server — task analysis, document synthesis, Solana proof submission"
+      }
+    }
+  }
+}

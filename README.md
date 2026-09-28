@@ -1,0 +1,148 @@
+# ReflexWork
+
+> Sub-millisecond AI workflow orchestration with verifiable Solana settlement.
+
+**Hackathon submissions:**
+- Mahidol AI Community 2026 — AI Adoption with Kiro (MUIT × AWS, Oct 17)
+- Colosseum World's Fair — Solana Global Hackathon (Oct 12)
+- Superteam Thailand — AI × Solana, Agentic Payments & MCP Track (Oct 12)
+
+---
+
+## Architecture
+
+```
+[Kiro Hook / Trigger]
+       │
+       ▼
+[System 1: Reflex Kernel (Rust)]   ← 14–51µs, zero token cost
+  sigmoid gate → route decision
+  BLAKE3 state attestation
+       │              │
+   LLM path       Fast path
+       │              │
+       ▼              ▼
+[System 2: MCP / Kiro]   [System 3: Solana Anchor]
+  analyze_task             submit_execution_proof()
+  synthesize_document      settle_bounty()
+  draft_workflow           WorkflowEscrow PDA
+```
+
+---
+
+## Project Structure
+
+```
+ReflexWork/
+├── Cargo.toml                     # Rust workspace
+├── Anchor.toml                    # Anchor workspace
+├── programs/
+│   └── workflow-escrow/           # Solana Anchor program (System 3)
+│       ├── Cargo.toml
+│       └── src/lib.rs
+├── crates/
+│   └── reflex-kernel/             # Modelless Reflex Engine (System 1)
+│       ├── Cargo.toml
+│       ├── src/
+│       │   ├── lib.rs
+│       │   ├── types.rs           # TaskSpec, TaskCategory
+│       │   ├── policy.rs          # Sigmoid gate, softmax, EMA
+│       │   ├── attestation.rs     # BLAKE3 StateAttestation
+│       │   ├── encoder.rs         # FeatureEncoder (64-dim)
+│       │   ├── budget.rs          # BudgetController
+│       │   ├── error.rs           # KernelError
+│       │   ├── config.rs          # KernelConfig (TOML)
+│       │   ├── mcp.rs             # McpClient (JSON-RPC stub)
+│       │   ├── solana.rs          # AnchorClient (stub)
+│       │   └── main.rs            # reflex-agent binary
+│       └── benches/
+│           └── policy_routing.rs  # Criterion benchmarks
+├── mcp-server/                    # TypeScript MCP Server (System 2)
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/
+│       ├── index.ts               # Server entrypoint
+│       └── tools/
+│           ├── definitions.ts     # Tool schema registry
+│           ├── analyze-task.ts    # → Amazon Bedrock
+│           ├── synthesize-document.ts
+│           ├── query-knowledge-base.ts
+│           ├── draft-workflow.ts
+│           └── attest-and-submit.ts
+├── .kiro/
+│   ├── hooks/
+│   │   ├── on-task-created.json   # Trigger: new task file
+│   │   └── on-proof-ready.json    # Trigger: attestation ready
+│   └── settings.json              # MCP server registration
+└── specs/
+    ├── 01-system-topology.md
+    ├── 02-reflex-engine.md
+    ├── 03-anchor-program.md
+    └── 04-mcp-tool-interface.md
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Rust 1.81+ (`rustup update stable`)
+- Solana CLI 1.18+ (`sh -c "$(curl -sSfL https://release.solana.com/stable/install)"`)
+- Anchor CLI 0.30.1 (`cargo install --git https://github.com/coral-xyz/anchor avm && avm install 0.30.1`)
+- Node.js 20+ (for MCP server)
+
+### 1. Build the Reflex Kernel
+
+```bash
+cargo build --release -p reflex-kernel
+```
+
+### 2. Run Benchmarks
+
+```bash
+cargo bench --bench policy_routing
+```
+
+### 3. Build the Anchor Program
+
+```bash
+anchor build
+```
+
+### 4. Deploy to Devnet
+
+```bash
+solana config set --url devnet
+solana airdrop 2
+anchor deploy
+```
+
+### 5. Build & Start the MCP Server
+
+```bash
+cd mcp-server
+npm install
+npm run build
+npm start
+```
+
+### 6. Register your Agent
+
+```bash
+./target/release/reflex-agent register-agent
+```
+
+---
+
+## Key Performance Targets
+
+| Path | Latency | Cost |
+|------|---------|------|
+| Fast path (S1 → S3 only) | ≤ 51 µs (kernel) + ~200ms (Solana) | Zero tokens |
+| LLM path (S1 → S2 → S3) | ~350–800ms (MCP) + ~200ms (Solana) | Budgeted tokens |
+
+---
+
+## License
+
+MIT OR Apache-2.0

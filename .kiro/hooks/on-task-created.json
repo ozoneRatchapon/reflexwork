@@ -1,0 +1,33 @@
+{
+  "$schema": "https://kiro.dev/schemas/hook.json",
+  "name": "reflexwork-on-task-created",
+  "description": "Fires when a new task file is saved to tasks/. Forwards to the Reflex Kernel for routing.",
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["tasks/**/*.json", "tasks/**/*.yaml"],
+    "events": ["create", "modify"]
+  },
+  "steps": [
+    {
+      "id": "validate-task-spec",
+      "name": "Validate TaskSpec Schema",
+      "type": "shell",
+      "command": "cargo run --bin reflex-agent -- validate --file {{trigger.filePath}}",
+      "workingDir": "crates/reflex-kernel",
+      "continueOnError": false
+    },
+    {
+      "id": "route-task",
+      "name": "Route via Reflex Kernel",
+      "type": "shell",
+      "command": "cargo run --bin reflex-agent -- process --task-file {{trigger.filePath}} --config reflex-kernel.toml",
+      "workingDir": "crates/reflex-kernel",
+      "continueOnError": false,
+      "dependsOn": ["validate-task-spec"]
+    }
+  ],
+  "notifications": {
+    "onSuccess": "Task {{trigger.fileName}} routed successfully",
+    "onFailure": "Reflex Kernel routing failed for {{trigger.fileName}}"
+  }
+}

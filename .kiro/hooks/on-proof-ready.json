@@ -1,0 +1,27 @@
+{
+  "$schema": "https://kiro.dev/schemas/hook.json",
+  "name": "reflexwork-on-proof-ready",
+  "description": "Fires when a StateAttestation JSON is written to attestations/. Submits the BLAKE3 proof to Solana Devnet.",
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["attestations/**/*.json"],
+    "events": ["create"]
+  },
+  "steps": [
+    {
+      "id": "submit-proof",
+      "name": "Submit Execution Proof to Solana",
+      "type": "shell",
+      "command": "cargo run --bin reflex-agent -- submit-proof --attestation {{trigger.filePath}} --config reflex-kernel.toml",
+      "workingDir": "crates/reflex-kernel",
+      "continueOnError": false
+    },
+    {
+      "id": "log-result",
+      "name": "Log settlement result",
+      "type": "shell",
+      "command": "echo 'Proof submitted: {{trigger.fileName}}' >> logs/settlements.log",
+      "dependsOn": ["submit-proof"]
+    }
+  ]
+}

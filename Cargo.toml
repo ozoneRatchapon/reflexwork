@@ -1,0 +1,52 @@
+[workspace]
+resolver = "2"
+members = [
+    "programs/workflow-escrow",
+    "crates/reflex-kernel",
+]
+
+[workspace.package]
+version      = "0.1.0"
+edition      = "2021"
+license      = "MIT OR Apache-2.0"
+repository   = "https://github.com/reflexwork/reflexwork"
+homepage     = "https://reflexwork.io"
+authors      = ["ReflexWork Team"]
+rust-version = "1.81"
+
+[workspace.dependencies]
+# Serialization
+serde        = { version = "1.0.210", features = ["derive"] }
+serde_json   = { version = "1.0.128" }
+bincode      = { version = "1.3.3" }
+
+# Crypto
+blake3       = { version = "1.5.4", features = ["std"] }
+
+# Utilities
+uuid         = { version = "1.10.0", features = ["v4", "serde"] }
+thiserror    = { version = "1.0.64" }
+anyhow       = { version = "1.0.89" }
+
+# Async
+tokio        = { version = "1.40.0", features = ["full"] }
+
+# Logging
+tracing      = { version = "0.1.40" }
+
+# Anchor / Solana
+anchor-lang  = { version = "0.30.1" }
+
+[profile.release]
+opt-level     = 3
+lto           = true
+codegen-units = 1
+panic         = "abort"
+strip         = "symbols"
+
+[profile.dev]
+opt-level = 1   # faster incremental builds during development
+
+[profile.bench]
+inherits  = "release"
+debug     = true
