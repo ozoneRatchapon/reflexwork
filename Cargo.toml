@@ -9,7 +9,7 @@ members = [
 version      = "0.1.0"
 edition      = "2021"
 license      = "MIT OR Apache-2.0"
-repository   = "https://github.com/reflexwork/reflexwork"
+repository   = "https://github.com/ozoneRatchapon/reflexwork"
 homepage     = "https://reflexwork.io"
 authors      = ["ReflexWork Team"]
 rust-version = "1.81"
@@ -25,7 +25,7 @@ blake3       = { version = "1.5.4", features = ["std"] }
 
 # Utilities
 uuid         = { version = "1.10.0", features = ["v4", "serde"] }
-thiserror    = { version = "1.0.64" }
+thiserror    = { version = "2.0.3" }
 anyhow       = { version = "1.0.89" }
 
 # Async
@@ -34,18 +34,29 @@ tokio        = { version = "1.40.0", features = ["full"] }
 # Logging
 tracing      = { version = "0.1.40" }
 
-# Anchor / Solana
-anchor-lang  = { version = "0.30.1" }
+# Anchor / Solana 3.x — git source (not yet on crates.io)
+anchor-lang   = { git = "https://github.com/otter-sec/anchor", tag = "v1.2.0" }
+anchor-client = { git = "https://github.com/otter-sec/anchor", tag = "v1.2.0" }
+
+# Solana 3.x granular crates
+solana-rpc-client  = { version = "3.0.14" }
+solana-keypair     = { version = "3.0.1" }
+solana-pubkey      = { version = "3.0.0" }
+solana-signature   = { version = "3.3.0" }
+solana-transaction = { version = "3.0.1" }
+solana-commitment-config = { version = "3.1.1" }
+solana-blake3-hasher     = { version = "3.1.0", features = ["blake3"] }
 
 [profile.release]
-opt-level     = 3
-lto           = true
-codegen-units = 1
-panic         = "abort"
-strip         = "symbols"
+opt-level        = 3
+lto              = true
+codegen-units    = 1
+panic            = "abort"
+strip            = "symbols"
+overflow-checks  = true
 
 [profile.dev]
-opt-level = 1   # faster incremental builds during development
+opt-level = 1
 
 [profile.bench]
 inherits  = "release"

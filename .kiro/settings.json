@@ -7,7 +7,7 @@
         "env": {
           "REFLEXWORK_ENV": "devnet",
           "SOLANA_RPC_URL": "https://api.devnet.solana.com",
-          "SOLANA_PROGRAM_ID": "REFLEXWORK_PLACEHOLDER_111111111111111111111111",
+          "SOLANA_PROGRAM_ID": "6Dzv8va1Se8HisK5ceDw62sRxMWyD693AyP1hfSUtYE5",
           "LOG_LEVEL": "info"
         },
         "description": "ReflexWork MCP Server — task analysis, document synthesis, Solana proof submission"

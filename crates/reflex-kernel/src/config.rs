@@ -82,7 +82,7 @@ impl KernelConfig {
             },
             solana: SolanaConfig {
                 rpc_url:      "https://api.devnet.solana.com".into(),
-                program_id:   "REFLEXWORK_PLACEHOLDER_111111111111111111111111".into(),
+                program_id:   "6Dzv8va1Se8HisK5ceDw62sRxMWyD693AyP1hfSUtYE5".into(),
                 commitment:   "confirmed".into(),
                 keypair_path: "~/.config/solana/id.json".into(),
             },
