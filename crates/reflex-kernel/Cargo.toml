@@ -43,13 +43,20 @@ solana-rpc-client        = { version = "3.0.14" }
 solana-keypair           = { version = "3.0.1" }
 solana-pubkey            = { version = "3.0.0" }
 solana-signature         = { version = "3.3.0" }
+solana-signer            = { version = "3.0.0" }
 solana-commitment-config = { version = "3.1.1" }
+solana-system-interface  = { version = "2.0.0" }
+solana-instruction       = { version = "3.5.1" }
 
-# Anchor client (git — not on crates.io yet)
-anchor-client = { git = "https://github.com/otter-sec/anchor", tag = "v1.2.0" }
+# Anchor client (git — async feature for tokio compatibility)
+anchor-client = { git = "https://github.com/otter-sec/anchor", tag = "v1.2.0", features = ["async"] }
+anchor-lang   = { git = "https://github.com/otter-sec/anchor", tag = "v1.2.0" }
 
 # MCP client (JSON-RPC over stdio)
 jsonrpc-core = { version = "18.0.0" }
+
+# Misc utilities
+shellexpand  = { version = "3.1.0" }
 
 [dev-dependencies]
 tokio-test  = { version = "0.4.4" }

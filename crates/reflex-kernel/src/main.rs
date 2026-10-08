@@ -75,9 +75,104 @@ async fn main() {
                 &kernel.config.solana.commitment,
             );
             match client.register_agent().await {
-                Ok(sig) => info!("Agent registered. Tx: {sig}"),
+                Ok(result) => info!("Agent registered. Tx: {} PDA: {}", result.signature, result.agent_record_pda),
                 Err(e)  => error!("Registration failed: {e}"),
             }
+        }
+
+        "smoke-test" => {
+            use reflex_kernel::{
+                types::{TaskCategory, TaskSpec},
+                solana::AnchorClient,
+            };
+            use uuid::Uuid;
+
+            info!("=== ReflexWork End-to-End Smoke Test ===");
+            info!("S1: Reflex Kernel → route decision + BLAKE3 attestation");
+            info!("S3: Anchor devnet  → initialize_workflow + submit_execution_proof");
+
+            // ── Step 1: Build a sample task ──────────────────────────────────
+            let workflow_id = Uuid::new_v4();
+            let task = TaskSpec {
+                id:               Uuid::new_v4(),
+                category:         TaskCategory::OnchainSettlement,
+                raw_input:        "Settle bounty for completed AI workflow execution".to_string(),
+                token_budget:     1,       // fast-path: budget set but no tokens consumed
+                deadline_unix_ns: 0,
+                priority:         200,
+                context_tags:     vec!["solana".to_string(), "settlement".to_string()],
+                requester_pubkey: None,
+                workflow_id:      Some(workflow_id),
+            };
+            info!(task_id = %task.id, category = ?task.category, "Task created");
+
+            // ── Step 2: Reflex Kernel processes the task (S1) ────────────────
+            let start = std::time::Instant::now();
+            let (route, attest) = match kernel.process(&task).await {
+                Ok(r) => r,
+                Err(e) => { error!("Kernel process failed: {e}"); process::exit(1); }
+            };
+            let kernel_ns = start.elapsed().as_nanos();
+            info!(
+                route = ?route,
+                composite_hash = hex::encode(attest.composite_hash),
+                kernel_ns,
+                "S1 complete — Reflex Kernel routed task"
+            );
+            println!("\n[S1] Route decision : {:?}", route);
+            println!("[S1] Kernel latency : {} ns ({:.1} µs)", kernel_ns, kernel_ns as f64 / 1000.0);
+            println!("[S1] Composite hash : {}", hex::encode(attest.composite_hash));
+
+            // ── Step 3: Initialize escrow on devnet (S3) ─────────────────────
+            let client = AnchorClient::new(
+                &kernel.config.solana.rpc_url,
+                &kernel.config.solana.program_id,
+                &kernel.config.solana.keypair_path,
+                &kernel.config.solana.commitment,
+            );
+
+            // Derive depositor pubkey from keypair
+            let keypair_path = &kernel.config.solana.keypair_path;
+            let expanded_path = shellexpand::tilde(keypair_path).into_owned();
+            use solana_keypair::read_keypair_file;
+            use solana_signer::Signer;
+            let depositor_kp = read_keypair_file(&expanded_path)
+                .map_err(|e| { error!("Read keypair: {e}"); process::exit(1) })
+                .unwrap();
+            let depositor_pk = depositor_kp.pubkey();
+
+            let deadline_unix_s = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64 + 300; // 5 min deadline
+
+            let task_spec_hash = attest.composite_hash; // reuse composite hash as task spec hash
+
+            info!(workflow_id = %workflow_id, "Initializing workflow escrow on devnet...");
+            let init_sig = match client
+                .initialize_workflow(workflow_id, 10_000, deadline_unix_s, task_spec_hash, 1, None)
+                .await
+            {
+                Ok(sig) => sig,
+                Err(e)  => { error!("initialize_workflow failed: {e}"); process::exit(1); }
+            };
+            println!("[S3] WorkflowEscrow initialized");
+            println!("[S3] Init tx         : https://explorer.solana.com/tx/{}?cluster=devnet", init_sig);
+
+            // ── Step 4: Submit execution proof (S3) ──────────────────────────
+            info!("Submitting execution proof to devnet...");
+            let proof_result = match client
+                .submit_execution_proof(&attest, &depositor_pk, workflow_id)
+                .await
+            {
+                Ok(r)  => r,
+                Err(e) => { error!("submit_execution_proof failed: {e}"); process::exit(1); }
+            };
+            println!("[S3] Proof submitted");
+            println!("[S3] Proof tx        : https://explorer.solana.com/tx/{}?cluster=devnet", proof_result.signature);
+            println!("[S3] Attestation PDA : {}", proof_result.attestation_pda);
+            println!("\n✅ End-to-end smoke test PASSED");
+            println!("   S1 (Reflex Kernel) → S3 (Anchor devnet) — no LLM invoked");
         }
 
         "help" | _ => {
@@ -89,6 +184,7 @@ async fn main() {
             println!("SUBCOMMANDS:");
             println!("  status           Print current policy state");
             println!("  register-agent   Register agent onchain (one-time setup)");
+            println!("  smoke-test       End-to-end S1→S3 smoke test on devnet");
             println!("  help             Show this message");
         }
     }
