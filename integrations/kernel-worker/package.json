@@ -1,0 +1,2 @@
+{ "name": "reflexwork-kernel", "private": true, "type": "module",
+  "dependencies": { "@noble/hashes": "^1.5.0" } }

@@ -1,0 +1,12 @@
+name = "reflexwork-kernel"
+main = "worker.mjs"
+compatibility_date = "2026-01-01"
+
+# D1 binding — create the DB first, then paste its id here:
+#   npx wrangler d1 create reflexwork
+# then fill database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "reflexwork"
+database_id = "a10fb432-55fe-4e07-8f93-d783ecb5adde"
+

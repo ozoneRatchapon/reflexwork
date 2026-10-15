@@ -219,7 +219,7 @@ function fbUI(q){
 
 // kernel endpoint for feedback. Empty = static demo (no backend): record locally
 // and show that the gate WOULD learn. Set to a reflex-serve URL for the real loop.
-const KERNEL_API = (new URLSearchParams(location.search)).get('api') || '';
+const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
   const q = (window.__fbQ||{})[id] || '';
