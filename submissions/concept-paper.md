@@ -193,7 +193,13 @@ Audit Trail (BLAKE3 reproducible)  ──►  Dashboard ผู้บริหา
 
 ### 7.2 รันสาธิต
 
-**ก. REST API (ทางเข้าหลักสำหรับ end-user):**
+**ก. ลองในเบราว์เซอร์ทันที (ไม่ต้องติดตั้งอะไร — เหมาะกับกรรมการ/ผู้ใช้ทั่วไป):**
+เปิดหน้า `submissions/ui/try.html` — Reflex Kernel ตัวจริง **compile เป็น WebAssembly**
+รันในเบราว์เซอร์ 100% ไม่มี backend ไม่ส่งข้อมูลออกไปไหน. พิมพ์งานเข้าไปแล้วเห็น
+route decision + BLAKE3 proof ทันที (algorithm เดียวกับฝั่ง server เป๊ะ) — นี่คือทางที่
+ทำให้ "ใครก็กดลองได้จาก URL เดียว"
+
+**ข. REST API (สำหรับต่อระบบจริงของหน่วยงาน):**
 ```bash
 cargo build --release --bin reflex-serve
 PORT=8787 ./target/release/reflex-serve      # bind 127.0.0.1 เท่านั้น
@@ -203,20 +209,21 @@ curl -X POST localhost:8787/route \
   -d '{"category":"ComplianceCheck","input":"ตรวจคำร้องว่าเอกสารครบไหม"}'
 # → { "route":"FastPath", "kernel_us":3.46, "blake3_proof":"...", "token_cost":"0 tokens ..." }
 ```
-มี **UI หน้าเดียวกดลองได้** ที่ `submissions/ui/index.html` (เปิดในเบราว์เซอร์ ชี้ไปที่ API)
+มี UI กดลอง (`submissions/ui/index.html`) และ **dashboard ผู้บริหาร**
+(`submissions/ui/dashboard.html`) ที่โชว์สัดส่วน fast/LLM + audit trail แบบ real-time
 
-**ข. CLI (interactive):**
+**ค. CLI (interactive):**
 ```bash
 reflex-agent route --category ComplianceCheck --input "..."
 ```
 
-**ค. end-to-end พร้อม on-chain variant (optional):**
+**ง. end-to-end พร้อม on-chain variant (optional):**
 ```bash
 ./demo.sh            # หรือ ./demo.sh --bench
 ```
 
-Demo แสดง: การตัดสินใจของ kernel (FastPath / LLMPath) พร้อม latency,
-BLAKE3 composite hash, และการ route งานผ่าน Kiro MCP
+Demo แสดง: การตัดสินใจของ kernel แยก 3 ทาง (FastPath / McpAnalyze / McpSynthesize)
+พร้อม latency, BLAKE3 composite hash, และการ route งานผ่าน Kiro MCP
 
 ---
 

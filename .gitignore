@@ -3,6 +3,9 @@ target/
 **/*.rs.bk
 Cargo.lock
 
+# wasm-pack build output (the shipped artifact lives in submissions/ui/wasm/)
+crates/reflex-wasm/pkg/
+
 # Anchor / Solana
 .anchor/
 deploy/
