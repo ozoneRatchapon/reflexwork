@@ -171,14 +171,14 @@ function ask(){
     add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI</span>
       <b>${hit.title}</b><br>${hit.answer||'(ดูรายละเอียดในแหล่งอ้างอิง)'}${src}
-      ${fbUI(q)}`);
+      ${fbUI(q, d.blake3_proof)}`);
   } else {
     ai++;
     const mid = 'llm'+(++fbN);
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path</span>
       <span id="${mid}">${KERNEL_API ? '⏳ กำลังถาม AI…' : 'คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน'}</span>
-      ${fbUI(q)}`);
+      ${fbUI(q, d.blake3_proof)}`);
     if(KERNEL_API){
       fetch(KERNEL_API.replace(/\/$/,'')+'/llm',{
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -206,10 +206,10 @@ function updateRatio(){
 
 // feedback UI appended to each answer — the self-learning loop
 let fbN = 0;
-function fbUI(q){
+function fbUI(q, proof){
   const id = 'fb'+(++fbN);
   // store the question so the 👍/👎 handler can send it as the reward signal
-  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = q;
+  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof};
   return `<div class="fb" id="${id}">
       <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
       <button class="fb-b up" onclick="sendFeedback('${id}',1)">👍 ใช่</button>
@@ -222,13 +222,13 @@ function fbUI(q){
 const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
-  const q = (window.__fbQ||{})[id] || '';
+  const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||'';
   let note;
   if(KERNEL_API){
     try{
       const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/feedback',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({category:'DataQuery', input:q, reward})
+        body: JSON.stringify({category:'DataQuery', input:q, reward, proof})
       }).then(r=>r.json());
       note = `✅ kernel เรียนรู้แล้ว · policy v${r.policy_version}`;
     }catch(e){ note = '⚠ ส่ง feedback ไม่สำเร็จ (kernel ไม่ตอบ)'; }
