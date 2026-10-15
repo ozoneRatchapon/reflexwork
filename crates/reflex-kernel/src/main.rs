@@ -66,6 +66,63 @@ async fn main() {
             println!("RPC URL:                {}", kernel.config.solana.rpc_url);
         }
 
+        "route" => {
+            use reflex_kernel::types::{TaskCategory, TaskSpec};
+            use uuid::Uuid;
+
+            // ── Parse optional --category and --input flags ──────────────────
+            let flag = |name: &str| -> Option<String> {
+                args.windows(2).find(|w| w[0] == name).map(|w| w[1].clone())
+            };
+            let category = match flag("--category").as_deref() {
+                Some("DocumentParse")         => TaskCategory::DocumentParse,
+                Some("CodeGen")               => TaskCategory::CodeGen,
+                Some("DataQuery")             => TaskCategory::DataQuery,
+                Some("WorkflowOrchestration") => TaskCategory::WorkflowOrchestration,
+                Some("ComplianceCheck")       => TaskCategory::ComplianceCheck,
+                Some("Research")              => TaskCategory::Research,
+                Some(other)                   => TaskCategory::Custom(other.to_string()),
+                None                          => TaskCategory::DataQuery,
+            };
+            let raw_input = flag("--input")
+                .unwrap_or_else(|| "Check that the student request form has all required fields.".to_string());
+
+            let task = TaskSpec {
+                id: Uuid::new_v4(),
+                category: category.clone(),
+                raw_input: raw_input.clone(),
+                token_budget: 2048,
+                deadline_unix_ns: 0,
+                priority: 128,
+                context_tags: raw_input
+                    .split_whitespace()
+                    .take(5)
+                    .map(|s| s.to_lowercase())
+                    .collect(),
+                requester_pubkey: None,
+                workflow_id: None,
+            };
+
+            // ── Route through the kernel (no Solana, no LLM) ─────────────────
+            let (route, attest) = match kernel.process(&task).await {
+                Ok(r) => r,
+                Err(e) => { error!("Kernel route failed: {e}"); process::exit(1); }
+            };
+
+            println!("\n── Reflex Kernel — Route Decision ──────────────────────────");
+            println!("Task category : {:?}", category);
+            println!("Input         : {raw_input}");
+            println!("Route         : {:?}", route);
+            println!("Kernel latency: {} ns ({:.1} µs)", attest.execution_ns, attest.execution_ns as f64 / 1000.0);
+            println!("BLAKE3 proof  : {}", hex::encode(attest.composite_hash));
+            println!("Token cost    : {}", match route {
+                reflex_kernel::RouteDecision::FastPath => "0 tokens (deterministic — no LLM)",
+                _ => "budgeted (LLM path via Kiro MCP)",
+            });
+            println!("──────────────────────────────────────────────────────────");
+            println!("Audit note: re-running this task yields the SAME BLAKE3 proof (reproducible).");
+        }
+
         "register-agent" => {
             info!("Registering agent onchain...");
             let client = reflex_kernel::solana::AnchorClient::new(
@@ -183,8 +240,10 @@ async fn main() {
             println!();
             println!("SUBCOMMANDS:");
             println!("  status           Print current policy state");
+            println!("  route            Route one task → decision + BLAKE3 proof (local, no Solana)");
+            println!("                     e.g. route --category ComplianceCheck --input \"...\"");
             println!("  register-agent   Register agent onchain (one-time setup)");
-            println!("  smoke-test       End-to-end S1→S3 smoke test on devnet");
+            println!("  smoke-test       End-to-end S1→S3 smoke test on devnet (optional on-chain variant)");
             println!("  help             Show this message");
         }
     }

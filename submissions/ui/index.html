@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReflexWork — Try it</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
+    --line:#2a3660;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;
+    padding:5vh 6vw;line-height:1.5}
+  header{max-width:860px;margin:0 auto 28px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  h1{font-size:clamp(26px,4vw,40px);letter-spacing:-.02em;margin:8px 0 6px}
+  .sub{color:var(--muted);font-size:clamp(14px,1.6vw,17px)}
+  .wrap{max-width:860px;margin:0 auto;display:grid;gap:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
+  label{display:block;font-weight:700;margin-bottom:8px;font-size:14px}
+  select,textarea,input{width:100%;background:#070b17;color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit}
+  textarea{min-height:92px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .examples{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+  .ex{background:#0f1730;border:1px solid var(--line);border-radius:999px;padding:6px 13px;
+    font-size:13px;color:var(--accent);cursor:pointer}
+  .ex:hover{border-color:var(--accent)}
+  button.go{margin-top:18px;width:100%;background:var(--accent);color:#06112e;border:none;
+    border-radius:10px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+  button.go:disabled{opacity:.5;cursor:wait}
+  .endpoint{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+  .endpoint input{flex:1}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
+  .dot.up{background:var(--fast)}
+  /* result */
+  .result{display:none}
+  .result.show{display:block}
+  .verdict{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .badge{font-weight:800;font-size:clamp(20px,3vw,28px);padding:6px 18px;border-radius:12px}
+  .badge.fast{background:rgba(34,197,139,.14);color:var(--fast);border:1px solid var(--fast)}
+  .badge.llm{background:rgba(246,169,59,.14);color:var(--llm);border:1px solid var(--llm)}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:10px 16px;font-size:14px}
+  .kv .k{color:var(--muted)}
+  .kv .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+  .proof{color:var(--audit)}
+  .err{color:var(--warn);font-weight:700}
+  .hint{color:var(--muted);font-size:13px;margin-top:14px;line-height:1.6}
+  code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:.9em;color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">ReflexWork · Interactive Demo</div>
+  <h1>ส่งงานเข้าไป → ดู reflex ตัดสินใจ + BLAKE3 proof</h1>
+  <div class="sub">คัดงานด้วย kernel ก่อน เรียก AI เฉพาะที่จำเป็น · ต้นทุน 0 token บน fast path</div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <div class="endpoint">
+      <span class="dot" id="dot" title="สถานะเซิร์ฟเวอร์"></span>
+      <input id="base" value="http://127.0.0.1:8787" />
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="cat">ประเภทงาน</label>
+        <select id="cat">
+          <option>ComplianceCheck</option>
+          <option>DocumentParse</option>
+          <option selected>DataQuery</option>
+          <option>WorkflowOrchestration</option>
+          <option>CodeGen</option>
+          <option>Research</option>
+        </select>
+      </div>
+      <div>
+        <label for="prio">Priority (0–255)</label>
+        <input id="prio" type="number" min="0" max="255" value="128" />
+      </div>
+    </div>
+
+    <label for="input">เนื้องาน (คำร้อง / คำสั่ง)</label>
+    <textarea id="input">ตรวจคำร้องนักศึกษาว่าเอกสารแนบครบตามที่กำหนดหรือไม่</textarea>
+    <div class="examples">
+      <span class="ex" data-cat="ComplianceCheck">ตรวจเอกสาร PDPA ไตรมาส 3</span>
+      <span class="ex" data-cat="DataQuery">นับจำนวนคำร้องค้างในระบบ</span>
+      <span class="ex" data-cat="DocumentParse">แยกข้อมูลจากใบคำร้องสแกน</span>
+      <span class="ex" data-cat="WorkflowOrchestration">จัดลำดับคำร้องเร่งด่วนช่วงลงทะเบียน</span>
+    </div>
+
+    <button class="go" id="go">▶ Route งานนี้</button>
+  </div>
+
+  <div class="card result" id="result">
+    <div id="body"></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const base = () => $('base').value.replace(/\/+$/, '');
+
+// health probe → dot color
+async function probe(){
+  try{
+    const r = await fetch(base() + '/health', {signal: AbortSignal.timeout(1500)});
+    $('dot').classList.toggle('up', r.ok);
+  }catch{ $('dot').classList.remove('up'); }
+}
+probe(); setInterval(probe, 5000);
+
+// example chips
+document.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => {
+  $('input').value = el.textContent;
+  $('cat').value = el.dataset.cat;
+}));
+
+$('go').addEventListener('click', async () => {
+  const btn = $('go'); btn.disabled = true; btn.textContent = '… routing';
+  const res = $('result'), body = $('body');
+  res.classList.add('show');
+  try{
+    const r = await fetch(base() + '/route', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        category: $('cat').value,
+        input: $('input').value,
+        priority: Number($('prio').value) || 128
+      })
+    });
+    const d = await r.json();
+    if(!r.ok){ body.innerHTML = `<div class="err">Error ${r.status}: ${d.error||'unknown'}</div>`; return; }
+    const fast = d.fast_path;
+    body.innerHTML = `
+      <div class="verdict">
+        <span class="badge ${fast?'fast':'llm'}">${d.route}</span>
+        <span class="hint" style="margin:0">${fast?'ตัดสินด้วย kernel ในเครื่อง — ไม่เรียก LLM':'ส่งต่อ LLM path (Kiro MCP → Bedrock)'}</span>
+      </div>
+      <div class="kv">
+        <div class="k">Task ID</div><div class="v">${d.task_id}</div>
+        <div class="k">ประเภท</div><div class="v">${d.category}</div>
+        <div class="k">Kernel latency</div><div class="v">${d.kernel_us.toFixed(2)} µs (${d.kernel_ns} ns)</div>
+        <div class="k">ต้นทุน token</div><div class="v">${d.token_cost}</div>
+        <div class="k">BLAKE3 proof</div><div class="v proof">${d.blake3_proof}</div>
+      </div>
+      <div class="hint">🔐 ${d.audit_note}</div>`;
+  }catch(e){
+    body.innerHTML = `<div class="err">เชื่อมต่อไม่ได้: ${e.message}</div>
+      <div class="hint">สตาร์ท API ก่อน: <code>PORT=8787 ./target/release/reflex-serve</code></div>`;
+  }finally{
+    btn.disabled = false; btn.textContent = '▶ Route งานนี้';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReflexWork — Slides (5)</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
+    --line:#2a3660;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif}
+  .deck{scroll-snap-type:y mandatory;height:100vh;overflow-y:auto}
+  .slide{scroll-snap-align:start;min-height:100vh;display:flex;flex-direction:column;
+    justify-content:center;padding:6vh 8vw;position:relative;border-bottom:1px solid var(--line)}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    font-size:clamp(11px,1.1vw,14px);margin-bottom:16px}
+  h1{font-size:clamp(34px,6vw,76px);line-height:1.02;letter-spacing:-.02em}
+  h1 .sub{display:block;font-size:clamp(16px,2.1vw,26px);color:var(--muted);font-weight:500;margin-top:22px;line-height:1.5}
+  h2{font-size:clamp(24px,3.6vw,44px);margin-bottom:26px;letter-spacing:-.01em}
+  .pageno{position:absolute;top:5vh;right:8vw;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+  .foot{position:absolute;bottom:4vh;left:8vw;color:var(--muted);font-size:clamp(12px,1.3vw,15px)}
+  .tag{display:inline-flex;gap:8px;align-items:center;background:var(--panel);
+    border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:14px;color:var(--muted)}
+
+  /* problem list */
+  .probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1080px}
+  .prob{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--warn);
+    border-radius:14px;padding:26px 24px}
+  .prob .n{color:var(--warn);font-weight:800;font-size:clamp(22px,2.6vw,30px)}
+  .prob .t{font-weight:700;margin:10px 0 8px;font-size:clamp(16px,1.7vw,20px)}
+  .prob .d{color:var(--muted);font-size:clamp(13px,1.3vw,15px);line-height:1.55}
+
+  /* architecture flow */
+  .flow{display:flex;flex-direction:column;gap:14px;max-width:980px}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 22px}
+  .node .t{font-weight:700;font-size:clamp(16px,1.8vw,21px)}
+  .node .d{color:var(--muted);font-size:clamp(13px,1.3vw,15px);margin-top:5px}
+  .arrow{align-self:center;color:var(--muted);font-size:20px;line-height:1}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .node.fast{border-color:var(--fast)} .node.fast .t{color:var(--fast)}
+  .node.llm{border-color:var(--llm)}  .node.llm .t{color:var(--llm)}
+  .node.kernel{border-color:var(--accent)} .node.kernel .t{color:var(--accent)}
+  .node.audit{border-color:var(--audit)} .node.audit .t{color:var(--audit)}
+  .pill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+
+  /* terminal */
+  .term{background:#070b17;border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:1000px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  .term .bar{background:#0f1730;padding:10px 16px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+  .term .bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .term .bar .r{background:#ff5f57} .term .bar .y{background:#febc2e} .term .bar .g{background:#28c840}
+  .term .bar span{color:var(--muted);font-size:13px;margin-left:10px}
+  .term pre{padding:22px 24px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:clamp(12px,1.25vw,15px);line-height:1.7;color:#cfe0ff;white-space:pre-wrap}
+  .term .c{color:var(--fast)} .term .k{color:var(--accent)} .term .m{color:var(--muted)} .term .a{color:var(--audit)}
+
+  /* impact cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1100px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px 26px}
+  .card .big{font-size:clamp(30px,4.4vw,52px);font-weight:800;letter-spacing:-.02em}
+  .card.c1 .big{color:var(--fast)} .card.c2 .big{color:var(--accent)} .card.c3 .big{color:var(--audit)}
+  .card .lab{font-weight:700;margin:12px 0 8px;font-size:clamp(16px,1.7vw,20px)}
+  .card .sub{color:var(--muted);font-size:clamp(13px,1.35vw,15px);line-height:1.55}
+
+  @media (max-width:760px){.split,.cards,.probs{grid-template-columns:1fr}}
+  @media print{.slide{page-break-after:always;min-height:100vh}}
+
+  /* user journey */
+  .journey{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1120px}
+  .lane{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 22px;display:flex;flex-direction:column;gap:12px}
+  .lane .who{font-weight:800;font-size:clamp(16px,1.8vw,21px)}
+  .lane .how{color:var(--muted);font-size:clamp(13px,1.35vw,15px);line-height:1.55;flex:1}
+  .chip{display:inline-block;background:#0f1730;border:1px solid var(--line);border-radius:999px;
+    padding:4px 11px;font-size:12px;color:var(--accent);margin:3px 4px 0 0}
+  .jflow{margin-top:28px;max-width:1120px;color:var(--muted);font-size:clamp(13px,1.4vw,16px);line-height:1.9}
+  .jflow .k2{color:var(--accent)} .jflow .a2{color:var(--audit)}
+  .jflow .ar{color:var(--line);margin:0 6px} .jflow .slash{color:var(--llm);margin:0 6px}
+  code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:.9em;color:var(--accent)}
+  @media (max-width:760px){.journey{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- Slide 1 — Title (ฉาก 1) -->
+  <section class="slide">
+    <div class="pageno">01 / 05</div>
+    <div class="kicker">Mahidol AI Community 2026 · AI Adoption with Kiro</div>
+    <h1>ReflexWork
+      <span class="sub">คัดงานด้วย <b>reflex</b> ก่อน เรียก AI เฉพาะที่จำเป็น<br/>
+      ลดต้นทุน AI ~80% · ตัดสินใจระดับไมโครวินาที · ตรวจสอบย้อนหลังได้</span>
+    </h1>
+    <div style="margin-top:38px;display:flex;gap:12px;flex-wrap:wrap">
+      <span class="tag">🦀 Reflex Kernel (Rust)</span>
+      <span class="tag">🧠 Kiro + Amazon Bedrock</span>
+      <span class="tag">🔐 BLAKE3 audit trail</span>
+    </div>
+    <div class="foot">Ratchapon (Ozone) · Napatsakorn &nbsp;·&nbsp; github.com/ozoneRatchapon/reflexwork</div>
+  </section>
+
+  <!-- Slide 2 — Problem (ฉาก 1 ต่อ) -->
+  <section class="slide">
+    <div class="pageno">02 / 05</div>
+    <div class="kicker">ปัญหา</div>
+    <h2>"เรียก LLM ทุกครั้ง" — แพง ช้า ตรวจสอบไม่ได้</h2>
+    <div class="probs">
+      <div class="prob"><div class="n">01</div><div class="t">ต้นทุนบานปลาย</div>
+        <div class="d">ทุกคำร้องถูกส่งเข้า LLM ทั้งที่ส่วนใหญ่เป็นงานซ้ำที่ตัดสินด้วยกฎได้ — จ่าย token ให้งานที่ไม่จำเป็น</div></div>
+      <div class="prob"><div class="n">02</div><div class="t">ช้า / คอขวด</div>
+        <div class="d">การเรียก LLM ผ่านเครือข่าย 350–800 ms ต่อครั้ง เมื่อปริมาณงานสูงช่วง peak ระบบกลายเป็นคอขวด</div></div>
+      <div class="prob"><div class="n">03</div><div class="t">ตรวจสอบไม่ได้</div>
+        <div class="d">AI ตัดสินใจแบบ black-box ที่ reproduce ไม่ได้ — ขัด PDPA และหลักธรรมาภิบาลข้อมูลของมหาวิทยาลัย</div></div>
+    </div>
+    <div class="foot">หน่วยงานที่มีงบจำกัดและต้องการ accountability จึง scale AI ไม่ได้</div>
+  </section>
+
+  <!-- Slide 3 — Architecture (ฉาก 2) -->
+  <section class="slide">
+    <div class="pageno">03 / 05</div>
+    <div class="kicker">สถาปัตยกรรม 3 ชั้น + Kiro</div>
+    <h2>คัดกรองก่อน แล้วค่อยจ่ายค่า AI</h2>
+    <div class="flow">
+      <div class="node"><div class="t">⚡ Kiro Hook / ทริกเกอร์งานใหม่</div>
+        <div class="d">.kiro/hooks/on-task-created.json — งานเอกสาร/คำร้องเข้ามาเป็น TaskSpec</div></div>
+      <div class="arrow">↓</div>
+      <div class="node kernel"><div class="t">🦀 Reflex Kernel <span class="pill">~12 ns route · 0 token</span></div>
+        <div class="d">เข้ารหัส 64 มิติ → sigmoid gate (θ=0.72) → เลือกเส้นทาง + ผนึก BLAKE3</div></div>
+      <div class="arrow">↓</div>
+      <div class="split">
+        <div class="node fast"><div class="t">Fast path &nbsp;(&gt;80% ของงาน)</div>
+          <div class="d">งาน deterministic จบในเครื่อง &lt;100µs ไม่แตะ LLM</div></div>
+        <div class="node llm"><div class="t">LLM path &nbsp;(งานคลุมเครือ)</div>
+          <div class="d">Kiro MCP → Bedrock: analyze · synthesize · query_kb · draft</div></div>
+      </div>
+      <div class="arrow">↓</div>
+      <div class="node audit"><div class="t">🔐 Audit Trail — BLAKE3 reproducible</div>
+        <div class="d">หลักฐานการตัดสินใจที่ re-run ได้ (PDPA-friendly) · optional on-chain variant</div></div>
+    </div>
+    <div class="foot">AI ถูกเรียกเฉพาะเส้นทาง LLM เท่านั้น — ใช้ AI อย่างคุ้มค่า ไม่ใช่เรียกทุกครั้ง</div>
+  </section>
+
+  <!-- Slide 4 — User Journey (ใครใช้ยังไง) -->
+  <section class="slide">
+    <div class="pageno">04 / 06</div>
+    <div class="kicker">ใครใช้ระบบนี้ · ใช้ยังไง</div>
+    <h2>3 ทางเข้า — จากนักศึกษาถึงผู้บริหาร</h2>
+    <div class="journey">
+      <div class="lane">
+        <div class="who">🎓 นักศึกษา / ผู้ยื่นคำร้อง</div>
+        <div class="how">ยื่นคำร้องผ่านพอร์ทัลหน่วยงาน → ระบบคัดกรอง/ตอบรับทันทีระดับ µs</div>
+        <div class="via"><span class="chip">REST API</span><span class="chip">POST /route</span></div>
+      </div>
+      <div class="lane">
+        <div class="who">🧑‍💼 เจ้าหน้าที่หน่วยงาน</div>
+        <div class="how">วางไฟล์งานลงโฟลเดอร์ → Kiro Hook route อัตโนมัติ · หรือเรียก MCP tools จาก Kiro IDE</div>
+        <div class="via"><span class="chip">Kiro Hook</span><span class="chip">Kiro IDE + MCP</span><span class="chip">CLI route</span></div>
+      </div>
+      <div class="lane">
+        <div class="who">👔 ผู้บริหาร / ผู้ตรวจสอบ</div>
+        <div class="how">ดู dashboard สรุปสถิติ + ตรวจ audit trail — re-run BLAKE3 ได้ผลเดิมเสมอ</div>
+        <div class="via"><span class="chip">GET /status</span><span class="chip">BLAKE3 audit</span></div>
+      </div>
+    </div>
+    <div class="jflow">
+      พอร์ทัล/ไฟล์งาน <span class="ar">→</span> <b class="k2">REST API / Hook</b>
+      <span class="ar">→</span> <b class="k2">Reflex Kernel</b>
+      <span class="ar">→</span> fast path (µs) <span class="slash">/</span> LLM path (Kiro MCP → Bedrock)
+      <span class="ar">→</span> <b class="a2">Audit trail</b>
+    </div>
+    <div class="foot">วันนี้: REST API + Hook + CLI รันได้จริง · ถัดไป: UI พอร์ทัล + dashboard ผู้บริหาร</div>
+  </section>
+
+  <!-- Slide 5 — Prototype / Demo (ฉาก 3-4) -->
+  <section class="slide">
+    <div class="pageno">05 / 06</div>
+    <div class="kicker">Prototype — ของจริง รันได้</div>
+    <h2>REST API ห่อ kernel: ส่งงาน → ได้ proof ทันที</h2>
+    <div class="term">
+      <div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>reflex-serve — live REST API (127.0.0.1:8787)</span></div>
+<pre>$ <span class="k">curl -X POST localhost:8787/route</span> -d <span class="m">'{</span>
+    <span class="m">"category":"ComplianceCheck",</span>
+    <span class="m">"input":"Review PDPA documents for Q3"}'</span>
+
+{
+  "route"        : <span class="c">"FastPath"</span>,
+  "fast_path"    : <span class="c">true</span>,
+  "kernel_us"    : <span class="c">3.46</span>,
+  "blake3_proof" : <span class="a">"f5a19715…3f6e8f51"</span>,
+  "token_cost"   : <span class="c">"0 tokens (deterministic — no LLM)"</span>,
+  "audit_note"   : <span class="a">"re-running yields the SAME proof"</span>
+}</pre>
+    </div>
+    <div class="foot">วัดสด · bind localhost เท่านั้น · ยังมี CLI <code>reflex-agent route</code> + Kiro Hook ทางเดียวกัน</div>
+  </section>
+
+  <!-- Slide 6 — Impact (ฉาก 5) -->
+  <section class="slide">
+    <div class="pageno">06 / 06</div>
+    <div class="kicker">คุณค่าต่อมหาวิทยาลัย</div>
+    <h2>ลดต้นทุน · เร็วขึ้น · ตรวจสอบได้</h2>
+    <div class="cards">
+      <div class="card c1"><div class="big">~80%</div>
+        <div class="lab">ลดต้นทุน</div>
+        <div class="sub">คัดงาน deterministic ออกจาก LLM ก่อน — ยิ่งงานเยอะยิ่งประหยัดเป็นสัดส่วน</div></div>
+      <div class="card c2"><div class="big">µs</div>
+        <div class="lab">เร็วขึ้น</div>
+        <div class="sub">งานทั่วไปตอบสนองระดับไมโครวินาที ไม่ติดคอขวดช่วงเปิดเทอม/ลงทะเบียน</div></div>
+      <div class="card c3"><div class="big">BLAKE3</div>
+        <div class="lab">ตรวจสอบได้</div>
+        <div class="sub">audit trail ที่ reproduce ได้ ตอบโจทย์ PDPA และการตรวจสอบธรรมาภิบาล</div></div>
+    </div>
+    <div style="margin-top:30px;color:var(--muted);font-size:clamp(14px,1.5vw,17px);max-width:900px;line-height:1.6">
+      ติดตั้งเป็น <b style="color:var(--ink)">service กลาง</b> ที่ทุกหน่วยงานเรียกใช้ซ้ำได้
+      ต่อยอดบน Amazon Bedrock ที่มหาวิทยาลัยมีอยู่แล้ว — ไม่ต้องตั้ง stack ใหม่
+    </div>
+    <div class="foot">Ratchapon (Ozone) · Napatsakorn &nbsp;·&nbsp; Built with Kiro + Amazon Bedrock</div>
+  </section>
+
+</div>
+</body>
+</html>
