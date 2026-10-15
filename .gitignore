@@ -55,3 +55,6 @@ submissions/.deploy-dist/
 
 # KiroCrew local settings
 .kiro/
+
+integrations/kernel-worker/node_modules/
+integrations/kernel-worker/.wrangler/
