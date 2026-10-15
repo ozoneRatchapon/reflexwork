@@ -45,6 +45,9 @@
   .ratio-track{height:14px;background:#e2e8f0;border-radius:999px;overflow:hidden}
   .ratio-fill{height:100%;background:linear-gradient(90deg,#22c58b,#16a34a);transition:width .6s ease}
   .ratio-note{font-size:11px;color:#94a3b8;margin-top:6px}
+  .dislist{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+  .dis{background:#eef2fb;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--accent);cursor:pointer}
+  .dis:hover{background:#e2e9fa;border-color:var(--accent)}
   .ask{display:flex;gap:10px}
   .ask input{flex:1;background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:13px 15px;font-size:15px;font-family:inherit}
   .ask button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:0 22px;font-weight:800;cursor:pointer;font-size:15px}
@@ -145,13 +148,14 @@ function search(q){
   const grams = new Set();
   for(const tok of ql.split(/\s+/)) if(tok.length>1) grams.add(tok);
   for(let i=0;i<ql.length-2;i++){ const g=ql.slice(i,i+3).trim(); if(g.length===3) grams.add(g); }
-  let best=null, bestScore=0;
+  const scored=[];
   for(const e of KB){
     let s=0; for(const g of grams){ if(e.keywords.includes(g)) s++; }
-    if(s>bestScore){ bestScore=s; best=e; }
+    if(s>0) scored.push({e, s});
   }
-  // require a few matching grams so unrelated questions escalate to AI
-  return bestScore>=3 ? best : null;
+  scored.sort((a,b)=>b.s-a.s);
+  // returns ranked list; ask() decides confident / ambiguous / escalate
+  return scored;
 }
 
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d); $('chat').scrollTop=1e9; }
@@ -165,7 +169,6 @@ function ask(){
   // not a keyword lookup. We show its actual decision + reproducible proof.
   const d=route_task('DataQuery', q, 2048, Number(128));
   const us=((performance.now()-t0)*1000).toFixed(0);
-  const hit = search(q);
   const complexity = (typeof d.gate_dim8_complexity==='number') ? d.gate_dim8_complexity.toFixed(3) : '—';
 
   // kernel decision strip — always shown, proves it's a decision engine not a search box
@@ -178,13 +181,34 @@ function ask(){
     <div class="proof-full">🔒 BLAKE3 proof: <code>${d.blake3_proof}</code><br>
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ proof เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
 
-  if(hit){
+  const ranked = search(q);
+  const top = ranked[0] || null;
+  const second = ranked[1] || null;
+  // 3-tier: confident (clear top), ambiguous (top weak OR 2nd close), escalate (nothing)
+  const confident = top && top.s >= 4 && (!second || top.s - second.s >= 2);
+  const ambiguous = top && !confident && top.s >= 2;
+
+  if(confident){
+    const hit = top.e;
     auto++; saved+=COST;
     const src = hit.source_url ? `<span class="src">📎 ที่มา: <a href="${hit.source_url}" target="_blank">FAQ ทางการ บัณฑิตวิทยาลัย</a></span>` : '';
     add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI</span>
       <b>${hit.title}</b><br>${hit.answer||'(ดูรายละเอียดในแหล่งอ้างอิง)'}${src}
       ${fbUI(q, d.blake3_proof)}`);
+  } else if(ambiguous){
+    // not sure which — maybe a typo or vague. Offer the closest matches to pick.
+    auto++;
+    const opts = ranked.slice(0,3).map(r=>`<span class="dis" data-t="${r.e.title.replace(/"/g,'&quot;')}">${r.e.title}</span>`).join('');
+    const mid='dis'+(++fbN);
+    add('b', `${kstrip}
+      <span class="route auto" style="background:#fff7ed;color:#d97706">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย</span>
+      <div>คุณอาจหมายถึง (เผื่อพิมพ์คำไม่ครบ/คลุมเครือ):</div>
+      <div class="dislist" id="${mid}">${opts}</div>
+      <div class="meta">หรือถ้าไม่ใช่ทั้งหมด พิมพ์ใหม่ให้ชัดขึ้น — ระบบจะส่งให้ AI ช่วย</div>`);
+    document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
+      $('q').value = el.dataset.t; ask();
+    }));
   } else {
     ai++;
     const mid = 'llm'+(++fbN);
