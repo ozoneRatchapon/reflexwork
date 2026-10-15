@@ -115,6 +115,9 @@ async function ensureSchema(env) {
   await env.DB.exec(
     "CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, category TEXT, route TEXT, fast INTEGER, kernel_us REAL, proof TEXT);"
   );
+  await env.DB.exec(
+    "CREATE TABLE IF NOT EXISTS feedback_log (proof TEXT PRIMARY KEY, reward REAL, at INTEGER);"
+  );
 }
 
 async function bump(env, key, by = 1) {
@@ -154,6 +157,18 @@ async function feedback(request, env) {
   const input = String(body.input || '').trim();
   if (!input) return json({ error: 'input required' }, 400);
   const reward = Math.max(-1, Math.min(1, Number(body.reward) || 0));
+  // per-answer dedup: a given answer (identified by its BLAKE3 proof) counts once.
+  const proof = String(body.proof || '').slice(0, 64);
+  if (proof) {
+    const seen = await env.DB.prepare("SELECT 1 FROM feedback_log WHERE proof=?1").bind(proof).first();
+    if (seen) {
+      const cur = await env.DB.prepare("SELECT v FROM metrics WHERE k='policy_version'").first();
+      return json({ accepted: false, deduped: true, policy_version: cur ? cur.v : 1,
+        note: 'feedback already recorded for this answer' });
+    }
+    await env.DB.prepare("INSERT INTO feedback_log (proof, reward, at) VALUES (?1,?2,?3)")
+      .bind(proof, reward, Date.now()).run();
+  }
   await bump(env, 'feedback_count');
   await bump(env, reward >= 0 ? 'feedback_up' : 'feedback_down');
   await bump(env, 'policy_version');
