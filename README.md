@@ -25,146 +25,76 @@
 
 ---
 
-**Hackathon submissions:**
-- Mahidol AI Community 2026 — AI Adoption with Kiro (MUIT × AWS, Oct 17)
-- Colosseum World's Fair — Solana Global Hackathon (Oct 12)
-- Superteam Thailand — AI × Solana, Agentic Payments & MCP Track (Oct 12)
+**Submission:** Mahidol AI Community 2026 — AI Adoption with Kiro (MUIT × AWS, Oct 17)
+_A Solana-settlement variant (Colosseum / Superteam Thailand) is preserved in [`docs/solana-submission.md`](docs/solana-submission.md)._
 
 ---
 
-## Architecture
+## Architecture (Mahidol — edge, no chain)
 
 ```
-[Kiro Hook / Trigger]
-       │
+LINE webhook / web pages
+       │  POST /route
        ▼
-[System 1: Reflex Kernel (Rust)]   ← 14–51µs, zero token cost
-  sigmoid gate → route decision
-  BLAKE3 state attestation
-       │              │
-   LLM path       Fast path
-       │              │
-       ▼              ▼
-[System 2: MCP / Kiro]   [System 3: Solana Anchor]
-  analyze_task             submit_execution_proof()
-  synthesize_document      settle_bounty()
-  draft_workflow           WorkflowEscrow PDA
+[Reflex Kernel]  ← ~12 ns · sigmoid gate θ=0.72 · BLAKE3 proof · 0 token on fast path
+   │                     │
+ Fast path            LLM path
+   │                     │
+   ▼                     ▼
+answer from KB      Gemini (via LLM proxy)
+   │
+   ▼
+D1 (metrics · audit · feedback — persistent)
 ```
 
----
+The same Rust kernel runs two ways, bit-for-bit identical:
+- **in the browser** compiled to WebAssembly (`crates/reflex-wasm`) — zero backend
+- **at the edge** as a Cloudflare Worker (`integrations/kernel-worker`) — with D1 persistence
 
-## Project Structure
+## Project structure (key parts)
 
 ```
 ReflexWork/
-├── Cargo.toml                     # Rust workspace
-├── Anchor.toml                    # Anchor workspace
-├── programs/
-│   └── workflow-escrow/           # Solana Anchor program (System 3)
-│       ├── Cargo.toml
-│       └── src/lib.rs
 ├── crates/
-│   └── reflex-kernel/             # Modelless Reflex Engine (System 1)
-│       ├── Cargo.toml
-│       ├── src/
-│       │   ├── lib.rs
-│       │   ├── types.rs           # TaskSpec, TaskCategory
-│       │   ├── policy.rs          # Sigmoid gate, softmax, EMA
-│       │   ├── attestation.rs     # BLAKE3 StateAttestation
-│       │   ├── encoder.rs         # FeatureEncoder (64-dim)
-│       │   ├── budget.rs          # BudgetController
-│       │   ├── error.rs           # KernelError
-│       │   ├── config.rs          # KernelConfig (TOML)
-│       │   ├── mcp.rs             # McpClient (JSON-RPC stub)
-│       │   ├── solana.rs          # AnchorClient (stub)
-│       │   └── main.rs            # reflex-agent binary
-│       └── benches/
-│           └── policy_routing.rs  # Criterion benchmarks
-├── mcp-server/                    # TypeScript MCP Server (System 2)
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── src/
-│       ├── index.ts               # Server entrypoint
-│       └── tools/
-│           ├── definitions.ts     # Tool schema registry
-│           ├── analyze-task.ts    # → Amazon Bedrock
-│           ├── synthesize-document.ts
-│           ├── query-knowledge-base.ts
-│           ├── draft-workflow.ts
-│           └── attest-and-submit.ts
-├── .kiro/
-│   ├── hooks/
-│   │   ├── on-task-created.json   # Trigger: new task file
-│   │   └── on-proof-ready.json    # Trigger: attestation ready
-│   └── settings.json              # MCP server registration
-└── specs/
-    ├── 01-system-topology.md
-    ├── 02-reflex-engine.md
-    ├── 03-anchor-program.md
-    └── 04-mcp-tool-interface.md
+│   ├── reflex-kernel/        # the kernel: sigmoid gate, softmax, EMA, BLAKE3, encoder
+│   └── reflex-wasm/          # kernel compiled to WASM for the browser
+├── submissions/ui/           # the 4 demo pages (served on Cloudflare Pages)
+│   ├── index.html            # landing
+│   ├── try.html  chatbot.html  student-desk.html  dashboard.html
+│   ├── knowledge-public/     # 49 approved FAQ entries (our own, from the official public FAQ)
+│   └── build_knowledge_index.py  # approval-gated index builder (--all for dev)
+├── integrations/
+│   ├── kernel-worker/        # kernel API on Cloudflare Workers + D1
+│   ├── llm-proxy/            # Gemini proxy (API key = Worker secret)
+│   ├── line-worker/          # LINE webhook → kernel (service binding)
+│   └── line/                 # LINE adapter PoC (node)
+└── submissions/              # slides, concept paper, demo video script
 ```
 
----
-
-## Quick Start
-
-### Prerequisites
-- Rust 1.81+ (`rustup update stable`)
-- Solana CLI 1.18+ (`sh -c "$(curl -sSfL https://release.solana.com/stable/install)"`)
-- Anchor CLI 0.30.1 (`cargo install --git https://github.com/coral-xyz/anchor avm && avm install 0.30.1`)
-- Node.js 20+ (for MCP server)
-
-### 1. Build the Reflex Kernel
+## Run / deploy (all free tier)
 
 ```bash
-cargo build --release -p reflex-kernel
+# kernel locally (optional — the browser WASM needs no backend)
+cargo build --release --bin reflex-serve && PORT=8787 ./target/release/reflex-serve
+
+# kernel at the edge + D1
+cd integrations/kernel-worker && npx wrangler deploy
+#   (D1 bound in wrangler.toml; create with: npx wrangler d1 create reflexwork)
+
+# LLM proxy — set the key as a secret, never in code:
+cd integrations/llm-proxy && npx wrangler deploy
+echo "YOUR_GEMINI_KEY" | npx wrangler secret put GEMINI_API_KEY
+
+# the demo pages
+npx wrangler pages deploy submissions/ui --project-name=reflexwork
 ```
 
-### 2. Run Benchmarks
+## Performance
 
-```bash
-cargo bench --bench policy_routing
-```
-
-### 3. Build the Anchor Program
-
-```bash
-anchor build
-```
-
-### 4. Deploy to Devnet
-
-```bash
-solana config set --url devnet
-solana airdrop 2
-anchor deploy
-```
-
-### 5. Build & Start the MCP Server
-
-```bash
-cd mcp-server
-npm install
-npm run build
-npm start
-```
-
-### 6. Register your Agent
-
-```bash
-./target/release/reflex-agent register-agent
-```
-
----
-
-## Key Performance Targets
-
-| Path | Latency | Cost |
-|------|---------|------|
-| Fast path (S1 → S3 only) | ≤ 51 µs (kernel) + ~200ms (Solana) | Zero tokens |
-| LLM path (S1 → S2 → S3) | ~350–800ms (MCP) + ~200ms (Solana) | Budgeted tokens |
-
----
+| Path | Latency | Token cost |
+|------|---------|------------|
+| Fast path (answered by kernel) | ~µs (browser/edge) | 0 |
+| LLM path (escalated to Gemini) | ~hundreds of ms | budgeted |
 
 ## License
 
