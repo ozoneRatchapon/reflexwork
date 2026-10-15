@@ -1,0 +1,11 @@
+name = "reflexwork-line"
+main = "worker.mjs"
+compatibility_date = "2026-01-01"
+
+# Secrets (set after deploy, never in this file):
+#   echo "<channel access token>" | npx wrangler secret put LINE_CHANNEL_ACCESS_TOKEN
+#   echo "<channel secret>"       | npx wrangler secret put LINE_CHANNEL_SECRET
+
+[[services]]
+binding = "KERNEL"
+service = "reflexwork-kernel"
