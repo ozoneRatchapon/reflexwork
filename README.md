@@ -23,6 +23,8 @@
 
 **สถาปัตยกรรม live (ทั้งหมดฟรี):** LINE/เว็บ → kernel Worker (+D1 persist) → FastPath ตอบจาก KB / LLM path → Gemini proxy. โค้ด integration อยู่ใน `integrations/` (kernel-worker, llm-proxy, line-worker, line).
 
+**📑 เอกสารนำเสนอ:** [สไลด์ (11 หน้า)](https://reflexwork.pages.dev/slides.html) · [Concept paper](submissions/concept-paper.md) · [สคริปต์วิดีโอ demo](submissions/demo-video-script.md)
+
 ---
 
 **Submission:** Mahidol AI Community 2026 — AI Adoption with Kiro (MUIT × AWS, Oct 17)
