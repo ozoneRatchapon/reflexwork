@@ -17,7 +17,13 @@ const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
 
 async function verify(bodyRaw, signature, secret) {
-  if (!secret) return true; // allow local/PoC when unset
+  if (!secret) {
+    // PoC/local only. If a real LINE signature is present, this means the
+    // deployment forgot to set LINE_CHANNEL_SECRET — warn loudly, still accept
+    // so the PoC runs, but production MUST set the secret.
+    if (signature) console.log('⚠ LINE signature present but LINE_CHANNEL_SECRET not set — set it in production');
+    return true;
+  }
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
