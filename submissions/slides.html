@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReflexWork — Slides (8)</title>
+<title>ReflexWork — Slides (9)</title>
 <style>
   :root{
     --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
@@ -119,6 +119,21 @@
   .tier .d{color:var(--muted);font-size:clamp(13px,1.35vw,15px);line-height:1.6}
   .tier .d b{color:var(--ink)}
   @media (max-width:760px){.dash{grid-template-columns:1fr}.tiers{grid-template-columns:1fr}}
+
+  /* positioning: screening layer */
+  .layer{display:flex;flex-direction:column;gap:14px;max-width:1000px;margin-top:8px}
+  .layer .row{display:flex;align-items:center;gap:16px}
+  .layer .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;flex:1}
+  .layer .box .t{font-weight:700;font-size:clamp(15px,1.7vw,20px)}
+  .layer .box .d{color:var(--muted);font-size:clamp(12px,1.3vw,15px);margin-top:4px}
+  .layer .box.front{border-color:var(--accent)} .layer .box.front .t{color:var(--accent)}
+  .layer .box.kern{border-color:var(--fast)} .layer .box.kern .t{color:var(--fast)}
+  .layer .arrow2{align-self:center;color:var(--muted);font-size:22px}
+  .layer .split2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .layer .box.fastb{border-color:var(--fast)} .layer .box.llmb{border-color:var(--llm)}
+  .plug{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .plug span{background:#0f1730;border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:13px;color:var(--muted)}
+  @media (max-width:760px){.layer .split2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -126,7 +141,7 @@
 
   <!-- Slide 1 — Title (ฉาก 1) -->
   <section class="slide">
-    <div class="pageno">01 / 08</div>
+    <div class="pageno">01 / 09</div>
     <div class="kicker">Mahidol AI Community 2026 · AI Adoption with Kiro</div>
     <h1>ReflexWork
       <span class="sub">คัดงานด้วย <b>reflex</b> ก่อน เรียก AI เฉพาะที่จำเป็น<br/>
@@ -142,7 +157,7 @@
 
   <!-- Slide 2 — Problem (ฉาก 1 ต่อ) -->
   <section class="slide">
-    <div class="pageno">02 / 08</div>
+    <div class="pageno">02 / 09</div>
     <div class="kicker">ปัญหา</div>
     <h2>"เรียก LLM ทุกครั้ง" — แพง ช้า ตรวจสอบไม่ได้</h2>
     <div class="probs">
@@ -158,7 +173,7 @@
 
   <!-- Slide 3 — Architecture (ฉาก 2) -->
   <section class="slide">
-    <div class="pageno">03 / 08</div>
+    <div class="pageno">03 / 09</div>
     <div class="kicker">สถาปัตยกรรม 3 ชั้น + Kiro</div>
     <h2>คัดกรองก่อน แล้วค่อยจ่ายค่า AI</h2>
     <div class="flow">
@@ -183,7 +198,7 @@
 
   <!-- Slide 4 — In-browser WASM demo (จุดขายใหญ่: zero-backend) -->
   <section class="slide">
-    <div class="pageno">04 / 08</div>
+    <div class="pageno">04 / 09</div>
     <div class="kicker">ลองได้ทันที · ไม่ต้องติดตั้งอะไร</div>
     <h2>Reflex Kernel ตัวจริง รันในเบราว์เซอร์ (WebAssembly)</h2>
     <div class="wasm">
@@ -215,7 +230,7 @@
 
   <!-- Slide 5 — User Journey (ใครใช้ยังไง) -->
   <section class="slide">
-    <div class="pageno">05 / 08</div>
+    <div class="pageno">05 / 09</div>
     <div class="kicker">ใครใช้ระบบนี้ · ใช้ยังไง</div>
     <h2>3 ทางเข้า — จากนักศึกษาถึงผู้บริหาร</h2>
     <div class="journey">
@@ -246,7 +261,7 @@
 
   <!-- Slide 6 — Executive Dashboard -->
   <section class="slide">
-    <div class="pageno">06 / 08</div>
+    <div class="pageno">06 / 09</div>
     <div class="kicker">สำหรับผู้บริหาร / ผู้ตรวจสอบ</div>
     <h2>Dashboard: เห็นสัดส่วน fast/LLM + audit trail แบบสด</h2>
     <div class="dash">
@@ -272,9 +287,36 @@
     <div class="foot">dashboard.html · ดึงจาก GET /status + /audit ของ reflex-serve แบบ real-time</div>
   </section>
 
-  <!-- Slide 7 — Prototype / Demo (ฉาก 3-4) -->
+  <!-- Slide 7 — Positioning: screening layer -->
   <section class="slide">
-    <div class="pageno">07 / 08</div>
+    <div class="pageno">07 / 09</div>
+    <div class="kicker">จุดยืน · ไม่ได้มาแทน แต่มาเสริม</div>
+    <h2>ReflexWork = ชั้นคัดกรอง เสียบหน้าระบบใครก็ได้</h2>
+    <div class="layer">
+      <div class="box front"><div class="t">LINE · เว็บ · แอป · ระบบของทีมอื่น</div>
+        <div class="d">ข้อความ/คำร้องเข้ามาจากช่องทางที่มีอยู่แล้ว — ไม่ต้องเปลี่ยนระบบ</div></div>
+      <div class="arrow2">↓ POST /route</div>
+      <div class="box kern"><div class="t">🦀 Reflex Kernel — คัดใน ~12 ns</div>
+        <div class="d">ตัดสิน FastPath / LLM + ผนึก BLAKE3 ก่อนจ่ายค่า AI</div></div>
+      <div class="arrow2">↓</div>
+      <div class="split2">
+        <div class="box fastb"><div class="t" style="color:var(--fast)">FastPath</div>
+          <div class="d">ตอบจาก KB ทันที · 0 token</div></div>
+        <div class="box llmb"><div class="t" style="color:var(--llm)">LLM path</div>
+          <div class="d">ส่งต่อ LLM ของทีมนั้น (Gemini/Bedrock/OpenRouter)</div></div>
+      </div>
+    </div>
+    <div class="plug">
+      <span>🔌 เสียบ KB ของทีมได้</span>
+      <span>🔌 เสียบ LLM ของทีมได้</span>
+      <span>✅ PoC: LINE adapter มีแล้ว (integrations/line)</span>
+    </div>
+    <div class="foot">ไม่แข่งกับระบบที่มี — เราคือชั้นที่ทำให้ระบบเดิม <b>ถูกลง ~80% + ตรวจสอบได้</b></div>
+  </section>
+
+  <!-- Slide 8 — Prototype / Demo (ฉาก 3-4) -->
+  <section class="slide">
+    <div class="pageno">08 / 09</div>
     <div class="kicker">Prototype — ของจริง รันได้</div>
     <h2>REST API ห่อ kernel: ส่งงาน → ได้ proof ทันที</h2>
     <div class="term">
@@ -297,7 +339,7 @@
 
   <!-- Slide 8 — Impact + Roadmap (ฉาก 5) -->
   <section class="slide">
-    <div class="pageno">08 / 08</div>
+    <div class="pageno">09 / 09</div>
     <div class="kicker">คุณค่าต่อมหาวิทยาลัย · ทิศทางต่อไป</div>
     <h2>ลดต้นทุน · เร็วขึ้น · ตรวจสอบได้</h2>
     <div class="cards">
