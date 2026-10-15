@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ระบบรับคำร้องนักศึกษา — ReflexWork</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#ffffff; --ink:#1a2238; --muted:#5a6782;
+    --accent:#3b63e8; --auto:#16a34a; --ai:#d97706; --staff:#9333ea; --line:#e3e8f2;
+    --autobg:#eafaf0; --aibg:#fef6e7; --staffbg:#f6edff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;line-height:1.55}
+  .top{background:linear-gradient(120deg,#3b63e8,#6b4fe8);color:#fff;padding:30px 6vw 26px}
+  .top .org{opacity:.85;font-size:13px;letter-spacing:.04em}
+  .top h1{font-size:clamp(22px,3.2vw,32px);margin:6px 0 4px}
+  .top p{opacity:.9;font-size:clamp(14px,1.6vw,16px)}
+  .wrap{max-width:900px;margin:-14px auto 40px;padding:0 5vw;display:grid;gap:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 6px 24px rgba(26,34,56,.05)}
+  .card h2{font-size:17px;margin-bottom:4px}
+  .card .cap{color:var(--muted);font-size:13px;margin-bottom:16px}
+  label{display:block;font-weight:700;margin-bottom:8px;font-size:14px}
+  select,textarea{width:100%;background:#fbfcfe;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit}
+  textarea{min-height:84px;resize:vertical}
+  .quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .q{background:#eef2fb;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--accent);cursor:pointer}
+  .q:hover{background:#e2e9fa}
+  button.go{margin-top:18px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+  button.go:disabled{opacity:.5;cursor:wait}
+  .out{display:none} .out.show{display:block}
+  .outcome{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:14px;margin-bottom:16px}
+  .outcome.auto{background:var(--autobg);border:1px solid var(--auto)}
+  .outcome.ai{background:var(--aibg);border:1px solid var(--ai)}
+  .outcome.staff{background:var(--staffbg);border:1px solid var(--staff)}
+  .outcome .ic{font-size:30px;line-height:1}
+  .outcome .ti{font-weight:800;font-size:clamp(16px,2vw,20px)}
+  .outcome.auto .ti{color:var(--auto)} .outcome.ai .ti{color:var(--ai)} .outcome.staff .ti{color:var(--staff)}
+  .outcome .de{color:var(--muted);font-size:14px;margin-top:3px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .stat{background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .stat .n{font-size:clamp(18px,2.4vw,24px);font-weight:800}
+  .stat .l{color:var(--muted);font-size:12px;margin-top:3px}
+  .trust{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;padding-top:4px;border-top:1px dashed var(--line);margin-top:4px;padding-top:12px}
+  .trust code{background:#eef2fb;border-radius:6px;padding:1px 7px;font-size:12px;color:var(--staff)}
+  .ledger h2{margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  .tag{padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+  .tag.auto{background:var(--autobg);color:var(--auto)} .tag.ai{background:var(--aibg);color:var(--ai)} .tag.staff{background:var(--staffbg);color:var(--staff)}
+  .empty{color:var(--muted);text-align:center;padding:22px}
+  .wasmnote{font-size:12px;color:var(--muted);text-align:center;padding:4px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="org">มหาวิทยาลัยมหิดล · ระบบงานหน่วยทะเบียน (ตัวอย่าง)</div>
+  <h1>ระบบรับคำร้องนักศึกษาอัจฉริยะ</h1>
+  <p>นักศึกษาส่งคำร้อง → ระบบคัดให้ทันที ว่าเรื่องไหนตอบเองได้ เรื่องไหนให้ AI ช่วย เรื่องไหนส่งเจ้าหน้าที่</p>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h2>📝 ยื่นคำร้อง</h2>
+    <div class="cap">ลองพิมพ์คำร้องแบบที่นักศึกษาเขียนจริง แล้วกดส่ง — ดูว่าระบบจัดการให้ยังไง</div>
+    <label for="type">ประเภทคำร้อง</label>
+    <select id="type">
+      <option value="status">ตรวจสอบสถานะคำร้อง / นับเรื่องค้าง</option>
+      <option value="cert">ขอใบรับรอง / เอกสารมาตรฐาน</option>
+      <option value="leave">แจ้งลา / ขอเลื่อนสอบ (มีเงื่อนไข)</option>
+      <option value="complaint">ร้องเรียน / เรื่องซับซ้อนต้องวิเคราะห์</option>
+      <option value="appeal">อุทธรณ์ / เขียนบรรยายยาว ขอให้ช่วยสรุป</option>
+    </select>
+    <label for="msg" style="margin-top:14px">รายละเอียดคำร้อง</label>
+    <textarea id="msg">ขอตรวจสอบสถานะคำร้องขอใบรับรองที่ยื่นไว้เมื่อสัปดาห์ที่แล้ว</textarea>
+    <div class="quick">
+      <span class="q" data-t="status">เช็กสถานะคำร้องที่ยื่นไว้</span>
+      <span class="q" data-t="cert">ขอใบรับรองการเป็นนักศึกษา</span>
+      <span class="q" data-t="leave">ขอลาป่วยและเลื่อนสอบกลางภาค</span>
+      <span class="q" data-t="appeal">อุทธรณ์ผลการพิจารณา (เรื่องยาว)</span>
+    </div>
+    <button class="go" id="go" disabled>ส่งคำร้อง</button>
+  </div>
+
+  <div class="card out" id="out">
+    <div id="outcome"></div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="s-time">—</div><div class="l">เวลาที่ระบบใช้ตัดสิน</div></div>
+      <div class="stat"><div class="n" id="s-cost">—</div><div class="l">ค่า AI ที่ประหยัด</div></div>
+      <div class="stat"><div class="n" id="s-wait">—</div><div class="l">เวลารอของนักศึกษา</div></div>
+    </div>
+    <div class="trust">🔒 เรื่องนี้มีหลักฐานตรวจสอบย้อนหลังได้ (reference <code id="t-proof">—</code>) — ผู้บริหาร/ผู้ตรวจสอบดูได้ว่าตัดสินด้วยอะไร</div>
+  </div>
+
+  <div class="card ledger">
+    <h2>📋 สิ่งที่เกิดขึ้นวันนี้ (มุมมองหัวหน้างาน)</h2>
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat"><div class="n" id="k-total" style="color:var(--accent)">0</div><div class="l">คำร้องทั้งหมด</div></div>
+      <div class="stat"><div class="n" id="k-auto" style="color:var(--auto)">0</div><div class="l">ระบบจัดการเอง</div></div>
+      <div class="stat"><div class="n" id="k-saved" style="color:var(--auto)">฿0</div><div class="l">ประหยัดค่า AI รวม</div></div>
+    </div>
+    <table>
+      <thead><tr><th>เวลา</th><th>คำร้อง</th><th>ผลการจัดการ</th><th>ตรวจสอบ</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="4" class="empty">ยังไม่มีคำร้อง — ลองส่งด้านบน</td></tr></tbody>
+    </table>
+  </div>
+  <div class="wasmnote" id="wasmnote">⏳ กำลังโหลดเครื่องมือ…</div>
+</div>
+
+<script type="module">
+import init, { route_task } from './wasm/reflex_wasm.js';
+const $ = id => document.getElementById(id);
+let ready=false, total=0, autoCount=0, saved=0;
+const LLM_COST_BAHT = 2; // สมมติค่า LLM ต่อครั้ง ~2 บาท เพื่อให้เห็นภาพ
+
+// map ประเภทคำร้อง (ภาษาคน) → TaskCategory + ข้อความ default
+const MAP = {
+  status:    { cat:'DataQuery',             sample:'ขอตรวจสอบสถานะคำร้องที่ยื่นไว้เมื่อสัปดาห์ที่แล้ว' },
+  cert:      { cat:'ComplianceCheck',       sample:'ขอใบรับรองการเป็นนักศึกษาเพื่อยื่นกู้ยืม' },
+  leave:     { cat:'WorkflowOrchestration', sample:'ขอลาป่วยสามวันและขอเลื่อนสอบกลางภาควิชาแคลคูลัส' },
+  complaint: { cat:'Research',              sample:'ขอร้องเรียนเรื่องการจัดตารางสอบปลายภาคที่ซ้อนทับกันหลายวิชาในวันเดียว ทำให้นักศึกษาหลายคนไม่สามารถเข้าสอบได้ครบ จึงขอให้คณะพิจารณาทบทวนแนวทางการจัดตารางและเสนอทางเลือกในการสอบชดเชยที่เป็นธรรมกับทุกฝ่ายอย่างเร่งด่วน' },
+  appeal:    { cat:'DocumentParse',         sample:'ขออุทธรณ์ผลการพิจารณาทุนการศึกษาประจำปีนี้ โดยขอชี้แจงว่าข้าพเจ้ามีเหตุจำเป็นทางครอบครัวที่กระทบต่อผลการเรียนในภาคที่ผ่านมา พร้อมแนบเอกสารรายได้ครอบครัว ใบรับรองแพทย์ และหนังสือรับรองจากอาจารย์ที่ปรึกษา จึงขอความกรุณาให้คณะกรรมการทบทวนการพิจารณาอีกครั้งโดยละเอียด' },
+};
+
+// route (technical) → ผลลัพธ์ภาษาคน
+function humanize(route){
+  if(route==='FastPath') return {cls:'auto', ic:'✅', ti:'ระบบจัดการให้อัตโนมัติทันที',
+    de:'คำร้องนี้ตัดสินด้วยกฎได้เลย ไม่ต้องรอเจ้าหน้าที่ ไม่เสียค่า AI', kind:'auto', wait:'ทันที'};
+  if(route==='Rejected') return {cls:'staff', ic:'📨', ti:'ส่งต่อเจ้าหน้าที่พิจารณา',
+    de:'เรื่องนี้ต้องใช้ดุลยพินิจคน ระบบส่งต่อให้เจ้าหน้าที่พร้อมข้อมูลครบ', kind:'staff', wait:'ในวันทำการ'};
+  return {cls:'ai', ic:'🤖', ti:'ให้ AI ช่วยร่าง/วิเคราะห์',
+    de:'เรื่องนี้ซับซ้อน ระบบใช้ AI (Kiro + Amazon Bedrock) ช่วยสรุปก่อนเสนอเจ้าหน้าที่', kind:'ai', wait:'ไม่กี่วินาที'};
+}
+
+(async()=>{ try{ await init(); ready=true; $('go').disabled=false;
+  $('wasmnote').textContent='⚙️ ขับเคลื่อนด้วย Reflex Kernel (Rust→WebAssembly) ทำงานในเบราว์เซอร์คุณ 100% ไม่ส่งข้อมูลออก';
+}catch(e){ $('wasmnote').textContent='⚠ โหลดเครื่องมือไม่ได้ (ต้องเปิดผ่าน http)'; }})();
+
+$('type').addEventListener('change', ()=>{ $('msg').value = MAP[$('type').value].sample; });
+document.querySelectorAll('.q').forEach(q=>q.addEventListener('click',()=>{
+  $('type').value=q.dataset.t; $('msg').value=q.textContent;
+}));
+
+$('go').addEventListener('click', ()=>{
+  if(!ready) return;
+  const type=$('type').value, msg=$('msg').value;
+  const cat=MAP[type].cat;
+  const t0=performance.now();
+  const d=route_task(cat, msg, 2048, 128);
+  const us=((performance.now()-t0)*1000).toFixed(0);
+  const h=humanize(d.route);
+
+  $('out').classList.add('show');
+  $('outcome').innerHTML=`<div class="outcome ${h.cls}"><div class="ic">${h.ic}</div>
+    <div><div class="ti">${h.ti}</div><div class="de">${h.de}</div></div></div>`;
+  $('s-time').textContent = us+' µs';
+  $('s-cost').textContent = h.kind==='auto' ? '฿'+LLM_COST_BAHT.toFixed(2) : '฿0';
+  $('s-wait').textContent = h.wait;
+  $('t-proof').textContent = d.blake3_proof.slice(0,12)+'…';
+
+  // ledger
+  total++; if(h.kind==='auto'){ autoCount++; saved+=LLM_COST_BAHT; }
+  $('k-total').textContent=total; $('k-auto').textContent=autoCount; $('k-saved').textContent='฿'+saved.toFixed(0);
+  const now=new Date().toLocaleTimeString('th-TH',{hour12:false});
+  const label={status:'เช็กสถานะ',cert:'ขอใบรับรอง',leave:'ลา/เลื่อนสอบ',complaint:'ร้องเรียน',appeal:'อุทธรณ์'}[type];
+  const tag=`<span class="tag ${h.cls}">${h.kind==='auto'?'อัตโนมัติ':h.kind==='ai'?'AI ช่วย':'ส่งเจ้าหน้าที่'}</span>`;
+  const row=`<tr><td>${now}</td><td>${label}</td><td>${tag}</td><td style="color:var(--staff);font-family:ui-monospace">${d.blake3_proof.slice(0,8)}…</td></tr>`;
+  const body=$('rows'); if(body.querySelector('.empty')) body.innerHTML='';
+  body.insertAdjacentHTML('afterbegin', row);
+});
+</script>
+</body>
+</html>
