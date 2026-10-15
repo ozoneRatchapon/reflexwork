@@ -248,6 +248,85 @@ async fn route(
     }
 }
 
+// ─── Feedback (self-learning: 👍/👎 → EMA weight update) ──────────────────────
+
+#[derive(Debug, Deserialize)]
+struct FeedbackRequest {
+    category: Option<String>,
+    input: String,
+    /// Reward signal: +1.0 for 👍 (answer was good), -1.0 for 👎 (answer was wrong).
+    reward: f32,
+}
+
+#[derive(Debug, Serialize)]
+struct FeedbackResponse {
+    accepted: bool,
+    /// Policy version AFTER the update — increments on every applied feedback.
+    policy_version: u32,
+    note: String,
+}
+
+/// Apply user feedback to the policy via EMA. A 👍 on a FastPath answer
+/// reinforces keeping similar tasks on the fast (zero-token) path; a 👎 nudges
+/// the gate toward escalating similar tasks to the LLM. This is the loop that
+/// makes the kernel learn which questions genuinely need AI.
+async fn feedback(
+    State(st): State<AppState>,
+    Json(req): Json<FeedbackRequest>,
+) -> impl IntoResponse {
+    if req.input.trim().is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse { error: "field `input` must not be empty".into() }),
+        )
+            .into_response();
+    }
+    let reward = req.reward.clamp(-1.0, 1.0);
+    let category = parse_category(req.category.as_deref());
+    let context_tags: Vec<String> = req
+        .input
+        .split_whitespace()
+        .take(5)
+        .map(|s| s.to_lowercase())
+        .collect();
+    let task = TaskSpec {
+        id: Uuid::new_v4(),
+        category,
+        raw_input: req.input.clone(),
+        token_budget: 2048,
+        deadline_unix_ns: 0,
+        priority: 128,
+        context_tags,
+        requester_pubkey: None,
+        workflow_id: None,
+    };
+
+    match st.kernel.encoder.encode(&task) {
+        Ok(x) => {
+            let version = {
+                let mut p = st.kernel.policy.lock().await;
+                p.ema_update(&x, reward);
+                p.version
+            };
+            info!(reward, policy_version = version, "feedback applied → EMA update");
+            Json(FeedbackResponse {
+                accepted: true,
+                policy_version: version,
+                note: "policy updated via EMA; the gate adapts to this feedback".into(),
+            })
+            .into_response()
+        }
+        Err(e) => {
+            warn!("feedback encode failed: {e}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse { error: format!("encode error: {e}") }),
+            )
+                .into_response()
+        }
+    }
+}
+
 // ─── Entrypoint ──────────────────────────────────────────────────────────────
 
 #[tokio::main]
@@ -272,6 +351,7 @@ async fn main() {
         .route("/status", get(status))
         .route("/audit", get(audit))
         .route("/route", post(route))
+        .route("/feedback", post(feedback))
         .layer(CorsLayer::permissive())
         .with_state(state);
 
@@ -287,7 +367,7 @@ async fn main() {
         .unwrap_or_else(|e| panic!("failed to bind {addr}: {e}"));
 
     info!("reflex-serve listening on http://{addr}");
-    info!("  GET  /health   GET /status   POST /route");
+    info!("  GET  /health   GET /status   POST /route   POST /feedback");
 
     axum::serve(listener, app)
         .await
