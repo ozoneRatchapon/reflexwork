@@ -51,6 +51,9 @@
   .ask button:disabled{opacity:.5}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{background:#eef2fb;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;color:var(--accent);cursor:pointer}
+  .chip-hint{width:100%;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .chip-fast{background:#eafaf0;border-color:#16a34a;color:#16a34a}
+  .chip-ai{background:#fef6e7;border-color:#d97706;color:#d97706}
   .bar{display:flex;gap:16px;font-size:13px;color:var(--muted);justify-content:center;padding:4px}
   .bar b{color:var(--ink)}
   .note{font-size:12px;color:var(--muted);text-align:center}
@@ -106,9 +109,19 @@ async function load(){
   if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
   ready=true; $('q').disabled=false; $('send').disabled=false;
   $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ทำงานในเบราว์เซอร์ 100%';
-  const seeds=['ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร','บทคัดย่อส่งยังไง','เปลี่ยนชื่อวิทยานิพนธ์ได้ไหม'];
-  $('chips').innerHTML = seeds.map(s=>`<span class="chip">${s}</span>`).join('');
-  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{$('q').value=c.textContent; ask();}));
+  const seeds=[
+    {t:'ส่งรูปเล่มภายในกี่วัน', k:'f'},
+    {t:'Turnitin เกิน 25% ทำอย่างไร', k:'f'},
+    {t:'ค่าสอบ MU GRAD Plus เท่าไร', k:'f'},
+    {t:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์', k:'a'},
+    {t:'ช่วยร่างอีเมลขอเลื่อนสอบให้อาจารย์', k:'a'},
+  ];
+  $('chips').innerHTML =
+    '<div class="chip-hint">ลองกดดู — 🟢 ตอบเองทันที (0 token) · 🟠 ส่งให้ AI</div>' +
+    seeds.map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}">${s.k==='a'?'🟠':'🟢'} ${s.t}</span>`).join('');
+  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+    $('q').value=c.textContent.replace(/^[🟢🟠]\s*/,''); ask();
+  }));
 }
 load().catch(()=>{ $('note').textContent='⚠ ต้องเปิดผ่าน http'; });
 
