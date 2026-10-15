@@ -193,11 +193,17 @@ Audit Trail (BLAKE3 reproducible)  ──►  Dashboard ผู้บริหา
 
 ### 7.2 รันสาธิต
 
-**ก. ลองในเบราว์เซอร์ทันที (ไม่ต้องติดตั้งอะไร — เหมาะกับกรรมการ/ผู้ใช้ทั่วไป):**
-เปิดหน้า `submissions/ui/try.html` — Reflex Kernel ตัวจริง **compile เป็น WebAssembly**
-รันในเบราว์เซอร์ 100% ไม่มี backend ไม่ส่งข้อมูลออกไปไหน. พิมพ์งานเข้าไปแล้วเห็น
-route decision + BLAKE3 proof ทันที (algorithm เดียวกับฝั่ง server เป๊ะ) — นี่คือทางที่
-ทำให้ "ใครก็กดลองได้จาก URL เดียว"
+**ก. ลองในเบราว์เซอร์ทันที — เปิด URL เดียว ไม่ต้องติดตั้งอะไร (เหมาะกับกรรมการ/ผู้ใช้ทั่วไป):**
+
+🌐 **ลองสดได้ที่ [https://reflexwork.pages.dev](https://reflexwork.pages.dev)** (deploy บน Cloudflare Pages)
+- **ลองใน browser** — [reflexwork.pages.dev/try.html](https://reflexwork.pages.dev/try.html) : พิมพ์งาน → เห็น route + BLAKE3 proof สด
+- **แชตบอต** — [reflexwork.pages.dev/chatbot.html](https://reflexwork.pages.dev/chatbot.html) : ถาม-ตอบลงทะเบียน/วิทยานิพนธ์
+- **ยื่นคำร้อง** — [reflexwork.pages.dev/student-desk.html](https://reflexwork.pages.dev/student-desk.html) : ฟอร์มคำร้อง + มุมมองเจ้าหน้าที่
+- **แดชบอร์ด** — [reflexwork.pages.dev/dashboard.html](https://reflexwork.pages.dev/dashboard.html) : สถิติ fast/LLM + audit trail
+
+Reflex Kernel ตัวจริง **compile เป็น WebAssembly** รันในเบราว์เซอร์ 100% ไม่มี backend
+ไม่ส่งข้อมูลออกไปไหน — algorithm เดียวกับฝั่ง server เป๊ะ. ทุกหน้าใช้ **kernel ตัวเดียวกัน**
+ต่างแค่มุมมองสำหรับผู้ใช้คนละกลุ่ม เชื่อมถึงกันผ่านแถบเมนูด้านบน
 
 **ข. REST API (สำหรับต่อระบบจริงของหน่วยงาน):**
 ```bash
@@ -209,8 +215,8 @@ curl -X POST localhost:8787/route \
   -d '{"category":"ComplianceCheck","input":"ตรวจคำร้องว่าเอกสารครบไหม"}'
 # → { "route":"FastPath", "kernel_us":3.46, "blake3_proof":"...", "token_cost":"0 tokens ..." }
 ```
-มี UI กดลอง (`submissions/ui/index.html`) และ **dashboard ผู้บริหาร**
-(`submissions/ui/dashboard.html`) ที่โชว์สัดส่วน fast/LLM + audit trail แบบ real-time
+dashboard ผู้บริหาร ([reflexwork.pages.dev/dashboard.html](https://reflexwork.pages.dev/dashboard.html))
+โชว์สัดส่วน fast/LLM + audit trail แบบ real-time เมื่อต่อกับ REST API ที่รันอยู่
 
 **ค. CLI (interactive):**
 ```bash

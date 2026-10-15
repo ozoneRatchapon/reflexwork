@@ -49,3 +49,9 @@ logs/
 .idea/
 *.swp
 *.swo
+
+# Cloudflare Pages deploy staging (generated, excludes private knowledge/)
+submissions/.deploy-dist/
+
+# KiroCrew local settings
+.kiro/
