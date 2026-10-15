@@ -27,6 +27,7 @@ use axum::{
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
+use tokio::sync::Mutex;
 use tower_http::cors::CorsLayer;
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -36,10 +37,34 @@ use reflex_kernel::{
     KernelConfig, ReflexKernel, RouteDecision,
 };
 
-/// Shared application state: one kernel behind an Arc.
+/// One recorded routing decision, kept in a bounded in-memory ring for the
+/// executive dashboard's audit view.
+#[derive(Debug, Clone, Serialize)]
+struct AuditEntry {
+    task_id: String,
+    category: String,
+    route: String,
+    fast_path: bool,
+    kernel_us: f64,
+    blake3_proof: String,
+    at_unix_ms: u128,
+}
+
+/// Rolling counters + recent audit entries.
+#[derive(Default)]
+struct Metrics {
+    total: u64,
+    fast_path: u64,
+    llm_path: u64,
+    rejected: u64,
+    recent: Vec<AuditEntry>, // newest-last, capped
+}
+
+/// Shared application state: one kernel + metrics.
 #[derive(Clone)]
 struct AppState {
     kernel: Arc<ReflexKernel>,
+    metrics: Arc<Mutex<Metrics>>,
 }
 
 // ─── Request / Response DTOs ─────────────────────────────────────────────────
@@ -82,16 +107,6 @@ struct RouteResponse {
 }
 
 #[derive(Debug, Serialize)]
-struct StatusResponse {
-    policy_version: u32,
-    gate_threshold: f32,
-    ema_alpha: f32,
-    tasks_processed: u64,
-    fast_path_count: u64,
-    llm_invocation_count: u64,
-}
-
-#[derive(Debug, Serialize)]
 struct ErrorResponse {
     error: String,
 }
@@ -104,14 +119,25 @@ async fn health() -> impl IntoResponse {
 
 async fn status(State(st): State<AppState>) -> impl IntoResponse {
     let p = st.kernel.policy.lock().await;
-    Json(StatusResponse {
-        policy_version: p.version,
-        gate_threshold: p.gate_threshold,
-        ema_alpha: p.ema_alpha,
-        tasks_processed: p.total_tasks_processed,
-        fast_path_count: p.total_fast_path,
-        llm_invocation_count: p.total_llm_invocations,
-    })
+    let m = st.metrics.lock().await;
+    Json(serde_json::json!({
+        "policy_version": p.version,
+        "gate_threshold": p.gate_threshold,
+        "ema_alpha": p.ema_alpha,
+        "total_routed": m.total,
+        "fast_path": m.fast_path,
+        "llm_path": m.llm_path,
+        "rejected": m.rejected,
+        "fast_path_pct": if m.total > 0 { (m.fast_path as f64 / m.total as f64 * 100.0).round() } else { 0.0 },
+    }))
+}
+
+async fn audit(State(st): State<AppState>) -> impl IntoResponse {
+    let m = st.metrics.lock().await;
+    // newest first
+    let mut entries = m.recent.clone();
+    entries.reverse();
+    Json(serde_json::json!({ "entries": entries }))
 }
 
 fn parse_category(raw: Option<&str>) -> TaskCategory {
@@ -167,6 +193,36 @@ async fn route(
             } else {
                 "budgeted (LLM path via Kiro MCP)".to_string()
             };
+            let proof = hex::encode(attest.composite_hash);
+
+            // Record into metrics + bounded audit ring (cap 50).
+            {
+                let mut m = st.metrics.lock().await;
+                m.total += 1;
+                match &route {
+                    RouteDecision::FastPath => m.fast_path += 1,
+                    RouteDecision::Rejected { .. } => m.rejected += 1,
+                    _ => m.llm_path += 1,
+                }
+                let at_unix_ms = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis();
+                m.recent.push(AuditEntry {
+                    task_id: task.id.to_string(),
+                    category: format!("{category:?}"),
+                    route: format!("{route:?}"),
+                    fast_path,
+                    kernel_us: attest.execution_ns as f64 / 1000.0,
+                    blake3_proof: proof.clone(),
+                    at_unix_ms,
+                });
+                if m.recent.len() > 50 {
+                    let overflow = m.recent.len() - 50;
+                    m.recent.drain(0..overflow);
+                }
+            }
+
             info!(task_id = %task.id, route = ?route, exec_ns = attest.execution_ns, "routed via REST");
             Json(RouteResponse {
                 task_id: task.id.to_string(),
@@ -175,7 +231,7 @@ async fn route(
                 fast_path,
                 kernel_ns: attest.execution_ns,
                 kernel_us: attest.execution_ns as f64 / 1000.0,
-                blake3_proof: hex::encode(attest.composite_hash),
+                blake3_proof: proof,
                 token_cost,
                 audit_note: "re-running this task yields the SAME BLAKE3 proof (reproducible)".into(),
             })
@@ -206,11 +262,15 @@ async fn main() {
     // Config: reuse the kernel's devnet defaults (Solana fields unused by the REST path).
     let config = KernelConfig::default_devnet();
     let kernel = Arc::new(ReflexKernel::new(config));
-    let state = AppState { kernel };
+    let state = AppState {
+        kernel,
+        metrics: Arc::new(Mutex::new(Metrics::default())),
+    };
 
     let app = Router::new()
         .route("/health", get(health))
         .route("/status", get(status))
+        .route("/audit", get(audit))
         .route("/route", post(route))
         .layer(CorsLayer::permissive())
         .with_state(state);

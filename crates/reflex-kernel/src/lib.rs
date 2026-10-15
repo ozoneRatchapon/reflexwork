@@ -60,11 +60,14 @@ pub struct ReflexKernel {
 impl ReflexKernel {
     /// Construct a new kernel from config. Does not start the MCP process.
     pub fn new(config: KernelConfig) -> Self {
-        let policy = PolicyState::new(
+        let mut policy = PolicyState::new(
             config.policy.feature_dim,
             config.policy.gate_threshold,
             config.policy.ema_alpha,
         );
+        // Seed interpretable priors so the gate routes sensibly on a cold start
+        // (otherwise zero weights send every task to FastPath).
+        policy.seed_default_weights();
         let encoder = FeatureEncoder::new(config.policy.feature_dim);
         let budget = BudgetController::new(
             config.budget.default_token_budget,
