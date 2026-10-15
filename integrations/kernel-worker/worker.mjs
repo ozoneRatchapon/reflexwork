@@ -128,10 +128,10 @@ async function bump(env, key, by = 1) {
 
 async function route(request, env) {
   const body = await request.json().catch(() => ({}));
-  const input = String(body.input || '').trim();
+  const input = String(body.input || '').trim().slice(0, 4000);
   if (!input) return json({ error: 'input required' }, 400);
-  const category = String(body.category || 'DataQuery');
-  const priority = Number(body.priority) || 128;
+  const category = String(body.category || 'DataQuery').slice(0, 64);
+  const priority = Math.max(0, Math.min(255, Number(body.priority) || 128));
 
   const d = routeTask(category, input, 2048, priority);
   const fast = !!d.fast_path;
