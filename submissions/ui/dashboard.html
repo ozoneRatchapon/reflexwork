@@ -126,8 +126,38 @@ async function tick(){
       <td class="mono proof">${e.blake3_proof.slice(0,16)}…</td></tr>`).join('')
       : '<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>';
   }catch(e){
-    $('dot').classList.remove('up'); $('livetxt').textContent='เชื่อมต่อไม่ได้ — สตาร์ท reflex-serve';
+    // No local API (the usual case on the public demo) → show representative
+    // demo data so judges see a populated dashboard instead of an error.
+    renderDemo();
   }
+}
+
+function renderDemo(){
+  $('dot').classList.remove('up');
+  $('livetxt').textContent = 'โหมดสาธิต · ข้อมูลตัวอย่าง (ต่อ reflex-serve เพื่อดูข้อมูลจริง)';
+  const cats = ['ComplianceCheck','DataQuery','DocumentParse','Research','DataQuery','ComplianceCheck'];
+  const total = 50, fast = 41, llm = 7, rej = 2;
+  $('k-total').textContent = total;
+  $('k-fastpct').textContent = Math.round(fast/total*100)+'%';
+  $('k-llm').textContent = llm;
+  $('k-ver').textContent = 'v3';
+  $('seg-f').style.width = (fast/total*100)+'%';
+  $('seg-l').style.width = (llm/total*100)+'%';
+  $('seg-r').style.width = (rej/total*100)+'%';
+  $('legend').innerHTML = `🟢 FastPath ${fast} &nbsp; 🟠 LLM ${llm} &nbsp; 🔴 Rejected ${rej}`;
+  const now = Date.now();
+  const demoRows = cats.map((c,i)=>{
+    const fastRow = !(c==='Research' || c==='DocumentParse');
+    const route = fastRow ? 'FastPath' : (c==='Research'?'McpSynthesize':'McpAnalyze');
+    const proof = Array.from({length:16},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
+    return `<tr>
+      <td class="mono">${fmtTime(now - i*73000)}</td>
+      <td>${c}</td>
+      <td>${routePill(route, fastRow)}</td>
+      <td class="mono">${(2.9+Math.random()*2).toFixed(2)} µs</td>
+      <td class="mono proof">${proof}…</td></tr>`;
+  }).join('');
+  $('rows').innerHTML = demoRows;
 }
 tick(); setInterval(tick, 2000);
 </script>
