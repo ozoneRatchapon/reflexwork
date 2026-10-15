@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReflexWork — Slides (10)</title>
+<title>ReflexWork — Slides (11)</title>
 <style>
   :root{
     --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
@@ -145,6 +145,19 @@
   .learn code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--accent);font-size:.9em}
   .loop{margin-top:24px;max-width:1060px;color:var(--muted);font-size:clamp(13px,1.4vw,16px);line-height:1.9;text-align:center}
   .loop b{color:var(--ink)} .loop .k{color:var(--fast)} .loop .ar{color:var(--line);margin:0 8px}
+
+  /* live architecture */
+  .arch{display:flex;flex-direction:column;gap:12px;max-width:1000px;margin-top:4px}
+  .arch .tier{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .arch .n{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 18px;text-align:center;min-width:150px}
+  .arch .n .t{font-weight:700;font-size:clamp(13px,1.5vw,16px)}
+  .arch .n .s{color:var(--muted);font-size:11px;margin-top:2px}
+  .arch .n.live{border-color:var(--fast)} .arch .n.live .t{color:var(--fast)}
+  .arch .n.wait{border-color:var(--llm)} .arch .n.wait .t{color:var(--llm)}
+  .arch .n.kern{border-color:var(--accent)} .arch .n.kern .t{color:var(--accent)}
+  .arch .ar2{text-align:center;color:var(--muted);font-size:18px}
+  .freebadge{display:inline-block;margin-top:16px;background:rgba(34,197,139,.14);color:var(--fast);
+    border:1px solid var(--fast);border-radius:999px;padding:6px 16px;font-weight:700;font-size:14px}
 </style>
 </head>
 <body>
@@ -152,7 +165,7 @@
 
   <!-- Slide 1 — Title (ฉาก 1) -->
   <section class="slide">
-    <div class="pageno">01 / 10</div>
+    <div class="pageno">01 / 11</div>
     <div class="kicker">Mahidol AI Community 2026 · AI Adoption with Kiro</div>
     <h1>ReflexWork
       <span class="sub">คัดงานด้วย <b>reflex</b> ก่อน เรียก AI เฉพาะที่จำเป็น<br/>
@@ -168,7 +181,7 @@
 
   <!-- Slide 2 — Problem (ฉาก 1 ต่อ) -->
   <section class="slide">
-    <div class="pageno">02 / 10</div>
+    <div class="pageno">02 / 11</div>
     <div class="kicker">ปัญหา</div>
     <h2>"เรียก LLM ทุกครั้ง" — แพง ช้า ตรวจสอบไม่ได้</h2>
     <div class="probs">
@@ -184,7 +197,7 @@
 
   <!-- Slide 3 — Architecture (ฉาก 2) -->
   <section class="slide">
-    <div class="pageno">03 / 10</div>
+    <div class="pageno">03 / 11</div>
     <div class="kicker">สถาปัตยกรรม 3 ชั้น + Kiro</div>
     <h2>คัดกรองก่อน แล้วค่อยจ่ายค่า AI</h2>
     <div class="flow">
@@ -209,7 +222,7 @@
 
   <!-- Slide 4 — In-browser WASM demo (จุดขายใหญ่: zero-backend) -->
   <section class="slide">
-    <div class="pageno">04 / 10</div>
+    <div class="pageno">04 / 11</div>
     <div class="kicker">ลองได้ทันที · ไม่ต้องติดตั้งอะไร</div>
     <h2>Reflex Kernel ตัวจริง รันในเบราว์เซอร์ (WebAssembly)</h2>
     <div class="wasm">
@@ -241,7 +254,7 @@
 
   <!-- Slide 5 — User Journey (ใครใช้ยังไง) -->
   <section class="slide">
-    <div class="pageno">05 / 10</div>
+    <div class="pageno">05 / 11</div>
     <div class="kicker">ใครใช้ระบบนี้ · ใช้ยังไง</div>
     <h2>3 ทางเข้า — จากนักศึกษาถึงผู้บริหาร</h2>
     <div class="journey">
@@ -272,7 +285,7 @@
 
   <!-- Slide 6 — Executive Dashboard -->
   <section class="slide">
-    <div class="pageno">06 / 10</div>
+    <div class="pageno">06 / 11</div>
     <div class="kicker">สำหรับผู้บริหาร / ผู้ตรวจสอบ</div>
     <h2>Dashboard: เห็นสัดส่วน fast/LLM + audit trail แบบสด</h2>
     <div class="dash">
@@ -300,7 +313,7 @@
 
   <!-- Slide 7 — Positioning: screening layer -->
   <section class="slide">
-    <div class="pageno">07 / 10</div>
+    <div class="pageno">07 / 11</div>
     <div class="kicker">จุดยืน · ไม่ได้มาแทน แต่มาเสริม</div>
     <h2>ReflexWork = ชั้นคัดกรอง เสียบหน้าระบบใครก็ได้</h2>
     <div class="layer">
@@ -327,7 +340,7 @@
 
   <!-- Slide 8 — Self-learning / ruliology -->
   <section class="slide">
-    <div class="pageno">08 / 10</div>
+    <div class="pageno">08 / 11</div>
     <div class="kicker">ไม่ใช่แค่ค้นหา · มันเรียนรู้</div>
     <h2>Self-learning: ยิ่งใช้ ยิ่งคัด AI แม่นขึ้น</h2>
     <div class="learn">
@@ -347,9 +360,33 @@
     <div class="foot">LLM ทั่วไปตอบแล้วจบ ไม่เรียนรู้ว่างานไหนเปลืองเงิน — ของเราเรียนรู้ตรงนั้นได้ · POST /feedback พร้อมแล้ว</div>
   </section>
 
-  <!-- Slide 9 — Prototype / Demo (ฉาก 3-4) -->
+  <!-- Slide 9 — Live architecture (deployed, $0) -->
   <section class="slide">
-    <div class="pageno">09 / 10</div>
+    <div class="pageno">09 / 11</div>
+    <div class="kicker">ของจริง · deploy แล้ว · ฟรี $0</div>
+    <h2>ทั้งระบบรันจริงบน edge — ไม่ใช่แค่สไลด์</h2>
+    <div class="arch">
+      <div class="tier">
+        <div class="n live"><div class="t">LINE webhook</div><div class="s">Worker · live</div></div>
+        <div class="n live"><div class="t">เว็บ 4 หน้า</div><div class="s">Pages · live</div></div>
+      </div>
+      <div class="ar2">↓ service binding / fetch</div>
+      <div class="tier">
+        <div class="n kern"><div class="t">🦀 Reflex Kernel API</div><div class="s">Worker · /route /feedback · live</div></div>
+      </div>
+      <div class="ar2">↓</div>
+      <div class="tier">
+        <div class="n live"><div class="t">D1 database</div><div class="s">metrics + audit + feedback · persist</div></div>
+        <div class="n wait"><div class="t">LLM proxy → Gemini</div><div class="s">Worker · key=secret · live</div></div>
+      </div>
+    </div>
+    <div class="freebadge">Workers 100k req/วัน · D1 5GB · Pages ไม่จำกัด · Gemini free — รวม $0</div>
+    <div class="foot">reflexwork.pages.dev · kernel/llm/line = Cloudflare Workers · persistence = D1 · ตรวจสอบ: /status /audit คืนข้อมูลจริง</div>
+  </section>
+
+  <!-- Slide 10 — Prototype / Demo (ฉาก 3-4) -->
+  <section class="slide">
+    <div class="pageno">10 / 11</div>
     <div class="kicker">Prototype — ของจริง รันได้</div>
     <h2>REST API ห่อ kernel: ส่งงาน → ได้ proof ทันที</h2>
     <div class="term">
@@ -372,7 +409,7 @@
 
   <!-- Slide 8 — Impact + Roadmap (ฉาก 5) -->
   <section class="slide">
-    <div class="pageno">10 / 10</div>
+    <div class="pageno">11 / 11</div>
     <div class="kicker">คุณค่าต่อมหาวิทยาลัย · ทิศทางต่อไป</div>
     <h2>ลดต้นทุน · เร็วขึ้น · ตรวจสอบได้</h2>
     <div class="cards">
