@@ -1,6 +1,29 @@
 # ReflexWork
 
-> Sub-millisecond AI workflow orchestration with verifiable Solana settlement.
+> **คัดงานด้วย reflex ก่อนเรียก AI** — kernel ตัดสินใน ~12 ns ว่างานไหนตอบเองได้ (0 token) งานไหนต้องใช้ AI จริง ลดต้นทุน ~80% + ตรวจสอบย้อนหลังได้ด้วย BLAKE3
+
+## 👀 สำหรับกรรมการ — เข้าใจใน 1 นาที
+
+**ปัญหา:** ระบบ AI ทั่วไปส่งทุกคำถามเข้า LLM → แพง, ช้า, ตรวจสอบไม่ได้ (black-box)
+**ทางออก:** ReflexWork วาง "ชั้นคัดกรอง" (Reflex Kernel) ไว้หน้า LLM — คัด ~80% ของงานที่ตัดสินด้วยกฎได้ออกไปตอบทันทีโดยไม่เสีย token เรียก AI เฉพาะงานที่ซับซ้อนจริง และผนึกทุกการตัดสินใจเป็น BLAKE3 proof ที่รันซ้ำได้ผลเดิม
+
+**🔗 ลองสดได้เลย (รันจริงบน Cloudflare edge — ฟรี $0):**
+
+| | ลิงก์ | สำหรับ |
+|---|---|---|
+| 🦀 ลองใน browser | [reflexwork.pages.dev/try.html](https://reflexwork.pages.dev/try.html) | เห็น kernel ตัดสิน FastPath/LLM + proof (กดปุ่ม "เทียบ FastPath vs LLM") |
+| 💬 แชตบอต | [/chatbot.html](https://reflexwork.pages.dev/chatbot.html) | ถาม-ตอบ FAQ บัณฑิตวิทยาลัย — ตอบจากคู่มือ 0 token, คำถามยากเรียก Gemini จริง, กด 👍/👎 ให้ kernel เรียนรู้ |
+| 📝 ยื่นคำร้อง | [/student-desk.html](https://reflexwork.pages.dev/student-desk.html) | มุมนักศึกษา + เจ้าหน้าที่ |
+| 📊 แดชบอร์ด | [/dashboard.html](https://reflexwork.pages.dev/dashboard.html) | สัดส่วน fast/LLM + audit trail (ข้อมูลจริงจาก D1) |
+
+**3 จุดที่ทำให้ต่างจาก "chatbot ทั่วไป":**
+1. **ตัดสินว่า "ควรใช้ AI ไหม" ก่อน** — ไม่ใช่ search (หาคำ) ไม่ใช่ LLM (เรียกทุกครั้ง) แต่เป็นตัวคัดที่ **เรียนรู้ได้** (EMA จาก 👍/👎)
+2. **เร็ว µs + 0 token บน fast path** — รันในเบราว์เซอร์ (WASM) หรือที่ edge (Worker) ก็ได้
+3. **BLAKE3 audit** — รันงานเดิมซ้ำได้ proof เดิม → ตรวจสอบ AI ย้อนหลังได้ (PDPA)
+
+**สถาปัตยกรรม live (ทั้งหมดฟรี):** LINE/เว็บ → kernel Worker (+D1 persist) → FastPath ตอบจาก KB / LLM path → Gemini proxy. โค้ด integration อยู่ใน `integrations/` (kernel-worker, llm-proxy, line-worker, line).
+
+---
 
 **Hackathon submissions:**
 - Mahidol AI Community 2026 — AI Adoption with Kiro (MUIT × AWS, Oct 17)
