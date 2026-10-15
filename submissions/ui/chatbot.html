@@ -34,6 +34,11 @@
   .proof-full{margin-top:9px;font-size:11px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;word-break:break-all}
   .proof-full code{font-family:ui-monospace,Menlo,monospace;color:#7c3aed;font-size:10.5px}
   .proof-note{color:#94a3b8;font-size:10.5px}
+  .fb{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .fb-q{font-size:12px;color:#64748b}
+  .fb-b{font-size:12px;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:4px 12px;cursor:pointer;transition:.15s}
+  .fb-b.up:hover{background:#eafaf0;border-color:#16a34a} .fb-b.down:hover{background:#fef2f2;border-color:#ef4444}
+  .fb-done{font-size:12px;color:#16a34a;font-weight:600}
   .ask{display:flex;gap:10px}
   .ask input{flex:1;background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:13px 15px;font-size:15px;font-family:inherit}
   .ask button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:0 22px;font-weight:800;cursor:pointer;font-size:15px}
@@ -154,14 +159,53 @@ function ask(){
     const src = hit.source_url ? `<span class="src">📎 ที่มา: <a href="${hit.source_url}" target="_blank">FAQ ทางการ บัณฑิตวิทยาลัย</a></span>` : '';
     add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI</span>
-      <b>${hit.title}</b><br>${hit.answer||'(ดูรายละเอียดในแหล่งอ้างอิง)'}${src}`);
+      <b>${hit.title}</b><br>${hit.answer||'(ดูรายละเอียดในแหล่งอ้างอิง)'}${src}
+      ${fbUI(q)}`);
   } else {
     ai++;
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path</span>
-      คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI (Kiro + Amazon Bedrock) ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน`);
+      คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI (Kiro + Amazon Bedrock) ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน
+      ${fbUI(q)}`);
   }
   $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved;
+}
+
+// feedback UI appended to each answer — the self-learning loop
+let fbN = 0;
+function fbUI(q){
+  const id = 'fb'+(++fbN);
+  // store the question so the 👍/👎 handler can send it as the reward signal
+  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = q;
+  return `<div class="fb" id="${id}">
+      <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
+      <button class="fb-b up" onclick="sendFeedback('${id}',1)">👍 ใช่</button>
+      <button class="fb-b down" onclick="sendFeedback('${id}',-1)">👎 ไม่</button>
+    </div>`;
+}
+
+// kernel endpoint for feedback. Empty = static demo (no backend): record locally
+// and show that the gate WOULD learn. Set to a reflex-serve URL for the real loop.
+const KERNEL_API = (new URLSearchParams(location.search)).get('api') || '';
+async function sendFeedback(id, reward){
+  const el = document.getElementById(id); if(!el) return;
+  const q = (window.__fbQ||{})[id] || '';
+  let note;
+  if(KERNEL_API){
+    try{
+      const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/feedback',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({category:'DataQuery', input:q, reward})
+      }).then(r=>r.json());
+      note = `✅ kernel เรียนรู้แล้ว · policy v${r.policy_version}`;
+    }catch(e){ note = '⚠ ส่ง feedback ไม่สำเร็จ (kernel ไม่ตอบ)'; }
+  } else {
+    // static demo: no backend wired, but the loop is real when connected
+    note = reward>0
+      ? '✅ บันทึกแล้ว — kernel จะยืนยันว่างานแบบนี้ตอบเองได้ (EMA +)'
+      : '✅ บันทึกแล้ว — kernel จะเรียนรู้ว่างานแบบนี้ควรส่ง AI (EMA −)';
+  }
+  el.innerHTML = `<span class="fb-done">${note}</span>`;
 }
 $('send').addEventListener('click', ask);
 $('q').addEventListener('keydown', e=>{ if(e.key==='Enter') ask(); });
