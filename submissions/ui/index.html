@@ -3,59 +3,47 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReflexWork — Try it</title>
+<title>ReflexWork — คัดงานด้วย reflex ก่อนเรียก AI</title>
 <style>
   :root{
     --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
-    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
-    --line:#2a3660;
+    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a; --line:#2a3660;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--ink);min-height:100vh;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;
-    padding:5vh 6vw;line-height:1.5}
-  header{max-width:860px;margin:0 auto 28px}
-  .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
-  h1{font-size:clamp(26px,4vw,40px);letter-spacing:-.02em;margin:8px 0 6px}
-  .sub{color:var(--muted);font-size:clamp(14px,1.6vw,17px)}
-  .wrap{max-width:860px;margin:0 auto;display:grid;gap:20px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
-  label{display:block;font-weight:700;margin-bottom:8px;font-size:14px}
-  select,textarea,input{width:100%;background:#070b17;color:var(--ink);border:1px solid var(--line);
-    border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit}
-  textarea{min-height:92px;resize:vertical}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-  .examples{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
-  .ex{background:#0f1730;border:1px solid var(--line);border-radius:999px;padding:6px 13px;
-    font-size:13px;color:var(--accent);cursor:pointer}
-  .ex:hover{border-color:var(--accent)}
-  button.go{margin-top:18px;width:100%;background:var(--accent);color:#06112e;border:none;
-    border-radius:10px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
-  button.go:disabled{opacity:.5;cursor:wait}
-  .endpoint{display:flex;gap:10px;align-items:center;margin-bottom:16px}
-  .endpoint input{flex:1}
-  .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex:none}
-  .dot.up{background:var(--fast)}
-  /* result */
-  .result{display:none}
-  .result.show{display:block}
-  .verdict{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-  .badge{font-weight:800;font-size:clamp(20px,3vw,28px);padding:6px 18px;border-radius:12px}
-  .badge.fast{background:rgba(34,197,139,.14);color:var(--fast);border:1px solid var(--fast)}
-  .badge.llm{background:rgba(246,169,59,.14);color:var(--llm);border:1px solid var(--llm)}
-  .kv{display:grid;grid-template-columns:150px 1fr;gap:10px 16px;font-size:14px}
-  .kv .k{color:var(--muted)}
-  .kv .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
-  .proof{color:var(--audit)}
-  .err{color:var(--warn);font-weight:700}
-  .hint{color:var(--muted);font-size:13px;margin-top:14px;line-height:1.6}
-  code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:.9em;color:var(--accent)}
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;line-height:1.5}
+  .hero{max-width:900px;margin:0 auto;padding:7vh 6vw 2vh;text-align:center}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px}
+  h1{font-size:clamp(30px,5.4vw,56px);letter-spacing:-.02em;margin:12px 0 10px;line-height:1.05}
+  h1 .g{background:linear-gradient(90deg,#22c58b,#5b8cff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{color:var(--muted);font-size:clamp(15px,1.9vw,20px);max-width:640px;margin:0 auto}
+  .stats{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin:26px 0 4px}
+  .stat .n{font-size:clamp(22px,3.4vw,34px);font-weight:800}
+  .stat.a .n{color:var(--fast)} .stat.b .n{color:var(--accent)} .stat.c .n{color:var(--audit)}
+  .stat .l{color:var(--muted);font-size:13px}
+  .how{max-width:760px;margin:28px auto 0;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px 20px;color:var(--muted);font-size:clamp(13px,1.4vw,15px);line-height:1.9;text-align:center}
+  .how .k{color:var(--fast);font-weight:700} .how .ar{color:var(--line);margin:0 6px}
+  .grid{max-width:900px;margin:30px auto;padding:0 6vw 7vh;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  a.tile{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:24px 22px;transition:.15s;color:var(--ink)}
+  a.tile:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .tile .ic{font-size:28px} .tile .t{font-weight:800;font-size:clamp(17px,2vw,21px);margin:8px 0 6px}
+  .tile .d{color:var(--muted);font-size:clamp(13px,1.4vw,15px);line-height:1.55}
+  .tile .who{display:inline-block;margin-top:12px;font-size:12px;color:var(--accent);border:1px solid var(--line);
+    border-radius:999px;padding:3px 11px}
+  .tile.try{border-top:3px solid var(--fast)}
+  .tile.chat{border-top:3px solid var(--accent)}
+  .tile.desk{border-top:3px solid var(--llm)}
+  .tile.dash{border-top:3px solid var(--audit)}
+  .foot{max-width:900px;margin:0 auto;padding:0 6vw 6vh;text-align:center;color:var(--muted);font-size:13px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <!-- ReflexWork-nav -->
 <nav style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:10px 16px;background:#0b1020;border-bottom:1px solid #2a3660;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans Thai',sans-serif;position:sticky;top:0;z-index:50">
-  <a href="./index.html" style="font-weight:800;color:#e9edff;text-decoration:none;margin-right:14px;font-size:15px">🦀 ReflexWork</a>
+  <a href="./index.html" style="font-weight:800;color:#5b8cff;background:#121a33;text-decoration:none;margin-right:14px;font-size:15px;padding:6px 12px;border-radius:8px">🦀 ReflexWork</a>
   <a href="./try.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ลองใน browser</a>
   <a href="./chatbot.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">แชตบอต</a>
   <a href="./student-desk.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ยื่นคำร้อง</a>
@@ -63,109 +51,52 @@
   <span style="flex:1"></span>
   <span style="color:#5b8cff;font-size:12px">kernel เดียว · 4 มุมมอง</span>
 </nav>
-<header>
-  <div class="kicker">ReflexWork · Interactive Demo</div>
-  <h1>ส่งงานเข้าไป → ดู reflex ตัดสินใจ + BLAKE3 proof</h1>
-  <div class="sub">คัดงานด้วย kernel ก่อน เรียก AI เฉพาะที่จำเป็น · ต้นทุน 0 token บน fast path</div>
-</header>
 
-<div class="wrap">
-  <div class="card">
-    <div class="endpoint">
-      <span class="dot" id="dot" title="สถานะเซิร์ฟเวอร์"></span>
-      <input id="base" value="http://127.0.0.1:8787" />
-    </div>
-
-    <div class="row">
-      <div>
-        <label for="cat">ประเภทงาน</label>
-        <select id="cat">
-          <option>ComplianceCheck</option>
-          <option>DocumentParse</option>
-          <option selected>DataQuery</option>
-          <option>WorkflowOrchestration</option>
-          <option>CodeGen</option>
-          <option>Research</option>
-        </select>
-      </div>
-      <div>
-        <label for="prio">Priority (0–255)</label>
-        <input id="prio" type="number" min="0" max="255" value="128" />
-      </div>
-    </div>
-
-    <label for="input">เนื้องาน (คำร้อง / คำสั่ง)</label>
-    <textarea id="input">ตรวจคำร้องนักศึกษาว่าเอกสารแนบครบตามที่กำหนดหรือไม่</textarea>
-    <div class="examples">
-      <span class="ex" data-cat="ComplianceCheck">ตรวจเอกสาร PDPA ไตรมาส 3</span>
-      <span class="ex" data-cat="DataQuery">นับจำนวนคำร้องค้างในระบบ</span>
-      <span class="ex" data-cat="DocumentParse">แยกข้อมูลจากใบคำร้องสแกน</span>
-      <span class="ex" data-cat="WorkflowOrchestration">จัดลำดับคำร้องเร่งด่วนช่วงลงทะเบียน</span>
-    </div>
-
-    <button class="go" id="go">▶ Route งานนี้</button>
+<div class="hero">
+  <div class="kicker">Mahidol AI Community 2026 · AI Adoption with Kiro</div>
+  <h1>คัดงานด้วย <span class="g">reflex</span><br/>ก่อนเรียก AI</h1>
+  <div class="sub">Reflex Kernel ตัดสินใน ~12 นาโนวินาที ว่างานไหนตอบเองได้ (0 token) งานไหนต้องใช้ AI จริง — ลดต้นทุน ~80% + ตรวจสอบย้อนหลังได้ด้วย BLAKE3</div>
+  <div class="stats">
+    <div class="stat a"><div class="n">~80%</div><div class="l">ลดต้นทุน AI</div></div>
+    <div class="stat b"><div class="n">µs</div><div class="l">ตัดสินใจระดับไมโครวินาที</div></div>
+    <div class="stat c"><div class="n">BLAKE3</div><div class="l">audit reproducible</div></div>
   </div>
-
-  <div class="card result" id="result">
-    <div id="body"></div>
+  <div class="how">
+    คำถาม/งาน <span class="ar">→</span> <span class="k">🦀 Reflex Kernel</span> <span class="ar">→</span>
+    FastPath (ตอบเลย 0 token) <span class="ar">/</span> LLM path (เรียก AI เฉพาะที่จำเป็น) <span class="ar">→</span> BLAKE3 proof
   </div>
 </div>
 
-<script>
-const $ = (id) => document.getElementById(id);
-const base = () => $('base').value.replace(/\/+$/, '');
+<div class="grid">
+  <a class="tile try" href="./try.html">
+    <div class="ic">🦀</div>
+    <div class="t">ลองใน browser</div>
+    <div class="d">เห็น "เครื่องยนต์" ทำงานดิบ ๆ — พิมพ์งานแล้วดู kernel ตัดสิน FastPath/LLM + proof ทันที (รัน WASM 100% ไม่มี backend). มีปุ่มเทียบ FastPath vs LLM ข้างกัน</div>
+    <span class="who">เริ่มที่นี่ · สำหรับกรรมการ/dev</span>
+  </a>
+  <a class="tile chat" href="./chatbot.html">
+    <div class="ic">💬</div>
+    <div class="t">แชตบอต</div>
+    <div class="d">ถาม-ตอบเรื่องลงทะเบียน/วิทยานิพนธ์ — ตอบจากคู่มือทันทีถ้ารู้ ส่ง AI เฉพาะที่ไม่รู้ ทุกคำตอบโชว์ decision + proof + ปุ่ม 👍/👎 ให้ kernel เรียนรู้</div>
+    <span class="who">สำหรับนักศึกษา</span>
+  </a>
+  <a class="tile desk" href="./student-desk.html">
+    <div class="ic">📝</div>
+    <div class="t">ยื่นคำร้อง</div>
+    <div class="d">ฟอร์มยื่นคำร้อง + มุมมองเจ้าหน้าที่ว่าวันนี้มีคำร้องอะไรเข้ามา kernel คัดให้ว่าเรื่องไหนตอบเองได้ เรื่องไหนส่งต่อ</div>
+    <span class="who">สำหรับนักศึกษา + เจ้าหน้าที่</span>
+  </a>
+  <a class="tile dash" href="./dashboard.html">
+    <div class="ic">📊</div>
+    <div class="t">แดชบอร์ด</div>
+    <div class="d">ภาพรวมผู้บริหาร: สัดส่วน FastPath/LLM + audit trail ที่ re-run ได้ผลเดิม — เห็นว่าประหยัดไปเท่าไหร่ และตรวจสอบได้ตาม PDPA</div>
+    <span class="who">สำหรับผู้บริหาร/ผู้ตรวจสอบ</span>
+  </a>
+</div>
 
-// health probe → dot color
-async function probe(){
-  try{
-    const r = await fetch(base() + '/health', {signal: AbortSignal.timeout(1500)});
-    $('dot').classList.toggle('up', r.ok);
-  }catch{ $('dot').classList.remove('up'); }
-}
-probe(); setInterval(probe, 5000);
-
-// example chips
-document.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => {
-  $('input').value = el.textContent;
-  $('cat').value = el.dataset.cat;
-}));
-
-$('go').addEventListener('click', async () => {
-  const btn = $('go'); btn.disabled = true; btn.textContent = '… routing';
-  const res = $('result'), body = $('body');
-  res.classList.add('show');
-  try{
-    const r = await fetch(base() + '/route', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        category: $('cat').value,
-        input: $('input').value,
-        priority: Number($('prio').value) || 128
-      })
-    });
-    const d = await r.json();
-    if(!r.ok){ body.innerHTML = `<div class="err">Error ${r.status}: ${d.error||'unknown'}</div>`; return; }
-    const fast = d.fast_path;
-    body.innerHTML = `
-      <div class="verdict">
-        <span class="badge ${fast?'fast':'llm'}">${d.route}</span>
-        <span class="hint" style="margin:0">${fast?'ตัดสินด้วย kernel ในเครื่อง — ไม่เรียก LLM':'ส่งต่อ LLM path (Kiro MCP → Bedrock)'}</span>
-      </div>
-      <div class="kv">
-        <div class="k">Task ID</div><div class="v">${d.task_id}</div>
-        <div class="k">ประเภท</div><div class="v">${d.category}</div>
-        <div class="k">Kernel latency</div><div class="v">${d.kernel_us.toFixed(2)} µs (${d.kernel_ns} ns)</div>
-        <div class="k">ต้นทุน token</div><div class="v">${d.token_cost}</div>
-        <div class="k">BLAKE3 proof</div><div class="v proof">${d.blake3_proof}</div>
-      </div>
-      <div class="hint">🔐 ${d.audit_note}</div>`;
-  }catch(e){
-    body.innerHTML = `<div class="err">เชื่อมต่อไม่ได้: ${e.message}</div>
-      <div class="hint">สตาร์ท API ก่อน: <code>PORT=8787 ./target/release/reflex-serve</code></div>`;
-  }finally{
-    btn.disabled = false; btn.textContent = '▶ Route งานนี้';
-  }
-});
-</script>
+<div class="foot">
+  ทั้ง 4 หน้าใช้ <b style="color:var(--ink)">Reflex Kernel ตัวเดียวกัน</b> — ต่างแค่มุมมองสำหรับผู้ใช้คนละกลุ่ม<br/>
+  Ratchapon (Ozone) · Napatsakorn · Built with Kiro + Amazon Bedrock
+</div>
 </body>
 </html>

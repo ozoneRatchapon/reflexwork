@@ -1,0 +1,10 @@
+name = "reflexwork-llm-proxy"
+main = "worker.mjs"
+compatibility_date = "2026-01-01"
+
+# Optional: override the model (default gemini-1.5-flash)
+# [vars]
+# GEMINI_MODEL = "gemini-1.5-flash"
+
+# GEMINI_API_KEY is a SECRET — never put it here. Set it with:
+#   echo "YOUR_KEY" | npx wrangler secret put GEMINI_API_KEY
