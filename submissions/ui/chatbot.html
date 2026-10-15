@@ -174,10 +174,19 @@ function ask(){
       ${fbUI(q)}`);
   } else {
     ai++;
+    const mid = 'llm'+(++fbN);
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path</span>
-      คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI (Kiro + Amazon Bedrock) ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน
+      <span id="${mid}">${KERNEL_API ? '⏳ กำลังถาม AI…' : 'คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน'}</span>
       ${fbUI(q)}`);
+    if(KERNEL_API){
+      fetch(KERNEL_API.replace(/\/$/,'')+'/llm',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({input:q})
+      }).then(r=>r.json()).then(r=>{
+        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'AI ตอบไม่ได้ในขณะนี้';
+      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='⚠ เรียก AI ไม่สำเร็จ'; });
+    }
   }
   $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved;
   updateRatio();
