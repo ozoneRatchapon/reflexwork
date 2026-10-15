@@ -58,3 +58,8 @@ submissions/.deploy-dist/
 
 integrations/kernel-worker/node_modules/
 integrations/kernel-worker/.wrangler/
+
+integrations/line-worker/node_modules/
+integrations/line-worker/.wrangler/
+integrations/llm-proxy/node_modules/
+integrations/llm-proxy/.wrangler/
