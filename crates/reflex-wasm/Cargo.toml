@@ -1,0 +1,20 @@
+[package]
+name = "reflex-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "ReflexWork Reflex Kernel compiled to WebAssembly — in-browser routing + BLAKE3, zero backend"
+license = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "=0.2.118"
+blake3       = "1.5.4"
+serde        = { version = "1.0.210", features = ["derive"] }
+serde_json   = "1.0.128"
+serde-wasm-bindgen = "0.6.5"
+
+[profile.release]
+opt-level = "s"
+lto       = true

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReflexWork — Executive Dashboard</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
+    --line:#2a3660;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;padding:4vh 5vw}
+  header{max-width:1100px;margin:0 auto 24px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  h1{font-size:clamp(24px,3.4vw,36px);letter-spacing:-.02em;margin-top:6px}
+  .live{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--warn)}
+  .dot.up{background:var(--fast);box-shadow:0 0 0 3px rgba(34,197,139,.18)}
+  .wrap{max-width:1100px;margin:0 auto;display:grid;gap:20px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .kpi .n{font-size:clamp(28px,3.6vw,40px);font-weight:800;letter-spacing:-.02em}
+  .kpi .l{color:var(--muted);font-size:13px;margin-top:6px}
+  .kpi.fast .n{color:var(--fast)} .kpi.llm .n{color:var(--llm)} .kpi.audit .n{color:var(--audit)}
+  .bar{height:14px;border-radius:999px;overflow:hidden;background:#0f1730;border:1px solid var(--line);display:flex;margin-top:4px}
+  .bar .seg.f{background:var(--fast)} .bar .seg.l{background:var(--llm)} .bar .seg.r{background:var(--warn)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .card h2{font-size:18px;margin-bottom:4px}
+  .card .cap{color:var(--muted);font-size:13px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+  .pill.fast{background:rgba(34,197,139,.14);color:var(--fast)}
+  .pill.llm{background:rgba(246,169,59,.14);color:var(--llm)}
+  .pill.rej{background:rgba(255,107,122,.14);color:var(--warn)}
+  .proof{color:var(--audit)}
+  .empty{color:var(--muted);text-align:center;padding:28px}
+  input{background:#070b17;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px}
+  code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--accent)}
+  @media (max-width:760px){.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="kicker">ReflexWork · Executive Dashboard</div>
+    <h1>ภาพรวมการตัดสินใจของ AI + Audit Trail</h1>
+  </div>
+  <div class="live"><span class="dot" id="dot"></span><span id="livetxt">กำลังเชื่อมต่อ…</span>
+    &nbsp;<input id="base" value="http://127.0.0.1:8787" style="width:200px" /></div>
+</header>
+
+<div class="wrap">
+  <div class="kpis">
+    <div class="kpi"><div class="n" id="k-total">—</div><div class="l">งานทั้งหมดที่ route</div></div>
+    <div class="kpi fast"><div class="n" id="k-fastpct">—</div><div class="l">คัดออกจาก LLM (fast path)</div></div>
+    <div class="kpi llm"><div class="n" id="k-llm">—</div><div class="l">ส่งให้ AI (LLM path)</div></div>
+    <div class="kpi audit"><div class="n" id="k-ver">—</div><div class="l">policy version</div></div>
+  </div>
+
+  <div class="card">
+    <h2>สัดส่วนเส้นทาง</h2>
+    <div class="cap">ยิ่งแถบเขียวมาก = ยิ่งประหยัดต้นทุน AI (งานที่ไม่ต้องเรียก LLM)</div>
+    <div class="bar"><span class="seg f" id="seg-f" style="width:0"></span><span class="seg l" id="seg-l" style="width:0"></span><span class="seg r" id="seg-r" style="width:0"></span></div>
+    <div class="cap" style="margin-top:10px" id="legend">—</div>
+  </div>
+
+  <div class="card">
+    <h2>Audit Trail — การตัดสินใจล่าสุด</h2>
+    <div class="cap">ทุกแถวมี BLAKE3 proof ที่ re-run ได้ผลเดิม (ตรวจสอบย้อนหลัง · PDPA)</div>
+    <table>
+      <thead><tr><th>เวลา</th><th>ประเภทงาน</th><th>เส้นทาง</th><th>latency</th><th>BLAKE3 proof</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="5" class="empty">ยังไม่มีข้อมูล — ส่งงานผ่าน <code>POST /route</code> หรือหน้า demo UI</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const base = () => $('base').value.replace(/\/+$/,'');
+
+function routePill(route, fast){
+  if(fast) return '<span class="pill fast">FastPath</span>';
+  if(route.startsWith('Rejected')) return '<span class="pill rej">Rejected</span>';
+  return '<span class="pill llm">'+route+'</span>';
+}
+function fmtTime(ms){ const d=new Date(ms); return d.toLocaleTimeString('th-TH',{hour12:false}); }
+
+async function tick(){
+  try{
+    const [s,a] = await Promise.all([
+      fetch(base()+'/status',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
+      fetch(base()+'/audit',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
+    ]);
+    $('dot').classList.add('up'); $('livetxt').textContent='เชื่อมต่อแล้ว · รีเฟรชทุก 2 วิ';
+    $('k-total').textContent = s.total_routed;
+    $('k-fastpct').textContent = (s.fast_path_pct||0)+'%';
+    $('k-llm').textContent = s.llm_path;
+    $('k-ver').textContent = s.policy_version;
+    const tot = Math.max(s.total_routed,1);
+    $('seg-f').style.width = (s.fast_path/tot*100)+'%';
+    $('seg-l').style.width = (s.llm_path/tot*100)+'%';
+    $('seg-r').style.width = (s.rejected/tot*100)+'%';
+    $('legend').innerHTML = `🟢 FastPath ${s.fast_path} &nbsp; 🟠 LLM ${s.llm_path} &nbsp; 🔴 Rejected ${s.rejected}`;
+    const rows = a.entries||[];
+    $('rows').innerHTML = rows.length ? rows.map(e=>`<tr>
+      <td class="mono">${fmtTime(e.at_unix_ms)}</td>
+      <td>${e.category}</td>
+      <td>${routePill(e.route,e.fast_path)}</td>
+      <td class="mono">${e.kernel_us.toFixed(2)} µs</td>
+      <td class="mono proof">${e.blake3_proof.slice(0,16)}…</td></tr>`).join('')
+      : '<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>';
+  }catch(e){
+    $('dot').classList.remove('up'); $('livetxt').textContent='เชื่อมต่อไม่ได้ — สตาร์ท reflex-serve';
+  }
+}
+tick(); setInterval(tick, 2000);
+</script>
+</body>
+</html>

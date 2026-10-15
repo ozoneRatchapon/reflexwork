@@ -9,6 +9,10 @@ license = "MIT OR Apache-2.0"
 name = "reflex-agent"
 path = "src/main.rs"
 
+[[bin]]
+name = "reflex-serve"
+path = "src/serve.rs"
+
 [lib]
 name = "reflex_kernel"
 path = "src/lib.rs"
@@ -30,6 +34,11 @@ hex               = { version = "0.4.3" }
 
 # Async runtime
 tokio             = { version = "1.40.0", features = ["full"] }
+
+# HTTP service (REST API wrapping the kernel)
+axum              = { version = "0.7.9" }
+tower             = { version = "0.5.1" }
+tower-http        = { version = "0.6.2", features = ["cors", "trace"] }
 
 # Config
 toml              = { version = "0.8.19" }

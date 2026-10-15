@@ -86,6 +86,61 @@ impl PolicyState {
         self.last_updated_unix_ns = now_unix_ns();
     }
 
+    /// Seed interpretable default weights so the gate makes sensible routing
+    /// decisions on a cold start (before any EMA learning has occurred).
+    ///
+    /// Rationale: a zero-weight cold start gates everything to FastPath, which
+    /// hides the LLM path entirely. These weights encode a simple prior —
+    /// "complex, open-ended, or document/research work needs the LLM; short
+    /// deterministic lookups do not" — matching the feature layout in encoder.rs:
+    ///   [8]  complexity score   (higher → LLM)
+    ///   [0]  DocumentParse      (needs synthesis → LLM)
+    ///   [6]  Research           (open-ended → LLM)
+    ///   [2]  DataQuery          (deterministic → FastPath)
+    ///   [4]  ComplianceCheck    (rule-based → FastPath)
+    pub fn seed_default_weights(&mut self) {
+        let n = self.weights.len();
+        let mut w = vec![0.0f32; n];
+        // Complexity dominates: long/complex input pushes toward LLM.
+        if n > 8 { w[8] = 4.0; }
+        // Category priors (indices from TaskCategory::one_hot_index).
+        if n > 0 { w[0] = 1.5; }   // DocumentParse → lean LLM
+        if n > 1 { w[1] = 1.2; }   // CodeGen       → lean LLM
+        if n > 2 { w[2] = -2.0; }  // DataQuery     → lean FastPath
+        if n > 3 { w[3] = 0.8; }   // WorkflowOrchestration
+        if n > 4 { w[4] = -1.5; }  // ComplianceCheck → lean FastPath
+        if n > 6 { w[6] = 2.0; }   // Research      → lean LLM
+        self.weights = w;
+        // Bias so that a mid-complexity generic task sits just below θ.
+        self.bias = -1.6;
+
+        // Seed multi-class weights (W ∈ ℝ^{K×N}, row-major) so that once the
+        // gate opens the LLM path, softmax picks a USEFUL class rather than the
+        // Rejected class. K=4: 0=FastPath, 1=McpAnalyze, 2=McpSynthesize, 3=Reject.
+        // Analyze favours ComplianceCheck/Research; Synthesize favours
+        // DocumentParse/complexity. Reject only wins when budget dim is ~0.
+        let k = ROUTE_CLASSES;
+        let mut mw = vec![0.0f32; k * n];
+        let set = |mw: &mut [f32], class: usize, idx: usize, v: f32| {
+            if idx < n { mw[class * n + idx] = v; }
+        };
+        // class 1 — McpAnalyze: analysis-leaning signals
+        set(&mut mw, 1, 8, 2.0);   // complexity
+        set(&mut mw, 1, 4, 2.5);   // ComplianceCheck
+        set(&mut mw, 1, 6, 2.0);   // Research
+        // class 2 — McpSynthesize: document/synthesis signals
+        set(&mut mw, 2, 8, 2.5);   // complexity (stronger)
+        set(&mut mw, 2, 0, 2.5);   // DocumentParse
+        set(&mut mw, 2, 3, 1.5);   // WorkflowOrchestration
+        // class 3 — Reject: only when budget fraction ([16]) is near zero
+        set(&mut mw, 3, 16, -4.0); // high budget pushes Reject DOWN
+        self.multi_weights = mw;
+        self.multi_bias = vec![0.0, 0.2, 0.2, -1.0]; // bias Reject down, fast neutral
+
+        self.version = self.version.wrapping_add(1);
+        self.last_updated_unix_ns = now_unix_ns();
+    }
+
     pub fn feature_dim(&self) -> usize {
         self.weights.len()
     }

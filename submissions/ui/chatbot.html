@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ถาม-ตอบ บัณฑิตวิทยาลัย — ReflexWork</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#fff; --ink:#1a2238; --muted:#5a6782;
+    --accent:#3b63e8; --auto:#16a34a; --ai:#d97706; --line:#e3e8f2;
+    --userbg:#3b63e8; --botbg:#f0f3fa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;line-height:1.55}
+  .top{background:linear-gradient(120deg,#3b63e8,#6b4fe8);color:#fff;padding:26px 6vw 22px}
+  .top .org{opacity:.85;font-size:13px}
+  .top h1{font-size:clamp(20px,3vw,30px);margin:5px 0 3px}
+  .top p{opacity:.9;font-size:14px}
+  .wrap{max-width:820px;margin:0 auto;padding:18px 5vw 40px;display:grid;gap:16px}
+  .chat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;min-height:320px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:84%;padding:12px 15px;border-radius:14px;font-size:14.5px}
+  .msg.u{align-self:flex-end;background:var(--userbg);color:#fff;border-bottom-right-radius:4px}
+  .msg.b{align-self:flex-start;background:var(--botbg);border-bottom-left-radius:4px}
+  .msg.b .route{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;margin-bottom:7px}
+  .route.auto{background:#eafaf0;color:var(--auto)} .route.ai{background:#fef6e7;color:var(--ai)}
+  .msg.b .src{display:block;margin-top:8px;font-size:12px;color:var(--muted)}
+  .msg.b .src a{color:var(--accent)}
+  .meta{font-size:11px;color:var(--muted);margin-top:6px}
+  .ask{display:flex;gap:10px}
+  .ask input{flex:1;background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:13px 15px;font-size:15px;font-family:inherit}
+  .ask button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:0 22px;font-weight:800;cursor:pointer;font-size:15px}
+  .ask button:disabled{opacity:.5}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:#eef2fb;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;color:var(--accent);cursor:pointer}
+  .bar{display:flex;gap:16px;font-size:13px;color:var(--muted);justify-content:center;padding:4px}
+  .bar b{color:var(--ink)}
+  .note{font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="org">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
+  <h1>ถาม-ตอบ เรื่องลงทะเบียน & ส่งวิทยานิพนธ์</h1>
+  <p>พิมพ์คำถาม → ระบบคัดก่อน: เจอในคู่มือ = ตอบทันทีไม่ใช้ AI · ไม่เจอ = ส่งให้ AI ช่วย</p>
+</div>
+
+<div class="wrap">
+  <div class="chips" id="chips"></div>
+  <div class="chat" id="chat">
+    <div class="msg b"><b>สวัสดีครับ</b> ถามเรื่องกำหนดส่งวิทยานิพนธ์ Turnitin บทคัดย่อ การลงทะเบียน ฯลฯ ได้เลย</div>
+  </div>
+  <div class="ask">
+    <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
+    <button id="send" disabled>ถาม</button>
+  </div>
+  <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
+  <div class="note" id="note">⏳ กำลังโหลด…</div>
+</div>
+
+<script type="module">
+import init, { route_task } from './wasm/reflex_wasm.js';
+const $ = id => document.getElementById(id);
+let ready=false, KB=[], auto=0, ai=0, saved=0;
+const COST=2;
+
+async function load(){
+  await init();
+  // Prefer the full knowledge index if present (local dev); otherwise use a
+  // small built-in fallback so the public demo still works without the other
+  // team's private data.
+  KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>FALLBACK_KB);
+  if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
+  ready=true; $('q').disabled=false; $('send').disabled=false;
+  $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ทำงานในเบราว์เซอร์ 100%';
+  const seeds=['ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร','บทคัดย่อส่งยังไง','เปลี่ยนชื่อวิทยานิพนธ์ได้ไหม'];
+  $('chips').innerHTML = seeds.map(s=>`<span class="chip">${s}</span>`).join('');
+  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{$('q').value=c.textContent; ask();}));
+}
+load().catch(()=>{ $('note').textContent='⚠ ต้องเปิดผ่าน http'; });
+
+// Minimal built-in KB (public info, paraphrased) used when the full index is absent.
+const FALLBACK_KB = [
+  { title:'ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน', keywords:'ส่ง รูปเล่ม กี่วัน deadline submit thesis 21 วัน',
+    answer:'ส่งรูปเล่มอิเล็กทรอนิกส์ไม่เกิน 21 วันนับจากวันที่ผลสอบ “ผ่าน” (นับรวมวันหยุด) โดยกรอก Abstract Submission Form ส่ง PDF เว้นหน้าลงนาม แนบรายงาน Turnitin แล้วรออนุมัติ',
+    source_url:'https://graduate.mahidol.ac.th/', faq_number:'36' },
+  { title:'Turnitin เกิน 25% ต้องทำอย่างไร', keywords:'turnitin เกิน 25 ซ้ำ plagiarism similarity',
+    answer:'พิจารณาความซ้ำในเนื้อหาหลักไม่เกิน 25% หากเกิน อาจารย์ที่ปรึกษาทำบันทึกชี้แจงให้บัณฑิตวิทยาลัยพิจารณา ตรวจบทคัดย่อ+เนื้อหา ไม่รวมอ้างอิง/ภาคผนวก',
+    source_url:'https://www.li.mahidol.ac.th/turnitin/', faq_number:'33' },
+  { title:'บทคัดย่อ (Abstract) ส่งอย่างไร', keywords:'บทคัดย่อ abstract ส่ง form',
+    answer:'กรอก Abstract Submission Form ให้ครบถ้วนเป็นขั้นตอนแรกของการส่งรูปเล่ม ก่อนแนบ PDF ฉบับสมบูรณ์',
+    source_url:'https://graduate.mahidol.ac.th/', faq_number:'' },
+];
+
+// score KB entry vs query. Thai has no word spaces, so we use overlap of
+// character n-grams (len 3) plus any space-separated tokens.
+function search(q){
+  const ql = q.toLowerCase();
+  const grams = new Set();
+  for(const tok of ql.split(/\s+/)) if(tok.length>1) grams.add(tok);
+  for(let i=0;i<ql.length-2;i++){ const g=ql.slice(i,i+3).trim(); if(g.length===3) grams.add(g); }
+  let best=null, bestScore=0;
+  for(const e of KB){
+    let s=0; for(const g of grams){ if(e.keywords.includes(g)) s++; }
+    if(s>bestScore){ bestScore=s; best=e; }
+  }
+  // require a few matching grams so unrelated questions escalate to AI
+  return bestScore>=3 ? best : null;
+}
+
+function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d); $('chat').scrollTop=1e9; }
+
+function ask(){
+  if(!ready) return;
+  const q=$('q').value.trim(); if(!q) return;
+  add('u', q); $('q').value='';
+  const t0=performance.now();
+  const d=route_task('DataQuery', q, 2048, 128); // routed by kernel
+  const hit = search(q);
+  const us=((performance.now()-t0)*1000).toFixed(0);
+
+  if(hit){
+    // fast path: answer directly from our knowledge, zero AI
+    auto++; saved+=COST;
+    const src = hit.source_url ? `<span class="src">📎 ที่มา: <a href="${hit.source_url}" target="_blank">ประกาศ/คู่มือบัณฑิตวิทยาลัย</a>${hit.faq_number?` (FAQ ข้อ ${hit.faq_number})`:''}</span>` : '';
+    add('b', `<span class="route auto">✅ ตอบจากคู่มือทันที · ไม่ใช้ AI · ${us} µs</span>
+      <b>${hit.title}</b><br>${hit.answer||'(ดูรายละเอียดในแหล่งอ้างอิง)'}${src}
+      <div class="meta">🔒 ref ${d.blake3_proof.slice(0,10)}… · ตรวจสอบย้อนหลังได้</div>`);
+  } else {
+    // not in KB → escalate to AI path
+    ai++;
+    add('b', `<span class="route ai">🤖 ไม่พบในคู่มือ → ส่งให้ AI ช่วยตอบ</span>
+      คำถามนี้ไม่มีในคู่มือมาตรฐาน ระบบจะส่งให้ AI (Kiro + Amazon Bedrock) ช่วยร่างคำตอบ แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน
+      <div class="meta">🔒 ref ${d.blake3_proof.slice(0,10)}… · บันทึกว่าใช้ AI ตอบ</div>`);
+  }
+  $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved;
+}
+$('send').addEventListener('click', ask);
+$('q').addEventListener('keydown', e=>{ if(e.key==='Enter') ask(); });
+</script>
+</body>
+</html>

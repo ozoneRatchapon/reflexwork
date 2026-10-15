@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "programs/workflow-escrow",
     "crates/reflex-kernel",
+    "crates/reflex-wasm",
 ]
 
 [workspace.package]

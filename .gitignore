@@ -3,6 +3,13 @@ target/
 **/*.rs.bk
 Cargo.lock
 
+# wasm-pack build output (the shipped artifact lives in submissions/ui/wasm/)
+crates/reflex-wasm/pkg/
+
+# Other team's knowledge data (private repo, pending owner approval — do NOT publish)
+submissions/ui/knowledge/
+submissions/ui/knowledge-index.json
+
 # Anchor / Solana
 .anchor/
 deploy/

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReflexWork — Try it in your browser (no backend)</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
+    --line:#2a3660;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;padding:5vh 6vw;line-height:1.5}
+  header{max-width:820px;margin:0 auto 24px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
+  h1{font-size:clamp(24px,3.6vw,38px);letter-spacing:-.02em;margin:8px 0 6px}
+  .sub{color:var(--muted);font-size:clamp(14px,1.6vw,17px)}
+  .badge-wasm{display:inline-block;margin-top:12px;background:rgba(176,123,255,.14);color:var(--audit);
+    border:1px solid var(--audit);border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700}
+  .wrap{max-width:820px;margin:0 auto;display:grid;gap:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
+  label{display:block;font-weight:700;margin-bottom:8px;font-size:14px}
+  select,textarea,input{width:100%;background:#070b17;color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit}
+  textarea{min-height:84px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .examples{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+  .ex{background:#0f1730;border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--accent);cursor:pointer}
+  .ex:hover{border-color:var(--accent)}
+  button.go{margin-top:18px;width:100%;background:var(--accent);color:#06112e;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+  button.go:disabled{opacity:.5;cursor:wait}
+  .result{display:none} .result.show{display:block}
+  .verdict{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .badge{font-weight:800;font-size:clamp(20px,3vw,28px);padding:6px 18px;border-radius:12px}
+  .badge.fast{background:rgba(34,197,139,.14);color:var(--fast);border:1px solid var(--fast)}
+  .badge.llm{background:rgba(246,169,59,.14);color:var(--llm);border:1px solid var(--llm)}
+  .kv{display:grid;grid-template-columns:160px 1fr;gap:10px 16px;font-size:14px}
+  .kv .k{color:var(--muted)} .kv .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+  .proof{color:var(--audit)}
+  .hint{color:var(--muted);font-size:13px;margin-top:14px;line-height:1.6}
+  .err{color:var(--warn);font-weight:700}
+  code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">ReflexWork · In-browser Demo</div>
+  <h1>ส่งงานเข้าไป → kernel ตัดสินใจทันทีในเบราว์เซอร์</h1>
+  <div class="sub">คัดงานด้วย reflex ก่อนเรียก AI · fast path = 0 token · มี BLAKE3 proof ตรวจย้อนหลังได้</div>
+  <div class="badge-wasm" id="wasm-badge">⏳ กำลังโหลด Rust kernel (WASM)…</div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="cat">ประเภทงาน</label>
+        <select id="cat">
+          <option>ComplianceCheck</option>
+          <option>DocumentParse</option>
+          <option selected>DataQuery</option>
+          <option>WorkflowOrchestration</option>
+          <option>CodeGen</option>
+          <option>Research</option>
+        </select>
+      </div>
+      <div>
+        <label for="prio">Priority (0–255)</label>
+        <input id="prio" type="number" min="0" max="255" value="128" />
+      </div>
+    </div>
+    <label for="input">เนื้องาน (คำร้อง / คำสั่ง)</label>
+    <textarea id="input">นับจำนวนคำร้องที่ค้างอยู่ในระบบวันนี้</textarea>
+    <div class="examples">
+      <span class="ex" data-cat="DataQuery">นับคำร้องค้างในระบบ</span>
+      <span class="ex" data-cat="ComplianceCheck">ตรวจเอกสารแนบครบไหม</span>
+      <span class="ex" data-cat="Research" data-long="1">วิเคราะห์เชิงลึกเปรียบเทียบความเห็นนักศึกษาทุกคณะย้อนหลังสามปีแล้วสรุปผู้บริหาร</span>
+      <span class="ex" data-cat="DocumentParse" data-long="1">แยกข้อมูลและตารางทั้งหมดจากใบคำร้องสแกนหลายหน้าที่เขียนบรรยายยาว</span>
+    </div>
+    <button class="go" id="go" disabled>▶ Route งานนี้</button>
+  </div>
+
+  <div class="card result" id="result"><div id="body"></div></div>
+
+  <div class="card">
+    <div class="hint" style="margin:0">
+      🦀 หน้านี้รัน <b style="color:var(--ink)">Rust kernel ตัวจริง compile เป็น WebAssembly</b> ในเบราว์เซอร์คุณ —
+      ไม่มี backend ไม่มี network ไม่ส่งข้อมูลออกไปไหน. algorithm (sigmoid gate θ=0.72, seeded weights,
+      BLAKE3) เหมือนกับ <code>reflex-serve</code> ฝั่ง server ทุกประการ
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import init, { route_task } from './wasm/reflex_wasm.js';
+const $ = id => document.getElementById(id);
+let ready = false;
+
+(async () => {
+  try {
+    await init();
+    ready = true;
+    $('wasm-badge').textContent = '🦀 Rust kernel (WASM) พร้อมใช้งาน — รันในเบราว์เซอร์ 100%';
+    $('go').disabled = false;
+  } catch (e) {
+    $('wasm-badge').textContent = '⚠ โหลด WASM ไม่ได้ (ต้องเสิร์ฟผ่าน http ไม่ใช่เปิดไฟล์ตรง ๆ)';
+  }
+})();
+
+document.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => {
+  $('input').value = el.textContent;
+  $('cat').value = el.dataset.cat;
+}));
+
+$('go').addEventListener('click', () => {
+  if (!ready) return;
+  const res = $('result'), body = $('body');
+  res.classList.add('show');
+  try {
+    const t0 = performance.now();
+    const d = route_task($('cat').value, $('input').value, 2048, Number($('prio').value)||128);
+    const us = ((performance.now() - t0) * 1000).toFixed(1);
+    const fast = d.fast_path;
+    body.innerHTML = `
+      <div class="verdict">
+        <span class="badge ${fast?'fast':'llm'}">${d.route}</span>
+        <span class="hint" style="margin:0">${fast?'ตัดสินด้วย kernel ในเบราว์เซอร์ — ไม่เรียก LLM':'ส่งต่อ LLM path (Kiro MCP → Bedrock)'}</span>
+      </div>
+      <div class="kv">
+        <div class="k">ประเภท</div><div class="v">${$('cat').value}</div>
+        <div class="k">complexity (dim 8)</div><div class="v">${d.gate_dim8_complexity.toFixed(3)}</div>
+        <div class="k">เวลา route (ในเบราว์เซอร์)</div><div class="v">${us} µs</div>
+        <div class="k">ต้นทุน token</div><div class="v">${d.token_cost}</div>
+        <div class="k">BLAKE3 proof</div><div class="v proof">${d.blake3_proof}</div>
+      </div>
+      <div class="hint">🔐 รันงานเดิมซ้ำ ได้ proof เดิมเป๊ะ (reproducible audit)</div>`;
+  } catch(e) {
+    body.innerHTML = `<div class="err">error: ${e.message||e}</div>`;
+  }
+});
+</script>
+</body>
+</html>
