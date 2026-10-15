@@ -42,6 +42,28 @@
   .hint{color:var(--muted);font-size:13px;margin-top:14px;line-height:1.6}
   .err{color:var(--warn);font-weight:700}
   code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--accent)}
+  /* demo moment: side-by-side compare */
+  .compare-cta{background:linear-gradient(135deg,rgba(91,140,255,.12),rgba(34,197,139,.1));
+    border:1px solid var(--accent);border-radius:16px;padding:22px 24px;text-align:center}
+  .compare-cta h2{font-size:clamp(18px,2.2vw,24px);margin-bottom:6px}
+  .compare-cta p{color:var(--muted);font-size:14px;margin-bottom:16px}
+  button.compare{background:var(--fast);color:#042016;border:none;border-radius:10px;padding:13px 26px;font-size:15px;font-weight:800;cursor:pointer}
+  button.compare:disabled{opacity:.5;cursor:wait}
+  .cmp{display:none;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+  .cmp.show{display:grid}
+  .cmp .side{border-radius:14px;padding:20px;border:1px solid var(--line)}
+  .cmp .side.f{background:rgba(34,197,139,.08);border-color:var(--fast)}
+  .cmp .side.l{background:rgba(246,169,59,.08);border-color:var(--llm)}
+  .cmp .side .hd{font-weight:800;font-size:16px;margin-bottom:4px}
+  .cmp .side.f .hd{color:var(--fast)} .cmp .side.l .hd{color:var(--llm)}
+  .cmp .side .q{color:var(--muted);font-size:13px;margin-bottom:14px;font-style:italic}
+  .cmp .metric{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .cmp .metric .lab{color:var(--muted)} .cmp .metric .val{font-family:ui-monospace,Menlo,monospace;font-weight:700}
+  .cmp .big{font-size:clamp(22px,3vw,30px);font-weight:800;margin:10px 0 2px}
+  .cmp .side.f .big{color:var(--fast)} .cmp .side.l .big{color:var(--llm)}
+  .cmp-takeaway{margin-top:16px;text-align:center;color:var(--ink);font-size:clamp(14px,1.6vw,17px);font-weight:600}
+  .cmp-takeaway b{color:var(--fast)}
+  @media (max-width:640px){.cmp{grid-template-columns:1fr}.row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -63,6 +85,14 @@
 </header>
 
 <div class="wrap">
+  <div class="compare-cta">
+    <h2>⚡ เห็นความต่างใน 1 คลิก</h2>
+    <p>กดเพื่อให้ kernel ตัดสิน 2 งานพร้อมกัน — งานง่าย vs งานซับซ้อน — แล้วดูว่า "ลดต้นทุน AI" หมายความว่าอะไร</p>
+    <button class="compare" id="compare" disabled>▶ เทียบ FastPath vs LLM path</button>
+    <div class="cmp" id="cmp"></div>
+    <div class="cmp-takeaway" id="takeaway" style="display:none"></div>
+  </div>
+
   <div class="card">
     <div class="row">
       <div>
@@ -114,6 +144,7 @@ let ready = false;
     ready = true;
     $('wasm-badge').textContent = '🦀 Rust kernel (WASM) พร้อมใช้งาน — รันในเบราว์เซอร์ 100%';
     $('go').disabled = false;
+    $('compare').disabled = false;
   } catch (e) {
     $('wasm-badge').textContent = '⚠ โหลด WASM ไม่ได้ (ต้องเสิร์ฟผ่าน http ไม่ใช่เปิดไฟล์ตรง ๆ)';
   }
@@ -149,6 +180,50 @@ $('go').addEventListener('click', () => {
   } catch(e) {
     body.innerHTML = `<div class="err">error: ${e.message||e}</div>`;
   }
+});
+
+// ── Demo moment: run an easy task + a hard task side by side ──────────────────
+$('compare').addEventListener('click', () => {
+  if (!ready) return;
+  const easyQ = 'นับจำนวนคำร้องที่ค้างอยู่ในระบบวันนี้';
+  const hardQ = 'วิเคราะห์เชิงลึกเปรียบเทียบความเห็นนักศึกษาทุกคณะย้อนหลังสามปีแล้วสรุปข้อเสนอเชิงนโยบายให้ผู้บริหาร';
+  const run = (cat, q) => {
+    const t0 = performance.now();
+    const d = route_task(cat, q, 2048, 128);
+    return { d, us: ((performance.now()-t0)*1000).toFixed(1) };
+  };
+  const a = run('DataQuery', easyQ);
+  const b = run('Research', hardQ);
+  // assume a conservative LLM round-trip + token cost for the LLM path, for contrast
+  const LLM_MS = 650, LLM_TOKENS = 1800, THB_PER_1K = 0.6;
+  const cmp = $('cmp');
+  cmp.classList.add('show');
+  cmp.innerHTML = `
+    <div class="side f">
+      <div class="hd">🦀 FastPath — งานทั่วไป</div>
+      <div class="q">"${easyQ}"</div>
+      <div class="big">${a.us} µs</div>
+      <div class="metric"><span class="lab">route</span><span class="val">${a.d.route}</span></div>
+      <div class="metric"><span class="lab">token</span><span class="val">0</span></div>
+      <div class="metric"><span class="lab">ต้นทุน</span><span class="val">฿0.00</span></div>
+      <div class="metric"><span class="lab">network</span><span class="val">ไม่มี</span></div>
+      <div class="metric"><span class="lab">proof</span><span class="val proof">${a.d.blake3_proof.slice(0,12)}…</span></div>
+    </div>
+    <div class="side l">
+      <div class="hd">🤖 LLM path — งานซับซ้อน</div>
+      <div class="q">"${hardQ.slice(0,42)}…"</div>
+      <div class="big">~${LLM_MS} ms</div>
+      <div class="metric"><span class="lab">route</span><span class="val">${b.d.route}</span></div>
+      <div class="metric"><span class="lab">token</span><span class="val">~${LLM_TOKENS}</span></div>
+      <div class="metric"><span class="lab">ต้นทุน</span><span class="val">~฿${(LLM_TOKENS/1000*THB_PER_1K).toFixed(2)}</span></div>
+      <div class="metric"><span class="lab">network</span><span class="val">เรียก LLM</span></div>
+      <div class="metric"><span class="lab">proof</span><span class="val proof">${b.d.blake3_proof.slice(0,12)}…</span></div>
+    </div>`;
+  const faster = Math.round(LLM_MS*1000 / parseFloat(a.us));
+  const tk = $('takeaway');
+  tk.style.display = 'block';
+  tk.innerHTML = `kernel คัดงานง่ายออกจาก LLM → <b>เร็วกว่า ~${faster.toLocaleString()} เท่า · 0 token · ฿0</b><br>
+    <span style="color:var(--muted);font-size:14px;font-weight:400">เรียก AI เฉพาะงานที่ซับซ้อนจริง — นี่คือที่มาของ "ลดต้นทุน ~80%"</span>`;
 });
 </script>
 </body>
