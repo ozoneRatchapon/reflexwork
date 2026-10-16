@@ -71,9 +71,22 @@ export default {
         status: 400, headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
-
-    const sys = 'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล ตอบสั้น กระชับ ภาษาไทย '
-              + 'อ้างอิงข้อมูลทางการเมื่อทำได้ และบอกให้ติดต่อเจ้าหน้าที่เมื่อไม่แน่ใจ';
+    // Optional KB grounding (grounded-hybrid): when the caller passes `context`
+    // (KB entries the kernel matched), the model MUST rephrase from it only and
+    // not invent facts. This is the ReflexWork twist on RAG — the kernel decides
+    // WHEN to ground (advice-type questions), so we pay for it sparingly.
+    const context = String(body.context || '').slice(0, 4000);
+    const grounded = context.trim().length > 0;
+    const sys = grounded
+      ? 'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล เรียบเรียงคำตอบเป็นภาษาคนที่อ่านลื่น '
+        + 'กฎเข้ม: ใช้ข้อเท็จจริงจาก "ข้อมูลคู่มือ" ที่ให้เท่านั้น ห้ามเพิ่มตัวเลข เบอร์ติดต่อ ชื่อหน่วยงาน '
+        + 'หรือข้อเท็จจริงใด ๆ ที่ไม่มีในข้อมูลนั้นเด็ดขาด หากข้อมูลไม่พอตอบคำถาม ให้บอกว่าข้อมูลในคู่มือไม่ครอบคลุม '
+        + 'และแนะนำให้ติดต่อเจ้าหน้าที่ ตอบสั้น กระชับ ภาษาไทย'
+      : 'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล ตอบสั้น กระชับ ภาษาไทย '
+        + 'อ้างอิงข้อมูลทางการเมื่อทำได้ และบอกให้ติดต่อเจ้าหน้าที่เมื่อไม่แน่ใจ';
+    const userMsg = grounded
+      ? `คำถาม: ${prompt}\n\nข้อมูลคู่มือ (ใช้เฉพาะนี้ ห้ามแต่งเพิ่ม):\n${context}`
+      : prompt;
 
     // --- Local model route (0 token, no data leaves the host) --------------
     // If OLLAMA_URL is set (a tunnelled Ollama / OpenAI-compatible endpoint —
@@ -94,7 +107,7 @@ export default {
             ...(env.OLLAMA_TOKEN ? { Authorization: `Bearer ${env.OLLAMA_TOKEN}` } : {}) },
           body: JSON.stringify({
             model: env.OLLAMA_MODEL || 'gemma2:9b',
-            messages: [{ role: 'system', content: sys }, { role: 'user', content: prompt }],
+            messages: [{ role: 'system', content: sys }, { role: 'user', content: userMsg }],
             stream: false,
             options: { temperature: 0.3, num_predict: 512 },
           }),
@@ -121,7 +134,7 @@ export default {
     const model = env.GEMINI_MODEL || 'gemini-3.8-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
     const payload = {
-      contents: [{ parts: [{ text: sys + '\n\nคำถาม: ' + prompt }] }],
+      contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
       generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
     };
 

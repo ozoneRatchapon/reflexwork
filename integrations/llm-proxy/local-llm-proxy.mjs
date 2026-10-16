@@ -54,16 +54,24 @@ const server = http.createServer(async (req, res) => {
   }
 
   let raw = ''; for await (const c of req) raw += c;
-  let input = '';
-  try { input = String(JSON.parse(raw || '{}').input || '').slice(0, 2000); } catch { /* empty */ }
+  let input = '', context = '';
+  try { const b = JSON.parse(raw || '{}'); input = String(b.input || '').slice(0, 2000); context = String(b.context || '').slice(0, 4000); } catch { /* empty */ }
   if (!input.trim()) { res.writeHead(400, headers); return res.end(JSON.stringify({ error: 'input required' })); }
+
+  const grounded = context.trim().length > 0;
+  const sys = grounded
+    ? 'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล เรียบเรียงคำตอบเป็นภาษาคนที่อ่านลื่น กฎเข้ม: ใช้ข้อเท็จจริง'
+      + 'จาก "ข้อมูลคู่มือ" ที่ให้เท่านั้น ห้ามเพิ่มตัวเลข เบอร์ติดต่อ ชื่อหน่วยงาน หรือข้อเท็จจริงที่ไม่มีในนั้น'
+      + 'เด็ดขาด หากข้อมูลไม่พอ ให้บอกว่าคู่มือไม่ครอบคลุมและแนะนำให้ติดต่อเจ้าหน้าที่ ตอบสั้น กระชับ ภาษาไทย'
+    : SYS;
+  const userMsg = grounded ? `คำถาม: ${input}\n\nข้อมูลคู่มือ (ใช้เฉพาะนี้ ห้ามแต่งเพิ่ม):\n${context}` : input;
 
   try {
     const r = await fetch(OLLAMA_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: MODEL,
-        messages: [{ role: 'system', content: SYS }, { role: 'user', content: input }],
+        messages: [{ role: 'system', content: sys }, { role: 'user', content: userMsg }],
         stream: false, options: { temperature: 0.3, num_predict: 512 },
       }),
     });
