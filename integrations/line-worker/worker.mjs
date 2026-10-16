@@ -14,6 +14,7 @@
 // secret storage — never in code, git, or the client.
 
 import { KB } from './kb-data.mjs';
+import { askTeam } from '../_shared/team-adapter.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -112,21 +113,15 @@ const LLM_UNAVAILABLE =
   '• ตรวจบทคัดย่อใช้เวลากี่วัน\n' +
   'หรือพิมพ์คำถามใหม่อีกครั้งในอีกสักครู่';
 
-async function answerLLM(text) {
-  try {
-    const r = await fetch(`${LLM_PROXY}/llm`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Origin': 'https://reflexwork.pages.dev' },
-      body: JSON.stringify({ input: text }),
-    });
-    const d = await r.json().catch(() => ({}));
-    // The proxy returns its own placeholder string when Gemini fails; treat that
-    // (and any missing answer) as "unavailable" so we show the helpful fallback.
-    const ok = d.answer && !/ตอบไม่ได้|ไม่พร้อม/.test(d.answer);
-    return ok ? { text: d.answer, ok: true } : { text: LLM_UNAVAILABLE, ok: false };
-  } catch {
-    return { text: LLM_UNAVAILABLE, ok: false };
-  }
+async function answerLLM(text, env) {
+  // LLM path goes through the team-integration adapter. By default the provider
+  // is 'gemini' (our proxy) → behavior is unchanged. To forward to ANOTHER
+  // team's backend (e.g. gradmahidol-ai), set TEAM_API_PROVIDER=gradmahidol +
+  // TEAM_API_URL (+ TEAM_API_KEY) as Worker secrets — no code change needed.
+  // env may be undefined in older call sites; fall back to the gemini proxy URL.
+  const bag = { LLM_PROXY, ...(env || {}) };
+  const r = await askTeam(text, bag);              // {text, ok, source}
+  return r.ok ? { text: r.text, ok: true } : { text: LLM_UNAVAILABLE, ok: false };
 }
 
 async function reply(replyToken, text, footer, token) {
@@ -170,7 +165,7 @@ async function processEvents(raw, env) {
         answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
         footer = `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI`;
       } else {
-        const llm = await answerLLM(text);
+        const llm = await answerLLM(text, env);
         answer = llm.text;
         footer = llm.ok
           ? `\n\n🦀 LLM path · ตอบโดย AI${proof ? `\n🔒 ${proof}…` : ''}`
