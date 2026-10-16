@@ -17,3 +17,8 @@ database_id = "a10fb432-55fe-4e07-8f93-d783ecb5adde"
 binding = "LLM_PROXY_SVC"
 service = "reflexwork-llm-proxy"
 
+# Daily auto-draft: 02:00 UTC (09:00 เวลาไทย) — drafts KB candidates for the
+# top unanswered gaps so the backlog shrinks on its own; staff just approve.
+[triggers]
+crons = ["0 2 * * *"]
+
