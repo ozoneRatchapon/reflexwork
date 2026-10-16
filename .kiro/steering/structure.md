@@ -14,7 +14,8 @@ integrations/
   llm-proxy/demo-local.sh       one-command local demo launcher
   line-worker/worker.mjs        LINE adapter (+ #kb staff command)
   line-worker/kb-data.mjs       generated KB snapshot for LINE
-  _shared/{humanize,rethink,intake,team-adapter}.mjs  shared logic (web+LINE)
+  corpus-service/worker.mjs     central federated-corpus hub (signals→draft→approve→signed+anchored release)
+  _shared/{humanize,rethink,intake,team-adapter,federation}.mjs  shared logic (web+LINE)
 submissions/
   build_knowledge_index.py      KB markdown → knowledge-index.json
   ui/knowledge-public/*.md      the KB source (frontmatter + body)
