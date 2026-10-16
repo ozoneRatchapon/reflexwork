@@ -139,10 +139,9 @@
   </div>
   <div class="ask">
     <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
-    <button id="mic" title="พูดแทนพิมพ์ (ใช้เสียง)" disabled style="min-width:44px">🎤</button>
     <button id="send" disabled>ถาม</button>
   </div>
-  <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span><span><label style="cursor:pointer"><input type="checkbox" id="tts"> อ่านคำตอบออกเสียง</label></span></div>
+  <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
   <div class="ratio-wrap" id="ratio-wrap" style="display:none">
     <div class="ratio-head"><span>สัดส่วน FastPath (ยิ่งสูง = ยิ่งประหยัด)</span><b id="ratio-pct">—</b></div>
     <div class="ratio-track"><div class="ratio-fill" id="ratio-fill" style="width:0%"></div></div>
@@ -165,10 +164,6 @@ async function load(){
   KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>FALLBACK_KB);
   if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
   ready=true; $('q').disabled=false; $('send').disabled=false;
-  // Voice: STT via Web Speech API (browser-native, free, Thai). Mic fills the
-  // input and asks; TTS reads answers aloud when the toggle is on. No audio
-  // leaves the app beyond the browser's own speech engine.
-  setupVoice();
   $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ทำงานในเบราว์เซอร์ 100%';
   const seeds=[
     {t:'ส่งรูปเล่มภายในกี่วัน', k:'f'},
@@ -218,68 +213,6 @@ function search(q){
 }
 
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d); $('chat').scrollTop=1e9;
-  // TTS: when enabled, read the ANSWER aloud (the .ans text, not the proof/meta).
-  if(cls==='b' && $('tts') && $('tts').checked){ const a=d.querySelector('.ans'); if(a) speak(a.textContent); }
-}
-
-// --- Voice (Web Speech API, browser-native) ---------------------------------
-let _recog=null, _rec=null;
-const _VP=new URLSearchParams(location.search);
-const STT_URL=_VP.get('stt')||'';   // local Whisper endpoint (optional)
-const TTS_URL=_VP.get('tts')||'';   // local Thai TTS endpoint (optional)
-
-function speak(text){
-  if(!text) return;
-  if(TTS_URL){  // local Thai TTS: POST {text} → audio bytes, play it
-    fetch(TTS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})})
-      .then(r=>r.blob()).then(b=>{ const a=new Audio(URL.createObjectURL(b)); a.play(); })
-      .catch(()=>browserTTS(text));
-    return;
-  }
-  browserTTS(text);
-}
-function browserTTS(text){
-  try{ if(!('speechSynthesis' in window)) return; const u=new SpeechSynthesisUtterance(text); u.lang='th-TH'; u.rate=1.05; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }catch(e){}
-}
-
-// Local Whisper STT: record a short clip and POST it → {text}.
-async function sttLocal(mic){
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    _rec=new MediaRecorder(stream); const chunks=[];
-    _rec.ondataavailable=e=>chunks.push(e.data);
-    _rec.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());
-      const blob=new Blob(chunks,{type:'audio/webm'});
-      mic.textContent='⏳';
-      try{ const r=await fetch(STT_URL,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:blob});
-           const j=await r.json(); if(j.text){ $('q').value=j.text; mic.textContent='🎤'; _rec=null; ask(); return; } }catch(e){}
-      mic.textContent='🎤'; _rec=null;
-    };
-    _rec.start(); mic.textContent='🔴';
-  }catch(e){ mic.textContent='🎤'; _rec=null; }
-}
-
-function setupVoice(){
-  const mic=$('mic'); if(!mic) return;
-  // Prefer a local Whisper endpoint when ?stt= is set; else Web Speech API.
-  if(STT_URL){
-    mic.disabled=false;
-    mic.addEventListener('click',()=>{ if(_rec){ _rec.stop(); } else { sttLocal(mic); } });
-    return;
-  }
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ mic.disabled=true; mic.title='เบราว์เซอร์นี้ไม่รองรับเสียง (ลอง Chrome หรือเปิด ?stt=)'; mic.style.opacity=.4; return; }
-  mic.disabled=false;
-  mic.addEventListener('click',()=>{
-    if(_recog){ _recog.stop(); _recog=null; mic.textContent='🎤'; return; }
-    _recog=new SR(); _recog.lang='th-TH'; _recog.interimResults=false; _recog.maxAlternatives=1;
-    mic.textContent='🔴';
-    _recog.onresult=(e)=>{ const t=e.results[0][0].transcript; $('q').value=t; mic.textContent='🎤'; _recog=null; ask(); };
-    _recog.onerror=()=>{ mic.textContent='🎤'; _recog=null; };
-    _recog.onend=()=>{ mic.textContent='🎤'; _recog=null; };
-    _recog.start();
-  });
 }
 
 // --- Template-based NLG: make a KB answer read like a person wrote it, WITHOUT AI.

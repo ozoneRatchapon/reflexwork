@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReflexWork — one-pager</title>
+<style>
+  :root{
+    --bg:#0b1020; --raised:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --ok:#22c58b; --warn:#f6a93b; --line:#2a3660;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);line-height:1.6;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;
+    max-width:920px;margin:0 auto;padding:40px 24px 60px}
+  h1{font-size:34px;letter-spacing:-1px}
+  h2{font-size:19px;margin:30px 0 10px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:6px}
+  .tag{color:var(--muted);font-size:14px;margin-top:4px}
+  .lead{font-size:17px;margin:16px 0;color:var(--ink)}
+  .lead b{color:var(--ok)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .pill{background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted)}
+  .pill b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  .card{background:var(--raised);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h3{font-size:15px;margin-bottom:6px}
+  .card.ok h3{color:var(--ok)} .card.warn h3{color:var(--warn)} .card.ac h3{color:var(--accent)}
+  .card p{font-size:14px;color:var(--muted)}
+  a{color:var(--accent)}
+  .links{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+  .links a{background:var(--accent);color:#07122e;text-decoration:none;font-weight:700;border-radius:10px;padding:10px 16px;font-size:14px}
+  .links a.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+  td,th{border:1px solid var(--line);padding:8px 10px;text-align:left}
+  th{background:var(--raised);color:var(--muted)}
+  code{font-family:ui-monospace,Menlo,monospace;color:#b79cff;font-size:13px;background:#0e1630;padding:1px 6px;border-radius:5px}
+  .foot{margin-top:28px;color:var(--muted);font-size:13px}
+  .flow{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--muted);background:#0e1630;border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre;overflow:auto}
+</style>
+</head>
+<body>
+  <h1>ReflexWork 🦀</h1>
+  <div class="tag">Mahidol AI Community 2026 · AI Development Challenge · ทีม Ratchapon (Ozone) & Napatsakorn · <a href="https://github.com/ozoneRatchapon/reflexwork">github.com/ozoneRatchapon/reflexwork</a></div>
+
+  <p class="lead"><b>ชั้นคัดกรองหน้า LLM</b> — Reflex Kernel (Rust/WASM) ตัดสินทุกคำถามในระดับ <b>ไมโครวินาที</b> ว่าตอบจากคู่มือได้เลย (<b>FastPath · 0 token</b>) หรือต้องส่งต่อ AI · ทุกการตัดสินใจมี <b>BLAKE3 proof</b> ตรวจสอบย้อนหลังได้</p>
+
+  <div class="pills">
+    <span class="pill"><b>ฟรี</b> · ไมโครวินาที · <b>ตรวจสอบได้</b></span>
+    <span class="pill">ภาษาคนโดยไม่ใช้ AI (grounded)</span>
+    <span class="pill">ยิ่งใช้ยิ่งฉลาด (learning loop)</span>
+    <span class="pill">แจกจ่าย + federated corpus</span>
+    <span class="pill">PDPA: ข้อมูลไม่ออกจากเครื่อง</span>
+  </div>
+
+  <h2>▶︎ ลองสดใน 60 วินาที</h2>
+  <div class="links">
+    <a href="https://reflexwork.pages.dev/chatbot.html">แชตบอต (live)</a>
+    <a class="alt" href="https://reflexwork.pages.dev/dashboard.html">แดชบอร์ด + audit trail</a>
+    <a class="alt" href="https://explorer.solana.com/address/6Dzv8va1Se8HisK5ceDw62sRxMWyD693AyP1hfSUtYE5?cluster=devnet">Solana program (devnet)</a>
+    <a class="alt" href="https://github.com/ozoneRatchapon/reflexwork">source code</a>
+  </div>
+
+  <h2>Problem → Solution</h2>
+  <p class="lead">แชตบอต LLM เรียก model (เสียเงิน + ตรวจสอบไม่ได้) กับ <b>ทุก</b> คำถาม ทั้งที่ ~80% เป็นคำถามซ้ำ/FAQ. ReflexWork คัดคำถามซ้ำไป FastPath ที่ฟรี+ตรวจสอบได้ ส่ง AI เฉพาะ ~20% ที่ยากจริง — ลดค่า token 60–80% โดยยัง audit ได้และ PDPA-friendly</p>
+  <div class="flow">คำถาม ──► Reflex Kernel (sigmoid gate, ~µs, BLAKE3 proof)
+            ├─ factual     → FastPath · 0 token · เป๊ะ
+            ├─ advice      → grounded hybrid (KB + AI เรียบเรียง · ไม่แต่งนอกคู่มือ)
+            ├─ off-corpus  → abstain → เจ้าหน้าที่ (ไม่มั่ว)
+            └─ personal    → intake → เก็บข้อมูลก่อนส่งเจ้าหน้าที่</div>
+
+  <h2>AI + Kiro</h2>
+  <div class="grid">
+    <div class="card ac"><h3>Kiro spec-driven</h3><p>ทุกฟีเจอร์มี <code>.kiro/specs/</code> (requirements/design/tasks) + <code>.kiro/steering/</code> always-on context · ดู <code>docs/kiro-ai-sdlc.md</code></p></div>
+    <div class="card ac"><h3>AI เฉพาะที่จำเป็น</h3><p>Typhoon (Thai, local, 0 token) / Gemini — เรียกเฉพาะ gate≥0.72 · prompt grounded "ห้ามแต่งนอกคู่มือ"</p></div>
+    <div class="card ok"><h3>ยิ่งใช้ยิ่งฉลาด</h3><p>gap log (mask PII) + entry confidence (EMA) + auto-draft → human approve · ไม่ retrain</p></div>
+    <div class="card ok"><h3>แจกจ่าย + federated</h3><p><code>@reflexwork/kernel</code> (npm) + <code>reflexwork init</code> · corpus กลางโตจาก signal ที่ mask แล้ว · release anchored บน Solana</p></div>
+  </div>
+
+  <h2>Prototype — ทำงานจริง (ตรวจได้)</h2>
+  <table>
+    <tr><th>ส่วน</th><th>สถานะ</th></tr>
+    <tr><td>Reflex Kernel (Rust/WASM, sigmoid gate + BLAKE3)</td><td>✅ live ในเบราว์เซอร์</td></tr>
+    <tr><td>แชตบอต + แดชบอร์ด (route mix + audit trail)</td><td>✅ reflexwork.pages.dev</td></tr>
+    <tr><td>Learning loop (gap/confidence/auto-draft)</td><td>✅ + daily cron</td></tr>
+    <tr><td>@reflexwork/kernel lib + scaffolder</td><td>✅ smoke test ผ่าน</td></tr>
+    <tr><td>Federated corpus (masked signals, two-install demo)</td><td>✅ demo รันผ่าน</td></tr>
+    <tr><td>Solana workflow-escrow program</td><td>✅ deploy จริง devnet</td></tr>
+    <tr><td>Kiro specs (3 features) + steering</td><td>✅ ในrepo</td></tr>
+  </table>
+
+  <h2>Expected Impact</h2>
+  <p class="lead">ลดต้นทุน AI 60–80% สำหรับงานบริการนักศึกษา/คำร้องซ้ำ ๆ · ตอบเร็วระดับ µs ไม่ติดคอขวดช่วง peak · audit trail ตอบโจทย์ PDPA · ติดตั้งเป็น service กลางที่หน่วยงานอื่นใน MU นำไปใช้ซ้ำได้ (lib + federated corpus) โดยข้อมูลแต่ละหน่วยงานไม่รั่วถึงกัน</p>
+
+  <div class="foot">Prototype จริง รันได้วันนี้ · ตรงไปตรงมาเรื่องขอบเขต: ส่วนเชื่อมฐานข้อมูลคำร้องจริง + deploy anchor signer สู่ production เป็นงานต่อยอดหลังผ่านรอบคัดเลือก · การอ่านออกเสียง (voice) ถอดออกชั่วคราวเพราะยังไม่พร้อม</div>
+</body>
+</html>

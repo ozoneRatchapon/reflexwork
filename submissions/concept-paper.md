@@ -121,9 +121,27 @@ ReflexWork ใช้ **Kiro เป็นเครื่องมือหลั�
 | `attest_and_submit` | สร้าง + บันทึกหลักฐานการตัดสินใจ | Bedrock + ชั้น audit |
 
 ### 5.3 บทบาทของ AI (เรียกเฉพาะเส้นทาง LLM)
-AI (ผ่าน Bedrock) ถูกเรียกเฉพาะงานที่ Reflex Kernel ตัดสินว่า "คลุมเครือ"
-(gate ≥ 0.72) เท่านั้น เช่น การสรุปคำร้องที่เขียนเป็นภาษาธรรมชาติ หรือการร่างเอกสาร
+AI (LLM) ถูกเรียกเฉพาะงานที่ Reflex Kernel ตัดสินว่า "คลุมเครือ"
+(gate ≥ 0.72) เท่านั้น เช่น การเรียบเรียงคำแนะนำจากคู่มือ (grounded hybrid)
 — เป็นการใช้ AI อย่างคุ้มค่า ไม่ใช่เรียกทุกครั้ง
+
+**เส้นทาง LLM ที่รันจริงตอนนี้** (ผ่าน `_shared/team-adapter.mjs`): รองรับหลาย
+provider — **Typhoon (Thai-tuned) รันในเครื่องผ่าน Ollama** (0 token, ข้อมูลไม่
+ออกจากเครื่อง — PDPA), Gemini (ผ่าน proxy), และสล็อตสำหรับ Amazon Bedrock. ทุก
+เส้นทางใช้ prompt แบบ **grounded เท่านั้น** ("ห้ามแต่งนอกคู่มือ") — AI เรียบเรียง
+ไม่ประดิษฐ์ข้อเท็จจริง
+
+### 5.4 การสร้างด้วย Kiro (spec-driven) + ความสามารถที่ต่อยอดได้
+- **Kiro spec-driven workflow** — ทุกฟีเจอร์ใหญ่มี `.kiro/specs/<feature>/{requirements,design,tasks}.md`
+  (learning-loop, voice, distributable-kernel) + `.kiro/steering/{product,tech,structure}.md`
+  เป็น always-on context (ดู `docs/kiro-ai-sdlc.md`)
+- **Self-improving KB** — ยิ่งใช้ยิ่งฉลาด: คำถามที่ตอบไม่ได้ → backlog (mask PII),
+  👎 ลด confidence ของ entry, auto-draft คำตอบให้ staff กด approve — ไม่ retrain
+- **แจกจ่ายได้ (distributable)** — `@reflexwork/kernel` (npm) + `reflexwork init`:
+  หน่วยงานอื่นติดตั้ง kernel ไปทำแชตบอตบน KB ตัวเองได้
+- **Federated corpus** — หลายหน่วยงานช่วยกันโต corpus กลางผ่าน **signal ที่ mask แล้ว**
+  (gap buckets/counts — ไม่มี raw text), draft ต้อง human approve, release เซ็นชื่อ +
+  **anchor บน Solana** ให้ตรวจสอบข้ามองค์กรได้ (program deploy จริงบน devnet แล้ว)
 
 ---
 
@@ -152,14 +170,15 @@ AI (ผ่าน Bedrock) ถูกเรียกเฉพาะงานที
 
 ### 6.3 ขอบเขต Prototype ปัจจุบัน และงานต่อยอด (ตรงไปตรงมา)
 
-- **ทำงานได้จริงแล้ว:** Reflex Kernel (routing + BLAKE3 + EMA) พร้อม benchmark,
-  MCP server 5 tools, Kiro hooks + settings
-- **เป็น stub/future work:** การเชื่อมฐานข้อมูลคำร้องจริงของหน่วยงาน และ UI
-  dashboard สำหรับผู้บริหาร — เป็นขั้นถัดไปหลังผ่านรอบคัดเลือก
-- **หมายเหตุทิศทาง:** ต้นแบบเดิมเคยผูกชั้น audit กับ Solana (devnet) ในบริบท
-  hackathon สาย blockchain — สำหรับการใช้งานในมหาวิทยาลัย ชั้น audit ปรับเป็น
-  BLAKE3 hash chain บน storage ภายในองค์กรได้ตรง ๆ โดยไม่ต้องพึ่ง blockchain
-  (on-chain settlement คงไว้เป็น optional future work)
+- **ทำงานได้จริงแล้ว (รันสด/ตรวจได้):**
+  - Reflex Kernel (routing + BLAKE3 + EMA) + benchmark
+  - แชตบอต + แดชบอร์ด **live** ที่ `reflexwork.pages.dev` (WASM kernel ในเบราว์เซอร์)
+  - **self-improving KB (learning loop)** — gap log (PII-masked) + entry confidence (EMA) + auto-draft → human approve
+  - **@reflexwork/kernel** — แพ็กเป็น npm lib ติดตั้งไปใช้ได้จริง (smoke test ผ่าน) + `reflexwork init` scaffolder
+  - **federated corpus** — หลาย install ช่วยกันโต corpus กลางผ่าน signal ที่ mask แล้ว (ไม่มี raw text ออกจากเครื่อง); two-install demo รันได้จริง
+  - **Solana program `workflow-escrow` deploy จริงบน devnet** (`6Dzv8va1Se8…tYE5`) — anchor hash ของ corpus release ให้ตรวจสอบข้ามองค์กรได้
+- **เป็น stub/future work:** เชื่อมฐานข้อมูลคำร้องจริงของหน่วยงาน, UI review สำหรับ approve corpus, deploy anchor-webhook signer สู่ production
+- **การอ่านออกเสียง (voice):** ถอดออกจาก prototype ชั่วคราว — ยังไม่พร้อมใช้งานจริง จะกลับมาทำเมื่อเสถียร
 
 ---
 
