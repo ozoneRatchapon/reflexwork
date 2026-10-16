@@ -115,13 +115,12 @@ async function logGapViaKernel(env, text) {
 // Redirects the user to the verified manual, which always works — so a demo
 // never dead-ends on a Gemini hiccup.
 const LLM_UNAVAILABLE =
-  'ตอนนี้ผู้ช่วย AI มีผู้ใช้งานจำนวนมาก ขออภัยในความไม่สะดวก 🙏\n' +
+  'ขออภัยครับ คำถามนี้ยังไม่มีคำตอบตรงในคู่มือ 🙏\n' +
   'ระหว่างนี้ลองถามเรื่องที่มีในคู่มือได้ทันที เช่น:\n' +
   '• ส่งรูปเล่มภายในกี่วัน\n' +
   '• ค่าสอบ MU GRAD Plus เท่าไร\n' +
   '• ตรวจบทคัดย่อใช้เวลากี่วัน\n' +
-  'หรือพิมพ์คำถามใหม่อีกครั้งในอีกสักครู่\n' +
-  '\nถ้าต้องการติดต่อเจ้าหน้าที่โดยตรง: https://graduate.mahidol.ac.th/thai/contact-us/';
+  '\nหรือรอสักครู่ เดี๋ยวเจ้าหน้าที่จะมาตอบในแชทนี้ต่อให้ครับ 🙇';
 
 async function answerLLM(text, env) {
   // LLM path goes through the team-integration adapter. By default the provider
@@ -192,10 +191,16 @@ async function processEvents(raw, env) {
         // (fire-and-forget; a logging failure must never block the reply).
         logGapViaKernel(env, text).catch(() => {});
         const llm = await answerLLM(text, env);
-        answer = llm.text;
-        footer = llm.ok
-          ? `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`
-          : ''; // fallback message already explains itself; no footer noise
+        if (llm.ok) {
+          // AI drafted an answer — but on LINE a human agent is in this same
+          // chat, so tell the user staff can verify/continue here (no external
+          // "contact us" button: they are already in the staff conversation).
+          answer = `${llm.text}\n\n(ร่างโดยผู้ช่วย AI — เดี๋ยวเจ้าหน้าที่ตรวจและตอบเพิ่มในแชทนี้ได้ครับ)`;
+          footer = `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+        } else {
+          answer = llm.text;   // fallback already says staff will reply here
+          footer = '';
+        }
       }
 
       await reply(ev.replyToken, answer, footer, token);
