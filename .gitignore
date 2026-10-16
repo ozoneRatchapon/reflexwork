@@ -53,8 +53,10 @@ logs/
 # Cloudflare Pages deploy staging (generated, excludes private knowledge/)
 submissions/.deploy-dist/
 
-# KiroCrew local settings
-.kiro/
+# KiroCrew local settings (keep specs + steering tracked — they are the AI-SDLC artifacts)
+.kiro/*
+!.kiro/specs/
+!.kiro/steering/
 
 integrations/kernel-worker/node_modules/
 integrations/kernel-worker/.wrangler/
