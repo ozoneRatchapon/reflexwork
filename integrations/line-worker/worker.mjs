@@ -98,6 +98,19 @@ async function routeViaKernel(env, text) {
   return r.json();
 }
 
+// Record a question the KB could not answer, so staff get a backlog of what to
+// add. Uses the kernel's /gap endpoint (via service binding when available).
+async function logGapViaKernel(env, text) {
+  const payload = JSON.stringify({ q: text, source: 'line' });
+  const req = new Request(`${KERNEL}/gap`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Origin': 'https://reflexwork.pages.dev' },
+    body: payload,
+  });
+  if (env.KERNEL) return env.KERNEL.fetch(req);
+  return fetch(`${KERNEL}/gap`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload });
+}
+
 // Graceful fallback shown when the LLM is unavailable (quota/throttle/outage).
 // Redirects the user to the verified manual, which always works — so a demo
 // never dead-ends on a Gemini hiccup.
@@ -170,6 +183,9 @@ async function processEvents(raw, env) {
         answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
         footer = `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI${stageTag}`;
       } else {
+        // Gap log: KB could not answer → record it for the staff backlog
+        // (fire-and-forget; a logging failure must never block the reply).
+        logGapViaKernel(env, text).catch(() => {});
         const llm = await answerLLM(text, env);
         answer = llm.text;
         footer = llm.ok

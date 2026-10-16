@@ -28,6 +28,13 @@
   .msg.b .src a{color:var(--accent)}
   .msg.b .ans{font-size:15px;line-height:1.6;margin:2px 0 6px}
   .msg.b .topic{display:inline-block;font-size:11px;color:var(--muted);background:#eef2fb;border-radius:999px;padding:2px 9px;margin-right:6px}
+  .msg.b .golink{display:inline-block;margin-top:9px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;font-size:13px;border-radius:9px;padding:8px 14px}
+  .msg.b .golink:hover{filter:brightness(1.08)}
+  .msg.b .steps{margin:8px 0;border-left:3px solid var(--accent);padding:6px 0 6px 12px}
+  .msg.b .steps-h{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}
+  .msg.b .step{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.5;padding:3px 0;cursor:pointer}
+  .msg.b .step input{margin-top:3px}
+  .msg.b .step input:checked + span{opacity:.5;text-decoration:line-through}
   .meta{font-size:11px;color:var(--muted);margin-top:6px}
   .kernel-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;padding-bottom:9px;border-bottom:1px dashed #e2e8f0}
   .kbadge{font-size:12px;font-weight:800;padding:3px 11px;border-radius:999px;color:#fff}
@@ -134,6 +141,7 @@ load().catch(()=>{ $('note').textContent='⚠ ต้องเปิดผ่า�
 const FALLBACK_KB = [
   { title:'ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน', keywords:'ส่ง รูปเล่ม กี่วัน deadline submit thesis 21 วัน',
     answer:'ส่งรูปเล่มอิเล็กทรอนิกส์ไม่เกิน 21 วันนับจากวันที่ผลสอบ “ผ่าน” (นับรวมวันหยุด) โดยกรอก Abstract Submission Form ส่ง PDF เว้นหน้าลงนาม แนบรายงาน Turnitin แล้วรออนุมัติ',
+    steps:['กรอก Abstract Submission Form ให้ครบถ้วน','ตรวจความซ้ำด้วย Turnitin ให้ไม่เกิน 25% แล้วบันทึกรายงาน','จัดทำ PDF ฉบับสมบูรณ์ (เว้นหน้าลงนาม)','อัปโหลดในระบบภายใน 21 วันนับจากวันสอบผ่าน','รอเจ้าหน้าที่บัณฑิตวิทยาลัยอนุมัติ'],
     source_url:'https://graduate.mahidol.ac.th/', faq_number:'36' },
   { title:'Turnitin เกิน 25% ต้องทำอย่างไร', keywords:'turnitin เกิน 25 ซ้ำ plagiarism similarity',
     answer:'พิจารณาความซ้ำในเนื้อหาหลักไม่เกิน 25% หากเกิน อาจารย์ที่ปรึกษาทำบันทึกชี้แจงให้บัณฑิตวิทยาลัยพิจารณา ตรวจบทคัดย่อ+เนื้อหา ไม่รวมอ้างอิง/ภาคผนวก',
@@ -252,12 +260,23 @@ function ask(){
   if(verdict.action==='act'){
     const hit = verdict.entry;
     auto++; saved+=COST;
-    const src = hit.source_url ? `<span class="src">📎 ที่มา: <a href="${hit.source_url}" target="_blank">FAQ ทางการ บัณฑิตวิทยาลัย</a></span>` : '';
+    // Deep link: a prominent button to the exact official page (not just a tiny
+    // link) so a user who needs more than the summary lands on the right source.
+    const src = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
+    // Guided steps: if the KB entry carries a `steps` array, render an
+    // interactive checklist (deterministic, no AI) — turns a wall of text into
+    // a wizard the user can tick through.
+    const steps = Array.isArray(hit.steps) && hit.steps.length
+      ? `<div class="steps"><div class="steps-h">ทำตามขั้นตอน (กดติ๊กเมื่อทำเสร็จ):</div>` +
+        hit.steps.map((s,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${String(s).replace(/</g,'&lt;')}</span></label>`).join('') +
+        `</div>` : '';
     add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${humanize(hit, q)}</div>
-      <span class="topic">หัวข้อ: ${hit.title}</span>${src}
+      ${steps}
+      <span class="topic">หัวข้อ: ${hit.title}</span>
       <div class="meta">${verdict.reason}</div>
+      ${src}
       ${fbUI(q, d.blake3_proof)}`);
   } else if(verdict.action==='disambiguate'){
     // rethink found two close candidates — ask which, no AI.
@@ -275,6 +294,9 @@ function ask(){
   } else {
     ai++;
     const mid = 'llm'+(++fbN);
+    // Gap log: this question had no manual answer. Record it (fire-and-forget)
+    // so staff get a backlog of what the KB is missing — the self-improving loop.
+    if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
       <div class="meta">${verdict.reason}</div>
