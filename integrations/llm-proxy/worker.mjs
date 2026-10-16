@@ -63,12 +63,6 @@ export default {
       });
     }
 
-    if (!env.GEMINI_API_KEY) {
-      return new Response(JSON.stringify({ error: 'LLM key not configured on the proxy' }), {
-        status: 503, headers: { ...headers, 'Content-Type': 'application/json' },
-      });
-    }
-
     let body;
     try { body = await request.json(); } catch { body = {}; }
     const prompt = String(body.input || '').slice(0, 2000);
@@ -78,11 +72,51 @@ export default {
       });
     }
 
+    const sys = 'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล ตอบสั้น กระชับ ภาษาไทย '
+              + 'อ้างอิงข้อมูลทางการเมื่อทำได้ และบอกให้ติดต่อเจ้าหน้าที่เมื่อไม่แน่ใจ';
+
+    // --- Local model route (0 token, no data leaves the host) --------------
+    // If OLLAMA_URL is set (a tunnelled Ollama / OpenAI-compatible endpoint —
+    // e.g. a Cloudflare Tunnel public hostname), prefer it over Gemini. This is
+    // how the Pages chatbot reaches a local model despite the Worker running on
+    // the edge: the tunnel gives the local box a public HTTPS URL the Worker
+    // CAN reach. Set OLLAMA_URL + OLLAMA_MODEL as Worker secrets to enable.
+    if (env.OLLAMA_URL) {
+      try {
+        const oc = new AbortController();
+        const ot = setTimeout(() => oc.abort(), Number(env.OLLAMA_TIMEOUT_MS) || 20000);
+        const or = await fetch(env.OLLAMA_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json',
+            ...(env.OLLAMA_TOKEN ? { Authorization: `Bearer ${env.OLLAMA_TOKEN}` } : {}) },
+          body: JSON.stringify({
+            model: env.OLLAMA_MODEL || 'gemma2:9b',
+            messages: [{ role: 'system', content: sys }, { role: 'user', content: prompt }],
+            stream: false,
+            options: { temperature: 0.3, num_predict: 512 },
+          }),
+          signal: oc.signal,
+        }).finally(() => clearTimeout(ot));
+        const od = await or.json().catch(() => ({}));
+        const otext = od?.choices?.[0]?.message?.content ?? od?.message?.content ?? od?.response ?? null;
+        if (or.ok && otext) {
+          return new Response(JSON.stringify({ answer: otext, source: 'ollama' }), {
+            headers: { ...headers, 'Content-Type': 'application/json' },
+          });
+        }
+        // local failed → fall through to Gemini if a key is configured
+      } catch { /* abort/network → fall through */ }
+    }
+
+    if (!env.GEMINI_API_KEY) {
+      return new Response(JSON.stringify({ error: 'LLM key not configured on the proxy' }), {
+        status: 503, headers: { ...headers, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Gemini generateContent (free-tier friendly model).
     const model = env.GEMINI_MODEL || 'gemini-3.8-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
-    const sys = 'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล ตอบสั้น กระชับ ภาษาไทย '
-              + 'อ้างอิงข้อมูลทางการเมื่อทำได้ และบอกให้ติดต่อเจ้าหน้าที่เมื่อไม่แน่ใจ';
     const payload = {
       contents: [{ parts: [{ text: sys + '\n\nคำถาม: ' + prompt }] }],
       generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
