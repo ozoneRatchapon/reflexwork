@@ -427,6 +427,24 @@ function ask(){
       }
       // decent KB match → grounded hybrid (async)
       auto++; saved+=COST;
+      // Strong KB match → the verified answer is good enough on its own. Render
+      // it with deterministic template NLG (humanize) — 0 token, 0 hallucination
+      // risk. We only pay for (and risk) an LLM rephrase when the match is
+      // MID-strength (4–5) and genuinely needs smoothing. This keeps the "facts
+      // from KB only" promise: a strong hit is never handed to a generative model.
+      if(topScore >= 6){
+        auto++; saved+=COST;
+        const srcH0 = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
+        add('b', `${kstrip}
+          <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">✅ ตอบจากคู่มือ (เรียบเรียงแบบ deterministic · ไม่เรียก AI) ${stageTag}</span>
+          <div class="ans">${humanize(hit, q)}</div>
+          <span class="topic">อ้างอิง: ${hit.title}</span>
+          <div class="meta">KB ตรงชัด (score ${topScore}) → ใช้ template NLG ไม่ต้องเรียก AI · 0 token · ไม่มีโอกาสแต่งนอกคู่มือ</div>
+          ${srcH0}
+          ${fbUI(q, d.blake3_proof, hit.id)}`);
+        $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+        return;
+      }
       const mid='hyb'+(++fbN);
       const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
       add('b', `${kstrip}
