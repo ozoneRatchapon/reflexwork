@@ -103,6 +103,12 @@
     <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือ auto-draft จาก gap) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นไฟล์ KB · ยิ่งใช้ corpus ยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
     <div id="draftrows"><div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div></div>
   </div>
+
+  <div class="card">
+    <h2>📉 KB entry ที่ถูก 👎 บ่อย (ควรแก้ก่อน)</h2>
+    <div class="cap">ระบบปรับ confidence ของแต่ละ KB entry อัตโนมัติจาก 👍/👎 ของผู้ใช้ (EMA) · entry ที่ confidence ต่ำ = ตอบแล้วคนไม่พอใจบ่อย → รายการที่ควรแก้/เขียนใหม่ก่อน (ระบบรู้เองว่าข้อไหนอ่อน)</div>
+    <div id="confrows"><div class="empty">ยังไม่มีข้อมูล feedback — เมื่อผู้ใช้กด 👍/👎 จะมาโผล่ที่นี่</div></div>
+  </div>
 </div>
 
 <script>
@@ -118,11 +124,12 @@ function fmtTime(ms){ const d=new Date(ms); return d.toLocaleTimeString('th-TH',
 
 async function tick(){
   try{
-    const [s,a,g,kd] = await Promise.all([
+    const [s,a,g,kd,ec] = await Promise.all([
       fetch(base()+'/status',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/audit',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/gaps',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
       fetch(base()+'/kb-drafts',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({drafts:[]})),
+      fetch(base()+'/entry-conf',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
     ]);
     $('dot').classList.add('up'); $('livetxt').textContent='เชื่อมต่อแล้ว · รีเฟรชทุก 2 วิ';
     $('k-total').textContent = s.total_routed;
@@ -150,11 +157,28 @@ async function tick(){
       <td>${e.source||'—'}</td></tr>`).join('')
       : '<tr><td colspan="4" class="empty">ยังไม่มี — คู่มือครอบคลุมทุกคำถามที่เข้ามา 🎉</td></tr>';
     renderDrafts((kd&&kd.drafts)||[]);
+    renderConf((ec&&ec.entries)||[]);
     return;   // live data rendered — do not overwrite with demo
   }catch(e){
     // No local API (the usual case on the public demo) → representative demo data.
     renderDemo();
   }
+}
+
+// Render the per-entry confidence list (weakest first) — "which KB entries to fix".
+function renderConf(entries){
+  const el = $('confrows'); if(!el) return;
+  if(!entries.length){ el.innerHTML = '<div class="empty">ยังไม่มีข้อมูล feedback — เมื่อผู้ใช้กด 👍/👎 จะมาโผล่ที่นี่</div>'; return; }
+  el.innerHTML = entries.map(e=>{
+    const pct = Math.round((Number(e.conf)||0)*100);
+    const col = pct<50?'#ff6b7a':pct<75?'#f6a93b':'#22c58b';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><span style="font-weight:600">${String(e.id).replace(/</g,'&lt;')}</span>
+        <span style="color:var(--muted);font-size:12px"> · 👍${e.up||0} 👎${e.down||0}</span></div>
+      <div style="width:120px;height:8px;background:#0b1020;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${col}"></div></div>
+      <div class="mono" style="width:46px;text-align:right;color:${col}">${pct}%</div>
+    </div>`;
+  }).join('');
 }
 
 // Render the KB-draft review list with Approve buttons (closes the loop).
@@ -220,6 +244,15 @@ function renderDemo(){
   $('gaprows').innerHTML = demoGaps.map((e,i)=>`<tr>
     <td>${e.question}</td><td class="mono">${e.hits}</td>
     <td class="mono">${fmtTime(now - i*600000)}</td><td>${e.source}</td></tr>`).join('');
+  // Demo: a weak entry (👎 บ่อย) the system learned to flag, and a pending draft.
+  renderConf([
+    { id:'thesis_topic_process', conf:0.41, up:2, down:9 },
+    { id:'scholarship_docs', conf:0.68, up:5, down:3 },
+    { id:'thesis_submit_days', conf:0.97, up:28, down:1 },
+  ]);
+  renderDrafts([
+    { id:1, title:'วีซ่านักศึกษาต่างชาติต่ออายุอย่างไร', answer:'ติดต่องานวิเทศสัมพันธ์ เตรียมพาสปอร์ต+หนังสือรับรองสถานภาพ ล่วงหน้า 30 วัน', category:'international', source:'line-staff' },
+  ]);
 }
 tick(); setInterval(tick, 2000);
 </script>
