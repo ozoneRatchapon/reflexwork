@@ -360,7 +360,7 @@ function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(
 
 async function groundedHybrid(q, entries){
   if(!KERNEL_API) return null;
-  const context = entries.slice(0,2).map((e,i)=>`[${i+1}] ${e.title}\n${e.answer}`).join('\n\n');
+  const context = entries.slice(0,3).map((e,i)=>`[${i+1}] ${e.title}\n${e.answer}`).join('\n\n');
   try{
     const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/llm',{
       method:'POST', headers:{'Content-Type':'application/json'},
