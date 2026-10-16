@@ -1,0 +1,11 @@
+{
+  "name": "reflexwork-anchor-webhook",
+  "version": "0.1.0",
+  "description": "Solana signer service that anchors a corpus-release hash on-chain via the workflow-escrow program. Holds the keypair the public Worker must not.",
+  "type": "module",
+  "private": true,
+  "scripts": { "start": "node server.mjs" },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.0"
+  }
+}
