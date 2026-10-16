@@ -159,12 +159,15 @@ async function tick(){
     $('seg-r').style.width = (s.rejected/tot*100)+'%';
     $('legend').innerHTML = `🟢 FastPath ${s.fast_path} &nbsp; 🟠 LLM ${s.llm_path} &nbsp; 🔴 Rejected ${s.rejected}`;
     const rows = a.entries||[];
-    $('rows').innerHTML = rows.length ? rows.map(e=>`<tr>
+    const shown = rows.slice(0,12);
+    const fmtUs = us => (us==null||us<1) ? '&lt; 1 µs' : us.toFixed(2)+' µs';
+    $('rows').innerHTML = rows.length ? shown.map(e=>`<tr>
       <td class="mono">${fmtTime(e.at_unix_ms)}</td>
       <td>${e.category}</td>
       <td>${routePill(e.route,e.fast_path)}</td>
-      <td class="mono">${e.kernel_us.toFixed(2)} µs</td>
+      <td class="mono">${fmtUs(e.kernel_us)}</td>
       <td class="mono proof">${e.blake3_proof.slice(0,16)}…</td></tr>`).join('')
+      + (rows.length>shown.length ? `<tr><td colspan="5" class="empty">+ อีก ${rows.length-shown.length} การตัดสินใจ (ทุกแถวมี proof ตรวจย้อนหลังได้)</td></tr>` : '')
       : '<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>';
     const gaprows = (g&&g.entries)||[];
     $('gaprows').innerHTML = gaprows.length ? gaprows.map(e=>`<tr>
