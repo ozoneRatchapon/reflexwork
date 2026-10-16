@@ -52,6 +52,40 @@ function frameFor(question) {
   return '';
 }
 
+// --- Slot-filling: answer the SPECIFIC thing asked, not just dump the row -----
+// Detect the question's intent, then pull the matching fact (a slot) out of the
+// KB answer and lead with a direct sentence about it. Still 100% deterministic:
+// it is pattern extraction, not generation. "ส่งกี่วัน" → "ภายใน 21 วันครับ".
+const SLOTS = [
+  { // DURATION — "กี่วัน / นานแค่ไหน"
+    ask: /กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/,
+    grab: /(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/,
+    lead: (m) => `${/ไม่เกิน|ภายใน/.test(m) ? '' : 'ภายใน'}${m}ครับ`,
+  },
+  { // COST — "เท่าไร / กี่บาท"
+    ask: /เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/,
+    grab: /\d[\d,]*\s*บาท/,
+    lead: (m) => `${m}ครับ`,
+  },
+  { // PERCENT / THRESHOLD — "เกินกี่ % / ไม่เกินเท่าไร"
+    ask: /กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/,
+    grab: /(?:ไม่เกิน|เกิน)?\s*\d+\s*%/,
+    lead: (m) => `${m}ครับ`,
+  },
+];
+
+// Returns a direct lead sentence for the asked slot, or '' if none applies.
+function slotLead(entry, question) {
+  const q = (question || '');
+  const body = String(entry?.answer || '');
+  for (const s of SLOTS) {
+    if (!s.ask.test(q)) continue;
+    const m = body.match(s.grab);
+    if (m) return s.lead(m[0].trim().replace(/\s+/g, ' '));
+  }
+  return '';
+}
+
 /**
  * Compose a human-sounding reply from a KB entry.
  * @param {{title?:string, answer?:string}} entry  the matched KB row
@@ -63,22 +97,30 @@ export function humanize(entry, question) {
   if (!body) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const seed = hashStr((question || '') + '|' + (entry?.title || ''));
   const opener = pick(OPENERS, seed);
-  const frame = frameFor(question);
   const closer = pick(CLOSERS, seed >> 11);
 
-  // Join opener → fact. If we have a type-frame ("เรื่องระยะเวลา"), it IS the
-  // bridge (always preceded by a space, never doubled with a connector). With
-  // no frame, use a varied connector, falling back to a plain space.
-  let bridge;
-  if (frame) {
-    bridge = ' ' + frame;                     // "ได้เลยครับ เรื่องระยะเวลา ..."
+  // Slot-filling: if the question asks for a specific fact we can extract
+  // (duration / cost / threshold), lead with a direct answer to THAT, then
+  // give the full context. Otherwise fall back to type-framing.
+  const lead = slotLead(entry, question);
+  let bridge, text;
+  if (lead) {
+    // "ได้เลยครับ ภายใน 21 วันครับ — รายละเอียด: <full answer>"
+    text = `${lead} รายละเอียด: ${body}`;
+    bridge = ' ';
   } else {
-    const c = pick(CONNECTORS, seed >> 5);
-    bridge = c && c.trim() ? c : ' ';         // real connector, else a space
+    const frame = frameFor(question);
+    if (frame) {
+      bridge = ' ' + frame;
+    } else {
+      const c = pick(CONNECTORS, seed >> 5);
+      bridge = c && c.trim() ? c : ' ';
+    }
+    text = body;
   }
-  let out = opener + bridge + body;
+  let out = opener + bridge + text;
   if (closer) out += ' ' + closer;
   return out;
 }
 
-export { hashStr as _hashStr };
+export { hashStr as _hashStr, slotLead };

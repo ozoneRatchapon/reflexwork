@@ -16,6 +16,7 @@
 import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
 import { humanize } from '../_shared/humanize.mjs';
+import { decide } from '../_shared/rethink.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -58,22 +59,16 @@ function searchKB(q) {
 //   confident  -> answer from the manual (0 token)
 //   ambiguous  -> offer the top matches so the user picks (guards typos/ambiguity)
 //   escalate   -> no KB hit, hand to the LLM
-function pickFromKB(q) {
+function pickFromKB(q, gate) {
   const ranked = searchKB(q);
-  if (!ranked.length) return { tier: 'escalate' };
-  const top = ranked[0], second = ranked[1];
-  // Confident: a clear leader. Either a strong absolute score, or it beats the
-  // runner-up decisively.
-  const confident = (top.s >= 4) || (top.s >= 3 && (!second || top.s - second.s >= 2));
-  if (confident) return { tier: 'confident', entry: top.e };
-  // Ambiguous only on a genuine near-tie with meaningful scores (>=3 each),
-  // so a scatter of generic 1-gram coincidences escalates instead of offering a
-  // nonsense menu.
-  if (top.s >= 3 && second && second.s >= 3) {
-    return { tier: 'ambiguous', candidates: ranked.slice(0, 3).map(r => r.e) };
-  }
-  if (top.s >= 3) return { tier: 'confident', entry: top.e };
-  return { tier: 'escalate' };
+  if (!ranked.length) return { tier: 'escalate', stage: 'reflex', reason: 'ไม่พบในคู่มือ' };
+  // Delegate to the shared rethink layer (System 1 / System 2). It recovers a
+  // FastPath answer in the borderline band instead of paying for an LLM.
+  const v = decide({ gate, ranked });
+  const tier = v.action === 'act' ? 'confident'
+             : v.action === 'disambiguate' ? 'ambiguous'
+             : 'escalate';
+  return { tier, stage: v.stage, reason: v.reason, entry: v.entry, candidates: v.candidates };
 }
 
 async function verify(bodyRaw, signature, secret) {
@@ -151,25 +146,33 @@ async function processEvents(raw, env) {
       const decision = await routeViaKernel(env, text).catch(() => ({}));
       const proof = String(decision.blake3_proof || '').slice(0, 16);
 
-      // Answer from the verified manual when we can; the KB tier decides.
-      // The footer reflects the TRUE path taken (manual / disambiguation / AI),
-      // and shows the kernel's BLAKE3 proof as tamper-evidence.
-      const pick = pickFromKB(text);
+      // Gate proxy from the kernel decision (the REST kernel exposes fast_path +
+      // the complexity feature, not the raw sigmoid g) → feeds the rethink band.
+      const cNum = typeof decision.gate_dim8_complexity === 'number' ? decision.gate_dim8_complexity : 0.5;
+      const gateProxy = decision.fast_path
+        ? Math.min(0.59, 0.30 + cNum * 0.25)
+        : Math.max(0.70, 0.60 + cNum * 0.35);
+
+      // Answer from the verified manual when we can; the rethink layer decides,
+      // recovering a FastPath answer in the borderline band instead of paying
+      // for an LLM. The footer shows the true path + reflex/rethink stage.
+      const pick = pickFromKB(text, gateProxy);
+      const stageTag = pick.stage === 'rethink' ? ' 🔁 rethink' : '';
       let answer, footer;
 
       if (pick.tier === 'confident') {
         const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
         answer = `${humanize(pick.entry, text)}${src}`;
-        footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${proof ? `\n🔒 ${proof}…` : ''}`;
+        footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
       } else if (pick.tier === 'ambiguous') {
         const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
         answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
-        footer = `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI`;
+        footer = `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI${stageTag}`;
       } else {
         const llm = await answerLLM(text, env);
         answer = llm.text;
         footer = llm.ok
-          ? `\n\n🦀 LLM path · ตอบโดย AI${proof ? `\n🔒 ${proof}…` : ''}`
+          ? `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`
           : ''; // fallback message already explains itself; no footer noise
       }
 

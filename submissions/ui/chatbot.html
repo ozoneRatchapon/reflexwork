@@ -181,9 +181,39 @@ function _frame(q){ q=(q||'').toLowerCase();
 function humanize(hit, q){
   const body=(hit.answer||'').trim(); if(!body) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const seed=hashStr((q||'')+'|'+(hit.title||''));
-  const opener=pick(_OPENERS,seed), frame=_frame(q), closer=pick(_CLOSE,seed>>11);
-  let bridge; if(frame){ bridge=' '+frame; } else { const c=pick(_CONN,seed>>5); bridge=c&&c.trim()?c:' '; }
-  let out=opener+bridge+body; if(closer) out+=' '+closer; return out;
+  const opener=pick(_OPENERS,seed), closer=pick(_CLOSE,seed>>11);
+  const lead=slotLead(hit,q);
+  let bridge, text;
+  if(lead){ text=`${lead} รายละเอียด: ${body}`; bridge=' '; }
+  else { const frame=_frame(q); if(frame){ bridge=' '+frame; } else { const c=pick(_CONN,seed>>5); bridge=c&&c.trim()?c:' '; } text=body; }
+  let out=opener+bridge+text; if(closer) out+=' '+closer; return out;
+}
+// --- Slot-filling: lead with the SPECIFIC fact asked (duration/cost/percent), no AI
+const _SLOTS=[
+  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>`${/ไม่เกิน|ภายใน/.test(m)?'':'ภายใน'}${m}ครับ` },
+  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, grab:/\d[\d,]*\s*บาท/, lead:m=>`${m}ครับ` },
+  { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}ครับ` },
+];
+function slotLead(hit,q){ q=q||''; const body=String(hit.answer||'');
+  for(const s of _SLOTS){ if(!s.ask.test(q)) continue; const m=body.match(s.grab); if(m) return s.lead(m[0].trim().replace(/\s+/g,' ')); }
+  return ''; }
+
+// --- Rethink layer (System 1 / System 2, deterministic, no AI) ---------------
+// Borderline reflex → RETHINK with cheap moves before paying for an LLM.
+const _BAND={low:0.60,high:0.80};
+function decideTier({gate, ranked}){
+  const top=ranked[0]||null, second=ranked[1]||null;
+  if(typeof gate==='number' && gate<_BAND.low && top && top.s>=4)
+    return {action:'act', stage:'reflex', entry:top.e, reason:'gate ต่ำ + KB ตรงชัด — ตอบทันที'};
+  if(typeof gate==='number' && gate>=_BAND.high && !(top&&top.s>=6))
+    return {action:'escalate', stage:'reflex', reason:'gate สูง + KB ไม่ตรงพอ — ส่ง LLM'};
+  if(top && top.s>=4 && (!second || top.s-second.s>=2))
+    return {action:'act', stage:'rethink', entry:top.e, reason:'คิดซ้ำแล้วเจอข้อที่ตรงชัด — ตอบจากคู่มือ (ไม่เรียก AI)'};
+  if(top && second && top.s>=2 && (top.s-second.s)<=1)
+    return {action:'disambiguate', stage:'rethink', candidates:ranked.slice(0,3).map(r=>r.e), reason:'คิดซ้ำแล้วมี 2 ข้อใกล้กัน — ถามให้ชัดก่อน (ยังไม่เรียก AI)'};
+  if(top && top.s>=3)
+    return {action:'act', stage:'rethink', entry:top.e, reason:'คิดซ้ำแล้วมีข้อที่พอตรง — ตอบจากคู่มือก่อน'};
+  return {action:'escalate', stage:'rethink', reason:'คิดซ้ำแล้วยังไม่พบในคู่มือ — จึงส่งให้ AI'};
 }
 
 function ask(){
@@ -208,31 +238,36 @@ function ask(){
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ proof เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
 
   const ranked = search(q);
-  const top = ranked[0] || null;
-  const second = ranked[1] || null;
-  // 3-tier: confident (clear top), ambiguous (top weak OR 2nd close), escalate (nothing)
-  const confident = top && top.s >= 4 && (!second || top.s - second.s >= 2);
-  const ambiguous = top && !confident && top.s >= 2;
+  // Gate proxy: the deployed WASM exposes fast_path + the complexity feature
+  // (x[8]), not the raw sigmoid g. Map them into a [0,1] gate estimate so the
+  // rethink band can act. fast_path pulls low; complexity nudges within band.
+  const cNum = (typeof d.gate_dim8_complexity==='number') ? d.gate_dim8_complexity : 0.5;
+  const gateProxy = d.fast_path ? Math.min(0.59, 0.30 + cNum*0.25) : Math.max(0.70, 0.60 + cNum*0.35);
+  const verdict = decideTier({ gate: gateProxy, ranked });
+  const stageTag = verdict.stage==='rethink'
+    ? `<span class="km" style="background:#eef2fb;color:#3b63e8">🔁 rethink</span>`
+    : `<span class="km">⚡ reflex</span>`;
 
-  if(confident){
-    const hit = top.e;
+  if(verdict.action==='act'){
+    const hit = verdict.entry;
     auto++; saved+=COST;
     const src = hit.source_url ? `<span class="src">📎 ที่มา: <a href="${hit.source_url}" target="_blank">FAQ ทางการ บัณฑิตวิทยาลัย</a></span>` : '';
     add('b', `${kstrip}
-      <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI</span>
+      <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${humanize(hit, q)}</div>
       <span class="topic">หัวข้อ: ${hit.title}</span>${src}
+      <div class="meta">${verdict.reason}</div>
       ${fbUI(q, d.blake3_proof)}`);
-  } else if(ambiguous){
-    // not sure which — maybe a typo or vague. Offer the closest matches to pick.
+  } else if(verdict.action==='disambiguate'){
+    // rethink found two close candidates — ask which, no AI.
     auto++;
-    const opts = ranked.slice(0,3).map(r=>`<span class="dis" data-t="${r.e.title.replace(/"/g,'&quot;')}">${r.e.title}</span>`).join('');
+    const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
     const mid='dis'+(++fbN);
     add('b', `${kstrip}
-      <span class="route auto" style="background:#fff7ed;color:#d97706">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย</span>
-      <div>คุณอาจหมายถึง (เผื่อพิมพ์คำไม่ครบ/คลุมเครือ):</div>
+      <span class="route auto" style="background:#fff7ed;color:#d97706">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย ${stageTag}</span>
+      <div>คุณอาจหมายถึง (คิดซ้ำแล้วมีหลายข้อใกล้กัน):</div>
       <div class="dislist" id="${mid}">${opts}</div>
-      <div class="meta">หรือถ้าไม่ใช่ทั้งหมด พิมพ์ใหม่ให้ชัดขึ้น — ระบบจะส่งให้ AI ช่วย</div>`);
+      <div class="meta">${verdict.reason}</div>`);
     document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
       $('q').value = el.dataset.t; ask();
     }));
@@ -240,7 +275,8 @@ function ask(){
     ai++;
     const mid = 'llm'+(++fbN);
     add('b', `${kstrip}
-      <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path</span>
+      <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
+      <div class="meta">${verdict.reason}</div>
       <span id="${mid}">${KERNEL_API ? '⏳ กำลังถาม AI…' : 'คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน'}</span>
       ${fbUI(q, d.blake3_proof)}`);
     if(KERNEL_API){
