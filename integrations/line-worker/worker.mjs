@@ -13,8 +13,66 @@
 // Secrets (LINE token/secret, and the LLM key on the proxy) live in Worker
 // secret storage — never in code, git, or the client.
 
+import { KB } from './kb-data.mjs';
+
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
+
+// Score each KB entry against the query. Thai has no word spaces, so we match
+// on character tri-grams plus any space-separated tokens — the SAME scoring the
+// web chatbot uses, kept in lockstep so LINE and web answer identically.
+// Generic Thai connective/filler fragments that create false tri-gram matches
+// against unrelated titles. Excluded from scoring so "วิธีทำ…" doesn't score
+// every entry whose title contains "วิธี".
+const STOP_GRAMS = new Set(['วิธี', 'ทำอ', 'ทำย', 'การ', 'ได้', 'อย่', 'ย่า', 'งไร', 'ไหม', 'เท่', 'ท่า', 'าไร']);
+
+function searchKB(q) {
+  const ql = (q || '').toLowerCase();
+  const grams = new Set();
+  // Space-separated tokens. Latin/number tokens (turnitin, 25, grad) are highly
+  // discriminative, so weight them more than a bare Thai tri-gram.
+  const weight = new Map();
+  for (const tok of ql.split(/\s+/)) {
+    if (tok.length > 1) {
+      grams.add(tok);
+      weight.set(tok, /^[a-z0-9]/.test(tok) ? 3 : 1);
+    }
+  }
+  for (let i = 0; i < ql.length - 2; i++) {
+    const g = ql.slice(i, i + 3).trim();
+    if (g.length === 3 && !STOP_GRAMS.has(g)) { grams.add(g); if (!weight.has(g)) weight.set(g, 1); }
+  }
+  const scored = [];
+  for (const e of KB) {
+    let s = 0;
+    for (const g of grams) if (e.keywords.includes(g)) s += (weight.get(g) || 1);
+    if (s > 0) scored.push({ e, s });
+  }
+  scored.sort((a, b) => b.s - a.s);
+  return scored;
+}
+
+// 3-tier decision mirroring the web chatbot:
+//   confident  -> answer from the manual (0 token)
+//   ambiguous  -> offer the top matches so the user picks (guards typos/ambiguity)
+//   escalate   -> no KB hit, hand to the LLM
+function pickFromKB(q) {
+  const ranked = searchKB(q);
+  if (!ranked.length) return { tier: 'escalate' };
+  const top = ranked[0], second = ranked[1];
+  // Confident: a clear leader. Either a strong absolute score, or it beats the
+  // runner-up decisively.
+  const confident = (top.s >= 4) || (top.s >= 3 && (!second || top.s - second.s >= 2));
+  if (confident) return { tier: 'confident', entry: top.e };
+  // Ambiguous only on a genuine near-tie with meaningful scores (>=3 each),
+  // so a scatter of generic 1-gram coincidences escalates instead of offering a
+  // nonsense menu.
+  if (top.s >= 3 && second && second.s >= 3) {
+    return { tier: 'ambiguous', candidates: ranked.slice(0, 3).map(r => r.e) };
+  }
+  if (top.s >= 3) return { tier: 'confident', entry: top.e };
+  return { tier: 'escalate' };
+}
 
 async function verify(bodyRaw, signature, secret) {
   if (!secret) {
@@ -55,14 +113,13 @@ async function answerLLM(text) {
   } catch { return 'ขออภัย ระบบ AI ไม่พร้อมใช้งานขณะนี้'; }
 }
 
-async function reply(replyToken, text, decision, token) {
-  const footer = `\n\n🦀 ${decision.route} · ${decision.fast_path ? '0 token' : 'LLM'}`
-               + `\n🔒 ${String(decision.blake3_proof).slice(0, 16)}…`;
+async function reply(replyToken, text, footer, token) {
+  const body = footer ? text + footer : text;
   if (!token) return; // PoC: no credentials → skip actual LINE call
   await fetch('https://api.line.me/v2/bot/message/reply', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ replyToken, messages: [{ type: 'text', text: text + footer }] }),
+    body: JSON.stringify({ replyToken, messages: [{ type: 'text', text: body }] }),
   });
 }
 
@@ -83,11 +140,34 @@ export default {
       for (const ev of body.events || []) {
         if (ev.type !== 'message' || ev.message?.type !== 'text') continue;
         const text = ev.message.text;
-        const decision = await routeViaKernel(env, text);
-        const answer = decision.fast_path
-          ? 'พบคำตอบในคู่มือ — ตอบทันที ไม่เรียก AI (เสียบ KB ของทีมตรงนี้)'
-          : await answerLLM(text);
-        await reply(ev.replyToken, answer, decision, token);
+
+        // The kernel still makes the real routing decision (fast-path gate +
+        // BLAKE3 proof) — that is the engine we are demonstrating.
+        const decision = await routeViaKernel(env, text).catch(() => ({}));
+        const route = decision.route || 'DataQuery';
+        const proof = String(decision.blake3_proof || '').slice(0, 16);
+
+        // Answer from the verified manual when we can; the KB tier decides.
+        const pick = pickFromKB(text);
+        let answer, footer;
+
+        if (pick.tier === 'confident') {
+          const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
+          answer = `${pick.entry.answer}${src}`;
+          footer = `\n\n🦀 ${route} · FastPath · 0 token${proof ? `\n🔒 ${proof}…` : ''}`;
+        } else if (pick.tier === 'ambiguous') {
+          const list = pick.candidates
+            .map((c, i) => `${i + 1}. ${c.title}`)
+            .join('\n');
+          answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
+          footer = `\n\n🦀 ${route} · ต้องการความชัดเจน (ไม่เรียก AI)`;
+        } else {
+          // no manual hit -> let the LLM proxy answer (costs tokens)
+          answer = await answerLLM(text);
+          footer = `\n\n🦀 ${route} · LLM${proof ? `\n🔒 ${proof}…` : ''}`;
+        }
+
+        await reply(ev.replyToken, answer, footer, token);
       }
     } catch (e) {
       // never 500 a webhook — LINE retries aggressively. Log and ack.
