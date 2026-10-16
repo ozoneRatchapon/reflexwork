@@ -10,3 +10,10 @@ binding = "DB"
 database_name = "reflexwork"
 database_id = "a10fb432-55fe-4e07-8f93-d783ecb5adde"
 
+# Service binding to the LLM proxy so /kb-autodraft can call it worker-to-worker
+# (a plain public workers.dev fetch from one Worker to another on the same
+# account is routed to 404 at the edge — a binding is the supported path).
+[[services]]
+binding = "LLM_PROXY_SVC"
+service = "reflexwork-llm-proxy"
+

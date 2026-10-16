@@ -124,6 +124,7 @@ export default {
       if (url.pathname === '/kb-draft' && request.method === 'POST') return kbDraft(request, env);
       if (url.pathname === '/kb-drafts' && request.method === 'GET') return kbDrafts(env);
       if (url.pathname === '/kb-approve' && request.method === 'POST') return kbApprove(request, env);
+      if (url.pathname === '/kb-autodraft' && request.method === 'POST') return kbAutodraft(request, env);
       return json({ error: 'not found' }, 404);
     } catch (e) {
       return json({ error: String(e && e.message || e) }, 500);
@@ -390,4 +391,53 @@ async function kbApprove(request, env) {
     `---\n## ${d.title}\n\n` +
     `คำค้นภาษาอังกฤษ: ${d.keywords}\n\n${d.answer}\n`;
   return json({ ok: true, id, filename: `${slug}.md`, markdown: md });
+}
+
+// POST /kb-autodraft { limit? } — for the most-asked unanswered gaps, draft a
+// CANDIDATE answer with the LLM (proxy), and insert each as a PENDING kb_draft.
+// This closes the loop one more notch: the system proposes KB entries from what
+// it could NOT answer; a human only reviews + approves (never auto-published).
+// Deliberately conservative: skips a gap that already has a pending draft, and
+// caps how many it drafts per call to bound LLM cost.
+async function kbAutodraft(request, env) {
+  await ensureSchema(env);
+  const b = await request.json().catch(() => ({}));
+  const limit = Math.max(1, Math.min(5, Number(b.limit) || 3));
+  const proxyBase = (env.LLM_PROXY || 'https://reflexwork-llm-proxy.solana-thailand.workers.dev').replace(/\/+$/, '');
+  const proxyLlm = proxyBase + '/llm';
+  // top unanswered gaps (most asked first)
+  const rows = await env.DB.prepare(
+    "SELECT sample, hits FROM gap_log ORDER BY hits DESC, last_at DESC LIMIT ?1"
+  ).bind(limit).all();
+  const made = [];
+  const errs = [];
+  for (const g of (rows.results || [])) {
+    const question = String(g.sample || '').trim();
+    if (!question) continue;
+    // skip if a pending draft already exists for this question
+    const dup = await env.DB.prepare("SELECT 1 FROM kb_draft WHERE question=?1 AND status='pending'").bind(question).first();
+    if (dup) { errs.push('dup:' + question.slice(0, 20)); continue; }
+    // draft a candidate answer via the proxy (local Typhoon / Gemini).
+    let answer = '';
+    try {
+      const req = new Request(proxyLlm, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Origin': 'https://reflexwork.pages.dev' },
+        body: JSON.stringify({ input: `ร่างคำตอบสั้น ๆ เป็นภาษาไทยสำหรับคำถามบัณฑิตวิทยาลัยนี้ (ถ้าไม่แน่ใจข้อเท็จจริง ให้บอกว่าควรตรวจสอบกับเจ้าหน้าที่ ห้ามแต่งเบอร์/ตัวเลข): ${question}` }),
+      });
+      // Prefer the service binding (supported worker→worker path); fall back to public URL.
+      const r = env.LLM_PROXY_SVC ? await env.LLM_PROXY_SVC.fetch(req) : await fetch(req);
+      const j = await r.json().catch(() => ({}));
+      answer = String(j.answer || '').trim();
+      if (!answer) errs.push('empty:' + r.status);
+    } catch (e) { errs.push('throw:' + String(e && e.message || e).slice(0, 40)); }
+    if (!answer) continue;
+    const title = question.slice(0, 200);
+    await env.DB.prepare(
+      "INSERT INTO kb_draft (title, question, answer, keywords, category, status, source, at) VALUES (?1,?2,?3,?4,?5,'pending',?6,?7)"
+    ).bind(title, question, answer, question.toLowerCase().slice(0, 300), 'auto', 'auto-draft', Date.now()).run();
+    made.push({ question, answer: answer.slice(0, 120) });
+  }
+  return json({ ok: true, drafted: made.length, items: made,
+    note: 'auto-drafted from top gaps — รอเจ้าหน้าที่ตรวจและกดอนุมัติในแดชบอร์ด (ไม่ publish อัตโนมัติ)' });
 }

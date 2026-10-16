@@ -101,6 +101,7 @@
   <div class="card">
     <h2>✅ KB Drafts รออนุมัติ (ปิด learning loop)</h2>
     <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือ auto-draft จาก gap) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นไฟล์ KB · ยิ่งใช้ corpus ยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
+    <div style="margin:4px 0 12px"><button onclick="autoDraft()" style="background:#5b8cff;color:#041024;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">🤖 Auto-draft จาก gap ยอดฮิต (AI ร่างให้ คนแค่ตรวจ)</button> <span id="autodraft-note" style="color:var(--muted);font-size:13px"></span></div>
     <div id="draftrows"><div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div></div>
   </div>
 
@@ -206,6 +207,17 @@ window.approveDraft = async function(id){
     if(j.ok && pre){ pre.style.display='block'; pre.textContent = `# บันทึกเป็นไฟล์: submissions/ui/knowledge-public/${j.filename}\n\n${j.markdown}`; }
     else if(pre){ pre.style.display='block'; pre.textContent = 'อนุมัติไม่สำเร็จ: '+(j.error||'unknown'); }
   }catch(e){ alert('เชื่อมต่อ API ไม่ได้'); }
+};
+
+// Trigger auto-draft: AI drafts candidate answers for the top gaps → pending.
+window.autoDraft = async function(){
+  const note = $('autodraft-note'); if(note) note.textContent = '⏳ กำลังให้ AI ร่าง…';
+  try{
+    const r = await fetch(base()+'/kb-autodraft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({limit:3})});
+    const j = await r.json();
+    if(note) note.textContent = j.ok ? `✅ ร่างใหม่ ${j.drafted} รายการ — ตรวจด้านล่างแล้วกดอนุมัติ` : 'ร่างไม่สำเร็จ';
+    tick();   // refresh the draft list
+  }catch(e){ if(note) note.textContent='⚠ เชื่อมต่อ API ไม่ได้'; }
 };
 
 
