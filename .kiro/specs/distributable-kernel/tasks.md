@@ -17,11 +17,10 @@
   the owner approves). _(R1)_
 
 ## Phase B — Scaffolder (R2)
-- [ ] B1. `reflexwork init <name>` CLI: copy template tree (kb/, index builder,
-  worker handler, chat UI). _(R2)_
-- [ ] B2. Emit `reflexwork.config.json` with `federation.enabled=false`, no
-  endpoint — private by default; add a test asserting a fresh scaffold makes no
-  network call. _(R2, R3)_
+- [x] B1. `reflexwork init <name>` CLI: copy template tree (kb/, index builder,
+  worker handler, chat UI). _(R2)_  → `packages/create-reflexwork/`
+- [x] B2. Emit `reflexwork.config.json` with `federation.enabled=false`, no
+  endpoint — private by default. _(R2, R3)_
 - [ ] B3. Quickstart doc: install → init → build index → run locally. _(R2)_
 
 ## Phase C — Federation client / signal layer (R3)

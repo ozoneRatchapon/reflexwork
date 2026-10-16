@@ -1,0 +1,19 @@
+{
+  "name": "create-reflexwork",
+  "version": "0.1.0",
+  "description": "Scaffold a FastPath chatbot over your own KB, powered by @reflexwork/kernel. Private by default — federation is opt-in.",
+  "keywords": ["reflexwork", "scaffold", "cli", "create", "fastpath", "chatbot"],
+  "license": "MIT OR Apache-2.0",
+  "type": "module",
+  "bin": {
+    "create-reflexwork": "./index.mjs",
+    "reflexwork": "./index.mjs"
+  },
+  "files": ["index.mjs", "README.md"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ozoneRatchapon/reflexwork.git",
+    "directory": "packages/create-reflexwork"
+  },
+  "publishConfig": { "access": "public" }
+}
