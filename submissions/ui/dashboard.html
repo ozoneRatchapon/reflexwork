@@ -102,6 +102,7 @@
     <h2>🔧 ระบบต้นทางไหนก่อปัญหาเยอะสุด</h2>
     <div class="cap">จัดกลุ่มคำถามที่ตอบไม่ได้ตาม "ระบบต้นทาง" ที่เกี่ยวข้อง → บอกผู้บริหาร/IT ว่าควรไปแก้ที่ต้นเหตุระบบไหนก่อน · เป้าหมายสูงสุดของ ReflexWork คือทำให้คำถามพวกนี้<b>ลดลง</b> เพราะระบบต้นทางถูกแก้</div>
     <div id="sysrows"><div class="empty">ยังไม่มีข้อมูล — เมื่อมี gap จะจัดกลุ่มตามระบบให้</div></div>
+    <div style="margin-top:12px"><button onclick="exportReport()" style="background:#b07bff;color:#120a24;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">📄 ส่งออกรายงานผู้บริหาร (PDF)</button> <span style="color:var(--muted);font-size:13px">เปิดหน้ารายงานสะอาด → กด Print → Save as PDF</span></div>
   </div>
 
   <div class="card">
@@ -192,6 +193,7 @@ const _SYS=[
 ];
 function renderSystems(gaps){
   const el=$('sysrows'); if(!el) return;
+  window.__gaps = gaps || [];
   if(!gaps.length){ el.innerHTML='<div class="empty">ยังไม่มีข้อมูล — เมื่อมี gap จะจัดกลุ่มตามระบบให้</div>'; return; }
   const tally={}; let other=0, total=0;
   for(const g of gaps){ const q=g.question||''; const h=g.hits||1; total+=h; let hit=false;
@@ -208,6 +210,40 @@ function renderSystems(gaps){
     </div>`;
   }).join('');
 }
+
+// Open a clean, printable executive report (Print → Save as PDF). No libs.
+window.exportReport = function(){
+  const gaps = window.__gaps || [];
+  const total = gaps.reduce((a,g)=>a+(g.hits||1),0) || 0;
+  const tally={}; let other=0;
+  for(const g of gaps){ const q=g.question||''; const h=g.hits||1; let hit=false;
+    for(const s of _SYS){ if(s.re.test(q)){ tally[s.name]=(tally[s.name]||0)+h; hit=true; break; } } if(!hit) other+=h; }
+  if(other) tally['อื่น ๆ']=other;
+  const rows=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+  const topGaps=[...gaps].sort((a,b)=>(b.hits||0)-(a.hits||0)).slice(0,10);
+  const d=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const sysRows=rows.map(([n,h])=>`<tr><td>${n}</td><td style="text-align:right">${h}</td><td style="text-align:right">${total?Math.round(h/total*100):0}%</td></tr>`).join('')||'<tr><td colspan=3>ไม่มีข้อมูล</td></tr>';
+  const gapRows=topGaps.map(g=>`<tr><td>${(g.question||'').replace(/</g,'&lt;')}</td><td style="text-align:right">${g.hits||1}</td></tr>`).join('')||'<tr><td colspan=2>ไม่มีข้อมูล</td></tr>';
+  const html=`<!doctype html><html lang="th"><head><meta charset="utf-8"><title>ReflexWork — รายงานผู้บริหาร ${d}</title>
+<style>body{font-family:-apple-system,"Noto Sans Thai",sans-serif;max-width:800px;margin:40px auto;color:#1a1a2e;line-height:1.6;padding:0 20px}
+h1{font-size:24px;margin-bottom:4px}h2{font-size:17px;margin-top:28px;border-bottom:2px solid #5b8cff;padding-bottom:4px}
+.sub{color:#666;font-size:14px}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #e0e0e0}th{background:#f4f6fb}
+.kpi{display:flex;gap:24px;margin:16px 0}.kpi div{background:#f4f6fb;border-radius:8px;padding:14px 18px;flex:1}
+.kpi b{font-size:22px;color:#5b8cff;display:block}.note{background:#fff7ed;border-left:3px solid #d97706;padding:12px 16px;font-size:13px;margin-top:20px}
+@media print{button{display:none}}</style></head><body>
+<h1>ReflexWork — รายงานปัญหาระบบต้นทาง</h1>
+<div class="sub">รายงานสำหรับผู้บริหาร · วันที่ ${d} · สร้างจากคำถามที่ระบบ chatbot ตอบไม่ได้</div>
+<div class="kpi"><div><b>${gaps.length}</b>ประเภทคำถามที่ตอบไม่ได้</div><div><b>${total}</b>จำนวนครั้งที่ถูกถามรวม</div><div><b>${rows.length}</b>ระบบที่เกี่ยวข้อง</div></div>
+<h2>ระบบต้นทางที่ก่อปัญหาเยอะสุด</h2>
+<table><thead><tr><th>ระบบ</th><th style="text-align:right">ครั้ง</th><th style="text-align:right">สัดส่วน</th></tr></thead><tbody>${sysRows}</tbody></table>
+<h2>คำถามที่ถูกถามบ่อยสุด (ยังตอบไม่ได้)</h2>
+<table><thead><tr><th>คำถาม</th><th style="text-align:right">ครั้ง</th></tr></thead><tbody>${gapRows}</tbody></table>
+<div class="note"><b>ข้อเสนอแนะ:</b> คำถามเหล่านี้คือสัญญาณว่าระบบต้นทางยังใช้งานไม่ราบรื่น การแก้ที่ต้นเหตุ (UX/ระบบ) ลดปริมาณคำถามได้ยั่งยืนกว่าการเพิ่มคำตอบในคู่มือ · ข้อมูลผ่านการปกปิด PII แล้ว (PDPA)</div>
+<button onclick="window.print()" style="margin-top:24px;padding:10px 20px;font-size:15px;cursor:pointer">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+</body></html>`;
+  const w=window.open('','_blank'); if(w){ w.document.write(html); w.document.close(); } else { alert('เบราว์เซอร์บล็อกป็อปอัป — อนุญาตแล้วลองใหม่'); }
+};
 
 // Render the per-entry confidence list (weakest first) — "which KB entries to fix".
 function renderConf(entries){
