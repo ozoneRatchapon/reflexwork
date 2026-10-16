@@ -12,6 +12,7 @@
 
 import { blake3 } from './vendor/blake3.js';
 import { bytesToHex, utf8ToBytes } from './vendor/utils.js';
+import { buildPayload } from '../_shared/federation.mjs';
 
 // ── Reflex Kernel routing, ported 1:1 from crates/reflex-wasm/src/lib.rs ──────
 // Same seeded weights, same sigmoid gate (θ=0.72), same category one-hot — so
@@ -114,6 +115,10 @@ export default {
       if (url.pathname === '/gap' && request.method === 'POST') return logGap(request, env);
       if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env);
       if (url.pathname === '/entry-conf' && request.method === 'GET') return entryConf(env);
+      // Dry-run preview of what the opt-in federation layer WOULD send — reads
+      // the masked/aggregate tables, builds the payload, returns it WITHOUT
+      // sending anything (spec R3: inspect before the first real send).
+      if (url.pathname === '/federation-preview' && request.method === 'GET') return federationPreview(env);
       // Staff-only KB authoring. If STAFF_TOKEN is configured, require a matching
       // X-Staff-Token header; if unset (demo), allow. Keeps random public callers
       // from flooding drafts while staying zero-config for a hackathon demo.
@@ -344,6 +349,37 @@ async function entryConf(env) {
     "SELECT id, conf, up, down, at FROM entry_conf ORDER BY conf ASC, down DESC LIMIT 30"
   ).all();
   return json({ entries: rows.results || [] });
+}
+
+// GET /federation-preview — DRY RUN. Build the exact payload the opt-in
+// federation layer would send (masked gap buckets, confidence deltas, route
+// counts) and return it. Sends NOTHING — this is the "inspect before you share"
+// contract (distributable-kernel spec R3). Federation stays OFF by default;
+// this endpoint only lets a maintainer see what sharing would look like.
+async function federationPreview(env) {
+  await ensureSchema(env);
+  const gapRows = (await env.DB.prepare("SELECT qkey, hits FROM gap_log").all()).results || [];
+  const confRows = ((await env.DB.prepare("SELECT id, conf FROM entry_conf").all()).results || [])
+    .map(r => ({ entry_hash: String(r.id), conf: Number(r.conf) }));
+  // route counts from the metric counters (tolerate a missing/variant table)
+  let fast_path = 0, llm = 0, abstain = 0;
+  try {
+    fast_path = Number((await env.DB.prepare("SELECT v FROM counters WHERE k='fast'").first())?.v || 0);
+    llm = Number((await env.DB.prepare("SELECT v FROM counters WHERE k='llm'").first())?.v || 0);
+    abstain = Number((await env.DB.prepare("SELECT v FROM counters WHERE k='abstain'").first())?.v || 0);
+  } catch { /* counters table shape varies; preview tolerates missing */ }
+
+  const payload = buildPayload({
+    installId: env.INSTALL_ID || 'pub:local-demo',
+    window: new Date().toISOString().slice(0, 10),
+    gapRows, confRows, routeCounts: { fast_path, llm, abstain },
+  });
+  return json({
+    note: 'DRY RUN — nothing was sent. This is exactly what the opt-in federation layer would transmit.',
+    enabled: Boolean(env.FEDERATION_ENABLED === 'true'),
+    endpoint_configured: Boolean(env.FEDERATION_ENDPOINT),
+    payload,
+  });
 }
 
 // POST /kb-draft { question, answer, title?, keywords?, category?, source? }
