@@ -166,28 +166,24 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
 // This is the same technique voice assistants used before LLMs: a deterministic
 // grammar that composes natural sentences. Same input → same output (auditable),
 // 0 token, microseconds. The "human feel" the examiner wants, without paying for AI.
+// (Kept in lockstep with integrations/_shared/humanize.mjs used by the LINE worker.)
 function hashStr(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
-function pick(arr, seed){ return arr[seed % arr.length]; }
+function pick(arr, seed){ return arr[(seed>>>0) % arr.length] ?? ''; }
+const _OPENERS = ['ได้เลยครับ','เรื่องนี้ตอบได้ครับ','ตามระเบียบบัณฑิตวิทยาลัยนะครับ','สรุปให้สั้น ๆ ครับ','อธิบายให้ฟังนะครับ','เป็นแบบนี้ครับ','คำตอบคือแบบนี้ครับ','ยินดีช่วยครับ','เข้าใจคำถามแล้วครับ','ประเด็นนี้ชัดเจนครับ','ขออธิบายตามคู่มือครับ'];
+const _CONN = ['',' — ',' ',' คือ ',': ',' โดย '];
+const _CLOSE = ['หากต้องการรายละเอียดเพิ่มเติม ดูได้จากแหล่งอ้างอิงด้านล่างครับ','ถ้ายังมีข้อสงสัย ถามต่อได้เลยครับ','หวังว่าช่วยได้ครับ 🙂','มีอะไรให้ช่วยอีกไหมครับ','ลองถามเพิ่มได้นะครับ','ข้อมูลนี้อ้างอิงจากคู่มือทางการครับ','','',''];
+function _frame(q){ q=(q||'').toLowerCase();
+  if(/กี่วัน|ภายในกี่|นานแค่ไหน|เมื่อไหร่|กี่สัปดาห์/.test(q)) return 'เรื่องระยะเวลา ';
+  if(/เท่าไร|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม/.test(q)) return 'เรื่องค่าใช้จ่าย ';
+  if(/อย่างไร|ยังไง|ขั้นตอน|ทำไง|วิธี/.test(q)) return 'ขั้นตอนเป็นแบบนี้ ';
+  if(/ต้อง|จำเป็น|เงื่อนไข/.test(q)) return 'เงื่อนไขคือ ';
+  return ''; }
 function humanize(hit, q){
-  const seed = hashStr(q + '|' + hit.title);        // deterministic per (question, answer)
-  // openers vary so repeated use doesn't feel canned — but are fixed per seed
-  const openers = [
-    'ได้เลยครับ ', 'เรื่องนี้ตอบได้ครับ — ', 'สรุปสั้น ๆ นะครับ: ',
-    'ตามระเบียบบัณฑิตวิทยาลัยครับ ', 'คำตอบคือ ',
-  ];
-  const closers = [
-    ' หากต้องการรายละเอียดเพิ่มเติม ดูได้จากแหล่งอ้างอิงด้านล่างครับ',
-    ' ถ้ายังมีข้อสงสัย ถามต่อได้เลยครับ',
-    ' หวังว่าช่วยได้ครับ 🙂',
-    '',  // sometimes no closer — a human doesn't always add one
-  ];
-  let body = (hit.answer || '').trim();
-  // smooth the body: ensure it reads as a sentence, drop a trailing bare period dup
-  if(body && !/[.。!?ๆ]$/.test(body) && !body.endsWith('ครับ')) body += '';
-  const opener = pick(openers, seed);
-  const closer = pick(closers, seed >> 3);
-  // Lead with the human sentence; keep the topic as a subtle label, not a dumped title.
-  return `${opener}${body}${closer}`;
+  const body=(hit.answer||'').trim(); if(!body) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
+  const seed=hashStr((q||'')+'|'+(hit.title||''));
+  const opener=pick(_OPENERS,seed), frame=_frame(q), closer=pick(_CLOSE,seed>>11);
+  let bridge; if(frame){ bridge=' '+frame; } else { const c=pick(_CONN,seed>>5); bridge=c&&c.trim()?c:' '; }
+  let out=opener+bridge+body; if(closer) out+=' '+closer; return out;
 }
 
 function ask(){

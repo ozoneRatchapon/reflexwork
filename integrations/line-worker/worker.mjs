@@ -15,6 +15,7 @@
 
 import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
+import { humanize } from '../_shared/humanize.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -158,7 +159,7 @@ async function processEvents(raw, env) {
 
       if (pick.tier === 'confident') {
         const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
-        answer = `${pick.entry.answer}${src}`;
+        answer = `${humanize(pick.entry, text)}${src}`;
         footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${proof ? `\n🔒 ${proof}…` : ''}`;
       } else if (pick.tier === 'ambiguous') {
         const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
