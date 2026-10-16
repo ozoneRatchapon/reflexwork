@@ -17,6 +17,7 @@ import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
 import { humanize } from '../_shared/humanize.mjs';
 import { decide } from '../_shared/rethink.mjs';
+import { classifyIssue, intakePrompt } from '../_shared/intake.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -190,16 +191,29 @@ async function processEvents(raw, env) {
         // Gap log: KB could not answer → record it for the staff backlog
         // (fire-and-forget; a logging failure must never block the reply).
         logGapViaKernel(env, text).catch(() => {});
-        const llm = await answerLLM(text, env);
-        if (llm.ok) {
-          // AI drafted an answer — but on LINE a human agent is in this same
-          // chat, so tell the user staff can verify/continue here (no external
-          // "contact us" button: they are already in the staff conversation).
-          answer = `${llm.text}\n\n(ร่างโดยผู้ช่วย AI — เดี๋ยวเจ้าหน้าที่ตรวจและตอบเพิ่มในแชทนี้ได้ครับ)`;
-          footer = `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+
+        // Intake: most unanswered messages here are PERSONAL/TECHNICAL issues
+        // (account locked, data stuck, can't use a system) — not knowledge
+        // questions. Instead of guessing with an LLM, collect the exact fields
+        // staff always ask for, in one shot, then hand off to the human in this
+        // same chat. Deterministic, 0 token. (No ticket system needed — LINE's
+        // own chat is the hand-off channel.)
+        const issue = classifyIssue(text);
+        if (issue) {
+          answer = intakePrompt(issue.category);
+          footer = `\n\n🦀 คัดเป็น “${issue.label}” · ส่งต่อเจ้าหน้าที่ (เก็บข้อมูลให้ครบก่อน)${proof ? `\n🔒 ${proof}…` : ''}`;
         } else {
-          answer = llm.text;   // fallback already says staff will reply here
-          footer = '';
+          const llm = await answerLLM(text, env);
+          if (llm.ok) {
+            // AI drafted an answer — but on LINE a human agent is in this same
+            // chat, so tell the user staff can verify/continue here (no external
+            // "contact us" button: they are already in the staff conversation).
+            answer = `${llm.text}\n\n(ร่างโดยผู้ช่วย AI — เดี๋ยวเจ้าหน้าที่ตรวจและตอบเพิ่มในแชทนี้ได้ครับ)`;
+            footer = `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+          } else {
+            answer = llm.text;   // fallback already says staff will reply here
+            footer = '';
+          }
         }
       }
 
