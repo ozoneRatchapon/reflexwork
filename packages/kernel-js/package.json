@@ -1,0 +1,38 @@
+{
+  "name": "@reflexwork/kernel",
+  "version": "0.1.0",
+  "description": "The ReflexWork Reflex Kernel as a library: a deterministic, in-browser/edge routing gate (64-dim features → sigmoid gate → BLAKE3 proof) that decides, per message, FastPath (0 token) vs LLM — with a reproducible proof. Zero backend.",
+  "keywords": ["reflexwork", "wasm", "routing", "llm", "fastpath", "blake3", "deterministic", "edge"],
+  "license": "MIT OR Apache-2.0",
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./wasm/reflex_wasm_bg.wasm": "./wasm/reflex_wasm_bg.wasm"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "wasm/reflex_wasm.js",
+    "wasm/reflex_wasm.d.ts",
+    "wasm/reflex_wasm_bg.wasm",
+    "wasm/reflex_wasm_bg.wasm.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ozoneRatchapon/reflexwork.git",
+    "directory": "packages/kernel-js"
+  },
+  "homepage": "https://reflexwork.pages.dev",
+  "publishConfig": {
+    "access": "public"
+  }
+}
