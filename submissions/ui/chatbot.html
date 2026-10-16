@@ -395,6 +395,14 @@ function classifyIssue(text){ const q=String(text||''); if(!q.trim()) return nul
 const _ADVICE=/แนะนำ|ช่วย.*(ยังไง|อย่างไร|หน่อย)|วิธีวางแผน|วางแผน|จัดการเวลา|เตรียมตัว|ควรทำ|ทำยังไงดี|แนวทาง/;
 const _FACTUAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|กี่ ?%|กี่คน|วันไหน|เมื่อไหร่/;
 function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(q); }
+// English detection: the KB is Thai (char-n-gram keyed), so a Latin-script
+// question with no Thai characters is one we may not be able to match. We don't
+// TRANSLATE (that would risk inventing facts — against "facts from KB only");
+// instead, when such a question finds no KB answer, we hand off IN ENGLISH to
+// the official English FAQ + staff, rather than dropping to the hallucination-
+// prone LLM path or replying in Thai. A question mixing Thai + English (common)
+// is treated as Thai and uses the normal KB path.
+function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 async function groundedHybrid(q, entries){
   if(!KERNEL_API) return null;
@@ -482,10 +490,18 @@ function classifySmalltalk(text){
     // still allow a leading greeting to be stripped, but treat as a question
     if(q.replace(/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i,'').length > 3) return null;
   }
-  // Sarcastic "thanks for nothing" (ขอบคุณที่ไม่ช่วยอะไรเลย) is NOT genuine — reading
-  // it as praise is the uncanny tell. Fall through to the kernel/staff path.
-  const _NEG=/ไม่ช่วย|ไม่ได้|ไม่เห็น|ไม่มีประโยชน์|เสียเวลา|ห่วย|แย่|โง่|งี่เง่า|useless|worthless|terrible|waste of/i;
-  for(const s of _SMALLTALK){ if(!s.re.test(q)) continue; if(s.kind==='thanks' && _NEG.test(q)) return null; return s.kind; }
+  // Sarcastic "thanks for nothing" (ขอบคุณที่ไม่ช่วยอะไรเลย) / ironic praise
+  // (เก่งจังตอบไม่ได้สักข้อ) is NOT genuine — reading it as praise is the uncanny
+  // tell. Fall through to the kernel/staff path. Deterministic lexical guard,
+  // erring toward "treat as a real message" (the safe failure).
+  const _NEG=new RegExp(['ไม่\\s*(?:ช่วย|ได้|เห็น|รู้|เข้าใจ|ตรง|โอเค|เวิร์ก|เวิร์ค|มีประโยชน์)',
+    'ไม่เอา','ไม่ไหว','ผิด(?:อีก|แล้ว|มหันต์)?','มั่ว','พัง','เสียเวลา','เสียดาย',
+    'ห่วย','แย่','โง่','งี่เง่า','กาก','ไร้สาระ','น่าเบื่อ','ทำพัง','บ้า',
+    'เก่ง.*ไม่','ฉลาด.*ไม่','เยี่ยม.*ไม่','สุดยอด.*ไม่','ดีจัง.*ไม่',
+    'useless','worthless','terrible','awful','waste of',"doesn'?t work",
+    "didn'?t (?:help|work)",'not (?:helpful|working|useful)','no help','so (?:dumb|stupid|bad)'].join('|'),'i');
+  const neg=_NEG.test(q);
+  for(const s of _SMALLTALK){ if(!s.re.test(q)) continue; if((s.kind==='thanks'||s.kind==='howareyou') && neg) return null; return s.kind; }
   return null;
 }
 function smalltalkReply(kind){
@@ -655,6 +671,28 @@ function ask(){
     // Gap log: this question had no manual answer. Record it (fire-and-forget)
     // so staff get a backlog of what the KB is missing — the self-improving loop.
     if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
+
+    // English question with no KB match → abstain IN ENGLISH to the official
+    // English FAQ + staff. We do NOT translate-and-answer (that would risk
+    // inventing facts, against "facts from KB only"), and we do NOT reply in
+    // Thai to an English speaker. Honest hand-off instead of a wrong guess.
+    if(isEnglish(q)){
+      add('b', `${kstrip}
+        <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 English question — not in the (Thai) knowledge base → staff / official FAQ ${stageTag}</span>
+        <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — here's the official English FAQ and how to reach a human, who can answer accurately.</div>
+        <div class="meta">kernel abstain: off-corpus (English, no KB match) — routed to staff instead of a generative guess ("facts from the KB only").</div>
+        <div class="staffbox">
+          <div class="staff-h">Get an accurate answer</div>
+          <div class="staff-btns">
+            <a class="golink" href="https://graduate.mahidol.ac.th/eng/" target="_blank" rel="noopener">🌐 Graduate School (English)</a>
+            <a class="golink alt" href="https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng" target="_blank" rel="noopener">📚 Official FAQ (English)</a>
+            <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ Contact staff</a>
+          </div>
+        </div>
+        ${fbUI(q, d.blake3_proof)}`);
+      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      return;
+    }
 
     // Intake: if this is a PERSONAL/TECHNICAL issue (account/login/data stuck),
     // don't guess with an LLM — collect the fields staff always need, in one

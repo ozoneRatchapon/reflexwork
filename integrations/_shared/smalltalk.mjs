@@ -60,11 +60,24 @@ const _SMALLTALK = [
 // smalltalk" even if it opens with a greeting.
 const _IS_QUESTION = /\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i;
 const _LEAD_GREETING = /^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i;
-// Negation / complaint markers: a "thanks" riding one of these is sarcasm
-// ("ขอบคุณที่ไม่ช่วยอะไรเลย"), not genuine. We must NOT beam about that — reading
-// sarcasm as praise is exactly the uncanny tell. Treat it as a real message and
-// let the kernel/staff path handle it instead of a cheery smalltalk reply.
-const _NEGATION = /ไม่ช่วย|ไม่ได้|ไม่เห็น|ไม่มีประโยชน์|เสียเวลา|ห่วย|แย่|โง่|งี่เง่า|useless|worthless|terrible|waste of/i;
+// Negation / complaint markers: a "thanks"/"praise" riding one of these is
+// sarcasm ("ขอบคุณที่ไม่ช่วยอะไรเลย", "เก่งจังตอบไม่ได้สักข้อ"), not genuine. We must
+// NOT beam about that — reading sarcasm as praise is exactly the uncanny tell.
+// Treat it as a real message and let the kernel/staff path handle it instead of
+// a cheery smalltalk reply. Deterministic lexical guard (no sentiment model) —
+// it errs toward "treat as a real message", which is the safe failure (a real
+// question routed > a cheery reply to a complaint).
+const _NEGATION = new RegExp([
+  // Thai negation + complaint
+  'ไม่\\s*(?:ช่วย|ได้|เห็น|รู้|เข้าใจ|ตรง|โอเค|เวิร์ก|เวิร์ค|มีประโยชน์)',
+  'ไม่เอา', 'ไม่ไหว', 'ผิด(?:อีก|แล้ว|มหันต์)?', 'มั่ว', 'พัง', 'เสียเวลา', 'เสียดาย',
+  'ห่วย', 'แย่', 'โง่', 'งี่เง่า', 'กาก', 'ไร้สาระ', 'น่าเบื่อ', 'ทำพัง', 'บ้า',
+  // ironic-praise cues: a praise word followed later by a negation ("เก่งจัง...ไม่ได้")
+  'เก่ง.*ไม่', 'ฉลาด.*ไม่', 'เยี่ยม.*ไม่', 'สุดยอด.*ไม่', 'ดีจัง.*ไม่',
+  // English negation + complaint
+  'useless', 'worthless', 'terrible', 'awful', 'waste of', "doesn'?t work",
+  "didn'?t (?:help|work)", 'not (?:helpful|working|useful)', 'no help', 'so (?:dumb|stupid|bad)',
+].join('|'), 'i');
 
 export function classifySmalltalk(text) {
   const q = String(text || '').trim();
@@ -73,10 +86,15 @@ export function classifySmalltalk(text) {
     // "สวัสดี ค่าสอบเท่าไร" → strip the greeting, treat the rest as a question.
     if (q.replace(_LEAD_GREETING, '').length > 3) return null;
   }
+  const hasNegation = _NEGATION.test(q);
   for (const s of _SMALLTALK) {
     if (!s.re.test(q)) continue;
-    // Sarcastic "thanks for nothing" → not genuine gratitude. Fall through.
-    if (s.kind === 'thanks' && _NEGATION.test(q)) return null;
+    // A positive-affect smalltalk hit (thanks / "how are you") riding a
+    // complaint is sarcasm — fall through to the kernel/staff path rather than
+    // replying cheerfully. A greeting ("สวัสดี") is affect-neutral, so a
+    // greeting + complaint ("สวัสดี บอทนี้ห่วยมาก") is NOT suppressed here — the
+    // leading greeting is stripped and the complaint goes to the kernel.
+    if ((s.kind === 'thanks' || s.kind === 'howareyou') && hasNegation) return null;
     return s.kind;
   }
   return null;
