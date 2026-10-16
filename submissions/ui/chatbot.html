@@ -287,9 +287,10 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
 // (Kept in lockstep with integrations/_shared/humanize.mjs used by the LINE worker.)
 function hashStr(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
 function pick(arr, seed){ return arr[(seed>>>0) % arr.length] ?? ''; }
-const _OPENERS = ['ได้เลยครับ','เรื่องนี้ตอบได้ครับ','ตามระเบียบบัณฑิตวิทยาลัยนะครับ','สรุปให้สั้น ๆ ครับ','อธิบายให้ฟังนะครับ','เป็นแบบนี้ครับ','คำตอบคือแบบนี้ครับ','ยินดีช่วยครับ','เข้าใจคำถามแล้วครับ','ประเด็นนี้ชัดเจนครับ','ขออธิบายตามคู่มือครับ'];
-const _CONN = ['',' — ',' ',' คือ ',': ',' โดย '];
-const _CLOSE = ['หากต้องการรายละเอียดเพิ่มเติม ดูได้จากแหล่งอ้างอิงด้านล่างครับ','ถ้ายังมีข้อสงสัย ถามต่อได้เลยครับ','หวังว่าช่วยได้ครับ 🙂','มีอะไรให้ช่วยอีกไหมครับ','ลองถามเพิ่มได้นะครับ','ข้อมูลนี้อ้างอิงจากคู่มือทางการครับ','','',''];
+// Direct, factual NLG — a real person answering a FAQ leads with the fact, not a
+// polite preamble. Over-stacked openers/closers ("ยินดีช่วยครับ…หวังว่าช่วยได้ครับ 🙂")
+// read as uncanny/robotic, so we drop them. Tiny neutral connectors only.
+const _CLOSE = ['','','','','','','','',''];
 function _frame(q){ q=(q||'').toLowerCase();
   if(/กี่วัน|ภายในกี่|นานแค่ไหน|เมื่อไหร่|กี่สัปดาห์/.test(q)) return 'เรื่องระยะเวลา ';
   if(/เท่าไร|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม/.test(q)) return 'เรื่องค่าใช้จ่าย ';
@@ -299,18 +300,23 @@ function _frame(q){ q=(q||'').toLowerCase();
 function humanize(hit, q){
   const body=(hit.answer||'').trim(); if(!body) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const seed=hashStr((q||'')+'|'+(hit.title||''));
-  const opener=pick(_OPENERS,seed), closer=pick(_CLOSE,seed>>11);
+  const closer=pick(_CLOSE,seed>>11);
   const lead=slotLead(hit,q);
-  let bridge, text;
-  if(lead){ text=`${lead} รายละเอียด: ${body}`; bridge=' '; }
-  else { const frame=_frame(q); if(frame){ bridge=' '+frame; } else { const c=pick(_CONN,seed>>5); bridge=c&&c.trim()?c:' '; } text=body; }
-  let out=opener+bridge+text; if(closer) out+=' '+closer; return out;
+  let text;
+  if(lead){
+    // The specific fact asked (21 วัน / 500 บาท) leads; the lead IS the opener.
+    text = `${lead} — รายละเอียด: ${body}`;
+  } else {
+    const frame=_frame(q);
+    text = frame ? frame + body : body;
+  }
+  let out=text; if(closer) out+=' '+closer; return out;
 }
 // --- Slot-filling: lead with the SPECIFIC fact asked (duration/cost/percent), no AI
 const _SLOTS=[
-  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>`${/ไม่เกิน|ภายใน/.test(m)?'':'ภายใน'}${m}ครับ` },
-  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, grab:/\d[\d,]*\s*บาท/, lead:m=>`${m}ครับ` },
-  { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}ครับ` },
+  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>`${/ไม่เกิน|ภายใน/.test(m)?'':'ภายใน'}${m}` },
+  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, grab:/\d[\d,]*\s*บาท/, lead:m=>`${m}` },
+  { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}` },
 ];
 function slotLead(hit,q){ q=q||''; const body=String(hit.answer||'');
   for(const s of _SLOTS){ if(!s.ask.test(q)) continue; const m=body.match(s.grab); if(m) return s.lead(m[0].trim().replace(/\s+/g,' ')); }
@@ -370,10 +376,98 @@ async function groundedHybrid(q, entries){
   }catch{ return null; }
 }
 
+// --- Affect kernel (deterministic mood, no AI) -------------------------------
+// Inspired by katgpt's NPC affect model (katopz.github.io/katgpt-web): a chat
+// agent that reads like a person has a MOOD that shifts with the conversation,
+// not a fixed template voice. We keep it deterministic (a tiny state machine),
+// so it stays auditable and 0-token — the mood only tunes the WRAPPER tone
+// (greeting / empathy / sign-off), never the KB facts. Facts stay from the KB.
+const MOOD = {
+  // valence: how the bot "feels" about how the conversation is going (-1..+1)
+  valence: 0.2, turns: 0, lastWasMiss: false,
+  // nudge the mood on each outcome
+  felt(kind){
+    this.turns++;
+    if(kind==='hit')       this.valence = Math.min(1, this.valence + 0.25); // answered well → warmer
+    else if(kind==='miss') { this.valence = Math.max(-1, this.valence - 0.35); this.lastWasMiss=true; } // couldn't help → concerned
+    else if(kind==='thanks') this.valence = Math.min(1, this.valence + 0.3);
+    if(kind!=='miss') this.lastWasMiss=false;
+    return this;
+  },
+  // a short, mood-appropriate opener for conversational (non-factual) replies.
+  // Factual KB answers do NOT get these — they lead with the fact (see humanize).
+  greetOpener(){
+    if(this.turns<=0) return 'สวัสดีครับ';
+    return this.valence>0.5 ? 'ยินดีครับ' : 'สวัสดีครับ';
+  },
+  // empathy line when we have to hand off — warmth scales with how stuck we are
+  empathy(){
+    return this.lastWasMiss
+      ? 'ขอโทษด้วยนะครับที่ยังหาคำตอบให้ไม่ได้'
+      : 'เรื่องนี้ขอให้เจ้าหน้าที่ช่วยดูแลต่อนะครับ';
+  }
+};
+
+// --- Smalltalk layer (deterministic, no AI, no staff hand-off) ---------------
+// "สวัสดี", "ขอบคุณ", "ทำอะไรได้บ้าง" are NOT knowledge questions and NOT staff
+// cases — throwing them at the kernel → LLM/staff fallback reads as a cold bot.
+// A real front-desk person greets back and asks how they can help. We detect
+// these and reply conversationally, inviting the user to say what they need.
+const _SMALLTALK = [
+  { kind:'greet',   re:/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey|ฮัลโหล|โย่|ทัก)/i },
+  { kind:'thanks',  re:/(?:ขอบคุณ|ขอบใจ|thank|thx|ขอบคุณมาก|เยี่ยม|สุดยอด|เก่งมาก)/i },
+  { kind:'bye',     re:/^(?:บาย|ลาก่อน|ไปละ|แค่นี้|bye|goodbye|โอเคครับ|โอเคค่ะ)/i },
+  { kind:'whatcan', re:/(?:ทำอะไรได้|ช่วยอะไรได้|คุณคือใคร|คุณเป็นใคร|ใช้ยังไง|นี่คืออะไร|what can you|who are you)/i },
+  { kind:'howareyou', re:/(?:สบายดี(?:ไหม|มั้ย)|เป็นไงบ้าง|เป็นยังไงบ้าง|how are you)/i },
+];
+function classifySmalltalk(text){
+  const q=String(text||'').trim(); if(!q) return null;
+  // Don't mistake a real question that merely opens with "สวัสดี" for pure greeting.
+  // If it carries question words / topic keywords, let the kernel handle it.
+  if(/\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i.test(q)) {
+    // still allow a leading greeting to be stripped, but treat as a question
+    if(q.replace(/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i,'').length > 3) return null;
+  }
+  for(const s of _SMALLTALK){ if(s.re.test(q)) return s.kind; }
+  return null;
+}
+function smalltalkReply(kind){
+  const op = MOOD.greetOpener();
+  switch(kind){
+    case 'greet':
+      return `${op} 🦀 ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน`;
+    case 'thanks':
+      return `ยินดีครับ 🙂 ถ้ามีอะไรให้ช่วยอีกถามได้เลยนะครับ`;
+    case 'bye':
+      return `ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀`;
+    case 'whatcan':
+      return `ผมตอบคำถามเรื่องบัณฑิตวิทยาลัยได้ครับ — กำหนดส่งวิทยานิพนธ์ · Turnitin/การตรวจความซ้ำ · บทคัดย่อ · การลงทะเบียน · ค่าสอบ/ค่าธรรมเนียม และถ้าเป็นปัญหาบัญชี/ระบบ ผมจะช่วยเก็บข้อมูลส่งต่อเจ้าหน้าที่ให้ครับ ลองถามมาได้เลย`;
+    case 'howareyou':
+      return `สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?`;
+    default:
+      return `${op} มีอะไรให้ช่วยไหมครับ?`;
+  }
+}
+
 function ask(){
   if(!ready) return;
   const q=$('q').value.trim(); if(!q) return;
   add('u', q); $('q').value='';
+
+  // Smalltalk first — a greeting/thanks is NOT a knowledge question and NOT a
+  // staff case. Greet back and INVITE the user to say what they need (let them
+  // finish their thought) instead of coldly routing to the LLM/staff fallback.
+  // Deterministic, 0 token — and it nudges the affect kernel's mood.
+  const st = classifySmalltalk(q);
+  if(st){
+    MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
+    const moodTag = MOOD.valence>0.5 ? '😊' : '🙂';
+    add('b', `<span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">💬 คุยทั่วไป ${moodTag} · ไม่เรียก AI · 0 token</span>
+      <div class="ans">${smalltalkReply(st)}</div>
+      <div class="meta">kernel คัดว่าเป็นการทักทาย/สนทนา — ไม่ใช่คำถามคู่มือและไม่ใช่เคสเจ้าหน้าที่ จึงทักกลับและรอให้เล่าความต้องการก่อน (deterministic, ไม่เรียก AI)</div>`);
+    return;
+  }
+
   const t0=performance.now();
   // The KERNEL decides the route — this is the real sigmoid gate running in WASM,
   // not a keyword lookup. We show its actual decision + reproducible proof.
@@ -399,6 +493,9 @@ function ask(){
     : (d.fast_path ? Math.min(0.59, 0.30 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.25)
                    : Math.max(0.70, 0.60 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.35));
   const verdict = decideTier({ gate: gateProxy, ranked });
+  // Affect kernel: answering well warms the mood; a miss (abstain/escalate)
+  // makes the bot more apologetic in its hand-off. Deterministic, tone-only.
+  MOOD.felt(verdict.action==='escalate' ? 'miss' : 'hit');
   const stageTag = verdict.stage==='rethink'
     ? `<span class="km" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔁 rethink</span>`
     : `<span class="km">⚡ reflex</span>`;
@@ -417,7 +514,7 @@ function ask(){
         if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
         add('b', `${kstrip}
           <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
-          <div class="ans">คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอครับ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อ</div>
+          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อครับ</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
             <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>

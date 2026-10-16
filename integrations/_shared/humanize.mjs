@@ -91,7 +91,7 @@ export function humanize(entry, question) {
   const body = String(entry?.answer || '').trim();
   if (!body) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const seed = hashStr((question || '') + '|' + (entry?.title || ''));
-  const opener = pick(OPENERS, seed);
+  let opener = pick(OPENERS, seed);
   const closer = pick(CLOSERS, seed >> 11);
 
   const lead = slotLead(entry, question);
