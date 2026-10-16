@@ -20,25 +20,20 @@ function hashStr(s) {
 }
 const pick = (arr, seed) => arr[(seed >>> 0) % arr.length] ?? '';
 
-// Pools kept intentionally large so repeats are rare. Each pool is drawn with a
-// DIFFERENT derived seed, so opener/connector/closer vary independently —
-// 11 × 6 × 9 ≈ 600 natural combinations before anything repeats verbatim.
+// Pools kept SMALL and FACTUAL. A real person answering an FAQ is direct — they
+// lead with the fact, not with "ยินดีช่วยครับ ขออธิบายตามคู่มือครับ...". Earlier
+// versions stacked a flowery opener AND a salesy closer on every reply, which
+// reads MORE robotic (uncanny), not less. So: at most a short, optional frame,
+// the fact, and usually no closer at all.
 const OPENERS = [
-  'ได้เลยครับ', 'เรื่องนี้ตอบได้ครับ', 'ตามระเบียบบัณฑิตวิทยาลัยนะครับ',
-  'สรุปให้สั้น ๆ ครับ', 'อธิบายให้ฟังนะครับ', 'เป็นแบบนี้ครับ',
-  'คำตอบคือแบบนี้ครับ', 'ยินดีช่วยครับ', 'เข้าใจคำถามแล้วครับ',
-  'ประเด็นนี้ชัดเจนครับ', 'ขออธิบายตามคู่มือครับ',
+  '', '', '', '',                       // most replies open straight with the fact
+  'ตามระเบียบ', 'สรุปสั้น ๆ', 'เท่าที่คู่มือระบุ',
 ];
-// connectors bridge the opener into the fact without sounding templated
-const CONNECTORS = ['', ' — ', ' ', ' คือ ', ': ', ' โดย '];
+const CONNECTORS = ['', ' ', ' คือ ', ': '];
 const CLOSERS = [
-  'หากต้องการรายละเอียดเพิ่มเติม ดูได้จากแหล่งอ้างอิงด้านล่างครับ',
-  'ถ้ายังมีข้อสงสัย ถามต่อได้เลยครับ',
-  'หวังว่าช่วยได้ครับ 🙂',
-  'มีอะไรให้ช่วยอีกไหมครับ',
-  'ลองถามเพิ่มได้นะครับ',
-  'ข้อมูลนี้อ้างอิงจากคู่มือทางการครับ',
-  '', '', '',   // weighted blanks: a real person doesn't always add a closer
+  '', '', '', '', '', '',                // a real person usually stops at the fact
+  'ถ้ายังสงสัย ถามต่อได้',
+  'รายละเอียดเพิ่มเติมดูที่แหล่งอ้างอิงด้านล่าง',
 ];
 
 // Light question-type framing: if the user clearly asks "how long / how much /
@@ -60,17 +55,17 @@ const SLOTS = [
   { // DURATION — "กี่วัน / นานแค่ไหน"
     ask: /กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/,
     grab: /(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/,
-    lead: (m) => `${/ไม่เกิน|ภายใน/.test(m) ? '' : 'ภายใน'}${m}ครับ`,
+    lead: (m) => `${/ไม่เกิน|ภายใน/.test(m) ? '' : 'ภายใน'}${m}`,
   },
   { // COST — "เท่าไร / กี่บาท"
     ask: /เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/,
     grab: /\d[\d,]*\s*บาท/,
-    lead: (m) => `${m}ครับ`,
+    lead: (m) => `${m}`,
   },
   { // PERCENT / THRESHOLD — "เกินกี่ % / ไม่เกินเท่าไร"
     ask: /กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/,
     grab: /(?:ไม่เกิน|เกิน)?\s*\d+\s*%/,
-    lead: (m) => `${m}ครับ`,
+    lead: (m) => `${m}`,
   },
 ];
 
@@ -99,28 +94,25 @@ export function humanize(entry, question) {
   const opener = pick(OPENERS, seed);
   const closer = pick(CLOSERS, seed >> 11);
 
-  // Slot-filling: if the question asks for a specific fact we can extract
-  // (duration / cost / threshold), lead with a direct answer to THAT, then
-  // give the full context. Otherwise fall back to type-framing.
   const lead = slotLead(entry, question);
-  let bridge, text;
+  let text;
   if (lead) {
-    // "ได้เลยครับ ภายใน 21 วันครับ — รายละเอียด: <full answer>"
-    text = `${lead} รายละเอียด: ${body}`;
-    bridge = ' ';
+    // Direct: "ภายใน 21 วัน — รายละเอียด: <full answer>". The fact IS the opener.
+    text = `${lead} — รายละเอียด: ${body}`;
+    opener = '';
   } else {
     const frame = frameFor(question);
     if (frame) {
-      bridge = ' ' + frame;
+      text = frame + body;
     } else {
       const c = pick(CONNECTORS, seed >> 5);
-      bridge = c && c.trim() ? c : ' ';
+      text = (opener && c && c.trim()) ? (opener + c + body) : (opener ? opener + ' ' + body : body);
+      opener = ''; // connector path already consumed the opener
     }
-    text = body;
   }
-  let out = opener + bridge + text;
+  let out = opener ? (opener + ' ' + text) : text;
   if (closer) out += ' ' + closer;
-  return out;
+  return out.replace(/\s+/g, ' ').trim();
 }
 
 export { hashStr as _hashStr, slotLead };

@@ -92,6 +92,30 @@
   .greet .g-p{color:var(--muted);font-size:13.5px}
   .greet .g-cta{color:var(--accent);font-size:13px;margin-top:8px;font-weight:600}
 
+  /* P2: the BLAKE3 proof flashes once when an answer lands, so the eye catches
+     the auditability — the thing judges should notice. */
+  @keyframes proof-flash{0%{box-shadow:0 0 0 0 rgba(176,123,255,.0);border-color:var(--line)}
+    30%{box-shadow:0 0 0 4px rgba(176,123,255,.28);border-color:var(--audit)}
+    100%{box-shadow:0 0 0 0 rgba(176,123,255,0);border-color:var(--line)}}
+  .proof-full.flash{animation:proof-flash 1.4s ease-out 1}
+
+  /* P2: mobile — the demo is often opened on a phone. Stack the nav, shrink
+     the input row, and let message bubbles use more width. */
+  @media (max-width:560px){
+    .top{padding:22px 5vw 22px}
+    .wrap{padding:16px 4vw 36px;gap:14px}
+    .chat{padding:14px;border-radius:14px}
+    .msg{max-width:92%;font-size:14px}
+    .kernel-strip{gap:6px;padding:9px 10px}
+    .km{font-size:10.5px}
+    .ask{flex-wrap:wrap;padding:8px}
+    .ask input{flex:1 1 100%;font-size:16px}         /* 16px avoids iOS zoom-on-focus */
+    .ask button{flex:1 1 100%;padding:12px}
+    .bar{font-size:12px;gap:10px}
+    .chip{font-size:12.5px}
+    .proof-full code{font-size:9.5px}
+  }
+
   /* --- micro-animations: each one carries meaning, not decoration --------- */
   /* a message arriving: slides up as it appears (shows the turn advancing) */
   @keyframes msg-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -247,7 +271,13 @@ function search(q){
   return scored;
 }
 
-function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d); $('chat').scrollTop=1e9;
+function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d);
+  // Scroll so the TOP of a bot answer (the kernel decision strip — the hero) is
+  // in view, instead of jumping to the very bottom past it. User messages still
+  // scroll to bottom so the question is visible while the answer renders.
+  if(cls==='b'){ requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'});
+    const proof=d.querySelector('.proof-full'); if(proof){ proof.classList.add('flash'); setTimeout(()=>proof.classList.remove('flash'),1400); } });
+  } else { $('chat').scrollTop=1e9; }
 }
 
 // --- Template-based NLG: make a KB answer read like a person wrote it, WITHOUT AI.
