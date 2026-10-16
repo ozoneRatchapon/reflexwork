@@ -130,6 +130,20 @@ export default {
       return json({ error: String(e && e.message || e) }, 500);
     }
   },
+
+  // Daily cron: auto-draft KB candidates for the top unanswered gaps, so the
+  // backlog shrinks on its own and staff just approve. Bounded to a few drafts
+  // per run to cap LLM cost. Schedule is set in wrangler.toml ([triggers]).
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil((async () => {
+      try {
+        const res = await autodraftCore(env, 3);
+        console.log('cron auto-draft:', JSON.stringify(res));
+      } catch (e) {
+        console.log('cron auto-draft error:', String(e && e.message || e));
+      }
+    })());
+  },
 };
 
 async function ensureSchema(env) {
@@ -400,9 +414,14 @@ async function kbApprove(request, env) {
 // Deliberately conservative: skips a gap that already has a pending draft, and
 // caps how many it drafts per call to bound LLM cost.
 async function kbAutodraft(request, env) {
-  await ensureSchema(env);
   const b = await request.json().catch(() => ({}));
   const limit = Math.max(1, Math.min(5, Number(b.limit) || 3));
+  return json(await autodraftCore(env, limit));
+}
+
+// Core auto-draft, callable from HTTP and from the daily cron (scheduled()).
+async function autodraftCore(env, limit) {
+  await ensureSchema(env);
   const proxyBase = (env.LLM_PROXY || 'https://reflexwork-llm-proxy.solana-thailand.workers.dev').replace(/\/+$/, '');
   const proxyLlm = proxyBase + '/llm';
   // top unanswered gaps (most asked first)
@@ -438,6 +457,6 @@ async function kbAutodraft(request, env) {
     ).bind(title, question, answer, question.toLowerCase().slice(0, 300), 'auto', 'auto-draft', Date.now()).run();
     made.push({ question, answer: answer.slice(0, 120) });
   }
-  return json({ ok: true, drafted: made.length, items: made,
-    note: 'auto-drafted from top gaps — รอเจ้าหน้าที่ตรวจและกดอนุมัติในแดชบอร์ด (ไม่ publish อัตโนมัติ)' });
+  return { ok: true, drafted: made.length, items: made,
+    note: 'auto-drafted from top gaps — รอเจ้าหน้าที่ตรวจและกดอนุมัติในแดชบอร์ด (ไม่ publish อัตโนมัติ)' };
 }
