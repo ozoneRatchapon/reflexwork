@@ -97,6 +97,12 @@
       <tbody id="gaprows"><tr><td colspan="4" class="empty">ยังไม่มี — คู่มือครอบคลุมทุกคำถามที่เข้ามา 🎉</td></tr></tbody>
     </table>
   </div>
+
+  <div class="card">
+    <h2>✅ KB Drafts รออนุมัติ (ปิด learning loop)</h2>
+    <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือ auto-draft จาก gap) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นไฟล์ KB · ยิ่งใช้ corpus ยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
+    <div id="draftrows"><div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div></div>
+  </div>
 </div>
 
 <script>
@@ -112,10 +118,11 @@ function fmtTime(ms){ const d=new Date(ms); return d.toLocaleTimeString('th-TH',
 
 async function tick(){
   try{
-    const [s,a,g] = await Promise.all([
+    const [s,a,g,kd] = await Promise.all([
       fetch(base()+'/status',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/audit',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/gaps',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
+      fetch(base()+'/kb-drafts',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({drafts:[]})),
     ]);
     $('dot').classList.add('up'); $('livetxt').textContent='เชื่อมต่อแล้ว · รีเฟรชทุก 2 วิ';
     $('k-total').textContent = s.total_routed;
@@ -142,11 +149,41 @@ async function tick(){
       <td class="mono">${e.last_at_unix_ms?fmtTime(e.last_at_unix_ms):'—'}</td>
       <td>${e.source||'—'}</td></tr>`).join('')
       : '<tr><td colspan="4" class="empty">ยังไม่มี — คู่มือครอบคลุมทุกคำถามที่เข้ามา 🎉</td></tr>';
-    // No local API (the usual case on the public demo) → show representative
-    // demo data so judges see a populated dashboard instead of an error.
+    renderDrafts((kd&&kd.drafts)||[]);
+    return;   // live data rendered — do not overwrite with demo
+  }catch(e){
+    // No local API (the usual case on the public demo) → representative demo data.
     renderDemo();
   }
 }
+
+// Render the KB-draft review list with Approve buttons (closes the loop).
+function renderDrafts(drafts){
+  const el = $('draftrows'); if(!el) return;
+  if(!drafts.length){ el.innerHTML = '<div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div>'; return; }
+  el.innerHTML = drafts.map(d=>`<div style="border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-weight:700">${(d.title||'').replace(/</g,'&lt;')}</div>
+      <div style="color:var(--muted);font-size:13px;margin:6px 0">${(d.answer||'').replace(/</g,'&lt;')}</div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)">
+        <span>หมวด: ${d.category||'—'} · จาก: ${d.source||'—'}</span>
+        <button onclick="approveDraft(${d.id})" style="margin-left:auto;background:#22c58b;color:#042a1c;border:0;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer">✅ อนุมัติ → ได้ไฟล์ KB</button>
+      </div>
+      <pre id="md-${d.id}" style="display:none;white-space:pre-wrap;background:#0b1020;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;overflow:auto"></pre>
+    </div>`).join('');
+}
+
+// Approve a draft → the API returns ready-to-file KB markdown; show it so the
+// maintainer can drop it into submissions/ui/knowledge-public/ and rebuild.
+window.approveDraft = async function(id){
+  try{
+    const r = await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    const j = await r.json();
+    const pre = $('md-'+id);
+    if(j.ok && pre){ pre.style.display='block'; pre.textContent = `# บันทึกเป็นไฟล์: submissions/ui/knowledge-public/${j.filename}\n\n${j.markdown}`; }
+    else if(pre){ pre.style.display='block'; pre.textContent = 'อนุมัติไม่สำเร็จ: '+(j.error||'unknown'); }
+  }catch(e){ alert('เชื่อมต่อ API ไม่ได้'); }
+};
+
 
 function renderDemo(){
   $('dot').classList.remove('up');
