@@ -66,6 +66,7 @@ no code edit.
 ```
 kernel.route ─ LLM path ─▶ askTeam(text, env) ─┬─ provider=gemini      → our proxy (default)
                                                ├─ provider=gradmahidol → the other team's API
+                                               ├─ provider=ollama      → local / on-prem model (0 token)
                                                └─ provider=echo        → offline demo/test
 ```
 
@@ -83,6 +84,37 @@ npx wrangler deploy
 
 That's it — FastPath still answers from our KB at 0 token; only the ~20% of
 questions the kernel routes to the LLM now hit the other team's system.
+
+### Point the LLM path at a LOCAL model (Ollama / vLLM / LM Studio)
+
+Zero per-token cost, and no escalated question leaves the host (a PDPA win that
+reinforces ReflexWork's "FastPath never sends data out" story). Because the
+kernel already screens ~80% of traffic, the small remainder is light enough for
+a local model to serve.
+
+```bash
+# on the host that runs the model:
+ollama pull gemma2:9b          # or a Thai-tuned model, see below
+ollama serve                    # exposes http://localhost:11434
+
+# adapter config:
+TEAM_API_PROVIDER = ollama
+TEAM_API_URL      = http://<ollama-host>:11434/v1/chat/completions
+OLLAMA_MODEL      = gemma2:9b   # or scb10x/llama3.1-typhoon2-8b-instruct
+```
+
+> **⚠️ Cloudflare Workers cannot reach a `localhost`/LAN Ollama.** A Worker runs
+> on Cloudflare's edge; it has no route to your machine's `127.0.0.1` or private
+> network. So the `ollama` provider only works when `askTeam` runs somewhere
+> that CAN see the Ollama box:
+> - the **Node adapter** (`integrations/line/adapter.mjs`) run on the same host/LAN, **or**
+> - a **self-hosted relay** (your own small server) the Worker forwards to, **or**
+> - the Ollama box exposed at a **public/tunnelled HTTPS URL** (e.g. Cloudflare Tunnel) — then the edge Worker can use it.
+>
+> For a hackathon demo, the simplest path is the Node adapter on your laptop
+> talking to a local Ollama — no cloud, no tunnel, 0 token. The web chatbot on
+> Pages has the same constraint (see the chatbot's own note): its `?api=` proxy
+> is a Worker, so a local model needs one of the three paths above.
 
 ### If their contract differs
 

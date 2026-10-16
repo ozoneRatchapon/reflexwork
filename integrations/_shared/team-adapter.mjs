@@ -72,6 +72,42 @@ const PROVIDERS = {
     fromResponse: (data) => data?.answer ?? null,
   },
 
+  // Local / on-prem model via Ollama's OpenAI-compatible chat endpoint.
+  // ZERO per-token cost and NO data leaves the host — which is exactly why it
+  // fits ReflexWork: the kernel already screens out ~80% of traffic, so the
+  // small LLM-path remainder is light enough for a local model to serve, and
+  // on an escalated question no PII is sent to a cloud provider (PDPA win).
+  //
+  // Point it at the host running Ollama (or any OpenAI-compatible server, e.g.
+  // vLLM / LM Studio / llama.cpp --api):
+  //     TEAM_API_PROVIDER = "ollama"
+  //     TEAM_API_URL      = http://<ollama-host>:11434/v1/chat/completions
+  //     OLLAMA_MODEL      = gemma2:9b   (or scb10x/typhoon2-... for Thai)
+  // NOTE: a Cloudflare Worker CANNOT reach a localhost/LAN Ollama — see the
+  // adapter README. Run this provider from a host that can see the Ollama box
+  // (the Node adapter, a self-hosted relay, or a tunnelled public URL).
+  ollama: {
+    needsUrl: true,
+    headers: () => ({}),
+    toRequest: (input, env = {}) => ({
+      model: env.OLLAMA_MODEL || 'gemma2:9b',
+      messages: [
+        { role: 'system', content:
+          'คุณเป็นผู้ช่วยบัณฑิตวิทยาลัย ม.มหิดล ตอบสั้น กระชับ ภาษาไทย '
+        + 'อ้างอิงข้อมูลทางการเมื่อทำได้ และบอกให้ติดต่อเจ้าหน้าที่เมื่อไม่แน่ใจ' },
+        { role: 'user', content: input },
+      ],
+      stream: false,
+      options: { temperature: 0.3, num_predict: 512 },
+    }),
+    fromResponse: (data) =>
+      // OpenAI-compatible shape (Ollama /v1) first, then Ollama-native /api/chat.
+      data?.choices?.[0]?.message?.content
+      ?? data?.message?.content
+      ?? data?.response
+      ?? null,
+  },
+
   // No-network fallback for local demos / tests. Never calls anything.
   echo: {
     needsUrl: false,
@@ -118,7 +154,7 @@ export async function askTeam(input, env = {}) {
     const r = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify(p.toRequest(input)),
+      body: JSON.stringify(p.toRequest(input, env)),
       signal: ctrl.signal,
     });
     const data = await r.json().catch(() => ({}));

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReflexWork — Slides (11)</title>
+<title>ReflexWork — Slides (13)</title>
 <style>
   :root{
     --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
@@ -165,7 +165,7 @@
 
   <!-- Slide 1 — Title (ฉาก 1) -->
   <section class="slide">
-    <div class="pageno">01 / 12</div>
+    <div class="pageno">01 / 13</div>
     <div class="kicker">Mahidol AI Community 2026 · AI Adoption with Kiro</div>
     <h1>ReflexWork
       <span class="sub">คัดงานด้วย <b>reflex</b> ก่อน เรียก AI เฉพาะที่จำเป็น<br/>
@@ -181,7 +181,7 @@
 
   <!-- Slide 2 — Problem (ฉาก 1 ต่อ) -->
   <section class="slide">
-    <div class="pageno">02 / 12</div>
+    <div class="pageno">02 / 13</div>
     <div class="kicker">ปัญหา</div>
     <h2>"เรียก LLM ทุกครั้ง" — แพง ช้า ตรวจสอบไม่ได้</h2>
     <div class="probs">
@@ -197,7 +197,7 @@
 
   <!-- Slide 3 — Architecture (ฉาก 2) -->
   <section class="slide">
-    <div class="pageno">03 / 12</div>
+    <div class="pageno">03 / 13</div>
     <div class="kicker">สถาปัตยกรรม 3 ชั้น + Kiro</div>
     <h2>คัดกรองก่อน แล้วค่อยจ่ายค่า AI</h2>
     <div class="flow">
@@ -222,7 +222,7 @@
 
   <!-- Slide 3.5 — "ภาษาคน ไม่ใช้ AI" (ตอบ feedback ผู้บริหาร) -->
   <section class="slide">
-    <div class="pageno">04 / 12</div>
+    <div class="pageno">04 / 13</div>
     <div class="kicker">ตอบข้อโต้แย้ง: "keyword ทื่อ อยากได้ภาษาคน"</div>
     <h2>ภาษาคนได้ — โดยไม่ต้องจ่ายค่า AI</h2>
     <div class="flow">
@@ -244,7 +244,7 @@
 
   <!-- Slide 4 — In-browser WASM demo (จุดขายใหญ่: zero-backend) -->
   <section class="slide">
-    <div class="pageno">05 / 12</div>
+    <div class="pageno">05 / 13</div>
     <div class="kicker">ลองได้ทันที · ไม่ต้องติดตั้งอะไร</div>
     <h2>Reflex Kernel ตัวจริง รันในเบราว์เซอร์ (WebAssembly)</h2>
     <div class="wasm">
@@ -276,7 +276,7 @@
 
   <!-- Slide 5 — User Journey (ใครใช้ยังไง) -->
   <section class="slide">
-    <div class="pageno">06 / 12</div>
+    <div class="pageno">06 / 13</div>
     <div class="kicker">ใครใช้ระบบนี้ · ใช้ยังไง</div>
     <h2>3 ทางเข้า — จากนักศึกษาถึงผู้บริหาร</h2>
     <div class="journey">
@@ -307,7 +307,7 @@
 
   <!-- Slide 6 — Executive Dashboard -->
   <section class="slide">
-    <div class="pageno">07 / 12</div>
+    <div class="pageno">07 / 13</div>
     <div class="kicker">สำหรับผู้บริหาร / ผู้ตรวจสอบ</div>
     <h2>Dashboard: เห็นสัดส่วน fast/LLM + audit trail แบบสด</h2>
     <div class="dash">
@@ -335,7 +335,7 @@
 
   <!-- Slide 7 — Positioning: screening layer -->
   <section class="slide">
-    <div class="pageno">08 / 12</div>
+    <div class="pageno">08 / 13</div>
     <div class="kicker">จุดยืน · ไม่ได้มาแทน แต่มาเสริม</div>
     <h2>ReflexWork = ชั้นคัดกรอง เสียบหน้าระบบใครก็ได้</h2>
     <div class="layer">
@@ -360,9 +360,49 @@
     <div class="foot">ไม่แข่งกับระบบที่มี — เราคือชั้นที่ทำให้ระบบเดิม <b>ถูกลง ~80% + ตรวจสอบได้</b></div>
   </section>
 
+  <!-- Slide 7.5 — Token cost: ลด token ทีมอื่น 60-80% -->
+  <section class="slide">
+    <div class="pageno">09 / 13</div>
+    <div class="kicker">ตัวเลขค่าใช้จ่าย · ทำไมผู้บริหารต้องสนใจ</div>
+    <h2>ReflexWork ลดค่า token ของระบบ AI เดิม <span style="color:var(--fast)">60–80%</span></h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1080px">
+      <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--warn);border-radius:14px;padding:24px">
+        <div style="color:var(--warn);font-weight:800;font-size:clamp(16px,1.8vw,20px)">ไม่มี ReflexWork</div>
+        <div style="color:var(--muted);font-size:clamp(13px,1.3vw,15px);line-height:1.6;margin-top:12px">
+          ทุกคำถาม → ยิงเข้า LLM + ฉีด Knowledge เข้า context ทุกครั้ง (RAG)<br>
+          คำถามซ้ำ ๆ ("ส่งเล่มกี่วัน") จ่าย token เท่าคำถามยาก<br>
+          <b style="color:var(--ink)">100% ของคำถาม = จ่ายเงิน</b>
+        </div>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--fast);border-radius:14px;padding:24px">
+        <div style="color:var(--fast);font-weight:800;font-size:clamp(16px,1.8vw,20px)">มี ReflexWork คั่นหน้า</div>
+        <div style="color:var(--muted);font-size:clamp(13px,1.3vw,15px);line-height:1.6;margin-top:12px">
+          kernel คัด ~80% ที่ตอบได้จาก KB → <b style="color:var(--fast)">0 token</b><br>
+          เหลือ ~20% ที่ยากจริง ค่อยส่ง LLM<br>
+          <b style="color:var(--ink)">จ่ายเฉพาะส่วนที่จำเป็น</b>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:24px;max-width:1080px">
+      <div style="flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px">
+        <div style="font-size:clamp(28px,4vw,42px);font-weight:800;color:var(--fast)">−60–80%</div>
+        <div style="color:var(--muted);font-size:14px;margin-top:6px">ค่า token ต่อเดือน (ถ้า 60–80% ของคำถามซ้ำ/FAQ)</div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px">
+        <div style="font-size:clamp(28px,4vw,42px);font-weight:800;color:var(--accent)">+ Local AI</div>
+        <div style="color:var(--muted);font-size:14px;margin-top:6px">ส่วนที่เหลือ → Gemma/Typhoon บนเครื่อง = <b style="color:var(--ink)">0 บาท/token + ไม่ส่งข้อมูลออก</b></div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px">
+        <div style="font-size:clamp(28px,4vw,42px);font-weight:800;color:var(--audit)">100%</div>
+        <div style="color:var(--muted);font-size:14px;margin-top:6px">ตรวจสอบย้อนหลังได้ทุกคำตอบ (BLAKE3) — AI ล้วนทำไม่ได้</div>
+      </div>
+    </div>
+    <div class="foot">ตัวเลขจริงจากทีม GradMahidol AI: ทุกคำถามผ่าน Gemini + RAG context เต็ม → <b>token พุ่งเพราะไม่มีชั้นคัด</b></div>
+  </section>
+
   <!-- Slide 8 — Self-learning / ruliology -->
   <section class="slide">
-    <div class="pageno">09 / 12</div>
+    <div class="pageno">10 / 13</div>
     <div class="kicker">ไม่ใช่แค่ค้นหา · มันเรียนรู้</div>
     <h2>Self-learning: ยิ่งใช้ ยิ่งคัด AI แม่นขึ้น</h2>
     <div class="learn">
@@ -384,7 +424,7 @@
 
   <!-- Slide 9 — Live architecture (deployed, $0) -->
   <section class="slide">
-    <div class="pageno">10 / 12</div>
+    <div class="pageno">11 / 13</div>
     <div class="kicker">ของจริง · deploy แล้ว · ฟรี $0</div>
     <h2>ทั้งระบบรันจริงบน edge — ไม่ใช่แค่สไลด์</h2>
     <div class="arch">
@@ -408,7 +448,7 @@
 
   <!-- Slide 10 — Prototype / Demo (ฉาก 3-4) -->
   <section class="slide">
-    <div class="pageno">11 / 12</div>
+    <div class="pageno">12 / 13</div>
     <div class="kicker">Prototype — ของจริง รันได้</div>
     <h2>REST API ห่อ kernel: ส่งงาน → ได้ proof ทันที</h2>
     <div class="term">
@@ -431,7 +471,7 @@
 
   <!-- Slide 8 — Impact + Roadmap (ฉาก 5) -->
   <section class="slide">
-    <div class="pageno">12 / 12</div>
+    <div class="pageno">13 / 13</div>
     <div class="kicker">คุณค่าต่อมหาวิทยาลัย · ทิศทางต่อไป</div>
     <h2>ลดต้นทุน · เร็วขึ้น · ตรวจสอบได้</h2>
     <div class="cards">
