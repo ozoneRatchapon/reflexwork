@@ -6,9 +6,27 @@ Kernel" decides, per message, whether a question can be answered in
 escalate. Every decision carries a reproducible **BLAKE3 proof**. Built for a
 graduate-school help chatbot (Mahidol), but the kernel is domain-agnostic.
 
+**Three things make it different:** (1) **free + microsecond + auditable** — most
+questions never touch a paid model; (2) **human language without AI** — template
+NLG + grounded hybrid, so answers read naturally yet can't invent facts;
+(3) **self-improving + federated** — the KB grows from real usage, and many
+installs improve one shared corpus via *masked* signals (no raw text leaves a
+machine), with releases anchored on Solana.
+
 > Same idea as "System One" models (TypeSafe Jev, reflex.gist.rs): fast,
 > structured, **can't hallucinate facts** — the facts come from the KB, the
 > model only rephrases.
+
+## ▶︎ See it in 60 seconds
+- **Live chatbot** → https://reflexwork.pages.dev/chatbot.html — ask a question, watch it answer in microseconds for 0 token with a BLAKE3 proof.
+- **Live dashboard** (route mix + audit trail) → https://reflexwork.pages.dev/dashboard.html
+- **On-chain proof is real** — the `workflow-escrow` program is deployed on Solana devnet: [`6Dzv8va1Se8…tYE5`](https://explorer.solana.com/address/6Dzv8va1Se8HisK5ceDw62sRxMWyD693AyP1hfSUtYE5?cluster=devnet)
+- **Explainer** (18s, with sound) → `submissions/video/reflexwork-explainer.mp4`
+
+![live chatbot: FastPath answer at 0 token with a BLAKE3 proof, then abstain, then the dashboard audit trail](submissions/video/reflexwork-screen-demo.gif)
+
+*Recorded from the live site above — real server + WASM kernel, no mocks.*
+
 
 ## Why
 LLM chatbots answer every question with a paid, non-reproducible model call.
