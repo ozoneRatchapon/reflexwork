@@ -146,12 +146,13 @@ async function processEvents(raw, env) {
       const decision = await routeViaKernel(env, text).catch(() => ({}));
       const proof = String(decision.blake3_proof || '').slice(0, 16);
 
-      // Gate proxy from the kernel decision (the REST kernel exposes fast_path +
-      // the complexity feature, not the raw sigmoid g) → feeds the rethink band.
+      // Prefer the kernel's raw sigmoid gate score g; fall back to a proxy from
+      // fast_path + complexity only if an older kernel build lacks the field.
       const cNum = typeof decision.gate_dim8_complexity === 'number' ? decision.gate_dim8_complexity : 0.5;
-      const gateProxy = decision.fast_path
-        ? Math.min(0.59, 0.30 + cNum * 0.25)
-        : Math.max(0.70, 0.60 + cNum * 0.35);
+      const gateProxy = (typeof decision.gate_score === 'number')
+        ? decision.gate_score
+        : (decision.fast_path ? Math.min(0.59, 0.30 + cNum * 0.25)
+                              : Math.max(0.70, 0.60 + cNum * 0.35));
 
       // Answer from the verified manual when we can; the rethink layer decides,
       // recovering a FastPath answer in the borderline band instead of paying
