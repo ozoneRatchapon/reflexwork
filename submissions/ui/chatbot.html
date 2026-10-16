@@ -154,7 +154,33 @@
     .ratio-fill::after{display:none}
     .typing i{animation:none;opacity:.6}
     .chip:hover,.msg.b .golink:hover{transform:none}
+    .mood-face{animation:none}
   }
+
+  /* --- mood indicator: a small, honest window into the affect kernel ------
+     Shows how the deterministic MOOD state "feels" about the conversation —
+     it only tunes wrapper tone, never KB facts. The meter maps valence -1..+1
+     to 0..100%. Colors come from the shared brand tokens. */
+  .mood{display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+    padding:5px 11px 5px 8px;border:1px solid var(--line);border-radius:999px;
+    background:rgba(18,26,51,.6);font-size:12.5px;color:var(--muted);
+    transition:border-color .5s ease,background .5s ease}
+  .mood-face{font-size:16px;line-height:1;transition:transform .4s cubic-bezier(.22,.61,.36,1)}
+  .mood.bump .mood-face{animation:mood-bump .5s ease-out 1}
+  @keyframes mood-bump{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(-6deg)}100%{transform:scale(1)}}
+  .mood-label{font-weight:600;color:var(--ink);letter-spacing:.2px}
+  .mood-meter{width:46px;height:6px;border-radius:999px;background:var(--line);overflow:hidden}
+  .mood-meter i{display:block;height:100%;width:60%;border-radius:999px;
+    background:var(--accent);transition:width .5s ease,background .5s ease}
+  /* hue variants driven by snapshot().hue */
+  .mood[data-hue="warm"]{border-color:rgba(34,197,139,.5);background:rgba(34,197,139,.1)}
+  .mood[data-hue="warm"] .mood-meter i{background:var(--fast)}
+  .mood[data-hue="ok"] .mood-meter i{background:var(--accent)}
+  .mood[data-hue="low"]{border-color:rgba(246,169,59,.45);background:rgba(246,169,59,.09)}
+  .mood[data-hue="low"] .mood-meter i{background:var(--llm)}
+  .mood[data-hue="miss"]{border-color:rgba(255,107,122,.5);background:rgba(255,107,122,.1)}
+  .mood[data-hue="miss"] .mood-meter i{background:var(--warn)}
+  @media (max-width:560px){ .mood{margin-top:10px;font-size:12px} }
 </style>
 </head>
 <body>
@@ -172,6 +198,11 @@
   <div class="org">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
   <h1>ถาม-ตอบ เรื่องลงทะเบียน & ส่งวิทยานิพนธ์</h1>
   <p>พิมพ์คำถาม → ระบบคัดก่อน: เจอในคู่มือ = ตอบทันทีไม่ใช้ AI · ไม่เจอ = ส่งให้ AI ช่วย</p>
+  <div class="mood" id="mood" title="สถานะอารมณ์ของผู้ช่วย — เปลี่ยนตามบทสนทนา (deterministic, ไม่ใช้ AI)">
+    <span class="mood-face" id="mood-face">🦀</span>
+    <span class="mood-label" id="mood-label">ตั้งใจฟัง</span>
+    <span class="mood-meter"><i id="mood-fill"></i></span>
+  </div>
 </div>
 
 <div class="wrap">
@@ -230,6 +261,7 @@ async function load(){
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     $('q').value=c.textContent.replace(/^[🟢🟠]\s*/,''); ask();
   }));
+  renderMood(false);
 }
 load().catch(()=>{
   const boot=$('boot');
@@ -405,8 +437,30 @@ const MOOD = {
     return this.lastWasMiss
       ? 'ขอโทษด้วยนะครับที่ยังหาคำตอบให้ไม่ได้'
       : 'เรื่องนี้ขอให้เจ้าหน้าที่ช่วยดูแลต่อนะครับ';
+  },
+  // glanceable snapshot for the mood indicator (pure fn of valence — auditable)
+  snapshot(){
+    if(this.lastWasMiss)     return {emoji:'😟', label:'เป็นห่วง',  hue:'miss'};
+    if(this.valence>=0.6)    return {emoji:'😊', label:'อารมณ์ดี',  hue:'warm'};
+    if(this.valence>=0.3)    return {emoji:'🙂', label:'พร้อมช่วย', hue:'ok'};
+    if(this.valence<=-0.2)   return {emoji:'😔', label:'กังวล',     hue:'low'};
+    return {emoji:'🦀', label:'ตั้งใจฟัง', hue:'neutral'};
   }
 };
+
+// Paint the mood indicator from the current MOOD state. Called after every
+// outcome so the user watches the bot's "feeling" shift with the conversation.
+function renderMood(bump){
+  const el=$('mood'); if(!el) return;
+  const s=MOOD.snapshot();
+  $('mood-face').textContent=s.emoji;
+  $('mood-label').textContent=s.label;
+  // valence -1..+1 → 8..100% meter width
+  const pct=Math.round(8 + ((MOOD.valence+1)/2)*92);
+  $('mood-fill').style.width=pct+'%';
+  el.dataset.hue=s.hue;
+  if(bump){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+}
 
 // --- Smalltalk layer (deterministic, no AI, no staff hand-off) ---------------
 // "สวัสดี", "ขอบคุณ", "ทำอะไรได้บ้าง" are NOT knowledge questions and NOT staff
@@ -428,7 +482,10 @@ function classifySmalltalk(text){
     // still allow a leading greeting to be stripped, but treat as a question
     if(q.replace(/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i,'').length > 3) return null;
   }
-  for(const s of _SMALLTALK){ if(s.re.test(q)) return s.kind; }
+  // Sarcastic "thanks for nothing" (ขอบคุณที่ไม่ช่วยอะไรเลย) is NOT genuine — reading
+  // it as praise is the uncanny tell. Fall through to the kernel/staff path.
+  const _NEG=/ไม่ช่วย|ไม่ได้|ไม่เห็น|ไม่มีประโยชน์|เสียเวลา|ห่วย|แย่|โง่|งี่เง่า|useless|worthless|terrible|waste of/i;
+  for(const s of _SMALLTALK){ if(!s.re.test(q)) continue; if(s.kind==='thanks' && _NEG.test(q)) return null; return s.kind; }
   return null;
 }
 function smalltalkReply(kind){
@@ -461,6 +518,7 @@ function ask(){
   const st = classifySmalltalk(q);
   if(st){
     MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
+    renderMood(true);
     const moodTag = MOOD.valence>0.5 ? '😊' : '🙂';
     add('b', `<span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">💬 คุยทั่วไป ${moodTag} · ไม่เรียก AI · 0 token</span>
       <div class="ans">${smalltalkReply(st)}</div>
@@ -496,6 +554,7 @@ function ask(){
   // Affect kernel: answering well warms the mood; a miss (abstain/escalate)
   // makes the bot more apologetic in its hand-off. Deterministic, tone-only.
   MOOD.felt(verdict.action==='escalate' ? 'miss' : 'hit');
+  renderMood(true);
   const stageTag = verdict.stage==='rethink'
     ? `<span class="km" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔁 rethink</span>`
     : `<span class="km">⚡ reflex</span>`;
