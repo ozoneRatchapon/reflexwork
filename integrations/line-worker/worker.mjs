@@ -101,6 +101,17 @@ async function routeViaKernel(env, text) {
   return r.json();
 }
 
+// Graceful fallback shown when the LLM is unavailable (quota/throttle/outage).
+// Redirects the user to the verified manual, which always works — so a demo
+// never dead-ends on a Gemini hiccup.
+const LLM_UNAVAILABLE =
+  'ตอนนี้ผู้ช่วย AI มีผู้ใช้งานจำนวนมาก ขออภัยในความไม่สะดวก 🙏\n' +
+  'ระหว่างนี้ลองถามเรื่องที่มีในคู่มือได้ทันที เช่น:\n' +
+  '• ส่งรูปเล่มภายในกี่วัน\n' +
+  '• ค่าสอบ MU GRAD Plus เท่าไร\n' +
+  '• ตรวจบทคัดย่อใช้เวลากี่วัน\n' +
+  'หรือพิมพ์คำถามใหม่อีกครั้งในอีกสักครู่';
+
 async function answerLLM(text) {
   try {
     const r = await fetch(`${LLM_PROXY}/llm`, {
@@ -108,9 +119,14 @@ async function answerLLM(text) {
       headers: { 'Content-Type': 'application/json', 'Origin': 'https://reflexwork.pages.dev' },
       body: JSON.stringify({ input: text }),
     });
-    const d = await r.json();
-    return d.answer || 'ขออภัย AI ตอบไม่ได้ขณะนี้ กรุณาติดต่อเจ้าหน้าที่';
-  } catch { return 'ขออภัย ระบบ AI ไม่พร้อมใช้งานขณะนี้'; }
+    const d = await r.json().catch(() => ({}));
+    // The proxy returns its own placeholder string when Gemini fails; treat that
+    // (and any missing answer) as "unavailable" so we show the helpful fallback.
+    const ok = d.answer && !/ตอบไม่ได้|ไม่พร้อม/.test(d.answer);
+    return ok ? { text: d.answer, ok: true } : { text: LLM_UNAVAILABLE, ok: false };
+  } catch {
+    return { text: LLM_UNAVAILABLE, ok: false };
+  }
 }
 
 async function reply(replyToken, text, footer, token) {
@@ -123,8 +139,53 @@ async function reply(replyToken, text, footer, token) {
   });
 }
 
+// Process one webhook body: route + answer + reply. Runs AFTER we have already
+// returned 200 to LINE (via ctx.waitUntil), so a slow kernel/LLM call never
+// trips LINE's ~1s webhook timeout (which showed up as "Canceled" requests).
+async function processEvents(raw, env) {
+  try {
+    const body = JSON.parse(raw || '{}');
+    const token = env.LINE_CHANNEL_ACCESS_TOKEN;
+    for (const ev of body.events || []) {
+      if (ev.type !== 'message' || ev.message?.type !== 'text') continue;
+      const text = ev.message.text;
+
+      // The kernel still makes the real routing decision (fast-path gate +
+      // BLAKE3 proof) — we keep its proof as tamper-evidence on the reply.
+      const decision = await routeViaKernel(env, text).catch(() => ({}));
+      const proof = String(decision.blake3_proof || '').slice(0, 16);
+
+      // Answer from the verified manual when we can; the KB tier decides.
+      // The footer reflects the TRUE path taken (manual / disambiguation / AI),
+      // and shows the kernel's BLAKE3 proof as tamper-evidence.
+      const pick = pickFromKB(text);
+      let answer, footer;
+
+      if (pick.tier === 'confident') {
+        const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
+        answer = `${pick.entry.answer}${src}`;
+        footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${proof ? `\n🔒 ${proof}…` : ''}`;
+      } else if (pick.tier === 'ambiguous') {
+        const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
+        answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
+        footer = `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI`;
+      } else {
+        const llm = await answerLLM(text);
+        answer = llm.text;
+        footer = llm.ok
+          ? `\n\n🦀 LLM path · ตอบโดย AI${proof ? `\n🔒 ${proof}…` : ''}`
+          : ''; // fallback message already explains itself; no footer noise
+      }
+
+      await reply(ev.replyToken, answer, footer, token);
+    }
+  } catch (e) {
+    console.log('line handler error:', String(e && e.message || e));
+  }
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/health') return new Response('ok');
     if (request.method !== 'POST' || url.pathname !== '/webhook')
@@ -134,45 +195,10 @@ export default {
     if (!(await verify(raw, request.headers.get('x-line-signature'), env.LINE_CHANNEL_SECRET)))
       return new Response('bad signature', { status: 401 });
 
-    try {
-      const body = JSON.parse(raw || '{}');
-      const token = env.LINE_CHANNEL_ACCESS_TOKEN;
-      for (const ev of body.events || []) {
-        if (ev.type !== 'message' || ev.message?.type !== 'text') continue;
-        const text = ev.message.text;
-
-        // The kernel still makes the real routing decision (fast-path gate +
-        // BLAKE3 proof) — that is the engine we are demonstrating.
-        const decision = await routeViaKernel(env, text).catch(() => ({}));
-        const route = decision.route || 'DataQuery';
-        const proof = String(decision.blake3_proof || '').slice(0, 16);
-
-        // Answer from the verified manual when we can; the KB tier decides.
-        const pick = pickFromKB(text);
-        let answer, footer;
-
-        if (pick.tier === 'confident') {
-          const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
-          answer = `${pick.entry.answer}${src}`;
-          footer = `\n\n🦀 ${route} · FastPath · 0 token${proof ? `\n🔒 ${proof}…` : ''}`;
-        } else if (pick.tier === 'ambiguous') {
-          const list = pick.candidates
-            .map((c, i) => `${i + 1}. ${c.title}`)
-            .join('\n');
-          answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
-          footer = `\n\n🦀 ${route} · ต้องการความชัดเจน (ไม่เรียก AI)`;
-        } else {
-          // no manual hit -> let the LLM proxy answer (costs tokens)
-          answer = await answerLLM(text);
-          footer = `\n\n🦀 ${route} · LLM${proof ? `\n🔒 ${proof}…` : ''}`;
-        }
-
-        await reply(ev.replyToken, answer, footer, token);
-      }
-    } catch (e) {
-      // never 500 a webhook — LINE retries aggressively. Log and ack.
-      console.log('line handler error:', String(e && e.message || e));
-    }
+    // Ack LINE immediately (it times out webhooks in ~1s), then do the slow
+    // routing/LLM/reply work in the background. The replyToken stays valid for
+    // ~1 minute, so an async reply still lands.
+    ctx.waitUntil(processEvents(raw, env));
     return new Response('ok');
   },
 };
