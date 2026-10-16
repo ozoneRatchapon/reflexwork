@@ -25,12 +25,15 @@
 - [ ] B3. Quickstart doc: install → init → build index → run locally. _(R2)_
 
 ## Phase C — Federation client / signal layer (R3)
-- [ ] C1. `federation` module that reads ONLY masked gap counts + EMA table
+- [x] C1. `federation` module that reads ONLY masked gap counts + EMA table
   (never raw questions); derive the three signal types. _(R3)_
-- [ ] C2. k-anonymity guard: coarse topic_key bucketing, drop singleton/low-count
+  → `integrations/_shared/federation.mjs`
+- [x] C2. k-anonymity guard: coarse topic_key bucketing, drop singleton/low-count
   keys, cap cardinality before any send. _(R3, R6)_
-- [ ] C3. `federation preview` dry-run that prints the exact next payload;
+  → `K_ANON_MIN_HITS`, `MAX_GAP_BUCKETS`, `topicKey()` in federation.mjs
+- [x] C3. `federation preview` dry-run that prints the exact next payload;
   nothing sends until invoked for real. _(R3)_
+  → `GET /federation-preview` in kernel-worker (returns payload, sends nothing)
 - [ ] C4. Batched, rate-limited, best-effort HTTPS sender keyed by the install's
   public-key id; a send failure never blocks the chatbot. _(R3)_
 - [ ] C5. Per-install keypair generation + local "what I share / revoke" view.
@@ -58,9 +61,9 @@
   _(R5)_
 
 ## Phase F — Privacy & security hardening (R3, R6)
-- [ ] F1. Boundary test suite: assert NO raw text / user id / mask-flagged field
+- [x] F1. Boundary test suite: assert NO raw text / user id / mask-flagged field
   can appear in any outbound payload (property test over the signal builder).
-  _(R3, R6)_
+  _(R3, R6)_  → `tests/federation.test.mjs` (15/15, incl. the F1 leak tests)
 - [ ] F2. Release signing + install-side verification end-to-end test. _(R6)_
 - [ ] F3. Revocation: an install can stop sharing and prove nothing further is
   sent. _(R6)_
