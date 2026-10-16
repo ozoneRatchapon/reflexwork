@@ -79,6 +79,19 @@
   .bar b{color:var(--ink)}
   .note{font-size:12px;color:var(--muted);text-align:center}
 
+  /* --- P1: loading + empty + error states -------------------------------- */
+  /* WASM boot: a spinner in the chat area until the kernel is ready */
+  .boot{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 20px;color:var(--muted);text-align:center}
+  .boot .spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .boot.err .spin{display:none}
+  .boot .retry{margin-top:8px;background:var(--accent);color:#07122e;border:none;border-radius:9px;padding:9px 18px;font-weight:700;cursor:pointer;font-size:14px}
+  /* empty-state greeting: a clear invite, not just a plain line */
+  .greet{align-self:stretch;max-width:none;background:linear-gradient(135deg,rgba(91,140,255,.08),rgba(34,197,139,.06));border:1px solid var(--line)}
+  .greet .g-h{font-size:16px;font-weight:800;margin-bottom:4px}
+  .greet .g-p{color:var(--muted);font-size:13.5px}
+  .greet .g-cta{color:var(--accent);font-size:13px;margin-top:8px;font-weight:600}
+
   /* --- micro-animations: each one carries meaning, not decoration --------- */
   /* a message arriving: slides up as it appears (shows the turn advancing) */
   @keyframes msg-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -140,7 +153,10 @@
 <div class="wrap">
   <div class="chips" id="chips"></div>
   <div class="chat" id="chat">
-    <div class="msg b"><b>สวัสดีครับ</b> ถามเรื่องกำหนดส่งวิทยานิพนธ์ Turnitin บทคัดย่อ การลงทะเบียน ฯลฯ ได้เลย</div>
+    <div class="boot" id="boot">
+      <div class="spin"></div>
+      <div>กำลังโหลด Reflex Kernel (WASM) ในเบราว์เซอร์…</div>
+    </div>
   </div>
   <div class="ask">
     <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
@@ -169,6 +185,13 @@ async function load(){
   KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>FALLBACK_KB);
   if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
   ready=true; $('q').disabled=false; $('send').disabled=false;
+  // kernel ready → replace the boot spinner with an inviting greeting
+  const boot=$('boot'); if(boot) boot.remove();
+  $('chat').innerHTML = `<div class="msg b greet">
+      <div class="g-h">สวัสดีครับ 🦀</div>
+      <div class="g-p">ถามเรื่องกำหนดส่งวิทยานิพนธ์ · Turnitin · บทคัดย่อ · การลงทะเบียน · ค่าสอบ ฯลฯ ได้เลย</div>
+      <div class="g-cta">👇 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
+    </div>`;
   $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ทำงานในเบราว์เซอร์ 100%';
   const seeds=[
     {t:'ส่งรูปเล่มภายในกี่วัน', k:'f'},
@@ -184,7 +207,14 @@ async function load(){
     $('q').value=c.textContent.replace(/^[🟢🟠]\s*/,''); ask();
   }));
 }
-load().catch(()=>{ $('note').textContent='⚠ ต้องเปิดผ่าน http'; });
+load().catch(()=>{
+  const boot=$('boot');
+  if(boot){ boot.classList.add('err');
+    boot.innerHTML='<div>⚠ โหลด Reflex Kernel ไม่สำเร็จ</div>'
+      +'<div style="font-size:12.5px">ต้องเปิดผ่าน http(s) (ไม่ใช่ file://) — ลองรีเฟรชอีกครั้ง</div>'
+      +'<button class="retry" onclick="location.reload()">ลองใหม่</button>'; }
+  $('note').textContent='⚠ เปิดหน้านี้ผ่าน http(s)';
+});
 
 // Minimal built-in KB (public info, paraphrased) used when the full index is absent.
 const FALLBACK_KB = [
@@ -459,8 +489,8 @@ function ask(){
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({input:q})
       }).then(r=>r.json()).then(r=>{
-        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'AI ตอบไม่ได้ในขณะนี้';
-      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='⚠ เรียก AI ไม่สำเร็จ'; });
+        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'คู่มือไม่มีคำตอบตรง ๆ และ AI ยังไม่พร้อม — ติดต่อเจ้าหน้าที่ด้านล่างได้เลยครับ';
+      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='คู่มือไม่มีคำตอบตรง ๆ และเรียก AI ไม่สำเร็จในขณะนี้ — รบกวนติดต่อเจ้าหน้าที่ด้านล่างครับ 🙇'; });
     }
     }
   }
