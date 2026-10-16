@@ -103,6 +103,8 @@ export default {
       if (url.pathname === '/feedback' && request.method === 'POST') return feedback(request, env);
       if (url.pathname === '/status' && request.method === 'GET') return status(env);
       if (url.pathname === '/audit' && request.method === 'GET') return audit(env);
+      if (url.pathname === '/gap' && request.method === 'POST') return logGap(request, env);
+      if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env);
       return json({ error: 'not found' }, 404);
     } catch (e) {
       return json({ error: String(e && e.message || e) }, 500);
@@ -119,6 +121,11 @@ async function ensureSchema(env) {
   );
   await env.DB.exec(
     "CREATE TABLE IF NOT EXISTS feedback_log (proof TEXT PRIMARY KEY, reward REAL, at INTEGER);"
+  );
+  // gap_log: questions the KB could NOT answer (escalated/👎). Aggregated by a
+  // normalized key so repeats bump a count — this is the KB improvement backlog.
+  await env.DB.exec(
+    "CREATE TABLE IF NOT EXISTS gap_log (qkey TEXT PRIMARY KEY, sample TEXT, hits INTEGER NOT NULL DEFAULT 1, last_at INTEGER, source TEXT);"
   );
 }
 
@@ -200,4 +207,46 @@ async function audit(env) {
     fast_path: !!r.fast, kernel_us: r.kernel_us || 0, blake3_proof: r.proof,
   }));
   return json({ entries });
+}
+
+// Normalize a question into an aggregation key: lowercase, collapse spaces,
+// strip punctuation, cap length. Similar phrasings fold to one backlog row.
+function gapKey(q) {
+  return String(q || '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+}
+
+// POST /gap { q, source } — record a question the KB could not answer.
+async function logGap(request, env) {
+  await ensureSchema(env);
+  const body = await request.json().catch(() => ({}));
+  const q = String(body.q || '').trim();
+  const source = String(body.source || 'web').slice(0, 16);
+  if (!q || q.length > 500) return json({ ok: false, error: 'bad q' }, 400);
+  const key = gapKey(q);
+  if (!key) return json({ ok: false, error: 'empty' }, 400);
+  await env.DB.prepare(
+    "INSERT INTO gap_log (qkey, sample, hits, last_at, source) VALUES (?1,?2,1,?3,?4) " +
+    "ON CONFLICT(qkey) DO UPDATE SET hits=hits+1, last_at=?3, sample=?2"
+  ).bind(key, q.slice(0, 200), Date.now(), source).run();
+  // keep the backlog bounded to the 200 most-recent distinct gaps
+  await env.DB.exec("DELETE FROM gap_log WHERE qkey NOT IN (SELECT qkey FROM gap_log ORDER BY last_at DESC LIMIT 200);");
+  return json({ ok: true });
+}
+
+// GET /gaps — the KB improvement backlog, most-asked unanswered first.
+async function gaps(env) {
+  await ensureSchema(env);
+  const rows = await env.DB.prepare(
+    "SELECT sample, hits, last_at, source FROM gap_log ORDER BY hits DESC, last_at DESC LIMIT 30"
+  ).all();
+  const entries = (rows.results || []).map(r => ({
+    question: r.sample, hits: r.hits, last_at_unix_ms: r.last_at, source: r.source,
+  }));
+  const totalRow = await env.DB.prepare("SELECT COUNT(*) c, COALESCE(SUM(hits),0) s FROM gap_log").first();
+  return json({ entries, distinct: totalRow?.c || 0, total_hits: totalRow?.s || 0 });
 }
