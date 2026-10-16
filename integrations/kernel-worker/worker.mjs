@@ -57,11 +57,19 @@ function routeTask(category, input, tokenBudget, priority) {
   const fast = decision === 'FastPath';
   // composite proof = blake3(input || route) — reproducible
   const proof = bytesToHex(blake3(utf8ToBytes(input + '|' + decision)));
+  // Confidence + abstain (gist.rs/reflex pattern): how far g sits from the
+  // decision threshold, normalized to [0,1]. Inside a band around θ the kernel
+  // is NOT sure — it ABSTAINS rather than guessing, so the caller routes to
+  // human/intake + gap-log instead of trusting a shaky FastPath/LLM split.
+  const confidence = Math.min(1, Math.abs(g - GATE) / GATE);
+  const abstain = Math.abs(g - GATE) < 0.08;   // band: |g-θ| < 0.08 → unsure
   return {
     route: decision, fast_path: fast, blake3_proof: proof,
     token_cost: fast ? '0 tokens (deterministic — no LLM)' : 'budgeted (LLM path)',
     gate_dim8_complexity: x[8],
     gate_score: g,
+    confidence,
+    abstain,
   };
 }
 async function ensureWasm() { /* pure JS port — no wasm init */ }
@@ -158,6 +166,8 @@ async function route(request, env) {
     blake3_proof: d.blake3_proof, token_cost: d.token_cost,
     gate_dim8_complexity: d.gate_dim8_complexity,
     gate_score: d.gate_score,
+    confidence: d.confidence,
+    abstain: d.abstain,
     audit_note: 're-running this task yields the SAME BLAKE3 proof (reproducible)',
   });
 }
@@ -220,6 +230,18 @@ function gapKey(q) {
     .slice(0, 80);
 }
 
+// PII mask for the stored gap sample. The gist.rs "better together" principle:
+// pool COUNTS, never raw text. We still keep a short sample so staff know what
+// the gap is about, but scrub the obvious personal identifiers first so the
+// backlog never accumulates emails / phones / student IDs.
+function maskPII(s) {
+  return String(s || '')
+    .replace(/[\w.+-]+@[\w.-]+\.\w+/g, '[email]')              // emails
+    .replace(/\b0\d[\d\s-]{7,}\d\b/g, '[phone]')               // TH phone numbers
+    .replace(/\b\d{7,}\b/g, '[id]')                            // long digit runs (student/account IDs)
+    .replace(/\b[gG]\d{6,}\b/g, '[id]');                       // Gxxxxxx-style account ids
+}
+
 // POST /gap { q, source } — record a question the KB could not answer.
 async function logGap(request, env) {
   await ensureSchema(env);
@@ -229,10 +251,11 @@ async function logGap(request, env) {
   if (!q || q.length > 500) return json({ ok: false, error: 'bad q' }, 400);
   const key = gapKey(q);
   if (!key) return json({ ok: false, error: 'empty' }, 400);
+  const sample = maskPII(q.slice(0, 200));   // scrub PII before it is stored
   await env.DB.prepare(
     "INSERT INTO gap_log (qkey, sample, hits, last_at, source) VALUES (?1,?2,1,?3,?4) " +
     "ON CONFLICT(qkey) DO UPDATE SET hits=hits+1, last_at=?3, sample=?2"
-  ).bind(key, q.slice(0, 200), Date.now(), source).run();
+  ).bind(key, sample, Date.now(), source).run();
   // keep the backlog bounded to the 200 most-recent distinct gaps
   await env.DB.exec("DELETE FROM gap_log WHERE qkey NOT IN (SELECT qkey FROM gap_log ORDER BY last_at DESC LIMIT 200);");
   return json({ ok: true });
