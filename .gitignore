@@ -65,3 +65,6 @@ integrations/line-worker/node_modules/
 integrations/line-worker/.wrangler/
 integrations/llm-proxy/node_modules/
 integrations/llm-proxy/.wrangler/
+
+# D1 backups (sensitive — never commit)
+backups/
