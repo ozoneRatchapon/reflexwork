@@ -120,7 +120,8 @@ const LLM_UNAVAILABLE =
   '• ส่งรูปเล่มภายในกี่วัน\n' +
   '• ค่าสอบ MU GRAD Plus เท่าไร\n' +
   '• ตรวจบทคัดย่อใช้เวลากี่วัน\n' +
-  'หรือพิมพ์คำถามใหม่อีกครั้งในอีกสักครู่';
+  'หรือพิมพ์คำถามใหม่อีกครั้งในอีกสักครู่\n' +
+  '\nถ้าต้องการติดต่อเจ้าหน้าที่โดยตรง: https://graduate.mahidol.ac.th/thai/contact-us/';
 
 async function answerLLM(text, env) {
   // LLM path goes through the team-integration adapter. By default the provider
@@ -176,7 +177,11 @@ async function processEvents(raw, env) {
 
       if (pick.tier === 'confident') {
         const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
-        answer = `${humanize(pick.entry, text)}${src}`;
+        // Guided steps as a numbered list when the entry carries them.
+        const steps = Array.isArray(pick.entry.steps) && pick.entry.steps.length
+          ? `\n\nทำตามขั้นตอน:\n${pick.entry.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
+          : '';
+        answer = `${humanize(pick.entry, text)}${steps}${src}`;
         footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
       } else if (pick.tier === 'ambiguous') {
         const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
