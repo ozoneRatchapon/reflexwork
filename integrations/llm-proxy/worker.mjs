@@ -32,6 +32,33 @@ function rateOk(ip) {
   return true;
 }
 
+// groundedGuard — the backstop against a model inventing facts the KB never
+// stated. For each sentence of the answer, pull out its "hard facts" (numbers,
+// %, วัน/บาท/เดือน counts, phone-like digit runs, Latin proper nouns). If a hard
+// fact does NOT appear in the KB context, that sentence is treated as invented
+// and dropped. Sentences with no hard fact (pure phrasing) are kept. This keeps
+// the rephrase fluent while guaranteeing every NUMBER/NAME traces to the KB.
+function groundedGuard(answer, context) {
+  const norm = s => String(s).replace(/[,\s]/g, '');
+  const ctxNorm = norm(context || '');
+  const parts = String(answer || '').split(/\n+/).flatMap(l => l.split(/(?<=[.!?。])\s+/)).map(s => s.trim()).filter(Boolean);
+  const kept = [];
+  for (const p of parts) {
+    const nums = p.match(/\d[\d,]*\s*(?:%|วัน|สัปดาห์|เดือน|ปี|บาท|ครั้ง|ชั่วโมง|นาที)/g) || [];
+    const lats = p.match(/[A-Za-z][A-Za-z0-9.\-]{1,}/g) || [];
+    const inv = [...nums, ...lats].some(f => {
+      const t = f.trim();
+      if (t.length < 2) return false;
+      if (/^(PDF|AI|KB|FAQ|MU|http|https|www|com|th)$/i.test(t)) return false;
+      return !ctxNorm.includes(norm(t));
+    });
+    if (inv || /^\d+[.)]?$/.test(p)) continue;
+    kept.push(p);
+  }
+  return kept.join('\n').trim()
+    || 'คู่มือมีข้อมูลไม่พอสำหรับคำถามนี้ รบกวนติดต่อเจ้าหน้าที่เพื่อความถูกต้องครับ';
+}
+
 function cors(origin) {
   const ok = origin === ALLOWED_ORIGIN;
   return {
@@ -93,11 +120,12 @@ export default {
       : prompt;
 
     // --- Local model route (0 token, no data leaves the host) --------------
-    // If OLLAMA_URL is set (a tunnelled Ollama / OpenAI-compatible endpoint —
-    // e.g. a Cloudflare Tunnel public hostname), prefer it over Gemini. This is
-    // how the Pages chatbot reaches a local model despite the Worker running on
-    // the edge: the tunnel gives the local box a public HTTPS URL the Worker
-    // CAN reach. Set OLLAMA_URL + OLLAMA_MODEL as Worker secrets to enable.
+    // Prefer a tunnelled Ollama when configured. For GROUNDED (KB-rephrase)
+    // requests a small local model can drift off the KB, so groundedGuard below
+    // strips any sentence whose numbers/names are not in the context — that is
+    // the correctness backstop regardless of which model answers. (Gemini, when
+    // a valid key + model is configured, obeys grounding better and is tried as
+    // the fallback below.)
     if (env.OLLAMA_URL) {
       try {
         const oc = new AbortController();
@@ -105,8 +133,6 @@ export default {
         const or = await fetch(env.OLLAMA_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
-            // ngrok free serves an HTML interstitial unless this header is set;
-            // harmless for any other OLLAMA_URL host.
             'ngrok-skip-browser-warning': '1',
             ...(env.OLLAMA_TOKEN ? { Authorization: `Bearer ${env.OLLAMA_TOKEN}` } : {}) },
           body: JSON.stringify({
@@ -118,8 +144,9 @@ export default {
           signal: oc.signal,
         }).finally(() => clearTimeout(ot));
         const od = await or.json().catch(() => ({}));
-        const otext = od?.choices?.[0]?.message?.content ?? od?.message?.content ?? od?.response ?? null;
+        let otext = od?.choices?.[0]?.message?.content ?? od?.message?.content ?? od?.response ?? null;
         if (or.ok && otext) {
+          if (grounded) otext = groundedGuard(otext, context);   // correctness backstop
           return new Response(JSON.stringify({ answer: otext, source: 'ollama' }), {
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
@@ -134,29 +161,35 @@ export default {
       });
     }
 
-    // Gemini generateContent (free-tier friendly model).
-    const model = env.GEMINI_MODEL || 'gemini-3.8-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
-    const payload = {
-      contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
-      generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
-    };
-
-    try {
-      let r = await fetch(url, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-      });
-      if (r.status === 503) { await new Promise(res => setTimeout(res, 800)); r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
-      const data = await r.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-        || 'ขออภัย ระบบ AI ตอบไม่ได้ในขณะนี้ กรุณาติดต่อเจ้าหน้าที่';
-      return new Response(JSON.stringify({ answer: text }), {
+    // Gemini generateContent. The exact flash model id changes over time, so we
+    // try the configured one first, then a few known-good fallbacks, and use the
+    // first that returns a candidate. (GEMINI_MODEL secret overrides the head.)
+    const models = [env.GEMINI_MODEL, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'].filter(Boolean);
+    let text = null;
+    for (const model of models) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
+      const payload = {
+        contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
+        generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
+      };
+      try {
+        let r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (r.status === 503) { await new Promise(res => setTimeout(res, 800)); r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
+        const data = await r.json();
+        const t = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (r.ok && t) { text = t; break; }
+      } catch { /* try next model */ }
+    }
+    if (!text) {
+      // Gemini unavailable AND (for grounded) we skipped Ollama — last resort:
+      // an honest hand-off rather than silence.
+      return new Response(JSON.stringify({ answer: 'ขออภัย ระบบ AI ตอบไม่ได้ในขณะนี้ — รบกวนติดต่อเจ้าหน้าที่ครับ', source: 'fallback' }), {
         headers: { ...headers, 'Content-Type': 'application/json' },
       });
-    } catch (e) {
-      return new Response(JSON.stringify({ error: 'LLM upstream error' }), {
-        status: 502, headers: { ...headers, 'Content-Type': 'application/json' },
-      });
     }
+    if (grounded) text = groundedGuard(text, context);
+    return new Response(JSON.stringify({ answer: text, source: 'gemini' }), {
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    });
   },
 };

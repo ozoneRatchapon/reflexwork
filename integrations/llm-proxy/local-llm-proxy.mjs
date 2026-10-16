@@ -41,6 +41,29 @@ function cors(origin) {
   };
 }
 
+// Backstop against invented facts: drop any sentence whose hard facts (numbers,
+// %, day/baht counts, Latin proper nouns) are NOT present in the KB context.
+function groundedGuard(answer, context) {
+  const norm = s => String(s).replace(/[,\s]/g, '');
+  const ctxNorm = norm(context || '');
+  const parts = String(answer || '').split(/\n+/).flatMap(l => l.split(/(?<=[.!?。])\s+/)).map(s => s.trim()).filter(Boolean);
+  const kept = [];
+  for (const p of parts) {
+    const nums = p.match(/\d[\d,]*\s*(?:%|วัน|สัปดาห์|เดือน|ปี|บาท|ครั้ง|ชั่วโมง|นาที)/g) || [];
+    const lats = p.match(/[A-Za-z][A-Za-z0-9.\-]{1,}/g) || [];
+    const inv = [...nums, ...lats].some(f => {
+      const t = f.trim();
+      if (t.length < 2) return false;
+      if (/^(PDF|AI|KB|FAQ|MU|http|https|www|com|th)$/i.test(t)) return false;
+      return !ctxNorm.includes(norm(t));
+    });
+    if (inv || /^\d+[.)]?$/.test(p)) continue;
+    kept.push(p);
+  }
+  return kept.join('\n').trim()
+    || 'คู่มือมีข้อมูลไม่พอสำหรับคำถามนี้ รบกวนติดต่อเจ้าหน้าที่เพื่อความถูกต้องครับ';
+}
+
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin || '';
   const headers = { ...cors(origin), 'Content-Type': 'application/json' };
@@ -78,8 +101,9 @@ const server = http.createServer(async (req, res) => {
       }),
     });
     const data = await r.json().catch(() => ({}));
-    const answer = data?.choices?.[0]?.message?.content ?? data?.message?.content ?? data?.response
+    let answer = data?.choices?.[0]?.message?.content ?? data?.message?.content ?? data?.response
                  ?? 'ขออภัย โมเดล local ตอบไม่ได้ในขณะนี้';
+    if (grounded) answer = groundedGuard(answer, context);
     res.writeHead(200, headers);
     res.end(JSON.stringify({ answer, source: 'ollama-local', model: MODEL }));
   } catch (e) {
