@@ -73,3 +73,29 @@ cloudflared tunnel run --url http://127.0.0.1:11434 reflexwork-ollama
 
 เทียบกับ Gemini cloud: จ่าย per-token ตลอด + ข้อมูลขึ้น Google — local+tunnel
 ย้ายค่าใช้จ่ายจาก "per-token แปรผันตามการใช้" ไปเป็น "ค่าเครื่องคงที่ (หรือ 0 ถ้ามีเครื่องอยู่แล้ว)"
+
+
+## ไม่มีโดเมน? → รัน local demo (แนะนำสำหรับ laptop demo, ฟรี 100%, ไม่ต้อง tunnel)
+
+Named tunnel ต้องมีโดเมนใน Cloudflare (ขั้น `cloudflared tunnel login` บังคับให้เลือก
+zone) และ quick tunnel (`trycloudflare.com`) โดน edge block 403 เมื่อใช้เป็น API
+ดังนั้นถ้า **ไม่มีโดเมน** ทางที่ได้ผลคือ **ไม่ต้อง tunnel เลย** — รัน proxy เป็น Node
+บนเครื่องเดียวกับ Ollama แล้วเปิด chatbot จากเครื่องนั้น (localhost คุย localhost):
+
+```bash
+# จบใน 1 คำสั่ง: ยิง ollama + proxy + static server + พิมพ์ URL
+./integrations/llm-proxy/demo-local.sh
+# เปิด: http://127.0.0.1:5173/chatbot.html?api=http://127.0.0.1:8787
+# ปิด:  ./integrations/llm-proxy/demo-local.sh stop
+```
+
+- `local-llm-proxy.mjs` = proxy Node zero-dependency พูด contract เดียวกับ Worker
+  (`POST /llm {input} → {answer}`) แต่ forward ไป **local Ollama** (0 token)
+- chatbot kernel ยังรันใน browser (WASM) เหมือนเดิม — เฉพาะ LLM-path (escalate)
+  ที่วิ่งเข้า local model
+- โมเดลที่รันได้จริงบน Ollama 0.32.13: `scb10x/llama3.2-typhoon2-3b-instruct`
+  (ตัว `typhoon2.1-gemma3-*` ติด template bug `tool_calls` — รอ `brew upgrade ollama`)
+
+ข้อจำกัด: ใช้ได้เฉพาะ chatbot ที่เปิด **จากเครื่องเดียวกัน** (chatbot บน Pages
+สาธารณะยังเรียก localhost ไม่ได้ — อันนั้นต้อง named tunnel + โดเมน) สำหรับ demo
+ต่อหน้ากรรมการบน laptop ตัวเอง นี่คือทางที่ถูกต้องและฟรีที่สุด
