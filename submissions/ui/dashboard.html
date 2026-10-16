@@ -99,6 +99,12 @@
   </div>
 
   <div class="card">
+    <h2>🔧 ระบบต้นทางไหนก่อปัญหาเยอะสุด</h2>
+    <div class="cap">จัดกลุ่มคำถามที่ตอบไม่ได้ตาม "ระบบต้นทาง" ที่เกี่ยวข้อง → บอกผู้บริหาร/IT ว่าควรไปแก้ที่ต้นเหตุระบบไหนก่อน · เป้าหมายสูงสุดของ ReflexWork คือทำให้คำถามพวกนี้<b>ลดลง</b> เพราะระบบต้นทางถูกแก้</div>
+    <div id="sysrows"><div class="empty">ยังไม่มีข้อมูล — เมื่อมี gap จะจัดกลุ่มตามระบบให้</div></div>
+  </div>
+
+  <div class="card">
     <h2>✅ KB Drafts รออนุมัติ (ปิด learning loop)</h2>
     <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือ auto-draft จาก gap) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นไฟล์ KB · ยิ่งใช้ corpus ยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
     <div style="margin:4px 0 12px"><button onclick="autoDraft()" style="background:#5b8cff;color:#041024;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">🤖 Auto-draft จาก gap ยอดฮิต (AI ร่างให้ คนแค่ตรวจ)</button> <button onclick="setStaffToken()" style="background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer">🔑 ตั้ง Staff Token</button> <span id="autodraft-note" style="color:var(--muted);font-size:13px"></span></div>
@@ -166,6 +172,7 @@ async function tick(){
       <td class="mono">${e.last_at_unix_ms?fmtTime(e.last_at_unix_ms):'—'}</td>
       <td>${e.source||'—'}</td></tr>`).join('')
       : '<tr><td colspan="4" class="empty">ยังไม่มี — คู่มือครอบคลุมทุกคำถามที่เข้ามา 🎉</td></tr>';
+    renderSystems(gaprows);
     renderDrafts((kd&&kd.drafts)||[]);
     renderConf((ec&&ec.entries)||[]);
     return;   // live data rendered — do not overwrite with demo
@@ -173,6 +180,33 @@ async function tick(){
     // No local API (the usual case on the public demo) → representative demo data.
     renderDemo();
   }
+}
+
+// Group gaps by the source SYSTEM they implicate → "where to fix at the root".
+const _SYS=[
+  {name:'เข้าระบบ/บัญชี (login/account)', re:/ล็อก ?อิน|เข้าระบบ|ลืมรหัส|รหัสผ่าน|บัญชี|login|password|account|we ?mahidol|student ?card/i},
+  {name:'e-Thesis / วิทยานิพนธ์', re:/e-?thesis|วิทยานิพนธ์|รูปเล่ม|บทคัดย่อ|turnitin|สอบ.*วิทยานิพนธ์/i},
+  {name:'ลงทะเบียน', re:/ลงทะเบียน|register|เพิ่ม ?ถอน|รายวิชา|หน่วยกิต/i},
+  {name:'การเงิน/ทุน', re:/ค่าเทอม|ค่าธรรมเนียม|ทุน|เบิก|ชำระ|payment|scholarship/i},
+  {name:'เอกสาร/ใบรับรอง', re:/หนังสือรับรอง|transcript|ใบรับรอง|เอกสาร|บฑ\./i},
+];
+function renderSystems(gaps){
+  const el=$('sysrows'); if(!el) return;
+  if(!gaps.length){ el.innerHTML='<div class="empty">ยังไม่มีข้อมูล — เมื่อมี gap จะจัดกลุ่มตามระบบให้</div>'; return; }
+  const tally={}; let other=0, total=0;
+  for(const g of gaps){ const q=g.question||''; const h=g.hits||1; total+=h; let hit=false;
+    for(const s of _SYS){ if(s.re.test(q)){ tally[s.name]=(tally[s.name]||0)+h; hit=true; break; } }
+    if(!hit) other+=h; }
+  if(other) tally['อื่น ๆ']=other;
+  const rows=Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=rows.map(([name,hits])=>{
+    const pct=Math.round(hits/total*100);
+    return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1;font-weight:600">${name}</div>
+      <div style="width:160px;height:8px;background:#0b1020;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--warn)"></div></div>
+      <div class="mono" style="width:70px;text-align:right;color:var(--muted)">${hits} (${pct}%)</div>
+    </div>`;
+  }).join('');
 }
 
 // Render the per-entry confidence list (weakest first) — "which KB entries to fix".
@@ -265,6 +299,7 @@ function renderDemo(){
   $('gaprows').innerHTML = demoGaps.map((e,i)=>`<tr>
     <td>${e.question}</td><td class="mono">${e.hits}</td>
     <td class="mono">${fmtTime(now - i*600000)}</td><td>${e.source}</td></tr>`).join('');
+  renderSystems(demoGaps);
   // Demo: a weak entry (👎 บ่อย) the system learned to flag, and a pending draft.
   renderConf([
     { id:'thesis_topic_process', conf:0.41, up:2, down:9 },
