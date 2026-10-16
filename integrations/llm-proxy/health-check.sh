@@ -26,11 +26,18 @@ curl -sf "http://127.0.0.1:11434/api/tags" >/dev/null 2>&1 && ollama_up=1
 if [ "$ollama_up" = 1 ]; then
   curl -s "http://127.0.0.1:11434/api/tags" | grep -q "$MODEL" && model_ok=1
 fi
-# ask the public proxy and read which backend answered
-resp=$(curl -s --max-time 25 -X POST "$PROXY/llm" \
-  -H 'Content-Type: application/json' -H 'Origin: https://reflexwork.pages.dev' \
-  -d '{"input":"healthcheck ping"}' 2>/dev/null)
-proxy_src=$(printf '%s' "$resp" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).source||"gemini")}catch(e){console.log("error")}})' 2>/dev/null)
+# ask the public proxy and read which backend answered. Retry once on a blip
+# (cold ollama start / ngrok reconnect / laptop wake) before declaring it down,
+# so a transient hiccup does not raise a false alert.
+proxy_src=""
+for attempt in 1 2; do
+  resp=$(curl -s --max-time 30 -X POST "$PROXY/llm" \
+    -H 'Content-Type: application/json' -H 'Origin: https://reflexwork.pages.dev' \
+    -d '{"input":"healthcheck ping"}' 2>/dev/null)
+  proxy_src=$(printf '%s' "$resp" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).source||"gemini")}catch(e){console.log("error")}})' 2>/dev/null)
+  [ "$proxy_src" = "ollama" ] && break
+  [ "$attempt" = 1 ] && sleep 5
+done
 
 # local path is healthy only when the proxy actually answered FROM ollama
 local_ok=0; [ "$proxy_src" = "ollama" ] && local_ok=1
