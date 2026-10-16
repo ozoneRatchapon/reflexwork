@@ -88,6 +88,9 @@ export default {
         const or = await fetch(env.OLLAMA_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
+            // ngrok free serves an HTML interstitial unless this header is set;
+            // harmless for any other OLLAMA_URL host.
+            'ngrok-skip-browser-warning': '1',
             ...(env.OLLAMA_TOKEN ? { Authorization: `Bearer ${env.OLLAMA_TOKEN}` } : {}) },
           body: JSON.stringify({
             model: env.OLLAMA_MODEL || 'gemma2:9b',
