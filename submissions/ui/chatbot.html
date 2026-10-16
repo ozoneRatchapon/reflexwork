@@ -340,7 +340,7 @@ function ask(){
                    : Math.max(0.70, 0.60 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.35));
   const verdict = decideTier({ gate: gateProxy, ranked });
   const stageTag = verdict.stage==='rethink'
-    ? `<span class="km" style="background:#eef2fb;color:#3b63e8">🔁 rethink</span>`
+    ? `<span class="km" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔁 rethink</span>`
     : `<span class="km">⚡ reflex</span>`;
 
   if(verdict.action==='act'){
@@ -356,7 +356,7 @@ function ask(){
         ai++;
         if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
         add('b', `${kstrip}
-          <span class="route ai" style="background:#fff7ed;color:#d97706">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+          <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
           <div class="ans">คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอครับ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อ</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
@@ -370,7 +370,7 @@ function ask(){
       const mid='hyb'+(++fbN);
       const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
       add('b', `${kstrip}
-        <span class="route auto" style="background:#eef2fb;color:#3b63e8">🔀 KB-grounded + เรียบเรียงโดย local AI ${stageTag}</span>
+        <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔀 KB-grounded + เรียบเรียงโดย local AI ${stageTag}</span>
         <div class="ans" id="${mid}"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงจากคู่มือ…</div>
         <span class="topic">อ้างอิง: ${hit.title}</span>
         <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
@@ -408,7 +408,7 @@ function ask(){
     const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
     const mid='dis'+(++fbN);
     add('b', `${kstrip}
-      <span class="route auto" style="background:#fff7ed;color:#d97706">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย ${stageTag}</span>
+      <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย ${stageTag}</span>
       <div>คุณอาจหมายถึง (คิดซ้ำแล้วมีหลายข้อใกล้กัน):</div>
       <div class="dislist" id="${mid}">${opts}</div>
       <div class="meta">${verdict.reason}</div>`);
@@ -429,7 +429,7 @@ function ask(){
     if(issue){
       const fields = INTAKE_FIELDS.map((f,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${f}</span></label>`).join('');
       add('b', `${kstrip}
-        <span class="route auto" style="background:#eef2fb;color:#3b63e8">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+        <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
         <div class="ans">เรื่องนี้เป็นปัญหาเฉพาะบัญชี/ข้อมูลของคุณ เจ้าหน้าที่จะช่วยดูแลให้ครับ 🙇 เพื่อให้ช่วยได้เร็วขึ้น รบกวนเตรียมข้อมูลต่อไปนี้ให้ครบ:</div>
         <div class="steps"><div class="steps-h">ข้อมูลสำหรับส่งต่อเจ้าหน้าที่ (กดติ๊กเมื่อเตรียมครบ):</div>${fields}</div>
         <div class="meta">kernel คัดว่าไม่ใช่คำถามคู่มือ — เป็นเคสที่ต้องคนจริง จึงเก็บข้อมูล intake ให้ครบก่อนส่งต่อ (ไม่เรียก AI)</div>
