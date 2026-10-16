@@ -6,6 +6,7 @@ source_name: "ศูนย์รวมคำถามที่พบบ่อย
 source_url: "https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai"
 language: "th"
 approval_status: "approved"
+steps: "หลักสูตรจัดทำหนังสือขออนุมัติเบิกจ่ายมายังบัณฑิตวิทยาลัย | แนบแบบฟอร์มหลักฐานการเบิกจ่ายตามที่มหาวิทยาลัยกำหนด | บัณฑิตวิทยาลัยตรวจสอบและอนุมัติ | จ่ายให้คณะกรรมการผ่านระบบ Online Banking"
 ---
 ## เบิกค่าตอบแทนกรรมการสอบวิทยานิพนธ์อย่างไร
 

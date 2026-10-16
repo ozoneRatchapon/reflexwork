@@ -86,6 +86,10 @@ def main() -> int:
             "source_url": fm.get("source_url", ""),
             "faq_number": fm.get("source_faq_number", ""),
             "approval_status": approval,
+            # Optional guided steps: frontmatter `steps: "a | b | c"` → array.
+            # Rendered as an interactive checklist in the chatbot (no AI).
+            **({"steps": [s.strip() for s in fm["steps"].split("|") if s.strip()]}
+               if fm.get("steps") else {}),
         })
 
     OUT.write_text(json.dumps(entries, ensure_ascii=False, indent=0), encoding="utf-8")
