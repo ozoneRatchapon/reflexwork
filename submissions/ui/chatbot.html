@@ -228,6 +228,21 @@ function decideTier({gate, ranked}){
   return {action:'escalate', stage:'rethink', reason:'คิดซ้ำแล้วยังไม่พบในคู่มือ — จึงส่งให้ AI'};
 }
 
+// --- Intake layer (deterministic, no AI) -------------------------------------
+// Most unanswered messages are PERSONAL/TECHNICAL issues (account locked, data
+// stuck, can't use a system) — not knowledge questions. Instead of guessing
+// with an LLM, classify the issue and collect the exact fields staff always ask
+// for, then hand off to a human. Kept in lockstep with _shared/intake.mjs (LINE).
+const INTAKE_FIELDS=['ชื่อ-นามสกุล','รหัสนักศึกษา / username / อีเมลมหาวิทยาลัย','ระบบที่มีปัญหา (เช่น WE Mahidol, Student Card App, e-Thesis, ระบบลงทะเบียน)','อาการ / ข้อความ error ที่เจอ (แนบภาพหน้าจอได้)'];
+const _ISSUE_CATS=[
+  {category:'login', label:'เข้าระบบ/ล็อกอินไม่ได้', re:/ล็อก ?อิน|เข้าระบบ(?:ไม่ได้)?|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset|account|server ?error|we ?mahidol|student ?card/i},
+  {category:'data_stuck', label:'ข้อมูล/สถานะค้างในระบบ', re:/(?:ข้อมูล|รายชื่อ|สถานะ|ชื่อ).{0,12}(?:ค้าง|ไม่อัปเดต|ไม่อัพเดต|ไม่ขึ้น|หาย|ไม่ตรง|ผิด)|ยังมีรายชื่อ|ติดอยู่ในระบบ|stuck|not ?updat|pending.*(?:system|ระบบ)/i},
+  {category:'system_error', label:'ระบบขัดข้อง/ใช้งานไม่ได้', re:/ระบบ.{0,16}(?:error|ขัดข้อง|ล่ม|พัง|ใช้ ?ไม่ ?ได้|มีปัญหา|ไม่ทำงาน|ไม่ได้)|กดไม่ได้|(?:ใส่|กรอก|เลือก|เพิ่ม)(?:ชื่อ)?.{0,12}ไม่ได้|บันทึกไม่ได้|อัปโหลดไม่ได้|system ?(?:error|down|broken)/i},
+];
+const _NOT_PERSONAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ/i;
+function classifyIssue(text){ const q=String(text||''); if(!q.trim()) return null; if(_NOT_PERSONAL.test(q)) return null;
+  for(const c of _ISSUE_CATS){ if(c.re.test(q)) return {kind:'personal', category:c.category, label:c.label}; } return null; }
+
 function ask(){
   if(!ready) return;
   const q=$('q').value.trim(); if(!q) return;
@@ -301,6 +316,27 @@ function ask(){
     // Gap log: this question had no manual answer. Record it (fire-and-forget)
     // so staff get a backlog of what the KB is missing — the self-improving loop.
     if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
+
+    // Intake: if this is a PERSONAL/TECHNICAL issue (account/login/data stuck),
+    // don't guess with an LLM — collect the fields staff always need, in one
+    // shot, then hand off to a human. Deterministic, 0 token.
+    const issue = classifyIssue(q);
+    if(issue){
+      const fields = INTAKE_FIELDS.map((f,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${f}</span></label>`).join('');
+      add('b', `${kstrip}
+        <span class="route auto" style="background:#eef2fb;color:#3b63e8">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+        <div class="ans">เรื่องนี้เป็นปัญหาเฉพาะบัญชี/ข้อมูลของคุณ เจ้าหน้าที่จะช่วยดูแลให้ครับ 🙇 เพื่อให้ช่วยได้เร็วขึ้น รบกวนเตรียมข้อมูลต่อไปนี้ให้ครบ:</div>
+        <div class="steps"><div class="steps-h">ข้อมูลสำหรับส่งต่อเจ้าหน้าที่ (กดติ๊กเมื่อเตรียมครบ):</div>${fields}</div>
+        <div class="meta">kernel คัดว่าไม่ใช่คำถามคู่มือ — เป็นเคสที่ต้องคนจริง จึงเก็บข้อมูล intake ให้ครบก่อนส่งต่อ (ไม่เรียก AI)</div>
+        <div class="staffbox">
+          <div class="staff-h">ปัญหาบัญชี/ล็อกอิน ติดต่อกองไอทีได้โดยตรง</div>
+          <div class="staff-btns">
+            <a class="golink" href="tel:024596022">☎️ โทรกองไอที 02-849-6022</a>
+            <a class="golink alt" href="mailto:account@mahidol.ac.th">✉️ account@mahidol.ac.th</a>
+          </div>
+        </div>
+        ${fbUI(q, d.blake3_proof)}`);
+    } else {
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
       <div class="meta">${verdict.reason}</div>
@@ -320,6 +356,7 @@ function ask(){
       }).then(r=>r.json()).then(r=>{
         const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'AI ตอบไม่ได้ในขณะนี้';
       }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='⚠ เรียก AI ไม่สำเร็จ'; });
+    }
     }
   }
   $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved;

@@ -42,6 +42,40 @@ export const KB = [
   "approval_status": "approved"
  },
  {
+  "id": "account_locked_it",
+  "title": "บัญชีถูกล็อก / ยืนยันตัวตนไม่ผ่าน ติดต่อกองไอทีอย่างไร",
+  "category": "account",
+  "keywords": "บัญชีถูกล็อก / ยืนยันตัวตนไม่ผ่าน ติดต่อกองไอทีอย่างไร account locked cannot verify identity authentication failed advisor cannot approve it support contact helpdesk 02-849-6022 account mahidol",
+  "answer": "หากบัญชีถูกล็อก ยืนยันตัวตนไม่ผ่าน หรือรีเซ็ตรหัสแล้วยังเข้าระบบไม่ได้ ไม่ใช่กรณีกรอกรหัสผิดธรรมดา ต้องให้กองไอทีตรวจสอบและปลดล็อกบัญชี ให้ติดต่อกองไอที โทร 02-849-6022 (เวลาราชการ) หรืออีเมล account@mahidol.ac.th โดยเตรียมชื่อ-สกุล รหัสนักศึกษา/username/อีเมลมหาวิทยาลัย ชื่อระบบที่เข้าไม่ได้ และอาการ/ภาพหน้าจอ error กรณีเป็นบัญชีอาจารย์ที่ทำให้อนุมัติเอกสารในระบบไม่ได้ ให้แจ้งชื่ออาจารย์และอีเมลเพื่อให้เจ้าหน้าที่ประสานกองไอทีดำเนินการ",
+  "source_url": "https://account.mahidol.ac.th/",
+  "faq_number": "",
+  "approval_status": "approved",
+  "steps": [
+   "ยืนยันว่าเป็นปัญหาบัญชี (ล็อก/ยืนยันตัวตนไม่ผ่าน/รีเซ็ตรหัสแล้วยังเข้าไม่ได้) ไม่ใช่กรอกรหัสผิด",
+   "เตรียมชื่อ-สกุล และรหัสนักศึกษา/username/อีเมลมหาวิทยาลัย",
+   "ระบุชื่อระบบที่เข้าไม่ได้ และอาการ/ข้อความ error (แนบภาพหน้าจอได้)",
+   "ติดต่อกองไอที โทร 02-849-6022 (เวลาราชการ) หรืออีเมล account@mahidol.ac.th",
+   "กรณีอาจารย์มีปัญหาบัญชีจนอนุมัติเอกสารในระบบไม่ได้ ให้แจ้งชื่ออาจารย์+อีเมล เพื่อให้เจ้าหน้าที่ประสานกองไอทีปลดล็อก"
+  ]
+ },
+ {
+  "id": "account_login_problem",
+  "title": "เข้าระบบ/ล็อกอินไม่ได้ ลืมรหัสผ่าน (WE Mahidol / Student Card App / ระบบมหาวิทยาลัย)",
+  "category": "account",
+  "keywords": "เข้าระบบ/ล็อกอินไม่ได้ ลืมรหัสผ่าน (we mahidol / student card app / ระบบมหาวิทยาลัย) login cannot sign in forgot password reset account we mahidol student card app university email server error 02-849-6022",
+  "answer": "ระบบของมหาวิทยาลัย (เช่น WE Mahidol, Student Card App, e-Thesis, ระบบบัณฑิตวิทยาลัย) ใช้บัญชี university email เข้าระบบ หากรหัสผ่านผิดหรือจำไม่ได้ ให้ตั้งรหัสใหม่ที่ account.mahidol.ac.th (กด Forgot password) แล้วลองล้างแคช/คุกกี้หรือเปิดในโหมด Incognito หากรีเซ็ตแล้วยังเข้าไม่ได้ หรือพบ Server Error ให้ติดต่อกองไอที โทร 02-849-6022 หรืออีเมล account@mahidol.ac.th โดยแจ้งชื่อ-สกุล รหัสนักศึกษา/username ชื่อระบบ และแนบภาพหน้าจอ error เพื่อให้เจ้าหน้าที่ตรวจสอบและปลดล็อกบัญชีได้เร็วขึ้น",
+  "source_url": "https://account.mahidol.ac.th/",
+  "faq_number": "",
+  "approval_status": "approved",
+  "steps": [
+   "ตรวจสอบว่าใช้บัญชี university email (xxx@student.mahidol.ac.th / xxx@mahidol.ac.th) ในการเข้าระบบ",
+   "หากจำรหัสไม่ได้ ไปที่ account.mahidol.ac.th แล้วกดลืมรหัสผ่าน (Forgot password) เพื่อตั้งใหม่",
+   "ลองล้างแคช/คุกกี้ หรือเปิดในโหมดไม่ระบุตัวตน (Incognito) แล้วเข้าใหม่",
+   "หากรีเซ็ตแล้วยังเข้าไม่ได้ หรือเจอ Server Error ให้ติดต่อกองไอที โทร 02-849-6022 หรืออีเมล account@mahidol.ac.th",
+   "เตรียมข้อมูลให้เจ้าหน้าที่: ชื่อ-สกุล, username/รหัสนักศึกษา, ชื่อระบบที่ใช้ และภาพหน้าจอ error"
+  ]
+ },
+ {
   "id": "admission_english",
   "title": "ต้องมีคะแนนภาษาอังกฤษก่อนสมัครหรือไม่",
   "category": "admission",
