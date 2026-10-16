@@ -1,0 +1,20 @@
+name = "reflexwork-corpus"
+main = "worker.mjs"
+compatibility_date = "2024-10-01"
+
+# Aggregate-only D1: signals (counts), drafts, corpus_entries, corpus_releases.
+# There is deliberately NO per-user table — the service holds the shared corpus
+# and cross-install counts, never user data.
+[[d1_databases]]
+binding = "DB"
+database_name = "reflexwork-corpus"
+database_id = "PLACEHOLDER-set-with-wrangler-d1-create"
+
+# Secrets (set with `wrangler secret put`), never in git:
+#   STAFF_TOKEN          gate /draft /approve /release
+#   RELEASE_SIGNING_KEY  HMAC key the release is signed with
+#   ANCHOR_WEBHOOK       URL of the Solana signer service that submits the
+#                        release content_hash as an attestation (holds the
+#                        workflow-escrow program authority). Unset → 'unanchored'.
+[vars]
+CLUSTER_MIN_INSTALLS = "2"

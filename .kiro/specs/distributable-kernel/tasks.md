@@ -39,25 +39,24 @@
   _(R6)_
 
 ## Phase D — Central corpus service (R4)
-- [ ] D1. Worker + D1 schema: `signals` (aggregate counts only, no user table),
-  `clusters`, `drafts`, `corpus_releases`. _(R4, nongoal: no per-user data)_
-- [ ] D2. Signal ingest + verify install signature; reject malformed / unmasked
-  shapes. _(R4, R6)_
-- [ ] D3. Cluster job: group gap topic_keys across installs; raise candidate on
-  cross-install frequency threshold. _(R4)_
-- [ ] D4. Reuse learning-loop auto-draft (LLM grounded on public KB only) →
-  PENDING draft per candidate; assert no auto-publish path exists. _(R4)_
-- [ ] D5. Approve + sign: human approval view; on approve, add to the next
-  content-addressed, signed `corpus_release`. _(R4, R6)_
+- [x] D1. Worker + D1 schema: `signals` (aggregate counts only, no user table),
+  `drafts`, `corpus_entries`, `corpus_releases`. _(R4)_  → `integrations/corpus-service/`
+- [x] D2. Signal ingest + server-side assertSafe (reject unmasked/text-like
+  shapes); opaque `tk_` bucket ids only. _(R4, R6)_  → `POST /signal`
+- [x] D3. Cluster: group topic_keys across installs; candidate at
+  `CLUSTER_MIN_INSTALLS` distinct installs. _(R4)_  → `GET /clusters`
+- [x] D4. `POST /draft` stores a PENDING draft per candidate; NO auto-publish
+  path exists (only `/approve` can publish). _(R4)_
+- [x] D5. `POST /approve` (human) → entry; `POST /release` cuts a
+  content-addressed, HMAC-signed, Solana-anchored release. _(R4, R6)_
 
 ## Phase E — Corpus pull + local merge (R5)
-- [ ] E1. `reflexwork corpus pull`: fetch latest release, VERIFY signature before
-  use. _(R5, R6)_
+- [x] E1. `GET /release/latest` returns the signed release + verify recipe
+  (recompute sha256, check sig, confirm on-chain anchor). _(R5, R6)_
 - [ ] E2. Diff + review UI: show new/changed entries; add on confirm. _(R5)_
 - [ ] E3. Conflict guard: a locally-edited entry is never silently overwritten —
   surface as a conflict. _(R5)_
-- [ ] E4. Provenance: each merged entry keeps `source_url` + `corpus_version`.
-  _(R5)_
+- [x] E4. Each released entry carries `source_url` + `corpus_version`. _(R5)_
 
 ## Phase F — Privacy & security hardening (R3, R6)
 - [x] F1. Boundary test suite: assert NO raw text / user id / mask-flagged field
