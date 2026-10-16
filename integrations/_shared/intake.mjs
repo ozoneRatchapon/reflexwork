@@ -82,3 +82,26 @@ export function intakePrompt(category) {
   const fields = INTAKE_FIELDS.map((f, i) => `${i + 1}. ${f}`).join('\n');
   return `${head}\n\nเพื่อให้เจ้าหน้าที่ช่วยได้เร็วขึ้น รบกวนแจ้งข้อมูลต่อไปนี้ในข้อความเดียวนะครับ:\n${fields}\n\nเมื่อได้รับข้อมูลครบ เจ้าหน้าที่จะมาตอบในแชทนี้ต่อให้ครับ`;
 }
+
+
+// --- Advice-type detector (shared by web + LINE) -----------------------------
+// "แนะนำ/ช่วย...ยังไง/วางแผน" = open-ended advice (rephrase-worthy, grounded-hybrid).
+// "กี่วัน/กี่บาท/กี่%" = factual (must stay exact — never rephrase). Deterministic.
+const _ADVICE = /แนะนำ|ช่วย.*(ยังไง|อย่างไร|หน่อย)|วิธีวางแผน|วางแผน|จัดการเวลา|เตรียมตัว|ควรทำ|ทำยังไงดี|แนวทาง/;
+const _FACTUAL = /กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|กี่ ?%|กี่คน|วันไหน|เมื่อไหร่/;
+export function isAdvice(q) {
+  q = String(q || '');
+  return _ADVICE.test(q) && !_FACTUAL.test(q);
+}
+
+// Build the grounded-hybrid instruction: the model rephrases from KB entries
+// ONLY, never inventing facts. Used when askTeam has no separate context param —
+// the grounding is embedded in the prompt text itself.
+export function groundedPrompt(question, entries) {
+  const ctx = (entries || []).slice(0, 2)
+    .map((e, i) => `[${i + 1}] ${e.title}\n${e.answer}`).join('\n\n');
+  return `เรียบเรียงคำตอบเป็นภาษาคนที่อ่านลื่น สำหรับคำถามนี้: "${question}"\n\n`
+    + `กฎเข้ม: ใช้ข้อเท็จจริงจากข้อมูลคู่มือด้านล่างเท่านั้น ห้ามเพิ่มตัวเลข เบอร์ติดต่อ `
+    + `ชื่อหน่วยงาน หรือข้อเท็จจริงใด ๆ ที่ไม่มีในนั้น หากไม่พอให้บอกว่าคู่มือไม่ครอบคลุม\n\n`
+    + `ข้อมูลคู่มือ:\n${ctx}`;
+}

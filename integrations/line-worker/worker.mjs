@@ -17,7 +17,7 @@ import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
 import { humanize } from '../_shared/humanize.mjs';
 import { decide } from '../_shared/rethink.mjs';
-import { classifyIssue, intakePrompt } from '../_shared/intake.mjs';
+import { classifyIssue, intakePrompt, isAdvice, groundedPrompt } from '../_shared/intake.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -177,12 +177,30 @@ async function processEvents(raw, env) {
 
       if (pick.tier === 'confident') {
         const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
-        // Guided steps as a numbered list when the entry carries them.
-        const steps = Array.isArray(pick.entry.steps) && pick.entry.steps.length
-          ? `\n\nทำตามขั้นตอน:\n${pick.entry.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
-          : '';
-        answer = `${humanize(pick.entry, text)}${steps}${src}`;
-        footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+        // Grounded hybrid: for ADVICE questions ("แนะนำ/วางแผน/ยังไง") a raw KB
+        // dump reads wrong — rephrase via the LLM GROUNDED on the matched KB
+        // entries only (facts stay from KB). Factual questions keep the exact
+        // FastPath answer (numbers must not be rephrased), 0 token.
+        if (isAdvice(text)) {
+          const ground = groundedPrompt(text, (searchKB(text).map(r => r.e)));
+          const bag = { LLM_PROXY, ...(env || {}) };
+          const r = await askTeam(ground, bag).catch(() => ({ ok: false }));
+          if (r.ok && r.text) {
+            answer = `${r.text}${src}`;
+            footer = `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`;
+          } else {
+            // AI unavailable → fall back to the raw KB answer (still correct)
+            answer = `${humanize(pick.entry, text)}${src}`;
+            footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+          }
+        } else {
+          // Guided steps as a numbered list when the entry carries them.
+          const steps = Array.isArray(pick.entry.steps) && pick.entry.steps.length
+            ? `\n\nทำตามขั้นตอน:\n${pick.entry.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
+            : '';
+          answer = `${humanize(pick.entry, text)}${steps}${src}`;
+          footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+        }
       } else if (pick.tier === 'ambiguous') {
         const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
         answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
