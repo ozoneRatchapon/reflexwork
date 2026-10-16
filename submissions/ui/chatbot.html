@@ -329,7 +329,7 @@ function ask(){
         <span class="topic">อ้างอิง: ${hit.title}</span>
         <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
         ${srcH}
-        ${fbUI(q, d.blake3_proof)}`);
+        ${fbUI(q, d.blake3_proof, hit.id)}`);
       groundedHybrid(q, ranked.map(r=>r.e)).then(ans=>{
         const n=document.getElementById(mid);
         if(n) n.textContent = ans || humanize(hit, q);   // fall back to raw KB if AI unavailable
@@ -355,7 +355,7 @@ function ask(){
       <span class="topic">หัวข้อ: ${hit.title}</span>
       <div class="meta">${verdict.reason}</div>
       ${src}
-      ${fbUI(q, d.blake3_proof)}`);
+      ${fbUI(q, d.blake3_proof, hit.id)}`);
   } else if(verdict.action==='disambiguate'){
     // rethink found two close candidates — ask which, no AI.
     auto++;
@@ -436,10 +436,12 @@ function updateRatio(){
 
 // feedback UI appended to each answer — the self-learning loop
 let fbN = 0;
-function fbUI(q, proof){
+function fbUI(q, proof, entryId){
   const id = 'fb'+(++fbN);
-  // store the question so the 👍/👎 handler can send it as the reward signal
-  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof};
+  // store the question so the 👍/👎 handler can send it as the reward signal.
+  // entryId (when the answer came from a KB entry) lets the kernel decay THAT
+  // entry's confidence on 👎 — learning which entries are weak.
+  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof, entryId};
   return `<div class="fb" id="${id}">
       <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
       <button class="fb-b up" onclick="sendFeedback('${id}',1)">👍 ใช่</button>
@@ -452,13 +454,13 @@ function fbUI(q, proof){
 const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
-  const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||'';
+  const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||''; const entryId = rec.entryId||'';
   let note;
   if(KERNEL_API){
     try{
       const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/feedback',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({category:'DataQuery', input:q, reward, proof})
+        body: JSON.stringify({category:'DataQuery', input:q, reward, proof, entry_id:entryId})
       }).then(r=>r.json());
       note = `✅ kernel เรียนรู้แล้ว · policy v${r.policy_version}`;
     }catch(e){ note = '⚠ ส่ง feedback ไม่สำเร็จ (kernel ไม่ตอบ)'; }
