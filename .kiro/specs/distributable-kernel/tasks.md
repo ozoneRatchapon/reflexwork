@@ -69,8 +69,8 @@
 ## Phase G — Docs & demo
 - [ ] G1. `docs/distributable-kernel.md`: the data-boundary diagram + the opt-in
   contract, written for an adopter deciding whether to turn federation on.
-- [ ] G2. Two-install demo: install A closes a gap → signal → central draft →
-  approve → install B pulls it. Record it.
+- [x] G2. Two-install demo: A → signal → cluster → draft → HUMAN approve →
+  signed release → B pulls + verifies. _(runnable: `demo/federated-corpus-demo.mjs`)_
 
 ## Verification gates
 - Phase A/B done when a bare consumer app routes a message and a fresh scaffold
