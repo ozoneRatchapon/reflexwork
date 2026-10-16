@@ -230,7 +230,7 @@ function ask(){
   // kernel decision strip — always shown, proves it's a decision engine not a search box
   const kstrip = `<div class="kernel-strip">
       <span class="kbadge ${d.fast_path?'kf':'kl'}">🦀 kernel: ${d.route}</span>
-      <span class="km">gate θ=0.72 · ความซับซ้อน ${complexity}</span>
+      <span class="km">gate θ=0.72 · ความซับซ้อน ${complexity}${typeof d.gate_score==='number'?` · g=${d.gate_score.toFixed(3)}`:''}</span>
       <span class="km">⚡ ${us} µs</span>
       <span class="km">💰 ${d.fast_path?'0 token':'LLM path'}</span>
     </div>
@@ -238,11 +238,12 @@ function ask(){
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ proof เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
 
   const ranked = search(q);
-  // Gate proxy: the deployed WASM exposes fast_path + the complexity feature
-  // (x[8]), not the raw sigmoid g. Map them into a [0,1] gate estimate so the
-  // rethink band can act. fast_path pulls low; complexity nudges within band.
-  const cNum = (typeof d.gate_dim8_complexity==='number') ? d.gate_dim8_complexity : 0.5;
-  const gateProxy = d.fast_path ? Math.min(0.59, 0.30 + cNum*0.25) : Math.max(0.70, 0.60 + cNum*0.35);
+  // The WASM kernel now exposes the raw sigmoid gate score g — use it directly
+  // (falls back to a proxy only on an older build that lacks the field).
+  const gateProxy = (typeof d.gate_score === 'number')
+    ? d.gate_score
+    : (d.fast_path ? Math.min(0.59, 0.30 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.25)
+                   : Math.max(0.70, 0.60 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.35));
   const verdict = decideTier({ gate: gateProxy, ranked });
   const stageTag = verdict.stage==='rethink'
     ? `<span class="km" style="background:#eef2fb;color:#3b63e8">🔁 rethink</span>`

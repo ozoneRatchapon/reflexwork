@@ -94,12 +94,21 @@ fn softmax(logits: &mut [f32]) {
 
 // ─── Routing (mirrors PolicyRouter::route) ───────────────────────────────────
 
+// Thin wrapper used by unit tests; the public path uses route_with_gate.
+#[allow(dead_code)]
 fn route(x: &[f32]) -> &'static str {
+    route_with_gate(x).0
+}
+
+/// Like `route`, but also returns the raw sigmoid gate score `g` ∈ [0,1].
+/// Exposing `g` lets the JS rethink layer act on the real confidence instead of
+/// a proxy derived from `fast_path` + the complexity feature.
+fn route_with_gate(x: &[f32]) -> (&'static str, f32) {
     let (w, b) = seeded_weights();
     let dot: f32 = w.iter().zip(x).map(|(wi, xi)| wi * xi).sum();
     let g = sigmoid(dot + b);
     if g < GATE_THRESHOLD * 0.55 {
-        return "FastPath";
+        return ("FastPath", g);
     }
     if g >= GATE_THRESHOLD {
         let (mw, mb) = seeded_multi();
@@ -120,14 +129,15 @@ fn route(x: &[f32]) -> &'static str {
             .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
             .map(|(i, _)| i)
             .unwrap_or(0);
-        return match best {
+        let r = match best {
             1 => "McpAnalyze",
             2 => "McpSynthesize",
             3 => "Rejected",
             _ => "McpAnalyze",
         };
+        return (r, g);
     }
-    "FastPath"
+    ("FastPath", g)
 }
 
 // ─── BLAKE3 proof (mirrors attestation composite hash) ───────────────────────
@@ -147,6 +157,8 @@ pub struct RouteOutput {
     pub blake3_proof: String,
     pub token_cost: String,
     pub gate_dim8_complexity: f32,
+    /// Raw sigmoid gate score g ∈ [0,1] (higher = more "needs LLM").
+    pub gate_score: f32,
 }
 
 /// Route one task entirely in the browser. Returns a JSON object with the
@@ -155,7 +167,7 @@ pub struct RouteOutput {
 #[wasm_bindgen]
 pub fn route_task(category: &str, input: &str, token_budget: u32, priority: u8) -> JsValue {
     let x = encode(category, input, token_budget, priority);
-    let decision = route(&x);
+    let (decision, gate_score) = route_with_gate(&x);
     let fast_path = decision == "FastPath";
 
     // composite proof = BLAKE3( input_bytes || route_bytes )
@@ -175,6 +187,7 @@ pub fn route_task(category: &str, input: &str, token_budget: u32, priority: u8) 
             "budgeted (LLM path via Kiro MCP)".into()
         },
         gate_dim8_complexity: x[8],
+        gate_score,
     };
     serde_wasm_bindgen::to_value(&out).unwrap()
 }

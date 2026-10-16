@@ -40,19 +40,20 @@ function routeDecision(x) {
   const { w, b } = seededW();
   const dot = w.reduce((a,wi,i)=>a+wi*x[i],0);
   const g = sigmoid(dot + b);
-  if (g < GATE*0.55) return 'FastPath';
-  if (g >= GATE) {
+  let route;
+  if (g < GATE*0.55) { route = 'FastPath'; }
+  else if (g >= GATE) {
     const { mw, mb } = seededMulti();
     const logits = [0,1,2,3].map(c => mw.slice(c*FEATURE_DIM,(c+1)*FEATURE_DIM).reduce((a,wi,i)=>a+wi*x[i],0)+mb[c]);
     softmax(logits);
     let best=0; for(let i=1;i<4;i++) if(logits[i]>logits[best]) best=i;
-    return best===1?'McpAnalyze':best===2?'McpSynthesize':best===3?'Rejected':'McpAnalyze';
-  }
-  return 'FastPath';
+    route = best===1?'McpAnalyze':best===2?'McpSynthesize':best===3?'Rejected':'McpAnalyze';
+  } else { route = 'FastPath'; }
+  return { route, g };          // expose raw sigmoid g for the rethink layer
 }
 function routeTask(category, input, tokenBudget, priority) {
   const x = encode(category, input, tokenBudget, priority);
-  const decision = routeDecision(x);
+  const { route: decision, g } = routeDecision(x);
   const fast = decision === 'FastPath';
   // composite proof = blake3(input || route) — reproducible
   const proof = bytesToHex(blake3(utf8ToBytes(input + '|' + decision)));
@@ -60,6 +61,7 @@ function routeTask(category, input, tokenBudget, priority) {
     route: decision, fast_path: fast, blake3_proof: proof,
     token_cost: fast ? '0 tokens (deterministic — no LLM)' : 'budgeted (LLM path)',
     gate_dim8_complexity: x[8],
+    gate_score: g,
   };
 }
 async function ensureWasm() { /* pure JS port — no wasm init */ }
@@ -148,6 +150,7 @@ async function route(request, env) {
     category, route: d.route, fast_path: fast,
     blake3_proof: d.blake3_proof, token_cost: d.token_cost,
     gate_dim8_complexity: d.gate_dim8_complexity,
+    gate_score: d.gate_score,
     audit_note: 're-running this task yields the SAME BLAKE3 proof (reproducible)',
   });
 }
