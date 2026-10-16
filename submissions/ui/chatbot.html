@@ -243,6 +243,27 @@ const _NOT_PERSONAL=/กี่วัน|กี่บาท|เท่าไร|�
 function classifyIssue(text){ const q=String(text||''); if(!q.trim()) return null; if(_NOT_PERSONAL.test(q)) return null;
   for(const c of _ISSUE_CATS){ if(c.re.test(q)) return {kind:'personal', category:c.category, label:c.label}; } return null; }
 
+// --- Advice-type detector + grounded hybrid (KB ground + local AI rephrase) ---
+// "แนะนำ/ช่วย...ยังไง/วิธีวางแผน" = open-ended advice, not a factual lookup.
+// For these, dumping a raw KB entry reads wrong; instead we GROUND the local AI
+// on the matched KB entries and let it rephrase (facts from KB only, no making
+// things up). A FACTUAL question (กี่วัน/กี่บาท) must NOT be rephrased.
+const _ADVICE=/แนะนำ|ช่วย.*(ยังไง|อย่างไร|หน่อย)|วิธีวางแผน|วางแผน|จัดการเวลา|เตรียมตัว|ควรทำ|ทำยังไงดี|แนวทาง/;
+const _FACTUAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|กี่ ?%|กี่คน|วันไหน|เมื่อไหร่/;
+function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(q); }
+
+async function groundedHybrid(q, entries){
+  if(!KERNEL_API) return null;
+  const context = entries.slice(0,2).map((e,i)=>`[${i+1}] ${e.title}\n${e.answer}`).join('\n\n');
+  try{
+    const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/llm',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({input:q, context})
+    });
+    const j = await r.json(); return j.answer || null;
+  }catch{ return null; }
+}
+
 function ask(){
   if(!ready) return;
   const q=$('q').value.trim(); if(!q) return;
@@ -278,6 +299,44 @@ function ask(){
 
   if(verdict.action==='act'){
     const hit = verdict.entry;
+    // Grounded hybrid for ADVICE questions: a raw KB dump reads wrong for
+    // "แนะนำ/วางแผน/ยังไง". If KB matches weakly → ABSTAIN to staff (don't force
+    // a wrong answer). If KB matches well enough → rephrase via local AI grounded
+    // ONLY on those entries (facts stay from KB). Factual questions skip this.
+    const topScore = (ranked[0]||{}).s || 0;
+    if(isAdvice(q)){
+      if(topScore < 4){
+        // weak KB match on an advice question → abstain, hand to staff + gap log
+        ai++;
+        if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
+        add('b', `${kstrip}
+          <span class="route ai" style="background:#fff7ed;color:#d97706">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+          <div class="ans">คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอครับ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อ</div>
+          <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
+          <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
+            <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>
+          ${fbUI(q, d.blake3_proof)}`);
+        $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+        return;
+      }
+      // decent KB match → grounded hybrid (async)
+      auto++; saved+=COST;
+      const mid='hyb'+(++fbN);
+      const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
+      add('b', `${kstrip}
+        <span class="route auto" style="background:#eef2fb;color:#3b63e8">🔀 KB-grounded + เรียบเรียงโดย local AI ${stageTag}</span>
+        <div class="ans" id="${mid}">⏳ กำลังเรียบเรียงจากคู่มือ…</div>
+        <span class="topic">อ้างอิง: ${hit.title}</span>
+        <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
+        ${srcH}
+        ${fbUI(q, d.blake3_proof)}`);
+      groundedHybrid(q, ranked.map(r=>r.e)).then(ans=>{
+        const n=document.getElementById(mid);
+        if(n) n.textContent = ans || humanize(hit, q);   // fall back to raw KB if AI unavailable
+      });
+      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      return;
+    }
     auto++; saved+=COST;
     // Deep link: a prominent button to the exact official page (not just a tiny
     // link) so a user who needs more than the summary lands on the right source.
