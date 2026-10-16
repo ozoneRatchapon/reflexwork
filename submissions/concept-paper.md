@@ -181,6 +181,30 @@ provider — **Typhoon (Thai-tuned) รันในเครื่องผ่�
 - **เป็น stub/future work:** เชื่อมฐานข้อมูลคำร้องจริงของหน่วยงาน, UI review สำหรับ approve corpus, deploy anchor-webhook signer สู่ production
 - **การอ่านออกเสียง (voice):** ถอดออกจาก prototype ชั่วคราว — ยังไม่พร้อมใช้งานจริง จะกลับมาทำเมื่อเสถียร
 
+### 6.4 งานที่เกี่ยวข้องและข้อจำกัดที่ยอมรับตรง ๆ (related work)
+
+ReflexWork ไม่ได้คิด "บันไดตัดสินใจ" ขึ้นเอง แต่ต่อยอดจากสาย **Reflex / Instinct /
+Rethink ของ katopz (gist.rs, MIT)** — decision engine แบบไม่ใช้โมเดล ที่ตอบระดับ
+ไมโครวินาที, **abstain เมื่อไม่มั่นใจ**, และมี receipt ตรวจย้อนได้ทุกคำตอบ — และได้
+บทเรียนเพิ่มจาก field notes ภาษาไทยของ **Megawiz/Asgard**. รายละเอียดการเทียบและ
+เครดิตอยู่ใน `docs/related-work.md`. สิ่งที่เรายืมมาโดยตรง: หลักบันได (จ่ายเฉพาะที่
+ชั้นล่างตอบไม่ได้), abstain เป็นคำตอบ, receipt/proof ต่อคำตอบ, การแก้ tokenizer ไทย
+ด้วย n-gram ระดับตัวอักษร, และ structural guard ("system prompt คือมารยาท ไม่ใช่
+กำแพง" → เราใส่ guardrail ตัดข้อเท็จจริงที่ไม่อยู่ใน KB).
+
+**ข้อจำกัดที่ยอมรับตรง ๆ (ตามวัฒนธรรม "พิสูจน์ก่อน อวยทีหลัง"):**
+- **threshold (gate θ=0.72, KB-score cutoff) ยังไม่ได้ fit จาก labeled data** —
+  เป็นค่า default ที่มีเหตุผล แต่ Reflex skill เตือนไว้ว่า "default thresholds do
+  not transfer" การ fit จากชุดที่คนไทย label คือ next step อันดับแรก
+- **ยังไม่มีชุดประเมินภาษาไทยที่คน label** — ตัวเลขที่อ้างเป็นเชิงสถาปัตยกรรม ยังไม่ใช่
+  benchmark; ถ้าจะอ้าง accuracy จะกำกับ n + 95% CI เสมอ
+- **learning loop ของเราออกแบบให้ human approve ทุก draft โดยตั้งใจ** — เพราะ
+  Asgard พิสูจน์ว่า "ให้ระบบเรียนจากคำตอบตัวเอง (naive) = ทางลัดสู่ความผิดที่มองไม่
+  เห็น"; เราจึงเปลี่ยน corpus (ไม่ใช่ weights) และให้คนเป็นผู้อนุมัติเสมอ
+
+ขอบคุณ katopz ที่เปิดงานนี้ และทีม Megawiz/Asgard สำหรับ field notes ที่ทำให้บันได
+ของเราดีขึ้น.
+
 ---
 
 ## 7. การสาธิต (Demo)
