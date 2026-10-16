@@ -1,21 +1,25 @@
-# ReflexWork explainer video (fframes)
+# ReflexWork explainer video (fframes / ffilms)
 
-An 18s motion-graphics explainer rendered **from Rust code** with
-[fframes](https://github.com/dmtrKovalenko/fframes) (SVG scenes → Skia GPU →
-ffmpeg). On-brand: the whole product is Rust, and so is its video.
+An 18s motion-graphics explainer rendered **from Rust code** — built as a proper
+**ffilms kit** (`kits/reflexwork/`) in the solana-thailand-devrel-helper ffilms
+workspace, reusing its shared primitives (kinetic type, stepper, cards, Thai
+shaping, Pack/tokens). On-brand: the product is Rust, so is its video.
 
 3 scenes: (1) the filter in front of the LLM, (2) the 4-way decision,
-(3) the self-improving learning loop.
+(3) the self-improving learning loop. TH + EN.
 
-## Render
+## Render (in the ffilms workspace)
 ```bash
-cargo install --locked cargo-fframes   # once
-cd submissions/video && cargo run --release -- render   # → out.mp4
-cargo run --release -- preview          # real-time window
-cargo run --release -- strip -n 9       # contact sheet
+# kit lives at: ffilms/kits/reflexwork/{tokens.rs, scenes/mod.rs, bin/explainer.rs}
+cd ffilms
+./ff reflexwork explainer inspect              # checks
+./ff reflexwork explainer strip -n 9           # contact sheet
+./ff reflexwork explainer render               # th (default)
+./ff reflexwork explainer render --lang en     # english
 ```
-Outputs committed: `reflexwork-explainer.mp4`, `reflexwork-explainer.gif`.
 
-Note: pin `usvgr = 0.46.0` if a newer transitive version breaks the fframes
-build (non-exhaustive `usvgr::Node::FastShape` match). Thai text uses the
-bundled `Sathu.ttf` (DM Sans has no Thai glyphs).
+## Outputs (committed here)
+- `reflexwork-explainer.mp4` (TH), `reflexwork-explainer-en.mp4` (EN)
+- `reflexwork-explainer.gif`, `reflexwork-strip.png`
+
+Dark theme matches the pitch deck; Thai via Anuphan, display via Space Grotesk.
