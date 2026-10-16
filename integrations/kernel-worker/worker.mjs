@@ -113,6 +113,16 @@ export default {
       if (url.pathname === '/audit' && request.method === 'GET') return audit(env);
       if (url.pathname === '/gap' && request.method === 'POST') return logGap(request, env);
       if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env);
+      // Staff-only KB authoring. If STAFF_TOKEN is configured, require a matching
+      // X-Staff-Token header; if unset (demo), allow. Keeps random public callers
+      // from flooding drafts while staying zero-config for a hackathon demo.
+      if (url.pathname.startsWith('/kb-')) {
+        if (env.STAFF_TOKEN && request.headers.get('X-Staff-Token') !== env.STAFF_TOKEN)
+          return json({ error: 'staff token required' }, 401);
+      }
+      if (url.pathname === '/kb-draft' && request.method === 'POST') return kbDraft(request, env);
+      if (url.pathname === '/kb-drafts' && request.method === 'GET') return kbDrafts(env);
+      if (url.pathname === '/kb-approve' && request.method === 'POST') return kbApprove(request, env);
       return json({ error: 'not found' }, 404);
     } catch (e) {
       return json({ error: String(e && e.message || e) }, 500);
@@ -134,6 +144,13 @@ async function ensureSchema(env) {
   // normalized key so repeats bump a count — this is the KB improvement backlog.
   await env.DB.exec(
     "CREATE TABLE IF NOT EXISTS gap_log (qkey TEXT PRIMARY KEY, sample TEXT, hits INTEGER NOT NULL DEFAULT 1, last_at INTEGER, source TEXT);"
+  );
+  // kb_draft: candidate KB entries awaiting human approval. A staff reply (or an
+  // auto-draft built from a gap + the staff's answer) lands here; once approved
+  // it becomes a real KB .md entry. This closes the learning loop WITHOUT auto-
+  // publishing unverified content — a human presses approve.
+  await env.DB.exec(
+    "CREATE TABLE IF NOT EXISTS kb_draft (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, question TEXT, answer TEXT, keywords TEXT, category TEXT, status TEXT NOT NULL DEFAULT 'pending', source TEXT, at INTEGER);"
   );
 }
 
@@ -272,4 +289,65 @@ async function gaps(env) {
   }));
   const totalRow = await env.DB.prepare("SELECT COUNT(*) c, COALESCE(SUM(hits),0) s FROM gap_log").first();
   return json({ entries, distinct: totalRow?.c || 0, total_hits: totalRow?.s || 0 });
+}
+
+// POST /kb-draft { question, answer, title?, keywords?, category?, source? }
+// A staff member's good answer (or an auto-draft from a gap) becomes a PENDING
+// KB candidate. Nothing is published yet — a human approves it later.
+async function kbDraft(request, env) {
+  await ensureSchema(env);
+  const b = await request.json().catch(() => ({}));
+  const question = String(b.question || '').trim().slice(0, 500);
+  const answer = String(b.answer || '').trim().slice(0, 2000);
+  if (!question || !answer) return json({ ok: false, error: 'question + answer required' }, 400);
+  // Derive sensible defaults; staff can override title/keywords/category.
+  const title = String(b.title || question).trim().slice(0, 200);
+  const keywords = String(b.keywords || question).toLowerCase().slice(0, 300);
+  const category = String(b.category || 'general').slice(0, 64);
+  const source = String(b.source || 'staff-reply').slice(0, 32);
+  const r = await env.DB.prepare(
+    "INSERT INTO kb_draft (title, question, answer, keywords, category, status, source, at) " +
+    "VALUES (?1,?2,?3,?4,?5,'pending',?6,?7)"
+  ).bind(title, question, answer, keywords, category, source, Date.now()).run();
+  // bound the drafts table
+  await env.DB.exec("DELETE FROM kb_draft WHERE status='pending' AND id NOT IN (SELECT id FROM kb_draft WHERE status='pending' ORDER BY at DESC LIMIT 100);");
+  return json({ ok: true, id: r.meta?.last_row_id });
+}
+
+// GET /kb-drafts — pending KB candidates for staff to review/approve.
+async function kbDrafts(env) {
+  await ensureSchema(env);
+  const rows = await env.DB.prepare(
+    "SELECT id, title, question, answer, keywords, category, source, at FROM kb_draft WHERE status='pending' ORDER BY at DESC LIMIT 50"
+  ).all();
+  return json({ drafts: rows.results || [] });
+}
+
+// POST /kb-approve { id } — mark a draft approved and return a ready-to-file
+// KB markdown document (frontmatter + body) the maintainer drops into
+// submissions/ui/knowledge-public/ and rebuilds the index. We deliberately do
+// NOT write to the repo from the edge — approval emits the artifact, a human
+// commits it (keeps the public repo's provenance clean).
+async function kbApprove(request, env) {
+  await ensureSchema(env);
+  const b = await request.json().catch(() => ({}));
+  const id = Number(b.id) || 0;
+  if (!id) return json({ ok: false, error: 'id required' }, 400);
+  const d = await env.DB.prepare("SELECT * FROM kb_draft WHERE id=?1").bind(id).first();
+  if (!d) return json({ ok: false, error: 'not found' }, 404);
+  await env.DB.prepare("UPDATE kb_draft SET status='approved' WHERE id=?1").bind(id).run();
+  // Filename slug: prefer ASCII (latin/digits) from the title; Thai-only titles
+  // have no ASCII, so fall back to a stable kb_<id> name the maintainer renames.
+  const ascii = String(d.title).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const slug = (ascii.length >= 3 ? ascii : `kb_draft_${id}`).slice(0, 40);
+  const md = `---\n` +
+    `title: ${JSON.stringify(d.title)}\n` +
+    `category: ${JSON.stringify(d.category)}\n` +
+    `source_type: "staff_approved"\n` +
+    `source_url: "https://graduate.mahidol.ac.th/"\n` +
+    `language: "th"\n` +
+    `approval_status: "approved"\n` +
+    `---\n## ${d.title}\n\n` +
+    `คำค้นภาษาอังกฤษ: ${d.keywords}\n\n${d.answer}\n`;
+  return json({ ok: true, id, filename: `${slug}.md`, markdown: md });
 }
