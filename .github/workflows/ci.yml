@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Unit tests (learning-loop pure logic)
+        run: node tests/learning_loop.test.mjs
+
+      - name: Syntax-check Workers + shared modules
+        run: |
+          set -e
+          for f in \
+            integrations/kernel-worker/worker.mjs \
+            integrations/llm-proxy/worker.mjs \
+            integrations/llm-proxy/local-llm-proxy.mjs \
+            integrations/line-worker/worker.mjs \
+            integrations/_shared/humanize.mjs \
+            integrations/_shared/rethink.mjs \
+            integrations/_shared/intake.mjs \
+            integrations/_shared/team-adapter.mjs; do
+            echo "checking $f"
+            node --check "$f"
+          done
+
+      - name: Build knowledge index (approved-only, publish-safe)
+        run: python3 submissions/build_knowledge_index.py
