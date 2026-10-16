@@ -6,44 +6,49 @@
 <title>ระบบรับคำร้องนักศึกษา — ReflexWork</title>
 <style>
   :root{
-    --bg:#f4f6fb; --panel:#ffffff; --ink:#1a2238; --muted:#5a6782;
-    --accent:#3b63e8; --auto:#16a34a; --ai:#d97706; --staff:#9333ea; --line:#e3e8f2;
-    --autobg:#eafaf0; --aibg:#fef6e7; --staffbg:#f6edff;
+    /* shared ReflexWork dark palette (same as index / chatbot / dashboard / try) */
+    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --auto:#22c58b; --ai:#f6a93b; --staff:#b07bff; --line:#2a3660;
+    --raised:#0e1630;
+    --autobg:rgba(34,197,139,.12); --aibg:rgba(246,169,59,.12); --staffbg:rgba(176,123,255,.12);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--ink);min-height:100vh;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;line-height:1.55}
-  .top{background:linear-gradient(120deg,#3b63e8,#6b4fe8);color:#fff;padding:30px 6vw 26px}
-  .top .org{opacity:.85;font-size:13px;letter-spacing:.04em}
+  .top{background:linear-gradient(135deg,#0b1020 0%,#1b2a66 55%,#3b63e8 120%);color:#fff;padding:30px 6vw 26px;border-bottom:1px solid var(--line)}
+  .top .org{opacity:.8;font-size:13px;letter-spacing:.04em}
   .top h1{font-size:clamp(22px,3.2vw,32px);margin:6px 0 4px}
-  .top p{opacity:.9;font-size:clamp(14px,1.6vw,16px)}
+  .top p{opacity:.88;font-size:clamp(14px,1.6vw,16px)}
   .wrap{max-width:900px;margin:-14px auto 40px;padding:0 5vw;display:grid;gap:18px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 6px 24px rgba(26,34,56,.05)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
   .card h2{font-size:17px;margin-bottom:4px}
   .card .cap{color:var(--muted);font-size:13px;margin-bottom:16px}
   label{display:block;font-weight:700;margin-bottom:8px;font-size:14px}
-  select,textarea{width:100%;background:#fbfcfe;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit}
+  select,textarea{width:100%;background:var(--raised);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15px;font-family:inherit}
+  select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,140,255,.2)}
   textarea{min-height:84px;resize:vertical}
+  textarea::placeholder{color:#6b7aa3}
   .quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .q{background:#eef2fb;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--accent);cursor:pointer}
-  .q:hover{background:#e2e9fa}
-  button.go{margin-top:18px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+  .q{background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--accent);cursor:pointer;transition:transform .12s,background .15s}
+  .q:hover{background:#15203f;transform:translateY(-1px)}
+  button.go{margin-top:18px;width:100%;background:var(--accent);color:#07122e;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;transition:filter .15s}
+  button.go:hover:not(:disabled){filter:brightness(1.08)}
   button.go:disabled{opacity:.5;cursor:wait}
   .out{display:none} .out.show{display:block}
   .outcome{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:14px;margin-bottom:16px}
-  .outcome.auto{background:var(--autobg);border:1px solid var(--auto)}
-  .outcome.ai{background:var(--aibg);border:1px solid var(--ai)}
-  .outcome.staff{background:var(--staffbg);border:1px solid var(--staff)}
+  .outcome.auto{background:var(--autobg);border:1px solid rgba(34,197,139,.4)}
+  .outcome.ai{background:var(--aibg);border:1px solid rgba(246,169,59,.4)}
+  .outcome.staff{background:var(--staffbg);border:1px solid rgba(176,123,255,.4)}
   .outcome .ic{font-size:30px;line-height:1}
   .outcome .ti{font-weight:800;font-size:clamp(16px,2vw,20px)}
   .outcome.auto .ti{color:var(--auto)} .outcome.ai .ti{color:var(--ai)} .outcome.staff .ti{color:var(--staff)}
   .outcome .de{color:var(--muted);font-size:14px;margin-top:3px}
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
-  .stat{background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .stat{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
   .stat .n{font-size:clamp(18px,2.4vw,24px);font-weight:800}
   .stat .l{color:var(--muted);font-size:12px;margin-top:3px}
   .trust{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;padding-top:4px;border-top:1px dashed var(--line);margin-top:4px;padding-top:12px}
-  .trust code{background:#eef2fb;border-radius:6px;padding:1px 7px;font-size:12px;color:var(--staff)}
+  .trust code{background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:12px;color:var(--staff)}
   .ledger h2{margin-bottom:12px}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
@@ -164,9 +169,9 @@ $('go').addEventListener('click', ()=>{
 
   $('out').classList.add('show');
   const kchip = `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">
-      <span style="font-size:12px;font-weight:800;padding:3px 11px;border-radius:999px;color:#fff;background:${h.kind==='auto'?'var(--auto)':h.kind==='ai'?'var(--ai)':'var(--staff)'}">🦀 kernel: ${d.route}</span>
-      <span style="font-size:11px;color:var(--muted);background:#eef2fb;border-radius:6px;padding:2px 8px">⚡ ${us} µs</span>
-      <span style="font-size:11px;color:var(--muted);background:#eef2fb;border-radius:6px;padding:2px 8px">${h.kind==='auto'?'0 token':'ใช้ AI/คน'}</span>
+      <span style="font-size:12px;font-weight:800;padding:3px 11px;border-radius:999px;color:#07122e;background:${h.kind==='auto'?'var(--auto)':h.kind==='ai'?'var(--ai)':'var(--staff)'}">🦀 kernel: ${d.route}</span>
+      <span style="font-size:11px;color:var(--muted);background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:2px 8px">⚡ ${us} µs</span>
+      <span style="font-size:11px;color:var(--muted);background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:2px 8px">${h.kind==='auto'?'0 token':'ใช้ AI/คน'}</span>
     </div>`;
   $('outcome').innerHTML=kchip+`<div class="outcome ${h.cls}"><div class="ic">${h.ic}</div>
     <div><div class="ti">${h.ti}</div><div class="de">${h.de}</div></div></div>`;
