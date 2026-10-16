@@ -113,6 +113,7 @@ export default {
       if (url.pathname === '/audit' && request.method === 'GET') return audit(env);
       if (url.pathname === '/gap' && request.method === 'POST') return logGap(request, env);
       if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env);
+      if (url.pathname === '/entry-conf' && request.method === 'GET') return entryConf(env);
       // Staff-only KB authoring. If STAFF_TOKEN is configured, require a matching
       // X-Staff-Token header; if unset (demo), allow. Keeps random public callers
       // from flooding drafts while staying zero-config for a hackathon demo.
@@ -151,6 +152,12 @@ async function ensureSchema(env) {
   // publishing unverified content — a human presses approve.
   await env.DB.exec(
     "CREATE TABLE IF NOT EXISTS kb_draft (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, question TEXT, answer TEXT, keywords TEXT, category TEXT, status TEXT NOT NULL DEFAULT 'pending', source TEXT, at INTEGER);"
+  );
+  // entry_conf: per-KB-entry confidence driven by 👍/👎 feedback (EMA). A low
+  // conf flags an entry that keeps disappointing users — the "which entries to
+  // fix" backlog, learned automatically.
+  await env.DB.exec(
+    "CREATE TABLE IF NOT EXISTS entry_conf (id TEXT PRIMARY KEY, conf REAL NOT NULL DEFAULT 1.0, up INTEGER DEFAULT 0, down INTEGER DEFAULT 0, at INTEGER);"
   );
 }
 
@@ -209,8 +216,31 @@ async function feedback(request, env) {
   await bump(env, 'feedback_count');
   await bump(env, reward >= 0 ? 'feedback_up' : 'feedback_down');
   await bump(env, 'policy_version');
+
+  // Per-ENTRY confidence adjustment: when the answer came from a specific KB
+  // entry, a 👎 lowers that entry's confidence and a 👍 raises it (EMA-style,
+  // clamped). This makes the system learn WHICH entries are weak — the backlog
+  // of entries to fix — without a human marking them. Stored in entry_conf.
+  const entryId = String(body.entry_id || '').slice(0, 80);
+  let entryConfidence;
+  if (entryId) {
+    const row = await env.DB.prepare("SELECT conf, up, down FROM entry_conf WHERE id=?1").bind(entryId).first();
+    const prev = row ? Number(row.conf) : 1.0;
+    // EMA nudge: 👍 → toward 1, 👎 → toward 0. alpha=0.85 keeps it stable.
+    const target = reward >= 0 ? 1.0 : 0.0;
+    const next = Math.max(0, Math.min(1, 0.85 * prev + 0.15 * target));
+    const up = (row ? row.up : 0) + (reward >= 0 ? 1 : 0);
+    const down = (row ? row.down : 0) + (reward < 0 ? 1 : 0);
+    await env.DB.prepare(
+      "INSERT INTO entry_conf (id, conf, up, down, at) VALUES (?1,?2,?3,?4,?5) " +
+      "ON CONFLICT(id) DO UPDATE SET conf=?2, up=?3, down=?4, at=?5"
+    ).bind(entryId, next, up, down, Date.now()).run();
+    entryConfidence = next;
+  }
+
   const row = await env.DB.prepare("SELECT v FROM metrics WHERE k='policy_version'").first();
   return json({ accepted: true, policy_version: row ? row.v : 1, reward,
+    entry_id: entryId || undefined, entry_confidence: entryConfidence,
     note: 'feedback recorded; policy adapts (EMA on the serving kernel)' });
 }
 
@@ -289,6 +319,16 @@ async function gaps(env) {
   }));
   const totalRow = await env.DB.prepare("SELECT COUNT(*) c, COALESCE(SUM(hits),0) s FROM gap_log").first();
   return json({ entries, distinct: totalRow?.c || 0, total_hits: totalRow?.s || 0 });
+}
+
+// GET /entry-conf — KB entries ranked by LOWEST confidence first: the entries
+// that keep disappointing users (👎), learned automatically from feedback.
+async function entryConf(env) {
+  await ensureSchema(env);
+  const rows = await env.DB.prepare(
+    "SELECT id, conf, up, down, at FROM entry_conf ORDER BY conf ASC, down DESC LIMIT 30"
+  ).all();
+  return json({ entries: rows.results || [] });
 }
 
 // POST /kb-draft { question, answer, title?, keywords?, category?, source? }

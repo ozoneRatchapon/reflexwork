@@ -112,6 +112,21 @@ async function logGapViaKernel(env, text) {
   return fetch(`${KERNEL}/gap`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload });
 }
 
+// Save a staff-provided answer as a pending KB draft (via the kernel). Returns
+// {ok} so the #kb command can confirm. Mirrors logGapViaKernel's transport.
+async function saveKbDraft(env, question, answer) {
+  const payload = JSON.stringify({ question, answer, source: 'line-staff' });
+  const req = new Request(`${KERNEL}/kb-draft`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Origin': 'https://reflexwork.pages.dev',
+      ...(env.STAFF_TOKEN ? { 'X-Staff-Token': env.STAFF_TOKEN } : {}) },
+    body: payload,
+  });
+  const r = env.KERNEL ? await env.KERNEL.fetch(req)
+                       : await fetch(`${KERNEL}/kb-draft`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(env.STAFF_TOKEN ? { 'X-Staff-Token': env.STAFF_TOKEN } : {}) }, body: payload });
+  return r.json().catch(() => ({ ok: false }));
+}
+
 // Graceful fallback shown when the LLM is unavailable (quota/throttle/outage).
 // Redirects the user to the verified manual, which always works — so a demo
 // never dead-ends on a Gemini hiccup.
@@ -154,6 +169,30 @@ async function processEvents(raw, env) {
     for (const ev of body.events || []) {
       if (ev.type !== 'message' || ev.message?.type !== 'text') continue;
       const text = ev.message.text;
+
+      // Staff command: "#kb คำถาม | คำตอบ" saves the answer as a KB DRAFT (pending
+      // approval) straight from the LINE chat — so a good reply becomes KB with
+      // no context switch. The corpus grows from the staff's normal work.
+      // (Guarded by LINE_STAFF_USERS if set: comma-separated userIds allowed.)
+      if (/^#kb\b/i.test(text)) {
+        const allow = String(env.LINE_STAFF_USERS || '').split(',').map(s => s.trim()).filter(Boolean);
+        const uid = ev.source?.userId || '';
+        if (allow.length && !allow.includes(uid)) {
+          await reply(ev.replyToken, 'คำสั่ง #kb ใช้ได้เฉพาะเจ้าหน้าที่ครับ', '', token);
+          continue;
+        }
+        const payload = text.replace(/^#kb\b/i, '').trim();
+        const [question, answer] = payload.split('|').map(s => (s || '').trim());
+        if (!question || !answer) {
+          await reply(ev.replyToken, 'รูปแบบ: #kb คำถาม | คำตอบ\nเช่น: #kb วีซ่านักศึกษาต่างชาติ | ติดต่องานวิเทศสัมพันธ์ เตรียมพาสปอร์ต', '', token);
+          continue;
+        }
+        const r = await saveKbDraft(env, question, answer).catch(() => ({ ok: false }));
+        await reply(ev.replyToken, r.ok
+          ? `✅ บันทึกเป็น KB draft แล้วครับ (รออนุมัติในแดชบอร์ด)\nคำถาม: ${question}`
+          : 'บันทึกไม่สำเร็จครับ ลองใหม่อีกครั้ง', '', token);
+        continue;
+      }
 
       // The kernel still makes the real routing decision (fast-path gate +
       // BLAKE3 proof) — we keep its proof as tamper-evidence on the reply.
