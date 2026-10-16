@@ -101,7 +101,7 @@
   <div class="card">
     <h2>✅ KB Drafts รออนุมัติ (ปิด learning loop)</h2>
     <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือ auto-draft จาก gap) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นไฟล์ KB · ยิ่งใช้ corpus ยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
-    <div style="margin:4px 0 12px"><button onclick="autoDraft()" style="background:#5b8cff;color:#041024;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">🤖 Auto-draft จาก gap ยอดฮิต (AI ร่างให้ คนแค่ตรวจ)</button> <span id="autodraft-note" style="color:var(--muted);font-size:13px"></span></div>
+    <div style="margin:4px 0 12px"><button onclick="autoDraft()" style="background:#5b8cff;color:#041024;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">🤖 Auto-draft จาก gap ยอดฮิต (AI ร่างให้ คนแค่ตรวจ)</button> <button onclick="setStaffToken()" style="background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer">🔑 ตั้ง Staff Token</button> <span id="autodraft-note" style="color:var(--muted);font-size:13px"></span></div>
     <div id="draftrows"><div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div></div>
   </div>
 
@@ -115,6 +115,15 @@
 <script>
 const $ = id => document.getElementById(id);
 const base = () => $('base').value.replace(/\/+$/,'');
+// Staff auth: a shared token stored locally and sent as X-Staff-Token on
+// privileged (kb-*) calls. Matches the kernel's optional STAFF_TOKEN guard.
+const staffToken = () => localStorage.getItem('reflexwork_staff_token') || '';
+const staffHeaders = () => { const t = staffToken(); return t ? {'X-Staff-Token': t} : {}; };
+window.setStaffToken = function(){
+  const cur = staffToken();
+  const t = prompt('ใส่ Staff Token (สำหรับอนุมัติ/auto-draft KB):', cur);
+  if (t !== null) { localStorage.setItem('reflexwork_staff_token', t.trim()); alert(t.trim() ? '✓ บันทึก token แล้ว' : '✓ ล้าง token แล้ว'); }
+};
 
 function routePill(route, fast){
   if(fast) return '<span class="pill fast">FastPath</span>';
@@ -129,7 +138,7 @@ async function tick(){
       fetch(base()+'/status',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/audit',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/gaps',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
-      fetch(base()+'/kb-drafts',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({drafts:[]})),
+      fetch(base()+'/kb-drafts',{headers:staffHeaders(),signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({drafts:[]})),
       fetch(base()+'/entry-conf',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
     ]);
     $('dot').classList.add('up'); $('livetxt').textContent='เชื่อมต่อแล้ว · รีเฟรชทุก 2 วิ';
@@ -201,7 +210,7 @@ function renderDrafts(drafts){
 // maintainer can drop it into submissions/ui/knowledge-public/ and rebuild.
 window.approveDraft = async function(id){
   try{
-    const r = await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    const r = await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({id})});
     const j = await r.json();
     const pre = $('md-'+id);
     if(j.ok && pre){ pre.style.display='block'; pre.textContent = `# บันทึกเป็นไฟล์: submissions/ui/knowledge-public/${j.filename}\n\n${j.markdown}`; }
@@ -213,7 +222,7 @@ window.approveDraft = async function(id){
 window.autoDraft = async function(){
   const note = $('autodraft-note'); if(note) note.textContent = '⏳ กำลังให้ AI ร่าง…';
   try{
-    const r = await fetch(base()+'/kb-autodraft',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({limit:3})});
+    const r = await fetch(base()+'/kb-autodraft',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({limit:3})});
     const j = await r.json();
     if(note) note.textContent = j.ok ? `✅ ร่างใหม่ ${j.drafted} รายการ — ตรวจด้านล่างแล้วกดอนุมัติ` : 'ร่างไม่สำเร็จ';
     tick();   // refresh the draft list
