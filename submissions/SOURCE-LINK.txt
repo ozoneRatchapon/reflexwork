@@ -1,0 +1,35 @@
+ReflexWork — Source Code / Kiro Project
+Mahidol AI Community 2026 · AI Development Challenge (Track A)
+ทีม: Ratchapon (Ozone) · Napatsakorn
+
+================================================================
+SOURCE CODE (public repository)
+================================================================
+GitHub:  https://github.com/ozoneRatchapon/reflexwork
+
+  • เป็น public repo — กรรมการเปิดดู/โคลนได้ทันที ไม่ต้องขอสิทธิ์
+  • Kiro Project อยู่ในโฟลเดอร์ .kiro/ :
+      .kiro/specs/      — spec-driven (requirements → design → tasks) 3 ชุด
+      .kiro/steering/   — product / tech / structure (context ทุก session)
+      .kiro/hooks/      — lifecycle hooks (on-task-created ฯลฯ)
+  • Reflex Kernel (Rust → WebAssembly):  crates/reflex-kernel/, crates/reflex-wasm/
+  • Edge workers (Cloudflare):           integrations/
+  • UI (chatbot / dashboard / slides):   submissions/ui/
+
+================================================================
+ลองใช้งานจริง (Live Demo — ไม่ต้องติดตั้งอะไร)
+================================================================
+เว็บหลัก:   https://reflexwork.pages.dev
+  • /try        — ลองยิงงานดู kernel ตัดสิน + BLAKE3 proof สด (รันในเบราว์เซอร์ 100%)
+  • /chatbot    — แชตบอต FAQ บัณฑิตวิทยาลัย (คำตอบซ้าย / หลักฐานขวา + swimlane)
+  • /dashboard  — ภาพรวมผู้บริหาร: สัดส่วนตอบเอง/ส่ง AI + audit trail
+  • /slides     — สไลด์นำเสนอ 19 หน้า
+
+LINE OA:    ReflexWork มหิดล (ถ้าเปิดให้ทดสอบ)
+
+================================================================
+หมายเหตุ
+================================================================
+  • โค้ดทั้งหมดอยู่บน branch main · build ผ่าน CI (GitHub Actions)
+  • สร้างด้วย Kiro แบบ spec-driven — ดู docs/kiro-ai-sdlc.md
+  • Concept Paper + Demo Video อยู่ในโฟลเดอร์เดียวกันนี้
