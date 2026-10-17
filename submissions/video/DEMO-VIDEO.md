@@ -1,7 +1,6 @@
 # Submission demo video — reflexwork-demo.mp4
 
-The single ≤5-minute demo required by the AI Development Challenge (actual
-length ~59s). Structured Problem → Solution → AI/Kiro → Prototype → Impact:
+The single ≤5-minute demo required by the AI Development Challenge (actual length ~46s). Structured Problem → Solution → AI/Kiro → Prototype → Impact:
 
 1. **Problem** — LLM chatbots pay the model for every question (~80% are repeats).
 2. **Solution** — the 18s motion explainer: a filter in front of the LLM,
