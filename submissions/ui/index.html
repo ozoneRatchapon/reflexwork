@@ -49,7 +49,7 @@
   <a href="./student-desk.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ยื่นคำร้อง</a>
   <a href="./dashboard.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">แดชบอร์ด</a>
   <span style="flex:1"></span>
-  <span style="color:#5b8cff;font-size:12px">kernel เดียว · 4 มุมมอง</span>
+  <span style="color:#5b8cff;font-size:12px">ตัวคัดกรองเดียว · 4 มุมมอง</span>
 </nav>
 
 <div class="hero">
@@ -59,11 +59,11 @@
   <div class="stats">
     <div class="stat a"><div class="n">~80%</div><div class="l">ลดต้นทุน AI</div></div>
     <div class="stat b"><div class="n">µs</div><div class="l">ตัดสินใจระดับไมโครวินาที</div></div>
-    <div class="stat c"><div class="n">BLAKE3</div><div class="l">audit reproducible</div></div>
+    <div class="stat c"><div class="n">BLAKE3</div><div class="l">ตรวจสอบย้อนหลังได้ทุกคำตอบ</div></div>
   </div>
   <div class="how">
-    คำถาม/งาน <span class="ar">→</span> <span class="k">🦀 Reflex Kernel</span> <span class="ar">→</span>
-    FastPath (ตอบเลย 0 token) <span class="ar">/</span> LLM path (เรียก AI เฉพาะที่จำเป็น) <span class="ar">→</span> BLAKE3 proof
+    คำถาม/งาน <span class="ar">→</span> <span class="k">🦀 ตัวคัดกรอง (Reflex Kernel)</span> <span class="ar">→</span>
+    ตอบเองทันที (ฟรี 0 token) <span class="ar">/</span> ส่ง AI เฉพาะที่จำเป็น <span class="ar">→</span> ลายเซ็นตรวจย้อนหลัง (BLAKE3)
   </div>
 </div>
 
@@ -71,25 +71,25 @@
   <a class="tile try" href="./try.html">
     <div class="ic">🦀</div>
     <div class="t">ลองใน browser</div>
-    <div class="d">เห็น "เครื่องยนต์" ทำงานดิบ ๆ — พิมพ์งานแล้วดู kernel ตัดสิน FastPath/LLM + proof ทันที (รัน WASM 100% ไม่มี backend). มีปุ่มเทียบ FastPath vs LLM ข้างกัน</div>
+    <div class="d">เห็น "เครื่องยนต์" ทำงานดิบ ๆ — พิมพ์งานแล้วดูตัวคัดกรองตัดสินว่า "ตอบเอง / ส่ง AI" + ลายเซ็นตรวจย้อนหลังทันที (รันในเบราว์เซอร์ 100% ไม่มี backend). มีปุ่มเทียบ "ตอบเอง vs ส่ง AI" ข้างกัน</div>
     <span class="who">เริ่มที่นี่ · สำหรับกรรมการ/dev</span>
   </a>
   <a class="tile chat" href="./chatbot.html">
     <div class="ic">💬</div>
     <div class="t">แชตบอต</div>
-    <div class="d">ถาม-ตอบเรื่องลงทะเบียน/วิทยานิพนธ์ — ตอบจากคู่มือทันทีถ้ารู้ ส่ง AI เฉพาะที่ไม่รู้ ทุกคำตอบโชว์ decision + proof + ปุ่ม 👍/👎 ให้ kernel เรียนรู้</div>
+    <div class="d">ถาม-ตอบเรื่องลงทะเบียน/วิทยานิพนธ์ — ตอบจากคู่มือทันทีถ้ารู้ ส่ง AI เฉพาะที่ไม่รู้ ทุกคำตอบโชว์การตัดสินใจ + ลายเซ็นตรวจย้อนหลัง + ปุ่ม 👍/👎 ให้ระบบเรียนรู้</div>
     <span class="who">สำหรับนักศึกษา</span>
   </a>
   <a class="tile desk" href="./student-desk.html">
     <div class="ic">📝</div>
     <div class="t">ยื่นคำร้อง</div>
-    <div class="d">ฟอร์มยื่นคำร้อง + มุมมองเจ้าหน้าที่ว่าวันนี้มีคำร้องอะไรเข้ามา kernel คัดให้ว่าเรื่องไหนตอบเองได้ เรื่องไหนส่งต่อ</div>
+    <div class="d">ฟอร์มยื่นคำร้อง + มุมมองเจ้าหน้าที่ว่าวันนี้มีคำร้องอะไรเข้ามา ระบบคัดให้ว่าเรื่องไหนตอบเองได้ เรื่องไหนส่งต่อ</div>
     <span class="who">สำหรับนักศึกษา + เจ้าหน้าที่</span>
   </a>
   <a class="tile dash" href="./dashboard.html">
     <div class="ic">📊</div>
     <div class="t">แดชบอร์ด</div>
-    <div class="d">ภาพรวมผู้บริหาร: สัดส่วน FastPath/LLM + audit trail ที่ re-run ได้ผลเดิม — เห็นว่าประหยัดไปเท่าไหร่ และตรวจสอบได้ตาม PDPA</div>
+    <div class="d">ภาพรวมผู้บริหาร: สัดส่วน "ตอบเอง vs ส่ง AI" + บันทึกการตัดสินใจที่รันซ้ำได้ผลเดิม — เห็นว่าประหยัดไปเท่าไหร่ และตรวจสอบได้ตาม PDPA</div>
     <span class="who">สำหรับผู้บริหาร/ผู้ตรวจสอบ</span>
   </a>
 </div>
