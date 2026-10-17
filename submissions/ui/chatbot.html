@@ -297,8 +297,13 @@ const FALLBACK_KB = [
 function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new Set();
   for(const tok of s.split(/\s+/)) if(tok.length>1) g.add(tok);
   for(let i=0;i<s.length-2;i++){ const t=s.slice(i,i+3).trim(); if(t.length===3) g.add(t);} return g; }
-function _cosToScore(c, margin){
-  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.22) return 4;
+function _cosToScore(c, margin, ov, ovLead){
+  // neurosymbolic blend (lockstep with reflex-wasm::cos_to_score): a dominant
+  // lexical overlap lifts the score even when TF-IDF cosine is diluted by a long
+  // keyword list (the "Turnitin เกิน 25%" case: overlap 15, cosine only 0.20).
+  if(ov>=8 && ovLead>=4) return 6;
+  if(ov>=5 && ovLead>=2) return 5;
+  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.20) return 4;
   if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
 function _jsSearch(q){
   const docGrams=KB.map(e=>_jsGramSet(e.keywords)); const DF=new Map();
@@ -311,8 +316,8 @@ function _jsSearch(q){
     let cos=0; const dv=DV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; }
     if(overlap>0||cos>0) scored.push({e,cos,overlap}); }
   scored.sort((a,b)=>(b.cos-a.cos)||(b.overlap-a.overlap));
-  const runner=scored[1]?scored[1].cos:0;
-  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; scored[i].s=_cosToScore(scored[i].cos,margin); }
+  const runner=scored[1]?scored[1].cos:0; const runnerOv=scored[1]?scored[1].overlap:0;
+  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; const ovLead=i===0?scored[0].overlap-runnerOv:0; scored[i].s=_cosToScore(scored[i].cos,margin,scored[i].overlap,ovLead); }
   return scored;
 }
 function search(q){
@@ -797,15 +802,34 @@ function ask(){
 }
 
 // live fast-path ratio — the self-learning signal made visible
-let learnBias = 0; // nudged by feedback: 👎 on FastPath lowers it, 👍 raises it
+// --- Learning loop: EMA Bandit over 👍/👎 feedback -------------------------
+// DISTILLED from katgpt-rs BanditPruner/ReviewMetrics (Test-Time Compute): the
+// FastPath confidence is an exponential moving average of the reward signal, not
+// a raw running sum. ema ← (1-α)·ema + α·reward, reward ∈ {+1 👍, -1 👎}. A 👎 on
+// a FastPath answer pulls the EMA down (the gate should trust FastPath less for
+// that kind of query); a 👍 pulls it up. The visible ratio = base FastPath share
+// biased by the EMA. Deterministic, 0 token — the real kernel loop persists this
+// server-side (/feedback → policy EMA); this mirrors it live in the browser.
+const BANDIT = {
+  ema: 0.0,            // reward EMA ∈ [-1, +1], starts neutral
+  alpha: 0.30,         // learning rate (katgpt default band)
+  n: 0,
+  reward(r){ this.n++; this.ema = (1 - this.alpha) * this.ema + this.alpha * r; return this.ema; },
+  // EMA → percentage-point bias on the displayed FastPath ratio (±18pp at |ema|=1)
+  bias(){ return Math.round(this.ema * 18); },
+};
 function updateRatio(){
   const total = auto + ai;
   if(total === 0) return;
   $('ratio-wrap').style.display = 'block';
-  let pct = Math.round((auto/total)*100 + learnBias);
+  let pct = Math.round((auto/total)*100 + BANDIT.bias());
   pct = Math.max(0, Math.min(100, pct));
   $('ratio-fill').style.width = pct + '%';
   $('ratio-pct').textContent = pct + '%';
+  if(BANDIT.n>0){
+    const note=$('ratio-note');
+    if(note) note.textContent = `kernel เรียนรู้จาก 👍/👎 · EMA reward = ${BANDIT.ema.toFixed(2)} (จาก ${BANDIT.n} โหวต) — bias ${BANDIT.bias()>=0?'+':''}${BANDIT.bias()}pp`;
+  }
 }
 
 // feedback UI appended to each answer — the self-learning loop
@@ -844,8 +868,8 @@ async function sendFeedback(id, reward){
       ? '✅ บันทึกแล้ว — kernel จะยืนยันว่างานแบบนี้ตอบเองได้ (EMA +)'
       : '✅ บันทึกแล้ว — kernel จะเรียนรู้ว่างานแบบนี้ควรส่ง AI (EMA −)';
   }
-  // reflect learning in the visible fast-path ratio: 👍 nudges up, 👎 nudges down
-  learnBias += reward > 0 ? 2 : -4;
+  // feed the EMA bandit: 👍 = +1, 👎 = -1. The visible ratio shifts by the EMA.
+  BANDIT.reward(reward > 0 ? 1 : -1);
   updateRatio();
   el.innerHTML = `<span class="fb-done">${note}</span>`;
 }

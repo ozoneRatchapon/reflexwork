@@ -91,6 +91,27 @@
   <h2>Expected Impact</h2>
   <p class="lead">ลดต้นทุน AI 60–80% สำหรับงานบริการนักศึกษา/คำร้องซ้ำ ๆ · ตอบเร็วระดับ µs ไม่ติดคอขวดช่วง peak · audit trail ตอบโจทย์ PDPA · ติดตั้งเป็น service กลางที่หน่วยงานอื่นใน MU นำไปใช้ซ้ำได้ (lib + federated corpus) โดยข้อมูลแต่ละหน่วยงานไม่รั่วถึงกัน</p>
 
+  <h2>Feature Coverage — ชั้นคัดกรอง ไม่ใช่ตัว LLM</h2>
+  <div class="radar">
+    <div class="rr"><span>FastPath routing</span><span class="t"><i style="width:95%;background:var(--ok)"></i></span><b>95%</b></div>
+    <div class="rr"><span>Audit · BLAKE3</span><span class="t"><i style="width:95%;background:var(--ok)"></i></span><b>95%</b></div>
+    <div class="rr"><span>KB grounding (TF-IDF)</span><span class="t"><i style="width:90%;background:var(--ok)"></i></span><b>90%</b></div>
+    <div class="rr"><span>Abstain · safety</span><span class="t"><i style="width:90%;background:var(--ok)"></i></span><b>90%</b></div>
+    <div class="rr"><span>Multi-channel (web+LINE)</span><span class="t"><i style="width:90%;background:var(--accent)"></i></span><b>90%</b></div>
+    <div class="rr"><span>Tone · affect kernel</span><span class="t"><i style="width:85%;background:var(--accent)"></i></span><b>85%</b></div>
+    <div class="rr"><span>Self-improving KB</span><span class="t"><i style="width:70%;background:var(--warn)"></i></span><b>70%</b></div>
+    <div class="rr"><span>Federated corpus</span><span class="t"><i style="width:65%;background:var(--warn)"></i></span><b>65%</b></div>
+  </div>
+  <p class="lead" style="font-size:13px">มิติของ <b>เราเอง</b> — จงใจไม่มี speculative-decoding / KV / attention (เป็นเรื่องของตัว LLM ที่เราไม่ได้รัน จุดขายคือ 0-token)</p>
+  <style>
+    .radar{display:flex;flex-direction:column;gap:6px;margin:4px 0 2px;max-width:560px}
+    .radar .rr{display:grid;grid-template-columns:180px 1fr 44px;gap:10px;align-items:center;font-size:13px}
+    .radar .rr > span:first-child{color:var(--ink,#e9edff);font-weight:600}
+    .radar .t{background:var(--line);border-radius:5px;height:14px;overflow:hidden}
+    .radar .t i{display:block;height:100%;border-radius:4px 0 0 4px}
+    .radar .rr b{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  </style>
+
   <div class="foot">Prototype จริง รันได้วันนี้ · ตรงไปตรงมาเรื่องขอบเขต: ส่วนเชื่อมฐานข้อมูลคำร้องจริง + deploy anchor signer สู่ production เป็นงานต่อยอดหลังผ่านรอบคัดเลือก · การอ่านออกเสียง (voice) ถอดออกชั่วคราวเพราะยังไม่พร้อม</div>
 </body>
 </html>
