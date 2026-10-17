@@ -54,7 +54,7 @@
   <a href="./student-desk.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ยื่นคำร้อง</a>
   <a href="./dashboard.html" style="color:#5b8cff;background:#121a33;font-weight:700;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">แดชบอร์ด</a>
   <span style="flex:1"></span>
-  <span style="color:#5b8cff;font-size:12px">kernel เดียว · 4 มุมมอง</span>
+  <span style="color:#5b8cff;font-size:12px">ตัวคัดกรองเดียว · 4 มุมมอง</span>
 </nav>
 <header>
   <div>
@@ -67,10 +67,10 @@
 
 <div class="wrap">
   <div class="kpis">
-    <div class="kpi"><div class="n" id="k-total">—</div><div class="l">งานทั้งหมดที่ route</div></div>
-    <div class="kpi fast"><div class="n" id="k-fastpct">—</div><div class="l">คัดออกจาก LLM (fast path)</div></div>
-    <div class="kpi llm"><div class="n" id="k-llm">—</div><div class="l">ส่งให้ AI (LLM path)</div></div>
-    <div class="kpi audit"><div class="n" id="k-ver">—</div><div class="l">policy version</div></div>
+    <div class="kpi"><div class="n" id="k-total">—</div><div class="l">คำถามทั้งหมดที่เข้าระบบ</div></div>
+    <div class="kpi fast"><div class="n" id="k-fastpct">—</div><div class="l">ตอบเองไม่ต้องเรียก AI (ยิ่งสูง = ยิ่งประหยัด)</div></div>
+    <div class="kpi llm"><div class="n" id="k-llm">—</div><div class="l">ส่งต่อให้ AI ช่วย (เฉพาะที่ยาก)</div></div>
+    <div class="kpi audit"><div class="n" id="k-ver">—</div><div class="l">เวอร์ชันนโยบายคัดกรอง</div></div>
   </div>
 
   <div class="card">
@@ -82,9 +82,9 @@
 
   <div class="card">
     <h2>Audit Trail — การตัดสินใจล่าสุด</h2>
-    <div class="cap">ทุกแถวมี BLAKE3 proof ที่ re-run ได้ผลเดิม (ตรวจสอบย้อนหลัง · PDPA)</div>
+    <div class="cap">ทุกแถวมี <b>ลายเซ็นดิจิทัล (BLAKE3)</b> ที่รันคำถามเดิมซ้ำแล้วได้ผลเดิมเป๊ะ — ตรวจสอบย้อนหลังได้ (ตอบโจทย์ PDPA)</div>
     <table>
-      <thead><tr><th>เวลา</th><th>ประเภทงาน</th><th>เส้นทาง</th><th>latency</th><th>BLAKE3 proof</th></tr></thead>
+      <thead><tr><th>เวลา</th><th>ประเภทงาน</th><th>เส้นทาง</th><th>ใช้เวลา</th><th>ลายเซ็นตรวจย้อนหลัง (BLAKE3)</th></tr></thead>
       <tbody id="rows"><tr><td colspan="5" class="empty">ยังไม่มีข้อมูล — ส่งงานผ่าน <code>POST /route</code> หรือหน้า demo UI</td></tr></tbody>
     </table>
   </div>
@@ -107,14 +107,14 @@
 
   <div class="card">
     <h2>✅ KB Drafts รออนุมัติ (ปิด learning loop)</h2>
-    <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือ auto-draft จาก gap) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นไฟล์ KB · ยิ่งใช้ corpus ยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
+    <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือระบบ<b>ร่างอัตโนมัติจากคำถามที่ตอบไม่ได้</b>) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นหัวข้อในคู่มือ · ยิ่งใช้ คู่มือยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
     <div style="margin:4px 0 12px"><button onclick="autoDraft()" style="background:#5b8cff;color:#041024;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">🤖 Auto-draft จาก gap ยอดฮิต (AI ร่างให้ คนแค่ตรวจ)</button> <button onclick="setStaffToken()" style="background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer">🔑 ตั้ง Staff Token</button> <span id="autodraft-note" style="color:var(--muted);font-size:13px"></span></div>
     <div id="draftrows"><div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div></div>
   </div>
 
   <div class="card">
     <h2>📉 KB entry ที่ถูก 👎 บ่อย (ควรแก้ก่อน)</h2>
-    <div class="cap">ระบบปรับ confidence ของแต่ละ KB entry อัตโนมัติจาก 👍/👎 ของผู้ใช้ (EMA) · entry ที่ confidence ต่ำ = ตอบแล้วคนไม่พอใจบ่อย → รายการที่ควรแก้/เขียนใหม่ก่อน (ระบบรู้เองว่าข้อไหนอ่อน)</div>
+    <div class="cap">ระบบปรับ <b>ความน่าเชื่อถือ</b> ของแต่ละหัวข้อในคู่มือเองจาก 👍/👎 ของผู้ใช้ (ค่าเฉลี่ยแบบถ่วงเวลา) · หัวข้อที่คนไม่พอใจบ่อย = รายการที่ควรแก้/เขียนใหม่ก่อน (ระบบรู้เองว่าข้อไหนอ่อน)</div>
     <div id="confrows"><div class="empty">ยังไม่มีข้อมูล feedback — เมื่อผู้ใช้กด 👍/👎 จะมาโผล่ที่นี่</div></div>
   </div>
 </div>
@@ -133,8 +133,8 @@ window.setStaffToken = function(){
 };
 
 function routePill(route, fast){
-  if(fast) return '<span class="pill fast">FastPath</span>';
-  if(route.startsWith('Rejected')) return '<span class="pill rej">Rejected</span>';
+  if(fast) return '<span class="pill fast">ตอบเอง</span>';
+  if(route.startsWith('Rejected')) return '<span class="pill rej">ปฏิเสธ</span>';
   return '<span class="pill llm">'+route+'</span>';
 }
 function fmtTime(ms){ const d=new Date(ms); return d.toLocaleTimeString('th-TH',{hour12:false}); }
@@ -157,7 +157,7 @@ async function tick(){
     $('seg-f').style.width = (s.fast_path/tot*100)+'%';
     $('seg-l').style.width = (s.llm_path/tot*100)+'%';
     $('seg-r').style.width = (s.rejected/tot*100)+'%';
-    $('legend').innerHTML = `🟢 FastPath ${s.fast_path} &nbsp; 🟠 LLM ${s.llm_path} &nbsp; 🔴 Rejected ${s.rejected}`;
+    $('legend').innerHTML = `🟢 ตอบเอง ${s.fast_path} &nbsp; 🟠 ส่ง AI ${s.llm_path} &nbsp; 🔴 ปฏิเสธ ${s.rejected}`;
     const rows = a.entries||[];
     const shown = rows.slice(0,12);
     const fmtUs = us => (us==null||us<1) ? '&lt; 1 µs' : us.toFixed(2)+' µs';
@@ -315,7 +315,7 @@ function renderDemo(){
   $('seg-f').style.width = (fast/total*100)+'%';
   $('seg-l').style.width = (llm/total*100)+'%';
   $('seg-r').style.width = (rej/total*100)+'%';
-  $('legend').innerHTML = `🟢 FastPath ${fast} &nbsp; 🟠 LLM ${llm} &nbsp; 🔴 Rejected ${rej}`;
+  $('legend').innerHTML = `🟢 ตอบเอง ${fast} &nbsp; 🟠 ส่ง AI ${llm} &nbsp; 🔴 ปฏิเสธ ${rej}`;
   const now = Date.now();
   const demoRows = cats.map((c,i)=>{
     const fastRow = !(c==='Research' || c==='DocumentParse');
