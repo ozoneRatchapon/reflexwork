@@ -438,11 +438,11 @@
   <section class="slide">
     <div class="pageno">11 / 19</div>
     <div class="kicker">สำหรับผู้บริหาร / ผู้ตรวจสอบ</div>
-    <h2>Dashboard: เห็นสัดส่วน fast/LLM + audit trail แบบสด</h2>
+    <h2>แดชบอร์ด: เห็นสัดส่วน "ตอบเอง / ส่ง AI" + บันทึกตรวจย้อนหลัง แบบสด</h2>
     <div class="dash">
-      <div class="dkpi f"><div class="n">82%</div><div class="l">คัดออกจาก LLM (fast path) — ยิ่งสูงยิ่งประหยัด</div></div>
-      <div class="dkpi l2"><div class="n">18%</div><div class="l">ส่งให้ AI จริง (LLM path)</div></div>
-      <div class="dkpi a"><div class="n">v3</div><div class="l">policy version · reproduce ได้</div></div>
+      <div class="dkpi f"><div class="n">82%</div><div class="l">ตอบเองไม่เรียก AI — ยิ่งสูงยิ่งประหยัด</div></div>
+      <div class="dkpi l2"><div class="n">18%</div><div class="l">ส่งให้ AI จริง (เฉพาะที่ยาก)</div></div>
+      <div class="dkpi a"><div class="n">v3</div><div class="l">เวอร์ชันนโยบาย · รันซ้ำได้ผลเดิม</div></div>
     </div>
     <div class="dashbar">
       <div class="f" style="width:82%"></div>
@@ -450,9 +450,9 @@
       <div class="r" style="width:4%"></div>
     </div>
     <div class="dashlegend">
-      <span><span class="sw" style="background:var(--fast)"></span>Fast path <b>82%</b></span>
-      <span><span class="sw" style="background:var(--llm)"></span>LLM path <b>14%</b></span>
-      <span><span class="sw" style="background:var(--warn)"></span>Rejected <b>4%</b></span>
+      <span><span class="sw" style="background:var(--fast)"></span>ตอบเอง <b>82%</b></span>
+      <span><span class="sw" style="background:var(--llm)"></span>ส่ง AI <b>14%</b></span>
+      <span><span class="sw" style="background:var(--warn)"></span>ปฏิเสธ <b>4%</b></span>
     </div>
     <div style="margin-top:26px;color:var(--muted);font-size:clamp(13px,1.4vw,16px);max-width:1000px;line-height:1.7">
       ทุกการตัดสินใจบันทึกเป็น <b style="color:var(--audit)">BLAKE3 proof</b> ที่ re-run ได้ผลเดิมเสมอ —
@@ -665,16 +665,16 @@
     <div class="kicker">เราทำครบแค่ไหน · มิติของเราเอง (ไม่ใช่ feature ของ transformer)</div>
     <h2>Feature Coverage — ชั้นคัดกรอง ไม่ใช่ตัว LLM</h2>
     <div class="radar">
-      <div class="rr"><span class="rl">FastPath routing</span><span class="rt"><i style="width:95%;background:var(--fast)"></i></span><b>95%</b></div>
-      <div class="rr"><span class="rl">Audit · BLAKE3</span><span class="rt"><i style="width:95%;background:var(--fast)"></i></span><b>95%</b></div>
-      <div class="rr"><span class="rl">KB grounding (TF-IDF)</span><span class="rt"><i style="width:90%;background:var(--fast)"></i></span><b>90%</b></div>
-      <div class="rr"><span class="rl">Abstain · safety</span><span class="rt"><i style="width:90%;background:var(--fast)"></i></span><b>90%</b></div>
-      <div class="rr"><span class="rl">Multi-channel (web+LINE)</span><span class="rt"><i style="width:90%;background:var(--accent)"></i></span><b>90%</b></div>
-      <div class="rr"><span class="rl">Tone · affect kernel</span><span class="rt"><i style="width:85%;background:var(--accent)"></i></span><b>85%</b></div>
-      <div class="rr"><span class="rl">PDPA · PII masking</span><span class="rt"><i style="width:75%;background:var(--accent)"></i></span><b>75%</b></div>
-      <div class="rr"><span class="rl">Self-improving KB</span><span class="rt"><i style="width:70%;background:var(--llm)"></i></span><b>70%</b></div>
-      <div class="rr"><span class="rl">Federated corpus</span><span class="rt"><i style="width:65%;background:var(--llm)"></i></span><b>65%</b></div>
-      <div class="rr"><span class="rl">On-chain anchor (optional)</span><span class="rt"><i style="width:60%;background:var(--llm)"></i></span><b>60%</b></div>
+      <div class="rr"><span class="rl">คัดกรองเส้นทาง <small style="color:var(--muted)">FastPath routing</small></span><span class="rt"><i style="width:95%;background:var(--fast)"></i></span><b>95%</b></div>
+      <div class="rr"><span class="rl">ตรวจสอบย้อนหลัง <small style="color:var(--muted)">Audit · BLAKE3</small></span><span class="rt"><i style="width:95%;background:var(--fast)"></i></span><b>95%</b></div>
+      <div class="rr"><span class="rl">ตอบจากคู่มือที่ยืนยัน <small style="color:var(--muted)">KB grounding</small></span><span class="rt"><i style="width:90%;background:var(--fast)"></i></span><b>90%</b></div>
+      <div class="rr"><span class="rl">ไม่รู้ก็บอกไม่รู้ <small style="color:var(--muted)">Abstain · safety</small></span><span class="rt"><i style="width:90%;background:var(--fast)"></i></span><b>90%</b></div>
+      <div class="rr"><span class="rl">ใช้ได้หลายช่อง <small style="color:var(--muted)">web + LINE</small></span><span class="rt"><i style="width:90%;background:var(--accent)"></i></span><b>90%</b></div>
+      <div class="rr"><span class="rl">น้ำเสียง/อารมณ์ <small style="color:var(--muted)">Tone · affect</small></span><span class="rt"><i style="width:85%;background:var(--accent)"></i></span><b>85%</b></div>
+      <div class="rr"><span class="rl">ปกป้องข้อมูลส่วนตัว <small style="color:var(--muted)">PDPA · PII</small></span><span class="rt"><i style="width:75%;background:var(--accent)"></i></span><b>75%</b></div>
+      <div class="rr"><span class="rl">คู่มือพัฒนาตัวเอง <small style="color:var(--muted)">Self-improving</small></span><span class="rt"><i style="width:70%;background:var(--llm)"></i></span><b>70%</b></div>
+      <div class="rr"><span class="rl">คู่มือกลางหลายหน่วยงาน <small style="color:var(--muted)">Federated</small></span><span class="rt"><i style="width:65%;background:var(--llm)"></i></span><b>65%</b></div>
+      <div class="rr"><span class="rl">ผนึกหลักฐานบนเชน <small style="color:var(--muted)">On-chain (optional)</small></span><span class="rt"><i style="width:60%;background:var(--llm)"></i></span><b>60%</b></div>
     </div>
     <div class="foot">มิติของ <b>ชั้นคัดกรอง</b> — เราจงใจไม่มี speculative-decoding / KV / attention (นั่นเป็นเรื่องของตัว LLM ที่เราไม่ได้รัน)</div>
     <style>
