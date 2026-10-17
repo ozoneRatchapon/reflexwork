@@ -18,7 +18,22 @@
   .top .org{opacity:.8;font-size:13px;letter-spacing:.2px}
   .top h1{font-size:clamp(21px,3vw,31px);margin:6px 0 4px;letter-spacing:-.5px}
   .top p{opacity:.88;font-size:14px}
-  .wrap{max-width:840px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
+  /* two-column: left = clean user chat, right = live evidence panel */
+  .cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+  .evidence{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px 16px 18px;min-height:320px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
+  .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px}
+  .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18)}
+  .evidence-sub{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.45}
+  .ev-empty{font-size:12px;color:#6b7aa3;text-align:center;padding:30px 10px;line-height:1.6}
+  .ev-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px;animation:msg-in .3s cubic-bezier(.22,.61,.36,1) both}
+  .ev-card.active{border-color:var(--audit);box-shadow:0 0 0 1px rgba(176,123,255,.35)}
+  .ev-q{font-size:11px;color:var(--muted);margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}
+  .ev-q b{color:var(--ink);font-weight:700}
+  .ev-n{flex:none;font-variant-numeric:tabular-nums;color:#6b7aa3}
+  .ev-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px}
+  @media (max-width:860px){ .cols{grid-template-columns:1fr} .evidence{position:static;max-height:none;order:2} }
+  @media (prefers-reduced-motion: reduce){ .ev-card{animation:none} }
   .chat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;min-height:320px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
   .msg{max-width:84%;padding:12px 15px;border-radius:14px;font-size:14.5px}
   .msg.u{align-self:flex-end;background:var(--userbg);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 14px -4px rgba(59,99,232,.5)}
@@ -206,24 +221,33 @@
 </div>
 
 <div class="wrap">
-  <div class="chips" id="chips"></div>
-  <div class="chat" id="chat">
-    <div class="boot" id="boot">
-      <div class="spin"></div>
-      <div>กำลังโหลด Reflex Kernel (WASM) ในเบราว์เซอร์…</div>
+  <div class="cols">
+    <div class="chatcol">
+      <div class="chips" id="chips"></div>
+      <div class="chat" id="chat">
+        <div class="boot" id="boot">
+          <div class="spin"></div>
+          <div>กำลังโหลด Reflex Kernel (WASM) ในเบราว์เซอร์…</div>
+        </div>
+      </div>
+      <div class="ask">
+        <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
+        <button id="send" disabled>ถาม</button>
+      </div>
+      <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
+      <div class="ratio-wrap" id="ratio-wrap" style="display:none">
+        <div class="ratio-head"><span>สัดส่วน FastPath (ยิ่งสูง = ยิ่งประหยัด)</span><b id="ratio-pct">—</b></div>
+        <div class="ratio-track"><div class="ratio-fill" id="ratio-fill" style="width:0%"></div></div>
+        <div class="ratio-note" id="ratio-note">kernel เรียนรู้จาก 👍/👎 ของคุณ — กด 👎 บนคำตอบ FastPath แล้วดูสัดส่วนขยับ</div>
+      </div>
+      <div class="note" id="note">⏳ กำลังโหลด…</div>
     </div>
+    <aside class="evidence" id="evidence" aria-label="หลักฐานเบื้องหลัง">
+      <div class="evidence-h"><span class="dot"></span>🔬 หลักฐานเบื้องหลัง</div>
+      <div class="evidence-sub">สิ่งที่ user เห็น = ฝั่งซ้าย · ฝั่งนี้คือการตัดสินใจของ kernel ที่ตรวจสอบได้ — เส้นทาง · คะแนน · หัวข้อ KB ที่แมตช์ · BLAKE3 proof (ต่อแต่ละข้อความ)</div>
+      <div id="ev-list"><div class="ev-empty">ยังไม่มีข้อความ — ถามคำถามด้านซ้าย แล้วหลักฐานการตัดสินใจจะขึ้นที่นี่ทีละข้อ</div></div>
+    </aside>
   </div>
-  <div class="ask">
-    <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
-    <button id="send" disabled>ถาม</button>
-  </div>
-  <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
-  <div class="ratio-wrap" id="ratio-wrap" style="display:none">
-    <div class="ratio-head"><span>สัดส่วน FastPath (ยิ่งสูง = ยิ่งประหยัด)</span><b id="ratio-pct">—</b></div>
-    <div class="ratio-track"><div class="ratio-fill" id="ratio-fill" style="width:0%"></div></div>
-    <div class="ratio-note" id="ratio-note">kernel เรียนรู้จาก 👍/👎 ของคุณ — กด 👎 บนคำตอบ FastPath แล้วดูสัดส่วนขยับ</div>
-  </div>
-  <div class="note" id="note">⏳ กำลังโหลด…</div>
 </div>
 
 <script type="module">
@@ -335,13 +359,31 @@ function search(q){
   return _jsSearch(q);
 }
 
+// Evidence selectors: these are the "เบื้องหลัง" bits that should NOT clutter the
+// user's chat bubble — they move to the right-hand evidence panel instead.
+const EV_SEL = '.route, .meta, .proof-full, .kernel-strip';
+let lastUserQ = '';   // the question the next bot bubble is answering
+let turnN = 0;        // evidence-card counter
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d);
-  // Scroll so the TOP of a bot answer (the kernel decision strip — the hero) is
-  // in view, instead of jumping to the very bottom past it. User messages still
-  // scroll to bottom so the question is visible while the answer renders.
-  if(cls==='b'){ requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'});
-    const proof=d.querySelector('.proof-full'); if(proof){ proof.classList.add('flash'); setTimeout(()=>proof.classList.remove('flash'),1400); } });
-  } else { $('chat').scrollTop=1e9; }
+  if(cls==='u'){ lastUserQ = d.textContent.trim(); $('chat').scrollTop=1e9; return; }
+  // bot bubble → split evidence out into the right panel, keep the clean answer left
+  if(cls==='b'){
+    const ev = d.querySelectorAll(EV_SEL);
+    if(ev.length && !d.classList.contains('greet')){
+      turnN++;
+      const card = document.createElement('div'); card.className='ev-card active';
+      const qlabel = lastUserQ ? (lastUserQ.length>46?lastUserQ.slice(0,46)+'…':lastUserQ) : '(ทักทาย/ระบบ)';
+      card.innerHTML = `<div class="ev-q"><b>${qlabel}</b><span class="ev-n">#${turnN}</span></div>`;
+      // move each evidence node from the bubble into the card (order preserved)
+      ev.forEach(n=>{ card.appendChild(n); });
+      const list=$('ev-list'); const empty=list.querySelector('.ev-empty'); if(empty) empty.remove();
+      // de-highlight previous, add newest on top
+      list.querySelectorAll('.ev-card.active').forEach(c=>c.classList.remove('active'));
+      list.insertBefore(card, list.firstChild);
+      const pf=card.querySelector('.proof-full'); if(pf){ pf.classList.add('flash'); setTimeout(()=>pf.classList.remove('flash'),1400); }
+    }
+    requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'}); });
+  }
 }
 
 // --- Template-based NLG: make a KB answer read like a person wrote it, WITHOUT AI.
@@ -647,9 +689,9 @@ function ask(){
         ai++;
         if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
         add('b', `${kstrip}
-          <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+          <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือยังไม่ครอบคลุมพอ — บันทึกส่งเจ้าหน้าที่/ทีมดูแลคู่มือแล้ว ${stageTag}</span>
           ${frustratedNote()}
-          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อครับ</div>
+          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ผม<b>บันทึกคำถามนี้ไว้ให้เจ้าหน้าที่/ทีมดูแลคู่มือแล้ว</b>ครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
             <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>
@@ -739,7 +781,7 @@ function ask(){
     if(isEnglish(q)){
       add('b', `${kstrip}
         <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 English question — not in the (Thai) knowledge base → staff / official FAQ ${stageTag}</span>
-        <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — here's the official English FAQ and how to reach a human, who can answer accurately.</div>
+        <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — I've <b>logged your question for the staff / KB team</b>, and here's the official English FAQ and how to reach a human in the meantime.</div>
         <div class="meta">kernel abstain: off-corpus (English, no KB match) — routed to staff instead of a generative guess ("facts from the KB only").</div>
         <div class="staffbox">
           <div class="staff-h">Get an accurate answer</div>
@@ -774,6 +816,7 @@ function ask(){
         </div>
         ${fbUI(q, d.blake3_proof)}`);
     } else {
+    logGap(q);
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
       ${frustratedNote()}
@@ -792,8 +835,8 @@ function ask(){
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({input:q})
       }).then(r=>r.json()).then(r=>{
-        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'คู่มือไม่มีคำตอบตรง ๆ และ AI ยังไม่พร้อม — ติดต่อเจ้าหน้าที่ด้านล่างได้เลยครับ';
-      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='คู่มือไม่มีคำตอบตรง ๆ และเรียก AI ไม่สำเร็จในขณะนี้ — รบกวนติดต่อเจ้าหน้าที่ด้านล่างครับ 🙇'; });
+        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'ตอนนี้ยังไม่มีคำตอบที่ยืนยันได้จากคู่มือ — ผมบันทึกคำถามนี้ไว้ให้เจ้าหน้าที่/ทีมดูแลคู่มือแล้วครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง';
+      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='ตอนนี้ยังไม่มีคำตอบที่ยืนยันได้ และเรียก AI ไม่สำเร็จ — ผมบันทึกคำถามนี้ไว้ให้เจ้าหน้าที่แล้วครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง'; });
     }
     }
   }
@@ -850,6 +893,15 @@ function fbUI(q, proof, entryId){
 // kernel endpoint for feedback. Empty = static demo (no backend): record locally
 // and show that the gate WOULD learn. Set to a reflex-serve URL for the real loop.
 const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
+// Fire-and-forget: record a question the KB could NOT answer, so it enters the
+// gap log (the self-improving-KB loop) and staff/curators see what to add. This
+// is what makes "บันทึกคำถามไว้ให้เจ้าหน้าที่แล้ว" a TRUE statement on web, not an
+// overclaim — we really do persist it. Best-effort; never blocks the UI.
+function logGap(q){
+  if(!KERNEL_API) return;
+  try{ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{ method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ q, source:'web' }), keepalive:true }).catch(()=>{}); }catch(_){}
+}
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
   const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||''; const entryId = rec.entryId||'';
