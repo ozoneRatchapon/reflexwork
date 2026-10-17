@@ -21,7 +21,7 @@
   .top p{opacity:.88;font-size:14px}
   .wrap{max-width:1180px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
   /* two-column: left = clean user chat (hero), right = live evidence panel */
-  .cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
+  .cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:18px;align-items:start}
   .evidence{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px 15px 16px;min-height:320px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
   .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:5px}
   .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18);flex:none}
@@ -33,7 +33,10 @@
   .ev-q b{color:var(--ink);font-weight:700}
   .ev-n{flex:none;font-variant-numeric:tabular-nums;color:var(--audit);font-weight:800;font-size:11px}
   .ev-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px}
-  @media (max-width:860px){ .cols{grid-template-columns:1fr} .evidence{position:static;max-height:none;order:2} }
+  /* mid screens: keep the panel at its 300px floor by relaxing the chat ratio,
+     so kernel-strip chips never squish before the full stack at 860px */
+  @media (min-width:861px) and (max-width:1040px){ .cols{grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr)} }
+  @media (max-width:860px){ .cols{grid-template-columns:1fr} .evidence{position:static;max-height:none;order:2;min-width:0} }
   @media (prefers-reduced-motion: reduce){ .ev-card{animation:none} }
   .chat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;min-height:320px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
   .msg{max-width:84%;padding:12px 15px;border-radius:14px;font-size:14.5px}
