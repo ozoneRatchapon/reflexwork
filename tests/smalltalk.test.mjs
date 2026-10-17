@@ -8,7 +8,7 @@
 // guard errs toward "treat as a real message" (the safe failure: a real
 // question routed to the kernel beats a cheery reply to a complaint).
 import {
-  createMood, classifySmalltalk, smalltalkReply,
+  createMood, classifySmalltalk, smalltalkReply, scoreSmalltalk,
 } from '../integrations/_shared/smalltalk.mjs';
 
 let pass = 0, fail = 0;
@@ -65,6 +65,20 @@ eq('recovers after miss (no longer concerned)', m.snapshot().hue, 'warm');
 
 // mood is a pure function of valence — snapshot never throws, always labelled
 truthy('snapshot always has a label', createMood().snapshot().label.length > 0);
+
+// --- frustration = BEHAVIOR signal (repeated misses → proactive escalation) --
+const fm = createMood();
+eq('not frustrated at start', fm.frustrated(), false);
+fm.felt('miss');
+eq('one miss → not yet frustrated', fm.frustrated(), false);
+fm.felt('miss');
+eq('two misses in a row → frustrated', fm.frustrated(), true);
+fm.felt('hit');
+eq('a hit clears frustration', fm.frustrated(), false);
+
+// --- scorer exposes the gate value (auditability) ---------------------------
+truthy('scoreSmalltalk returns a gate score', (scoreSmalltalk('สวัสดีครับ') || {}).score > 0.5);
+eq('scoreSmalltalk null on a real question', scoreSmalltalk('ค่าสอบเท่าไร'), null);
 
 // --- replies are non-empty for every kind -----------------------------------
 for (const k of ['greet', 'thanks', 'bye', 'whatcan', 'howareyou']) {

@@ -424,16 +424,20 @@ async function groundedHybrid(q, entries){
 // (greeting / empathy / sign-off), never the KB facts. Facts stay from the KB.
 const MOOD = {
   // valence: how the bot "feels" about how the conversation is going (-1..+1)
-  valence: 0.2, turns: 0, lastWasMiss: false,
+  valence: 0.2, turns: 0, lastWasMiss: false, missStreak: 0,
   // nudge the mood on each outcome
   felt(kind){
     this.turns++;
     if(kind==='hit')       this.valence = Math.min(1, this.valence + 0.25); // answered well → warmer
     else if(kind==='miss') { this.valence = Math.max(-1, this.valence - 0.35); this.lastWasMiss=true; } // couldn't help → concerned
     else if(kind==='thanks') this.valence = Math.min(1, this.valence + 0.3);
-    if(kind!=='miss') this.lastWasMiss=false;
+    if(kind==='miss') this.missStreak++; else { this.lastWasMiss=false; this.missStreak=0; }
     return this;
   },
+  // BEHAVIOR signal (not a fact change): after repeated failures a caring human
+  // stops re-trying the same path and proactively escalates. This changes WHAT
+  // THE BOT DOES (surface staff sooner / more prominently), never the KB facts.
+  frustrated(){ return this.missStreak>=2 || this.valence<=-0.3; },
   // a short, mood-appropriate opener for conversational (non-factual) replies.
   // Factual KB answers do NOT get these — they lead with the fact (see humanize).
   greetOpener(){
@@ -470,40 +474,56 @@ function renderMood(bump){
   if(bump){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
 }
 
-// --- Smalltalk layer (deterministic, no AI, no staff hand-off) ---------------
-// "สวัสดี", "ขอบคุณ", "ทำอะไรได้บ้าง" are NOT knowledge questions and NOT staff
-// cases — throwing them at the kernel → LLM/staff fallback reads as a cold bot.
-// A real front-desk person greets back and asks how they can help. We detect
-// these and reply conversationally, inviting the user to say what they need.
-const _SMALLTALK = [
-  { kind:'greet',   re:/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey|ฮัลโหล|โย่|ทัก)/i },
-  { kind:'thanks',  re:/(?:ขอบคุณ|ขอบใจ|thank|thx|ขอบคุณมาก|เยี่ยม|สุดยอด|เก่งมาก)/i },
-  { kind:'bye',     re:/^(?:บาย|ลาก่อน|ไปละ|แค่นี้|bye|goodbye|โอเคครับ|โอเคค่ะ)/i },
-  { kind:'whatcan', re:/(?:ทำอะไรได้|ช่วยอะไรได้|คุณคือใคร|คุณเป็นใคร|ใช้ยังไง|นี่คืออะไร|what can you|who are you)/i },
-  { kind:'howareyou', re:/(?:สบายดี(?:ไหม|มั้ย)|เป็นไงบ้าง|เป็นยังไงบ้าง|how are you)/i },
-];
-function classifySmalltalk(text){
-  const q=String(text||'').trim(); if(!q) return null;
-  // Don't mistake a real question that merely opens with "สวัสดี" for pure greeting.
-  // If it carries question words / topic keywords, let the kernel handle it.
-  if(/\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i.test(q)) {
-    // still allow a leading greeting to be stripped, but treat as a question
-    if(q.replace(/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i,'').length > 3) return null;
-  }
-  // Sarcastic "thanks for nothing" (ขอบคุณที่ไม่ช่วยอะไรเลย) / ironic praise
-  // (เก่งจังตอบไม่ได้สักข้อ) is NOT genuine — reading it as praise is the uncanny
-  // tell. Fall through to the kernel/staff path. Deterministic lexical guard,
-  // erring toward "treat as a real message" (the safe failure).
-  const _NEG=new RegExp(['ไม่\\s*(?:ช่วย|ได้|เห็น|รู้|เข้าใจ|ตรง|โอเค|เวิร์ก|เวิร์ค|มีประโยชน์)',
+// Mood → BEHAVIOR (not facts): when the bot has missed repeatedly, it proactively
+// pushes the user toward a human instead of looking like it's still fumbling. This
+// line appears ONLY when MOOD.frustrated() — a caring escalation, 0-token.
+function frustratedNote(){
+  return MOOD.frustrated()
+    ? `<div class="ans" style="background:rgba(246,169,59,.12);border:1px solid rgba(246,169,59,.4);border-radius:10px;padding:9px 11px;margin-bottom:8px">🙇 ผมยังหาคำตอบที่ตรงให้ไม่ได้หลายครั้งแล้ว — เพื่อไม่ให้เสียเวลา แนะนำให้ติดต่อเจ้าหน้าที่โดยตรงเลยนะครับ (ปุ่มด้านล่าง)</div>`
+    : '';
+}
+
+// DISTILLED from katgpt-rs PersonalityWeightedComposition (Plan 297): a small
+// feature vector per message, scored per-intent as sigmoid(dot(f, w)/τ), argmax
+// over the gate. Signed weights (never softmax) mean negation is a resisting
+// FEATURE, not a special-case guard — "ขอบคุณที่ไม่ช่วย" scores thanks=+ neg=− →
+// below gate → falls through. Kept in lockstep with _shared/smalltalk.mjs.
+const _FEATURES = [
+  ['greet_lead', /^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey|ฮัลโหล|โย่|ทัก)/i],
+  ['thanks_w',   /(?:ขอบคุณ|ขอบใจ|thank|thx)/i],
+  ['praise_w',   /(?:เยี่ยม|สุดยอด|เก่งมาก|เก่งจัง|ฉลาด|ดีจัง|great job|awesome|well done)/i],
+  ['bye_lead',   /^(?:บาย|ลาก่อน|ไปละ|แค่นี้|bye|goodbye|โอเคครับ|โอเคค่ะ)/i],
+  ['whatcan_w',  /(?:ทำอะไรได้|ช่วยอะไรได้|คุณคือใคร|คุณเป็นใคร|ใช้ยังไง|นี่คืออะไร|what can you|who are you)/i],
+  ['howareyou_w',/(?:สบายดี(?:ไหม|มั้ย)|เป็นไงบ้าง|เป็นยังไงบ้าง|how are you)/i],
+  ['question',   /\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i],
+  ['neg', new RegExp(['ไม่\\s*(?:ช่วย|ได้|เห็น|รู้|เข้าใจ|ตรง|โอเค|เวิร์ก|เวิร์ค|มีประโยชน์)',
     'ไม่เอา','ไม่ไหว','ผิด(?:อีก|แล้ว|มหันต์)?','มั่ว','พัง','เสียเวลา','เสียดาย',
-    'ห่วย','แย่','โง่','งี่เง่า','กาก','ไร้สาระ','น่าเบื่อ','ทำพัง','บ้า',
+    'ห่วย','แย่','โง่','งี่เง่า','กาก','ไร้สาระ','น่าเบื่อ','ทำพัง','บ้า(?!ง)',
     'เก่ง.*ไม่','ฉลาด.*ไม่','เยี่ยม.*ไม่','สุดยอด.*ไม่','ดีจัง.*ไม่',
     'useless','worthless','terrible','awful','waste of',"doesn'?t work",
-    "didn'?t (?:help|work)",'not (?:helpful|working|useful)','no help','so (?:dumb|stupid|bad)'].join('|'),'i');
-  const neg=_NEG.test(q);
-  for(const s of _SMALLTALK){ if(!s.re.test(q)) continue; if((s.kind==='thanks'||s.kind==='howareyou') && neg) return null; return s.kind; }
-  return null;
+    "didn'?t (?:help|work)",'not (?:helpful|working|useful)','no help','so (?:dumb|stupid|bad)'].join('|'),'i')],
+];
+const _FI = Object.fromEntries(_FEATURES.map(([n],i)=>[n,i]));
+function _row(o){ const r=new Array(_FEATURES.length).fill(0); for(const k in o) r[_FI[k]]=o[k]; return r; }
+const _INTENTS = [
+  { kind:'greet',     w:_row({greet_lead:1.0, question:-0.9}) },
+  { kind:'thanks',    w:_row({thanks_w:1.0, praise_w:0.7, neg:-1.6, question:-0.5}) },
+  { kind:'howareyou', w:_row({howareyou_w:1.0, neg:-1.6, question:-0.5}) },
+  { kind:'whatcan',   w:_row({whatcan_w:1.0, neg:-1.6, question:-0.3}) },
+  { kind:'bye',       w:_row({bye_lead:1.0, question:-0.9}) },
+];
+const _TAU=0.6, _GATE=0.5;
+function _sig(x){ return 1/(1+Math.exp(-x/_TAU)); }
+function scoreSmalltalk(text){
+  const q=String(text||'').trim(); if(!q) return null;
+  const stripped=q.replace(/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i,'');
+  const probeOn=(stripped.length>3 && /\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i.test(stripped)) ? stripped : q;
+  const f=_FEATURES.map(([,re])=>re.test(probeOn)?1:0);
+  let best=null;
+  for(const it of _INTENTS){ let dot=0; for(let i=0;i<f.length;i++) dot+=f[i]*it.w[i]; const gate=_sig(dot); if(gate>_GATE && (!best||gate>best.score)) best={kind:it.kind, score:gate}; }
+  return best;
 }
+function classifySmalltalk(text){ const r=scoreSmalltalk(text); return r?r.kind:null; }
 function smalltalkReply(kind){
   const op = MOOD.greetOpener();
   switch(kind){
@@ -589,6 +609,7 @@ function ask(){
         if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
         add('b', `${kstrip}
           <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+          ${frustratedNote()}
           <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อครับ</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
@@ -716,6 +737,7 @@ function ask(){
     } else {
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
+      ${frustratedNote()}
       <div class="meta">${verdict.reason}</div>
       <span id="${mid}">${KERNEL_API ? '⏳ กำลังถาม AI…' : 'คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน'}</span>
       <div class="staffbox">
