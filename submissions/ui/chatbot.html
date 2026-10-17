@@ -19,18 +19,18 @@
   .top h1{font-size:clamp(21px,3vw,31px);margin:6px 0 4px;letter-spacing:-.5px}
   .top p{opacity:.88;font-size:14px}
   .wrap{max-width:1180px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
-  /* two-column: left = clean user chat, right = live evidence panel */
-  .cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
-  .evidence{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px 16px 18px;min-height:320px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
-  .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:4px}
-  .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18)}
-  .evidence-sub{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.45}
-  .ev-empty{font-size:12px;color:#6b7aa3;text-align:center;padding:30px 10px;line-height:1.6}
-  .ev-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:10px;animation:msg-in .3s cubic-bezier(.22,.61,.36,1) both}
-  .ev-card.active{border-color:var(--audit);box-shadow:0 0 0 1px rgba(176,123,255,.35)}
-  .ev-q{font-size:11px;color:var(--muted);margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}
+  /* two-column: left = clean user chat (hero), right = live evidence panel */
+  .cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
+  .evidence{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px 15px 16px;min-height:320px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
+  .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:5px}
+  .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18);flex:none}
+  .evidence-sub{font-size:11px;color:var(--muted);margin-bottom:13px;line-height:1.5;padding-bottom:11px;border-bottom:1px solid var(--line)}
+  .ev-empty{font-size:12px;color:#6b7aa3;text-align:center;padding:34px 14px;line-height:1.65}
+  .ev-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:10px 12px 11px;margin-bottom:10px;animation:msg-in .3s cubic-bezier(.22,.61,.36,1) both}
+  .ev-card.active{border-color:var(--audit);box-shadow:0 0 0 1px rgba(176,123,255,.4),0 4px 18px -8px rgba(176,123,255,.4)}
+  .ev-q{font-size:11.5px;color:var(--muted);margin-bottom:9px;padding-bottom:8px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
   .ev-q b{color:var(--ink);font-weight:700}
-  .ev-n{flex:none;font-variant-numeric:tabular-nums;color:#6b7aa3}
+  .ev-n{flex:none;font-variant-numeric:tabular-nums;color:var(--audit);font-weight:800;font-size:11px}
   .ev-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px}
   @media (max-width:860px){ .cols{grid-template-columns:1fr} .evidence{position:static;max-height:none;order:2} }
   @media (prefers-reduced-motion: reduce){ .ev-card{animation:none} }
@@ -244,8 +244,8 @@
     </div>
     <aside class="evidence" id="evidence" aria-label="หลักฐานเบื้องหลัง">
       <div class="evidence-h"><span class="dot"></span>🔬 หลักฐานเบื้องหลัง</div>
-      <div class="evidence-sub">สิ่งที่ user เห็น = ฝั่งซ้าย · ฝั่งนี้คือการตัดสินใจของ kernel ที่ตรวจสอบได้ — เส้นทาง · คะแนน · หัวข้อ KB ที่แมตช์ · BLAKE3 proof (ต่อแต่ละข้อความ)</div>
-      <div id="ev-list"><div class="ev-empty">ยังไม่มีข้อความ — ถามคำถามด้านซ้าย แล้วหลักฐานการตัดสินใจจะขึ้นที่นี่ทีละข้อ</div></div>
+      <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ user เห็น · ฝั่งนี้คือ<b>การตัดสินใจของ kernel ที่ตรวจสอบได้</b> — เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 proof</div>
+      <div id="ev-list"><div class="ev-empty">ยังไม่มีข้อความ<br>ถามด้านซ้าย แล้วหลักฐานการตัดสินใจจะขึ้นที่นี่ทีละข้อ 🔍</div></div>
     </aside>
   </div>
 </div>
