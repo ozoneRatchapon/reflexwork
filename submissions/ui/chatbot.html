@@ -54,7 +54,14 @@
   .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:5px}
   .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18);flex:none}
   .evidence-sub{font-size:11px;color:var(--muted);margin-bottom:13px;line-height:1.5;padding-bottom:11px;border-bottom:1px solid var(--line)}
-  .ev-empty{font-size:12px;color:var(--muted);opacity:.75;text-align:center;padding:34px 14px;line-height:1.65}
+  .ev-empty{font-size:12px;color:var(--muted);opacity:.9;text-align:center;padding:20px 12px;line-height:1.65}
+  .ev-example{text-align:left;background:var(--raised);border:1px dashed var(--line);border-radius:11px;padding:11px 12px;opacity:.9}
+  .ev-ex-q{font-size:12px;color:var(--ink);font-weight:700;margin-bottom:8px}
+  .ev-ex-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+  .ev-ex-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+  .ev-ex-tag.ok{color:var(--fast,#22c58b);border-color:rgba(34,197,139,.4)}
+  .ev-ex-line{font-size:11px;color:var(--muted);line-height:1.5;margin-top:3px}
+  .ev-ex-line code{color:var(--audit,#b07bff);font-family:ui-monospace,Menlo,monospace;font-size:10px}
   .ev-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:10px 12px 11px;margin-bottom:10px;animation:msg-in .3s cubic-bezier(.22,.61,.36,1) both}
   .ev-card.active{border-color:var(--audit);box-shadow:0 0 0 1px rgba(176,123,255,.4),0 4px 18px -8px rgba(176,123,255,.4)}
   .ev-q{font-size:11.5px;color:var(--muted);margin-bottom:9px;padding-bottom:8px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
@@ -304,7 +311,16 @@
     <aside class="evidence" id="evidence" aria-label="หลักฐานเบื้องหลัง">
       <div class="evidence-h"><span class="dot"></span>🔬 หลักฐานเบื้องหลัง</div>
       <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ผู้ใช้เห็น · ฝั่งนี้คือ<b>การตัดสินใจของ kernel ที่ตรวจสอบได้</b> — เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 proof</div>
-      <div id="ev-list"><div class="ev-empty">ยังไม่มีข้อความ<br>ถามด้านซ้าย แล้วหลักฐานการตัดสินใจจะขึ้นที่นี่ทีละข้อ 🔍</div></div>
+      <div id="ev-list"><div class="ev-empty">
+        <div style="font-size:12px;margin-bottom:12px">ถามคำถามด้านซ้าย แล้ว<b style="color:var(--ink)">หลักฐานการตัดสินใจ</b>ของแต่ละคำตอบจะขึ้นที่นี่ — ตัวอย่างหน้าตา 👇</div>
+        <div class="ev-example">
+          <div class="ev-ex-q">"Turnitin เกิน 25% ทำอย่างไร"</div>
+          <div class="ev-ex-row"><span class="ev-ex-tag ok">✅ ตอบเอง · ไม่เรียก AI</span><span class="ev-ex-tag">⚡ 0 token</span></div>
+          <div class="ev-ex-line">🎯 เจอในคู่มือ: <b>Turnitin Originality Report</b> (คะแนนความมั่นใจสูง)</div>
+          <div class="ev-ex-line">🔒 ลายเซ็นตรวจย้อนหลัง: <code>a1b2c3…</code> (รันซ้ำได้ผลเดิม)</div>
+        </div>
+        <div style="font-size:11px;margin-top:10px;opacity:.8">= ระบบคัดเองว่าตอบได้จากคู่มือ จึงไม่เสียค่า AI และพิสูจน์ได้</div>
+      </div></div>
     </aside>
   </div>
 </div>
