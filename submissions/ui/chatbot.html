@@ -227,7 +227,7 @@
 </div>
 
 <script type="module">
-import init, { route_task } from './wasm/reflex_wasm.js';
+import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
 const COST=2;
@@ -286,63 +286,48 @@ const FALLBACK_KB = [
     source_url:'https://graduate.mahidol.ac.th/', faq_number:'' },
 ];
 
-// score KB entry vs query. NEUROSYMBOLIC HYBRID (measured PoC, 2026-10-17):
-//  • SUB-SYMBOLIC TF-IDF cosine — a MODELLESS "latent" matcher (no model, no
-//    embedding table, 0 token, deterministic). IDF makes rare meaning-bearing
-//    grams dominate, so paraphrase/typo/EN match even without identical words.
-//  • SYMBOLIC lexical overlap — kept as a tiebreak + exposed for the UI.
-// PoC verdict: TF-IDF cosine as the PRIMARY ranker beat raw-overlap on recall@1
-// (6/11 vs 5/11) and @3 (9 vs 8) — raw overlap returns confident-but-WRONG tops
-// because common Thai grams inflate the count, so a "backoff only when lexical is
-// weak" never fired. SimHash was rejected (1/11 — substring overlap collapses it).
-// Cosine ∈ [0,1] is mapped to the INTEGER gate score the tuned decideTier expects
-// (≥0.55→6 strong/humanize, ≥0.42→5, ≥0.30→4 gate, else round down) so the kernel
-// thresholds are unchanged in spirit. Latent is the MATCHER, never the fact source
-// — facts still come only from the chosen KB entry ("deterministic > generative").
-let _IDF=null, _DOCV=null;   // built once from KB on first search
-function _gramSet(text){ const s=String(text||'').toLowerCase(); const g=new Set();
+// KB retrieval — NEUROSYMBOLIC HYBRID, now implemented IN RUST (reflex-wasm
+// crates/reflex-wasm/src/lib.rs::kb_search), called over WASM. Single source of
+// truth: the same TF-IDF cosine + calibrated gate score runs in the kernel crate
+// (native tests) and in the browser (this call), so there is no JS/Rust logic
+// drift. `search()` is now a thin adapter that maps the Rust result (id → score)
+// back to KB entry objects so the rest of ask() is unchanged. A pure-JS fallback
+// (same algorithm) keeps the page working if the WASM export is ever missing and
+// lets the Node recall test exercise the logic headlessly.
+function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new Set();
   for(const tok of s.split(/\s+/)) if(tok.length>1) g.add(tok);
   for(let i=0;i<s.length-2;i++){ const t=s.slice(i,i+3).trim(); if(t.length===3) g.add(t);} return g; }
-function _buildIdf(){
-  const DF=new Map(), docGrams=KB.map(e=>_gramSet(e.keywords));
-  for(const gs of docGrams) for(const g of gs) DF.set(g,(DF.get(g)||0)+1);
-  const N=KB.length||1; _IDF=g=>Math.log((N+1)/((DF.get(g)||0)+1))+1;
-  _DOCV=docGrams.map(gs=>{ const v=new Map(); let n2=0; for(const g of gs){ const w=_IDF(g); v.set(g,w); n2+=w*w; } const nr=Math.sqrt(n2)||1; for(const[k,w] of v) v.set(k,w/nr); return v; });
-}
-function _qvec(gs){ const v=new Map(); let n2=0; for(const g of gs){ const w=_IDF(g); v.set(g,w); n2+=w*w; } const nr=Math.sqrt(n2)||1; for(const[k,w] of v) v.set(k,w/nr); return v; }
-// cosine ∈ [0,1] → integer gate score (preserves decideTier's s>=4 / s>=6 contract).
-// Thresholds CALIBRATED to this KB's measured cosine distribution (correct tops
-// land ~0.20–0.49, not ~0.9 — "default thresholds do not transfer", Asgard field
-// note): ≥0.40 strong, ≥0.22 answerable-gate, ≥0.15 weak. A `margin` (gap to the
-// runner-up) is required for the STRONG tier — a near-tie (small margin) is a
-// genuine ambiguity that should disambiguate, not confidently answer (the
-// conformal "is another label plausible?" idea, not a bare confidence cutoff).
 function _cosToScore(c, margin){
-  if(c>=0.40 && margin>=0.08) return 6;   // strong + clear winner → humanize, 0 token
-  if(c>=0.30) return 5;                    // good
-  if(c>=0.22) return 4;                    // clears the gate (answerable)
-  if(c>=0.15) return 3;                    // weak → rethink/disambiguate band
-  return Math.max(1, Math.round(c*10));
+  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.22) return 4;
+  if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
+function _jsSearch(q){
+  const docGrams=KB.map(e=>_jsGramSet(e.keywords)); const DF=new Map();
+  for(const gs of docGrams) for(const g of gs) DF.set(g,(DF.get(g)||0)+1);
+  const N=KB.length||1; const idf=g=>Math.log((N+1)/((DF.get(g)||0)+1))+1;
+  const nv=gs=>{const v=new Map();let n2=0;for(const g of gs){const w=idf(g);v.set(g,w);n2+=w*w;}const nr=Math.sqrt(n2)||1;for(const[k,w] of v)v.set(k,w/nr);return v;};
+  const DV=docGrams.map(nv); const qg=_jsGramSet(q); const qv=nv([...qg]);
+  const scored=[];
+  for(let i=0;i<KB.length;i++){ const e=KB[i]; let overlap=0; for(const g of qg) if(e.keywords.includes(g)) overlap++;
+    let cos=0; const dv=DV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; }
+    if(overlap>0||cos>0) scored.push({e,cos,overlap}); }
+  scored.sort((a,b)=>(b.cos-a.cos)||(b.overlap-a.overlap));
+  const runner=scored[1]?scored[1].cos:0;
+  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; scored[i].s=_cosToScore(scored[i].cos,margin); }
+  return scored;
 }
 function search(q){
-  if(!_IDF && KB.length) _buildIdf();
-  const grams=_gramSet(q);
-  const qv = _DOCV ? _qvec(grams) : null;
-  const scored=[];
-  for(let i=0;i<KB.length;i++){ const e=KB[i];
-    let overlap=0; for(const g of grams){ if(e.keywords.includes(g)) overlap++; }
-    let cos=0; if(qv){ const dv=_DOCV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; } }
-    if(overlap>0 || cos>0) scored.push({e, cos, overlap});
+  // Prefer the Rust/WASM kernel (single source of truth). Map id → entry.
+  if(typeof wasm_kb_search==='function' && KB.length){
+    try{
+      const lite=KB.map(e=>({id:e.id, keywords:e.keywords}));
+      const hits=wasm_kb_search(lite, q) || [];
+      const byId=new Map(KB.map(e=>[e.id,e]));
+      const mapped=[];
+      for(const h of hits){ const e=byId.get(h.id); if(e) mapped.push({e, s:h.s, cos:h.cos, overlap:h.overlap}); }
+      if(mapped.length) return mapped;
+    }catch(_){ /* fall through to JS */ }
   }
-  // rank by cosine (primary), lexical overlap (tiebreak)
-  scored.sort((a,b)=> (b.cos-a.cos) || (b.overlap-a.overlap));
-  // assign the integer gate score from cosine + margin to the runner-up
-  for(let i=0;i<scored.length;i++){
-    const margin = i===0 ? (scored[0].cos - (scored[1]?scored[1].cos:0)) : 0;
-    scored[i].s = qv ? _cosToScore(scored[i].cos, margin) : scored[i].overlap;
-  }
-  // returns ranked list; ask() decides confident / ambiguous / escalate
-  return scored;
+  return _jsSearch(q);
 }
 
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d);
@@ -565,7 +550,14 @@ function scoreSmalltalk(text){
   for(const it of _INTENTS){ let dot=0; for(let i=0;i<f.length;i++) dot+=f[i]*it.w[i]; const gate=_sig(dot); if(gate>_GATE && (!best||gate>best.score)) best={kind:it.kind, score:gate}; }
   return best;
 }
-function classifySmalltalk(text){ const r=scoreSmalltalk(text); return r?r.kind:null; }
+function classifySmalltalk(text){
+  // Prefer the Rust/WASM scorer (single source of truth, reflex-wasm
+  // ::classify_smalltalk) — returns "" for non-smalltalk. JS scorer is fallback.
+  if(typeof wasm_classify==='function'){
+    try{ const k=wasm_classify(text); return k && k.length ? k : null; }catch(_){}
+  }
+  const r=scoreSmalltalk(text); return r?r.kind:null;
+}
 function smalltalkReply(kind){
   const op = MOOD.greetOpener();
   switch(kind){

@@ -26,10 +26,14 @@ if (!existsSync(idxPath)) {
 }
 const KB = JSON.parse(readFileSync(idxPath, 'utf8'));
 const html = readFileSync(htmlPath, 'utf8');
-const m = html.match(/let _IDF=null[\s\S]*?\/\/ returns ranked list/);
-truthy('search() block found in chatbot.html', m);
+// Extract the headless-runnable JS twin (_jsGramSet..._jsSearch). The production
+// page prefers the Rust/WASM kb_search, but WASM can't load under plain Node, so
+// the test exercises the JS fallback — which is the SAME algorithm, kept in sync.
+const m = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
+truthy('_jsSearch block found in chatbot.html', m);
 if (!m) { console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(1); }
-const search = new Function('KB', m[0].replace(/\/\/ returns ranked list/, 'return scored; }') + '\n return search;')(KB);
+const block = m[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
+const search = new Function('KB', block)(KB);
 
 // [query, expected_id | null(=off-corpus, must abstain), kind]
 const C = [

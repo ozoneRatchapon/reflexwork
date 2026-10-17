@@ -2,6 +2,20 @@
 /* eslint-disable */
 
 /**
+ * Classify a message as smalltalk. Returns the intent kind ("greet"/"thanks"/
+ * "bye"/"whatcan"/"howareyou") or an empty string when it is NOT smalltalk
+ * (a real question / complaint → kernel path). Sigmoid gate, argmax over gate.
+ */
+export function classify_smalltalk(text: string): string;
+
+/**
+ * Search a KB (passed as `[{id, keywords}]` JSON) for `query`. Returns a ranked
+ * `[{id, s, cos, overlap}]`. The KB is small (tens–hundreds of entries) so a
+ * per-call IDF build is microseconds; no caching needed across the wasm boundary.
+ */
+export function kb_search(kb: any, query: string): any;
+
+/**
  * Route one task entirely in the browser. Returns a JSON object with the
  * decision + a reproducible BLAKE3 proof — no backend, no token cost on the
  * fast path. Mirrors the native Rust kernel's decision exactly.
@@ -12,9 +26,14 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly classify_smalltalk: (a: number, b: number, c: number) => void;
+    readonly kb_search: (a: number, b: number, c: number) => number;
     readonly route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
+    readonly __wbindgen_export3: (a: number) => void;
+    readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+    readonly __wbindgen_export4: (a: number, b: number, c: number) => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
