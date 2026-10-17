@@ -20,8 +20,36 @@
   .top h1{font-size:clamp(21px,3vw,31px);margin:6px 0 4px;letter-spacing:-.5px}
   .top p{opacity:.88;font-size:14px}
   .wrap{max-width:1180px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
-  /* two-column: left = clean user chat (hero), right = live evidence panel */
-  .cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:18px;align-items:start}
+  /* collapsible 'how it works' swimlane */
+  .howto{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:2px}
+  .howto summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .howto summary::-webkit-details-marker{display:none}
+  .howto-t{font-weight:800;font-size:14.5px;color:var(--ink)}
+  .howto-hint{font-size:11.5px;color:var(--muted)}
+  .howto[open] summary{border-bottom:1px solid var(--line)}
+  .howto-body{padding:16px 18px}
+  .sw-toggle{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none;background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:6px 13px;margin-bottom:14px}
+  .sw-toggle input{display:none}
+  .sw-toggle .pip{width:30px;height:17px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+  .sw-toggle .pip::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--ink);transition:transform .2s}
+  .sw-toggle input:checked + .pip{background:var(--accent)}
+  .sw-toggle input:checked + .pip::after{transform:translateX(13px)}
+  .swlane{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .swrow{display:grid;grid-template-columns:150px 1fr;border-bottom:1px solid var(--line)}
+  .swrow:last-child{border-bottom:none}
+  .swact{padding:14px 13px;font-weight:700;font-size:13px;display:flex;align-items:center}
+  .swbody{padding:13px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .swu{background:rgba(59,99,232,.14)} .swu .swbody{background:rgba(59,99,232,.05)}
+  .swk{background:rgba(34,197,139,.12)} .swk .swbody{background:rgba(34,197,139,.04)}
+  .swa{background:rgba(246,169,59,.12)} .swa .swbody{background:rgba(246,169,59,.04)}
+  .swstep{font-size:13px;line-height:1.45;color:var(--ink)} .swstep b{color:var(--accent)}
+  .swstep.ok b{color:var(--fast,#22c58b)} .swstep.esc b{color:var(--llm,#f6a93b)}
+  .swtech{font-size:11.5px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--audit,#b07bff);border-radius:7px;padding:7px 10px;display:none}
+  .swtech code{color:var(--audit,#b07bff);font-family:ui-monospace,Menlo,monospace;font-size:.9em}
+  .howto.showtech .swtech{display:block}
+  .howto-foot{font-size:11.5px;color:var(--muted);margin-top:12px;text-align:center}
+  @media (max-width:560px){ .swrow{grid-template-columns:1fr} .swbody{border-left:none;border-top:1px solid var(--line)} }
+  /* two-column: left = clean user chat (hero), right = live evidence panel */  .cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:18px;align-items:start}
   .evidence{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px 15px 16px;min-height:320px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
   .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:5px}
   .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18);flex:none}
@@ -227,6 +255,31 @@
 </div>
 
 <div class="wrap">
+  <details class="howto" id="howto">
+    <summary><span class="howto-t">🗺️ ระบบทำงานยังไง (จากคำถาม → คำตอบ)</span><span class="howto-hint">กดเพื่อดู · มีสวิตช์ดูเบื้องหลังเทคนิค</span></summary>
+    <div class="howto-body">
+      <label class="sw-toggle"><input type="checkbox" id="swtech"><span class="pip"></span>🔬 เบื้องหลังเทคนิค</label>
+      <div class="swlane" id="swlane">
+        <div class="swrow swu"><div class="swact">👤 ผู้ใช้</div><div class="swbody">
+          <div class="swstep"><b>1.</b> พิมพ์คำถาม เช่น "ส่ง Turnitin เกิน 25% ทำยังไง"</div>
+          <div class="swstep ok"><b>✓</b> เห็นคำตอบทันที (+ ปุ่มติดต่อเจ้าหน้าที่ถ้าต้องส่งต่อ)</div>
+          <div class="swtech">หน้าเว็บเรียก kernel ที่คอมไพล์เป็น <code>WebAssembly</code> รันในเบราว์เซอร์ 100% — ไม่มีข้อมูลออกนอกเครื่อง</div>
+        </div></div>
+        <div class="swrow swk"><div class="swact">🦀 ตัวคัดกรอง</div><div class="swbody">
+          <div class="swstep"><b>2.</b> รับคำถาม → ถามตัวเองว่า "เคยตอบเรื่องนี้ได้ไหม?"</div>
+          <div class="swstep ok"><b>→</b> เคย (เจอในคู่มือ) → ตอบเลย <b style="color:var(--fast,#22c58b)">ฟรี · เร็วมาก</b></div>
+          <div class="swstep esc"><b>→</b> ไม่แน่ใจ → ส่งต่อ + บันทึกไว้ปรับปรุงคู่มือ</div>
+          <div class="swtech"><code>sigmoid gate (θ=0.72)</code> + ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82%) · ทุกคำตอบผนึก <code>BLAKE3 proof</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns</code></div>
+        </div></div>
+        <div class="swrow swa"><div class="swact">🤖 AI / เจ้าหน้าที่</div><div class="swbody">
+          <div class="swstep"><b>3.</b> เฉพาะคำถาม <b>ใหม่จริง ~20%</b> เท่านั้นที่มาถึงชั้นนี้</div>
+          <div class="swstep"><b>·</b> AI ช่วยร่างจากคู่มือ (ห้ามแต่งเอง) หรือเจ้าหน้าที่ดูแลต่อ</div>
+          <div class="swtech">เรียก LLM เฉพาะ escalate ด้วย prompt <code>"ห้ามแต่งนอก KB"</code> · คำถามที่ตอบไม่ได้เข้า <code>gap log</code> → ปรับคู่มือ ไม่เทรนโมเดลใหม่</div>
+        </div></div>
+      </div>
+      <div class="howto-foot">💡 คำถามซ้ำ ๆ ส่วนใหญ่จบที่ชั้น 🦀 โดยไม่แตะ AI — ถูก เร็ว ตรวจสอบย้อนหลังได้</div>
+    </div>
+  </details>
   <div class="cols">
     <div class="chatcol">
       <div class="chips" id="chips"></div>
@@ -933,6 +986,8 @@ async function sendFeedback(id, reward){
 }
 $('send').addEventListener('click', ask);
 $('q').addEventListener('keydown', e=>{ if(e.key==='Enter') ask(); });
+// 'how it works' swimlane: tech toggle
+(function(){ const cb=$('swtech'), box=$('howto'); if(cb&&box) cb.addEventListener('change',()=>box.classList.toggle('showtech',cb.checked)); })();
 </script>
 </body>
 </html>
