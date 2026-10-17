@@ -157,6 +157,14 @@ provider — **Typhoon (Thai-tuned) รันในเครื่องผ่�
 | Fast-path latency (end-to-end kernel) | **< 100 µs** | encode + route + BLAKE3 attest |
 | ต้นทุน token เส้นทางเร็ว | **0 tokens** | ออกแบบไว้ให้ > 80% ของงานไม่แตะ LLM |
 | หลักฐานการตัดสินใจ | **BLAKE3 reproducible** | `crates/reflex-kernel/src/attestation.rs` |
+| KB retrieval (neurosymbolic TF-IDF) | **recall@1 = 82% · recall@3 = 96%** | eval 50 คำถามจริง `tests/kb_search.test.mjs` (วัดสด) |
+| off-corpus abstain (ไม่เดา) | **2/2 ถูก · false-positive ≤ 6/50** | eval เดียวกัน |
+
+> **การค้นคู่มือเป็น neurosymbolic จริง (วัดก่อนเลือก):** เทียบ 3 วิธีบนคอร์ปัสจริง —
+> SimHash (recall@1 1/11, ตัดทิ้ง) · lexical ล้วน (5/11) · **TF-IDF cosine (6/11@1, 9/11@3 →
+> ผู้ชนะ)** จึงเลือก TF-IDF เป็นหลัก + ใช้ lexical overlap เป็นสัญญาณ symbolic เสริม. การรวม
+> สองสัญญาณนี้ (overlap-aware gate) แก้เคสจริงที่ผู้ใช้เจอ — "Turnitin เกิน 25% ทำอย่างไร" ที่
+> เดิมได้คะแนนไม่มั่นใจ (cosine เจือจางเพราะ keyword ยาว) ให้กลับมาตอบมั่นใจ (s=6).
 
 > ตัวเลข ns ข้างบนวัดสดด้วย Criterion บนเครื่องพัฒนา (Apple Silicon) ค่าจริงขึ้นกับฮาร์ดแวร์
 > จุดสำคัญคือ **การตัดสินใจเส้นทางอยู่ในระดับนาโน-ไมโครวินาที** เทียบกับการเรียก LLM ที่ใช้ 350–800 ms
@@ -175,6 +183,9 @@ provider — **Typhoon (Thai-tuned) รันในเครื่องผ่�
   - Reflex Kernel (routing + BLAKE3 + EMA) + benchmark
   - แชตบอต + แดชบอร์ด **live** ที่ `reflexwork.pages.dev` (WASM kernel ในเบราว์เซอร์)
   - **self-improving KB (learning loop)** — gap log (PII-masked) + entry confidence (EMA) + auto-draft → human approve
+  - **EMA-bandit จาก 👍/👎** — สัดส่วน FastPath ปรับตัวเองจาก feedback ผู้ใช้แบบ exponential moving average (deterministic, 0 token)
+  - **UX แยกชั้น user/หลักฐาน** — หน้าแชตแบ่งสองคอลัมน์: ซ้าย = สิ่งที่ผู้ใช้เห็น (คำตอบสะอาด), ขวา = หลักฐานที่ตรวจสอบได้ (เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 proof) ต่อแต่ละข้อความ — สื่อจุดขาย auditable โดยไม่รกหน้าผู้ใช้
+  - **Feature Coverage Radar** — สรุป coverage ต่อมิติของเราเอง (FastPath 95% · Audit 95% · KB 90% · Abstain 90% …) ในสไลด์/one-pager
   - **@reflexwork/kernel** — แพ็กเป็น npm lib ติดตั้งไปใช้ได้จริง (smoke test ผ่าน) + `reflexwork init` scaffolder
   - **federated corpus** — หลาย install ช่วยกันโต corpus กลางผ่าน signal ที่ mask แล้ว (ไม่มี raw text ออกจากเครื่อง); two-install demo รันได้จริง
   - **Solana program `workflow-escrow` deploy จริงบน devnet** (`6Dzv8va1Se8…tYE5`) — anchor hash ของ corpus release ให้ตรวจสอบข้ามองค์กรได้
