@@ -18,6 +18,7 @@ import { askTeam } from '../_shared/team-adapter.mjs';
 import { humanize } from '../_shared/humanize.mjs';
 import { decide } from '../_shared/rethink.mjs';
 import { classifyIssue, intakePrompt, isAdvice, groundedPrompt } from '../_shared/intake.mjs';
+import { createMood, classifySmalltalk, smalltalkReply } from '../_shared/smalltalk.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -191,6 +192,18 @@ async function processEvents(raw, env) {
         await reply(ev.replyToken, r.ok
           ? `✅ บันทึกเป็น KB draft แล้วครับ (รออนุมัติในแดชบอร์ด)\nคำถาม: ${question}`
           : 'บันทึกไม่สำเร็จครับ ลองใหม่อีกครั้ง', '', token);
+        continue;
+      }
+
+      // Smalltalk first — a greeting/thanks is not a knowledge question and not
+      // a staff case. Greet back and invite the user to say what they need,
+      // instead of coldly routing to the LLM/staff fallback. Deterministic,
+      // 0 token. (LINE is stateless per webhook, so mood starts fresh each turn;
+      // that only affects the greeting word, which is correct for a new message.)
+      const _st = classifySmalltalk(text);
+      if (_st) {
+        const mood = createMood().felt(_st === 'thanks' ? 'thanks' : 'neutral');
+        await reply(ev.replyToken, smalltalkReply(_st, mood), '\n\n💬 คุยทั่วไป · ไม่เรียก AI · 0 token', token);
         continue;
       }
 

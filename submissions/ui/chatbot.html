@@ -154,7 +154,33 @@
     .ratio-fill::after{display:none}
     .typing i{animation:none;opacity:.6}
     .chip:hover,.msg.b .golink:hover{transform:none}
+    .mood-face{animation:none}
   }
+
+  /* --- mood indicator: a small, honest window into the affect kernel ------
+     Shows how the deterministic MOOD state "feels" about the conversation —
+     it only tunes wrapper tone, never KB facts. The meter maps valence -1..+1
+     to 0..100%. Colors come from the shared brand tokens. */
+  .mood{display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+    padding:5px 11px 5px 8px;border:1px solid var(--line);border-radius:999px;
+    background:rgba(18,26,51,.6);font-size:12.5px;color:var(--muted);
+    transition:border-color .5s ease,background .5s ease}
+  .mood-face{font-size:16px;line-height:1;transition:transform .4s cubic-bezier(.22,.61,.36,1)}
+  .mood.bump .mood-face{animation:mood-bump .5s ease-out 1}
+  @keyframes mood-bump{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(-6deg)}100%{transform:scale(1)}}
+  .mood-label{font-weight:600;color:var(--ink);letter-spacing:.2px}
+  .mood-meter{width:46px;height:6px;border-radius:999px;background:var(--line);overflow:hidden}
+  .mood-meter i{display:block;height:100%;width:60%;border-radius:999px;
+    background:var(--accent);transition:width .5s ease,background .5s ease}
+  /* hue variants driven by snapshot().hue */
+  .mood[data-hue="warm"]{border-color:rgba(34,197,139,.5);background:rgba(34,197,139,.1)}
+  .mood[data-hue="warm"] .mood-meter i{background:var(--fast)}
+  .mood[data-hue="ok"] .mood-meter i{background:var(--accent)}
+  .mood[data-hue="low"]{border-color:rgba(246,169,59,.45);background:rgba(246,169,59,.09)}
+  .mood[data-hue="low"] .mood-meter i{background:var(--llm)}
+  .mood[data-hue="miss"]{border-color:rgba(255,107,122,.5);background:rgba(255,107,122,.1)}
+  .mood[data-hue="miss"] .mood-meter i{background:var(--warn)}
+  @media (max-width:560px){ .mood{margin-top:10px;font-size:12px} }
 </style>
 </head>
 <body>
@@ -172,6 +198,11 @@
   <div class="org">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
   <h1>ถาม-ตอบ เรื่องลงทะเบียน & ส่งวิทยานิพนธ์</h1>
   <p>พิมพ์คำถาม → ระบบคัดก่อน: เจอในคู่มือ = ตอบทันทีไม่ใช้ AI · ไม่เจอ = ส่งให้ AI ช่วย</p>
+  <div class="mood" id="mood" title="สถานะอารมณ์ของผู้ช่วย — เปลี่ยนตามบทสนทนา (deterministic, ไม่ใช้ AI)">
+    <span class="mood-face" id="mood-face">🦀</span>
+    <span class="mood-label" id="mood-label">ตั้งใจฟัง</span>
+    <span class="mood-meter"><i id="mood-fill"></i></span>
+  </div>
 </div>
 
 <div class="wrap">
@@ -196,7 +227,7 @@
 </div>
 
 <script type="module">
-import init, { route_task } from './wasm/reflex_wasm.js';
+import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
 const COST=2;
@@ -230,6 +261,7 @@ async function load(){
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     $('q').value=c.textContent.replace(/^[🟢🟠]\s*/,''); ask();
   }));
+  renderMood(false);
 }
 load().catch(()=>{
   const boot=$('boot');
@@ -254,21 +286,48 @@ const FALLBACK_KB = [
     source_url:'https://graduate.mahidol.ac.th/', faq_number:'' },
 ];
 
-// score KB entry vs query. Thai has no word spaces, so we use overlap of
-// character n-grams (len 3) plus any space-separated tokens.
-function search(q){
-  const ql = q.toLowerCase();
-  const grams = new Set();
-  for(const tok of ql.split(/\s+/)) if(tok.length>1) grams.add(tok);
-  for(let i=0;i<ql.length-2;i++){ const g=ql.slice(i,i+3).trim(); if(g.length===3) grams.add(g); }
+// KB retrieval — NEUROSYMBOLIC HYBRID, now implemented IN RUST (reflex-wasm
+// crates/reflex-wasm/src/lib.rs::kb_search), called over WASM. Single source of
+// truth: the same TF-IDF cosine + calibrated gate score runs in the kernel crate
+// (native tests) and in the browser (this call), so there is no JS/Rust logic
+// drift. `search()` is now a thin adapter that maps the Rust result (id → score)
+// back to KB entry objects so the rest of ask() is unchanged. A pure-JS fallback
+// (same algorithm) keeps the page working if the WASM export is ever missing and
+// lets the Node recall test exercise the logic headlessly.
+function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new Set();
+  for(const tok of s.split(/\s+/)) if(tok.length>1) g.add(tok);
+  for(let i=0;i<s.length-2;i++){ const t=s.slice(i,i+3).trim(); if(t.length===3) g.add(t);} return g; }
+function _cosToScore(c, margin){
+  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.22) return 4;
+  if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
+function _jsSearch(q){
+  const docGrams=KB.map(e=>_jsGramSet(e.keywords)); const DF=new Map();
+  for(const gs of docGrams) for(const g of gs) DF.set(g,(DF.get(g)||0)+1);
+  const N=KB.length||1; const idf=g=>Math.log((N+1)/((DF.get(g)||0)+1))+1;
+  const nv=gs=>{const v=new Map();let n2=0;for(const g of gs){const w=idf(g);v.set(g,w);n2+=w*w;}const nr=Math.sqrt(n2)||1;for(const[k,w] of v)v.set(k,w/nr);return v;};
+  const DV=docGrams.map(nv); const qg=_jsGramSet(q); const qv=nv([...qg]);
   const scored=[];
-  for(const e of KB){
-    let s=0; for(const g of grams){ if(e.keywords.includes(g)) s++; }
-    if(s>0) scored.push({e, s});
-  }
-  scored.sort((a,b)=>b.s-a.s);
-  // returns ranked list; ask() decides confident / ambiguous / escalate
+  for(let i=0;i<KB.length;i++){ const e=KB[i]; let overlap=0; for(const g of qg) if(e.keywords.includes(g)) overlap++;
+    let cos=0; const dv=DV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; }
+    if(overlap>0||cos>0) scored.push({e,cos,overlap}); }
+  scored.sort((a,b)=>(b.cos-a.cos)||(b.overlap-a.overlap));
+  const runner=scored[1]?scored[1].cos:0;
+  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; scored[i].s=_cosToScore(scored[i].cos,margin); }
   return scored;
+}
+function search(q){
+  // Prefer the Rust/WASM kernel (single source of truth). Map id → entry.
+  if(typeof wasm_kb_search==='function' && KB.length){
+    try{
+      const lite=KB.map(e=>({id:e.id, keywords:e.keywords}));
+      const hits=wasm_kb_search(lite, q) || [];
+      const byId=new Map(KB.map(e=>[e.id,e]));
+      const mapped=[];
+      for(const h of hits){ const e=byId.get(h.id); if(e) mapped.push({e, s:h.s, cos:h.cos, overlap:h.overlap}); }
+      if(mapped.length) return mapped;
+    }catch(_){ /* fall through to JS */ }
+  }
+  return _jsSearch(q);
 }
 
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d);
@@ -287,9 +346,10 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
 // (Kept in lockstep with integrations/_shared/humanize.mjs used by the LINE worker.)
 function hashStr(s){ let h=2166136261>>>0; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
 function pick(arr, seed){ return arr[(seed>>>0) % arr.length] ?? ''; }
-const _OPENERS = ['ได้เลยครับ','เรื่องนี้ตอบได้ครับ','ตามระเบียบบัณฑิตวิทยาลัยนะครับ','สรุปให้สั้น ๆ ครับ','อธิบายให้ฟังนะครับ','เป็นแบบนี้ครับ','คำตอบคือแบบนี้ครับ','ยินดีช่วยครับ','เข้าใจคำถามแล้วครับ','ประเด็นนี้ชัดเจนครับ','ขออธิบายตามคู่มือครับ'];
-const _CONN = ['',' — ',' ',' คือ ',': ',' โดย '];
-const _CLOSE = ['หากต้องการรายละเอียดเพิ่มเติม ดูได้จากแหล่งอ้างอิงด้านล่างครับ','ถ้ายังมีข้อสงสัย ถามต่อได้เลยครับ','หวังว่าช่วยได้ครับ 🙂','มีอะไรให้ช่วยอีกไหมครับ','ลองถามเพิ่มได้นะครับ','ข้อมูลนี้อ้างอิงจากคู่มือทางการครับ','','',''];
+// Direct, factual NLG — a real person answering a FAQ leads with the fact, not a
+// polite preamble. Over-stacked openers/closers ("ยินดีช่วยครับ…หวังว่าช่วยได้ครับ 🙂")
+// read as uncanny/robotic, so we drop them. Tiny neutral connectors only.
+const _CLOSE = ['','','','','','','','',''];
 function _frame(q){ q=(q||'').toLowerCase();
   if(/กี่วัน|ภายในกี่|นานแค่ไหน|เมื่อไหร่|กี่สัปดาห์/.test(q)) return 'เรื่องระยะเวลา ';
   if(/เท่าไร|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม/.test(q)) return 'เรื่องค่าใช้จ่าย ';
@@ -299,18 +359,23 @@ function _frame(q){ q=(q||'').toLowerCase();
 function humanize(hit, q){
   const body=(hit.answer||'').trim(); if(!body) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const seed=hashStr((q||'')+'|'+(hit.title||''));
-  const opener=pick(_OPENERS,seed), closer=pick(_CLOSE,seed>>11);
+  const closer=pick(_CLOSE,seed>>11);
   const lead=slotLead(hit,q);
-  let bridge, text;
-  if(lead){ text=`${lead} รายละเอียด: ${body}`; bridge=' '; }
-  else { const frame=_frame(q); if(frame){ bridge=' '+frame; } else { const c=pick(_CONN,seed>>5); bridge=c&&c.trim()?c:' '; } text=body; }
-  let out=opener+bridge+text; if(closer) out+=' '+closer; return out;
+  let text;
+  if(lead){
+    // The specific fact asked (21 วัน / 500 บาท) leads; the lead IS the opener.
+    text = `${lead} — รายละเอียด: ${body}`;
+  } else {
+    const frame=_frame(q);
+    text = frame ? frame + body : body;
+  }
+  let out=text; if(closer) out+=' '+closer; return out;
 }
 // --- Slot-filling: lead with the SPECIFIC fact asked (duration/cost/percent), no AI
 const _SLOTS=[
-  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>`${/ไม่เกิน|ภายใน/.test(m)?'':'ภายใน'}${m}ครับ` },
-  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, grab:/\d[\d,]*\s*บาท/, lead:m=>`${m}ครับ` },
-  { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}ครับ` },
+  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>`${/ไม่เกิน|ภายใน/.test(m)?'':'ภายใน'}${m}` },
+  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, grab:/\d[\d,]*\s*บาท/, lead:m=>`${m}` },
+  { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}` },
 ];
 function slotLead(hit,q){ q=q||''; const body=String(hit.answer||'');
   for(const s of _SLOTS){ if(!s.ask.test(q)) continue; const m=body.match(s.grab); if(m) return s.lead(m[0].trim().replace(/\s+/g,' ')); }
@@ -357,6 +422,14 @@ function classifyIssue(text){ const q=String(text||''); if(!q.trim()) return nul
 const _ADVICE=/แนะนำ|ช่วย.*(ยังไง|อย่างไร|หน่อย)|วิธีวางแผน|วางแผน|จัดการเวลา|เตรียมตัว|ควรทำ|ทำยังไงดี|แนวทาง/;
 const _FACTUAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|กี่ ?%|กี่คน|วันไหน|เมื่อไหร่/;
 function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(q); }
+// English detection: the KB is Thai (char-n-gram keyed), so a Latin-script
+// question with no Thai characters is one we may not be able to match. We don't
+// TRANSLATE (that would risk inventing facts — against "facts from KB only");
+// instead, when such a question finds no KB answer, we hand off IN ENGLISH to
+// the official English FAQ + staff, rather than dropping to the hallucination-
+// prone LLM path or replying in Thai. A question mixing Thai + English (common)
+// is treated as Thai and uses the normal KB path.
+function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 async function groundedHybrid(q, entries){
   if(!KERNEL_API) return null;
@@ -370,10 +443,159 @@ async function groundedHybrid(q, entries){
   }catch{ return null; }
 }
 
+// --- Affect kernel (deterministic mood, no AI) -------------------------------
+// Inspired by katgpt's NPC affect model (katopz.github.io/katgpt-web): a chat
+// agent that reads like a person has a MOOD that shifts with the conversation,
+// not a fixed template voice. We keep it deterministic (a tiny state machine),
+// so it stays auditable and 0-token — the mood only tunes the WRAPPER tone
+// (greeting / empathy / sign-off), never the KB facts. Facts stay from the KB.
+const MOOD = {
+  // valence: how the bot "feels" about how the conversation is going (-1..+1)
+  valence: 0.2, turns: 0, lastWasMiss: false, missStreak: 0,
+  // nudge the mood on each outcome
+  felt(kind){
+    this.turns++;
+    if(kind==='hit')       this.valence = Math.min(1, this.valence + 0.25); // answered well → warmer
+    else if(kind==='miss') { this.valence = Math.max(-1, this.valence - 0.35); this.lastWasMiss=true; } // couldn't help → concerned
+    else if(kind==='thanks') this.valence = Math.min(1, this.valence + 0.3);
+    if(kind==='miss') this.missStreak++; else { this.lastWasMiss=false; this.missStreak=0; }
+    return this;
+  },
+  // BEHAVIOR signal (not a fact change): after repeated failures a caring human
+  // stops re-trying the same path and proactively escalates. This changes WHAT
+  // THE BOT DOES (surface staff sooner / more prominently), never the KB facts.
+  frustrated(){ return this.missStreak>=2 || this.valence<=-0.3; },
+  // a short, mood-appropriate opener for conversational (non-factual) replies.
+  // Factual KB answers do NOT get these — they lead with the fact (see humanize).
+  greetOpener(){
+    if(this.turns<=0) return 'สวัสดีครับ';
+    return this.valence>0.5 ? 'ยินดีครับ' : 'สวัสดีครับ';
+  },
+  // empathy line when we have to hand off — warmth scales with how stuck we are
+  empathy(){
+    return this.lastWasMiss
+      ? 'ขอโทษด้วยนะครับที่ยังหาคำตอบให้ไม่ได้'
+      : 'เรื่องนี้ขอให้เจ้าหน้าที่ช่วยดูแลต่อนะครับ';
+  },
+  // glanceable snapshot for the mood indicator (pure fn of valence — auditable)
+  snapshot(){
+    if(this.lastWasMiss)     return {emoji:'😟', label:'เป็นห่วง',  hue:'miss'};
+    if(this.valence>=0.6)    return {emoji:'😊', label:'อารมณ์ดี',  hue:'warm'};
+    if(this.valence>=0.3)    return {emoji:'🙂', label:'พร้อมช่วย', hue:'ok'};
+    if(this.valence<=-0.2)   return {emoji:'😔', label:'กังวล',     hue:'low'};
+    return {emoji:'🦀', label:'ตั้งใจฟัง', hue:'neutral'};
+  }
+};
+
+// Paint the mood indicator from the current MOOD state. Called after every
+// outcome so the user watches the bot's "feeling" shift with the conversation.
+function renderMood(bump){
+  const el=$('mood'); if(!el) return;
+  const s=MOOD.snapshot();
+  $('mood-face').textContent=s.emoji;
+  $('mood-label').textContent=s.label;
+  // valence -1..+1 → 8..100% meter width
+  const pct=Math.round(8 + ((MOOD.valence+1)/2)*92);
+  $('mood-fill').style.width=pct+'%';
+  el.dataset.hue=s.hue;
+  if(bump){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+}
+
+// Mood → BEHAVIOR (not facts): when the bot has missed repeatedly, it proactively
+// pushes the user toward a human instead of looking like it's still fumbling. This
+// line appears ONLY when MOOD.frustrated() — a caring escalation, 0-token.
+function frustratedNote(){
+  return MOOD.frustrated()
+    ? `<div class="ans" style="background:rgba(246,169,59,.12);border:1px solid rgba(246,169,59,.4);border-radius:10px;padding:9px 11px;margin-bottom:8px">🙇 ผมยังหาคำตอบที่ตรงให้ไม่ได้หลายครั้งแล้ว — เพื่อไม่ให้เสียเวลา แนะนำให้ติดต่อเจ้าหน้าที่โดยตรงเลยนะครับ (ปุ่มด้านล่าง)</div>`
+    : '';
+}
+
+// DISTILLED from katgpt-rs PersonalityWeightedComposition (Plan 297): a small
+// feature vector per message, scored per-intent as sigmoid(dot(f, w)/τ), argmax
+// over the gate. Signed weights (never softmax) mean negation is a resisting
+// FEATURE, not a special-case guard — "ขอบคุณที่ไม่ช่วย" scores thanks=+ neg=− →
+// below gate → falls through. Kept in lockstep with _shared/smalltalk.mjs.
+const _FEATURES = [
+  ['greet_lead', /^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey|ฮัลโหล|โย่|ทัก)/i],
+  ['thanks_w',   /(?:ขอบคุณ|ขอบใจ|thank|thx)/i],
+  ['praise_w',   /(?:เยี่ยม|สุดยอด|เก่งมาก|เก่งจัง|ฉลาด|ดีจัง|great job|awesome|well done)/i],
+  ['bye_lead',   /^(?:บาย|ลาก่อน|ไปละ|แค่นี้|bye|goodbye|โอเคครับ|โอเคค่ะ)/i],
+  ['whatcan_w',  /(?:ทำอะไรได้|ช่วยอะไรได้|คุณคือใคร|คุณเป็นใคร|ใช้ยังไง|นี่คืออะไร|what can you|who are you)/i],
+  ['howareyou_w',/(?:สบายดี(?:ไหม|มั้ย)|เป็นไงบ้าง|เป็นยังไงบ้าง|how are you)/i],
+  ['question',   /\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i],
+  ['neg', new RegExp(['ไม่\\s*(?:ช่วย|ได้|เห็น|รู้|เข้าใจ|ตรง|โอเค|เวิร์ก|เวิร์ค|มีประโยชน์)',
+    'ไม่เอา','ไม่ไหว','ผิด(?:อีก|แล้ว|มหันต์)?','มั่ว','พัง','เสียเวลา','เสียดาย',
+    'ห่วย','แย่','โง่','งี่เง่า','กาก','ไร้สาระ','น่าเบื่อ','ทำพัง','บ้า(?!ง)',
+    'เก่ง.*ไม่','ฉลาด.*ไม่','เยี่ยม.*ไม่','สุดยอด.*ไม่','ดีจัง.*ไม่',
+    'useless','worthless','terrible','awful','waste of',"doesn'?t work",
+    "didn'?t (?:help|work)",'not (?:helpful|working|useful)','no help','so (?:dumb|stupid|bad)'].join('|'),'i')],
+];
+const _FI = Object.fromEntries(_FEATURES.map(([n],i)=>[n,i]));
+function _row(o){ const r=new Array(_FEATURES.length).fill(0); for(const k in o) r[_FI[k]]=o[k]; return r; }
+const _INTENTS = [
+  { kind:'greet',     w:_row({greet_lead:1.0, question:-0.9}) },
+  { kind:'thanks',    w:_row({thanks_w:1.0, praise_w:0.7, neg:-1.6, question:-0.5}) },
+  { kind:'howareyou', w:_row({howareyou_w:1.0, neg:-1.6, question:-0.5}) },
+  { kind:'whatcan',   w:_row({whatcan_w:1.0, neg:-1.6, question:-0.3}) },
+  { kind:'bye',       w:_row({bye_lead:1.0, question:-0.9}) },
+];
+const _TAU=0.6, _GATE=0.5;
+function _sig(x){ return 1/(1+Math.exp(-x/_TAU)); }
+function scoreSmalltalk(text){
+  const q=String(text||'').trim(); if(!q) return null;
+  const stripped=q.replace(/^(?:สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)\s*,?\s*/i,'');
+  const probeOn=(stripped.length>3 && /\?|กี่|เท่าไร|อย่างไร|ยังไง|ทำไม|วิธี|ขั้นตอน|turnitin|ลงทะเบียน|วิทยานิพนธ์|สอบ|ค่า/i.test(stripped)) ? stripped : q;
+  const f=_FEATURES.map(([,re])=>re.test(probeOn)?1:0);
+  let best=null;
+  for(const it of _INTENTS){ let dot=0; for(let i=0;i<f.length;i++) dot+=f[i]*it.w[i]; const gate=_sig(dot); if(gate>_GATE && (!best||gate>best.score)) best={kind:it.kind, score:gate}; }
+  return best;
+}
+function classifySmalltalk(text){
+  // Prefer the Rust/WASM scorer (single source of truth, reflex-wasm
+  // ::classify_smalltalk) — returns "" for non-smalltalk. JS scorer is fallback.
+  if(typeof wasm_classify==='function'){
+    try{ const k=wasm_classify(text); return k && k.length ? k : null; }catch(_){}
+  }
+  const r=scoreSmalltalk(text); return r?r.kind:null;
+}
+function smalltalkReply(kind){
+  const op = MOOD.greetOpener();
+  switch(kind){
+    case 'greet':
+      return `${op} 🦀 ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน`;
+    case 'thanks':
+      return `ยินดีครับ 🙂 ถ้ามีอะไรให้ช่วยอีกถามได้เลยนะครับ`;
+    case 'bye':
+      return `ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀`;
+    case 'whatcan':
+      return `ผมตอบคำถามเรื่องบัณฑิตวิทยาลัยได้ครับ — กำหนดส่งวิทยานิพนธ์ · Turnitin/การตรวจความซ้ำ · บทคัดย่อ · การลงทะเบียน · ค่าสอบ/ค่าธรรมเนียม และถ้าเป็นปัญหาบัญชี/ระบบ ผมจะช่วยเก็บข้อมูลส่งต่อเจ้าหน้าที่ให้ครับ ลองถามมาได้เลย`;
+    case 'howareyou':
+      return `สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?`;
+    default:
+      return `${op} มีอะไรให้ช่วยไหมครับ?`;
+  }
+}
+
 function ask(){
   if(!ready) return;
   const q=$('q').value.trim(); if(!q) return;
   add('u', q); $('q').value='';
+
+  // Smalltalk first — a greeting/thanks is NOT a knowledge question and NOT a
+  // staff case. Greet back and INVITE the user to say what they need (let them
+  // finish their thought) instead of coldly routing to the LLM/staff fallback.
+  // Deterministic, 0 token — and it nudges the affect kernel's mood.
+  const st = classifySmalltalk(q);
+  if(st){
+    MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
+    renderMood(true);
+    const moodTag = MOOD.valence>0.5 ? '😊' : '🙂';
+    add('b', `<span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">💬 คุยทั่วไป ${moodTag} · ไม่เรียก AI · 0 token</span>
+      <div class="ans">${smalltalkReply(st)}</div>
+      <div class="meta">kernel คัดว่าเป็นการทักทาย/สนทนา — ไม่ใช่คำถามคู่มือและไม่ใช่เคสเจ้าหน้าที่ จึงทักกลับและรอให้เล่าความต้องการก่อน (deterministic, ไม่เรียก AI)</div>`);
+    return;
+  }
+
   const t0=performance.now();
   // The KERNEL decides the route — this is the real sigmoid gate running in WASM,
   // not a keyword lookup. We show its actual decision + reproducible proof.
@@ -399,6 +621,10 @@ function ask(){
     : (d.fast_path ? Math.min(0.59, 0.30 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.25)
                    : Math.max(0.70, 0.60 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.35));
   const verdict = decideTier({ gate: gateProxy, ranked });
+  // Affect kernel: answering well warms the mood; a miss (abstain/escalate)
+  // makes the bot more apologetic in its hand-off. Deterministic, tone-only.
+  MOOD.felt(verdict.action==='escalate' ? 'miss' : 'hit');
+  renderMood(true);
   const stageTag = verdict.stage==='rethink'
     ? `<span class="km" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔁 rethink</span>`
     : `<span class="km">⚡ reflex</span>`;
@@ -417,7 +643,8 @@ function ask(){
         if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
         add('b', `${kstrip}
           <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
-          <div class="ans">คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอครับ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อ</div>
+          ${frustratedNote()}
+          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อครับ</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
             <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>
@@ -500,6 +727,28 @@ function ask(){
     // so staff get a backlog of what the KB is missing — the self-improving loop.
     if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
 
+    // English question with no KB match → abstain IN ENGLISH to the official
+    // English FAQ + staff. We do NOT translate-and-answer (that would risk
+    // inventing facts, against "facts from KB only"), and we do NOT reply in
+    // Thai to an English speaker. Honest hand-off instead of a wrong guess.
+    if(isEnglish(q)){
+      add('b', `${kstrip}
+        <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 English question — not in the (Thai) knowledge base → staff / official FAQ ${stageTag}</span>
+        <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — here's the official English FAQ and how to reach a human, who can answer accurately.</div>
+        <div class="meta">kernel abstain: off-corpus (English, no KB match) — routed to staff instead of a generative guess ("facts from the KB only").</div>
+        <div class="staffbox">
+          <div class="staff-h">Get an accurate answer</div>
+          <div class="staff-btns">
+            <a class="golink" href="https://graduate.mahidol.ac.th/eng/" target="_blank" rel="noopener">🌐 Graduate School (English)</a>
+            <a class="golink alt" href="https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng" target="_blank" rel="noopener">📚 Official FAQ (English)</a>
+            <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ Contact staff</a>
+          </div>
+        </div>
+        ${fbUI(q, d.blake3_proof)}`);
+      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      return;
+    }
+
     // Intake: if this is a PERSONAL/TECHNICAL issue (account/login/data stuck),
     // don't guess with an LLM — collect the fields staff always need, in one
     // shot, then hand off to a human. Deterministic, 0 token.
@@ -522,6 +771,7 @@ function ask(){
     } else {
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
+      ${frustratedNote()}
       <div class="meta">${verdict.reason}</div>
       <span id="${mid}">${KERNEL_API ? '⏳ กำลังถาม AI…' : 'คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน'}</span>
       <div class="staffbox">

@@ -1,0 +1,22 @@
+# Dioxus chatbot PoC — feasibility probe (Plan: full-Rust UI, karaoke pattern).
+# Goal: prove a Dioxus web page can render the ReflexWork chatbot shell + call the
+# SAME Rust kernel logic (reflex-wasm) in one Rust/WASM module, deployed like
+# /Users/ozone/karaoke (dx build → dist/ → wrangler assets). NOT a full rewrite.
+[package]
+name = "reflexwork-chatbot-dioxus"
+version = "0.0.1"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+dioxus = { version = "0.7.1", features = ["web"] }
+# NOTE: the real app would add `reflex-wasm = { path = "../../crates/reflex-wasm" }`
+# and call kb_search / classify_smalltalk directly — one Rust codebase, no drift.
+# The PoC inlines a trimmed classifier so it builds standalone and fast.
+
+[profile.release]
+opt-level = "s"
+lto = true
+
+[workspace]
