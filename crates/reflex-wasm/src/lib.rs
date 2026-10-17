@@ -240,15 +240,28 @@ struct KbHit {
     overlap: i32,
 }
 
-/// cosine ∈ [0,1] → integer gate score, calibrated to the KB's measured cosine
-/// distribution (correct tops land ~0.20–0.49). `margin` = gap to the runner-up:
-/// the strong/humanize tier requires a clear winner, so a near-tie disambiguates.
-fn cos_to_score(c: f32, margin: f32) -> i32 {
+/// cosine + lexical overlap → integer gate score (the neurosymbolic blend).
+/// Cosine alone under-scores entries with LONG keyword lists (TF-IDF norm divides
+/// by a big vector), so a clearly-dominant lexical match like "Turnitin เกิน 25%"
+/// → thesis_turnitin (overlap 15, cosine only 0.20 because the entry has 20+
+/// keywords) was landing at s=3 (disambiguate) despite being obviously right.
+/// We lift the score when the SYMBOLIC signal is strong: high overlap AND a clear
+/// overlap lead over the runner-up means "confident", even if the sub-symbolic
+/// cosine is diluted. `margin` = cosine gap; `ov`/`ov_lead` = overlap + lead.
+fn cos_to_score(c: f32, margin: f32, ov: i32, ov_lead: i32) -> i32 {
+    // strong symbolic: dominant lexical overlap with a clear lead → humanize-grade
+    if ov >= 8 && ov_lead >= 4 {
+        return 6;
+    }
+    if ov >= 5 && ov_lead >= 2 {
+        return 5;
+    }
+    // otherwise fall back to the calibrated cosine tiers (+ margin for the top)
     if c >= 0.40 && margin >= 0.08 {
         6
     } else if c >= 0.30 {
         5
-    } else if c >= 0.22 {
+    } else if c >= 0.20 {
         4
     } else if c >= 0.15 {
         3
@@ -328,9 +341,11 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
     });
     // assign the gate score from cosine + margin to runner-up
     let runner = scored.get(1).map(|h| h.cos).unwrap_or(0.0);
+    let runner_overlap = scored.get(1).map(|h| h.overlap).unwrap_or(0);
     for (i, h) in scored.iter_mut().enumerate() {
         let margin = if i == 0 { h.cos - runner } else { 0.0 };
-        h.s = cos_to_score(h.cos, margin);
+        let ov_lead = if i == 0 { h.overlap - runner_overlap } else { 0 };
+        h.s = cos_to_score(h.cos, margin, h.overlap, ov_lead);
     }
     serde_wasm_bindgen::to_value(&scored).unwrap()
 }
@@ -489,9 +504,13 @@ mod tests {
 
     #[test]
     fn cos_to_score_calibration() {
-        assert_eq!(cos_to_score(0.45, 0.10), 6); // strong + clear winner
-        assert_eq!(cos_to_score(0.45, 0.02), 5); // strong but near-tie → not humanize
-        assert_eq!(cos_to_score(0.25, 0.0), 4); // clears gate
-        assert_eq!(cos_to_score(0.10, 0.0), 1); // weak
+        // strong symbolic overlap lifts the score even with diluted cosine
+        assert_eq!(cos_to_score(0.20, 0.02, 15, 8), 6); // the Turnitin case
+        assert_eq!(cos_to_score(0.18, 0.01, 6, 2), 5); // moderate overlap lead
+        // cosine tiers when overlap is weak
+        assert_eq!(cos_to_score(0.45, 0.10, 2, 1), 6); // strong cosine + clear winner
+        assert_eq!(cos_to_score(0.45, 0.02, 2, 1), 5); // strong cosine but near-tie
+        assert_eq!(cos_to_score(0.25, 0.0, 2, 1), 4); // clears gate
+        assert_eq!(cos_to_score(0.10, 0.0, 1, 0), 1); // weak
     }
 }

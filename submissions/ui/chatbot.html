@@ -15,10 +15,29 @@
   body{background:var(--bg);color:var(--ink);min-height:100vh;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;line-height:1.55}
   .top{background:linear-gradient(135deg,#0b1020 0%,#1b2a66 55%,#3b63e8 120%);color:#fff;padding:30px 6vw 30px;border-bottom:1px solid var(--line)}
+  .top-inner{max-width:1180px;margin:0 auto}
   .top .org{opacity:.8;font-size:13px;letter-spacing:.2px}
   .top h1{font-size:clamp(21px,3vw,31px);margin:6px 0 4px;letter-spacing:-.5px}
   .top p{opacity:.88;font-size:14px}
-  .wrap{max-width:840px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 5vw 48px;display:grid;gap:18px}
+  /* two-column: left = clean user chat (hero), right = live evidence panel */
+  .cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:18px;align-items:start}
+  .evidence{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px 15px 16px;min-height:320px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
+  .evidence-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);margin-bottom:5px}
+  .evidence-h .dot{width:8px;height:8px;border-radius:50%;background:var(--audit);box-shadow:0 0 0 3px rgba(176,123,255,.18);flex:none}
+  .evidence-sub{font-size:11px;color:var(--muted);margin-bottom:13px;line-height:1.5;padding-bottom:11px;border-bottom:1px solid var(--line)}
+  .ev-empty{font-size:12px;color:var(--muted);opacity:.75;text-align:center;padding:34px 14px;line-height:1.65}
+  .ev-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:10px 12px 11px;margin-bottom:10px;animation:msg-in .3s cubic-bezier(.22,.61,.36,1) both}
+  .ev-card.active{border-color:var(--audit);box-shadow:0 0 0 1px rgba(176,123,255,.4),0 4px 18px -8px rgba(176,123,255,.4)}
+  .ev-q{font-size:11.5px;color:var(--muted);margin-bottom:9px;padding-bottom:8px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .ev-q b{color:var(--ink);font-weight:700}
+  .ev-n{flex:none;font-variant-numeric:tabular-nums;color:var(--audit);font-weight:800;font-size:11px}
+  .ev-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px}
+  /* mid screens: keep the panel at its 300px floor by relaxing the chat ratio,
+     so kernel-strip chips never squish before the full stack at 860px */
+  @media (min-width:861px) and (max-width:1040px){ .cols{grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr)} }
+  @media (max-width:860px){ .cols{grid-template-columns:1fr} .evidence{position:static;max-height:none;order:2;min-width:0} }
+  @media (prefers-reduced-motion: reduce){ .ev-card{animation:none} }
   .chat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;min-height:320px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6)}
   .msg{max-width:84%;padding:12px 15px;border-radius:14px;font-size:14.5px}
   .msg.u{align-self:flex-end;background:var(--userbg);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 14px -4px rgba(59,99,232,.5)}
@@ -195,6 +214,7 @@
   <span style="color:#5b8cff;font-size:12px">kernel เดียว · 4 มุมมอง</span>
 </nav>
 <div class="top">
+  <div class="top-inner">
   <div class="org">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
   <h1>ถาม-ตอบ เรื่องลงทะเบียน & ส่งวิทยานิพนธ์</h1>
   <p>พิมพ์คำถาม → ระบบคัดก่อน: เจอในคู่มือ = ตอบทันทีไม่ใช้ AI · ไม่เจอ = ส่งให้ AI ช่วย</p>
@@ -203,27 +223,37 @@
     <span class="mood-label" id="mood-label">ตั้งใจฟัง</span>
     <span class="mood-meter"><i id="mood-fill"></i></span>
   </div>
+  </div>
 </div>
 
 <div class="wrap">
-  <div class="chips" id="chips"></div>
-  <div class="chat" id="chat">
-    <div class="boot" id="boot">
-      <div class="spin"></div>
-      <div>กำลังโหลด Reflex Kernel (WASM) ในเบราว์เซอร์…</div>
+  <div class="cols">
+    <div class="chatcol">
+      <div class="chips" id="chips"></div>
+      <div class="chat" id="chat">
+        <div class="boot" id="boot">
+          <div class="spin"></div>
+          <div>กำลังโหลด Reflex Kernel (WASM) ในเบราว์เซอร์…</div>
+        </div>
+      </div>
+      <div class="ask">
+        <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
+        <button id="send" disabled>ถาม</button>
+      </div>
+      <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
+      <div class="ratio-wrap" id="ratio-wrap" style="display:none">
+        <div class="ratio-head"><span>สัดส่วน FastPath (ยิ่งสูง = ยิ่งประหยัด)</span><b id="ratio-pct">—</b></div>
+        <div class="ratio-track"><div class="ratio-fill" id="ratio-fill" style="width:0%"></div></div>
+        <div class="ratio-note" id="ratio-note">kernel เรียนรู้จาก 👍/👎 ของคุณ — กด 👎 บนคำตอบ FastPath แล้วดูสัดส่วนขยับ</div>
+      </div>
+      <div class="note" id="note">⏳ กำลังโหลด…</div>
     </div>
+    <aside class="evidence" id="evidence" aria-label="หลักฐานเบื้องหลัง">
+      <div class="evidence-h"><span class="dot"></span>🔬 หลักฐานเบื้องหลัง</div>
+      <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ user เห็น · ฝั่งนี้คือ<b>การตัดสินใจของ kernel ที่ตรวจสอบได้</b> — เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 proof</div>
+      <div id="ev-list"><div class="ev-empty">ยังไม่มีข้อความ<br>ถามด้านซ้าย แล้วหลักฐานการตัดสินใจจะขึ้นที่นี่ทีละข้อ 🔍</div></div>
+    </aside>
   </div>
-  <div class="ask">
-    <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
-    <button id="send" disabled>ถาม</button>
-  </div>
-  <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
-  <div class="ratio-wrap" id="ratio-wrap" style="display:none">
-    <div class="ratio-head"><span>สัดส่วน FastPath (ยิ่งสูง = ยิ่งประหยัด)</span><b id="ratio-pct">—</b></div>
-    <div class="ratio-track"><div class="ratio-fill" id="ratio-fill" style="width:0%"></div></div>
-    <div class="ratio-note" id="ratio-note">kernel เรียนรู้จาก 👍/👎 ของคุณ — กด 👎 บนคำตอบ FastPath แล้วดูสัดส่วนขยับ</div>
-  </div>
-  <div class="note" id="note">⏳ กำลังโหลด…</div>
 </div>
 
 <script type="module">
@@ -297,8 +327,13 @@ const FALLBACK_KB = [
 function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new Set();
   for(const tok of s.split(/\s+/)) if(tok.length>1) g.add(tok);
   for(let i=0;i<s.length-2;i++){ const t=s.slice(i,i+3).trim(); if(t.length===3) g.add(t);} return g; }
-function _cosToScore(c, margin){
-  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.22) return 4;
+function _cosToScore(c, margin, ov, ovLead){
+  // neurosymbolic blend (lockstep with reflex-wasm::cos_to_score): a dominant
+  // lexical overlap lifts the score even when TF-IDF cosine is diluted by a long
+  // keyword list (the "Turnitin เกิน 25%" case: overlap 15, cosine only 0.20).
+  if(ov>=8 && ovLead>=4) return 6;
+  if(ov>=5 && ovLead>=2) return 5;
+  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.20) return 4;
   if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
 function _jsSearch(q){
   const docGrams=KB.map(e=>_jsGramSet(e.keywords)); const DF=new Map();
@@ -311,8 +346,8 @@ function _jsSearch(q){
     let cos=0; const dv=DV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; }
     if(overlap>0||cos>0) scored.push({e,cos,overlap}); }
   scored.sort((a,b)=>(b.cos-a.cos)||(b.overlap-a.overlap));
-  const runner=scored[1]?scored[1].cos:0;
-  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; scored[i].s=_cosToScore(scored[i].cos,margin); }
+  const runner=scored[1]?scored[1].cos:0; const runnerOv=scored[1]?scored[1].overlap:0;
+  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; const ovLead=i===0?scored[0].overlap-runnerOv:0; scored[i].s=_cosToScore(scored[i].cos,margin,scored[i].overlap,ovLead); }
   return scored;
 }
 function search(q){
@@ -330,13 +365,31 @@ function search(q){
   return _jsSearch(q);
 }
 
+// Evidence selectors: these are the "เบื้องหลัง" bits that should NOT clutter the
+// user's chat bubble — they move to the right-hand evidence panel instead.
+const EV_SEL = '.route, .meta, .proof-full, .kernel-strip';
+let lastUserQ = '';   // the question the next bot bubble is answering
+let turnN = 0;        // evidence-card counter
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d);
-  // Scroll so the TOP of a bot answer (the kernel decision strip — the hero) is
-  // in view, instead of jumping to the very bottom past it. User messages still
-  // scroll to bottom so the question is visible while the answer renders.
-  if(cls==='b'){ requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'});
-    const proof=d.querySelector('.proof-full'); if(proof){ proof.classList.add('flash'); setTimeout(()=>proof.classList.remove('flash'),1400); } });
-  } else { $('chat').scrollTop=1e9; }
+  if(cls==='u'){ lastUserQ = d.textContent.trim(); $('chat').scrollTop=1e9; return; }
+  // bot bubble → split evidence out into the right panel, keep the clean answer left
+  if(cls==='b'){
+    const ev = d.querySelectorAll(EV_SEL);
+    if(ev.length && !d.classList.contains('greet')){
+      turnN++;
+      const card = document.createElement('div'); card.className='ev-card active';
+      const qlabel = lastUserQ ? (lastUserQ.length>46?lastUserQ.slice(0,46)+'…':lastUserQ) : '(ทักทาย/ระบบ)';
+      card.innerHTML = `<div class="ev-q"><b>${qlabel}</b><span class="ev-n">#${turnN}</span></div>`;
+      // move each evidence node from the bubble into the card (order preserved)
+      ev.forEach(n=>{ card.appendChild(n); });
+      const list=$('ev-list'); const empty=list.querySelector('.ev-empty'); if(empty) empty.remove();
+      // de-highlight previous, add newest on top
+      list.querySelectorAll('.ev-card.active').forEach(c=>c.classList.remove('active'));
+      list.insertBefore(card, list.firstChild);
+      const pf=card.querySelector('.proof-full'); if(pf){ pf.classList.add('flash'); setTimeout(()=>pf.classList.remove('flash'),1400); }
+    }
+    requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'}); });
+  }
 }
 
 // --- Template-based NLG: make a KB answer read like a person wrote it, WITHOUT AI.
@@ -642,9 +695,9 @@ function ask(){
         ai++;
         if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
         add('b', `${kstrip}
-          <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือไม่ครอบคลุมคำถามนี้พอ — ส่งต่อเจ้าหน้าที่ ${stageTag}</span>
+          <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือยังไม่ครอบคลุมพอ — บันทึกส่งเจ้าหน้าที่/ทีมดูแลคู่มือแล้ว ${stageTag}</span>
           ${frustratedNote()}
-          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ขอส่งต่อให้เจ้าหน้าที่ช่วยดูแลต่อครับ</div>
+          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ผม<b>บันทึกคำถามนี้ไว้ให้เจ้าหน้าที่/ทีมดูแลคู่มือแล้ว</b>ครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
             <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>
@@ -734,7 +787,7 @@ function ask(){
     if(isEnglish(q)){
       add('b', `${kstrip}
         <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 English question — not in the (Thai) knowledge base → staff / official FAQ ${stageTag}</span>
-        <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — here's the official English FAQ and how to reach a human, who can answer accurately.</div>
+        <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — I've <b>logged your question for the staff / KB team</b>, and here's the official English FAQ and how to reach a human in the meantime.</div>
         <div class="meta">kernel abstain: off-corpus (English, no KB match) — routed to staff instead of a generative guess ("facts from the KB only").</div>
         <div class="staffbox">
           <div class="staff-h">Get an accurate answer</div>
@@ -769,6 +822,7 @@ function ask(){
         </div>
         ${fbUI(q, d.blake3_proof)}`);
     } else {
+    logGap(q);
     add('b', `${kstrip}
       <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
       ${frustratedNote()}
@@ -787,8 +841,8 @@ function ask(){
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({input:q})
       }).then(r=>r.json()).then(r=>{
-        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'คู่มือไม่มีคำตอบตรง ๆ และ AI ยังไม่พร้อม — ติดต่อเจ้าหน้าที่ด้านล่างได้เลยครับ';
-      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='คู่มือไม่มีคำตอบตรง ๆ และเรียก AI ไม่สำเร็จในขณะนี้ — รบกวนติดต่อเจ้าหน้าที่ด้านล่างครับ 🙇'; });
+        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'ตอนนี้ยังไม่มีคำตอบที่ยืนยันได้จากคู่มือ — ผมบันทึกคำถามนี้ไว้ให้เจ้าหน้าที่/ทีมดูแลคู่มือแล้วครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง';
+      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='ตอนนี้ยังไม่มีคำตอบที่ยืนยันได้ และเรียก AI ไม่สำเร็จ — ผมบันทึกคำถามนี้ไว้ให้เจ้าหน้าที่แล้วครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง'; });
     }
     }
   }
@@ -797,15 +851,34 @@ function ask(){
 }
 
 // live fast-path ratio — the self-learning signal made visible
-let learnBias = 0; // nudged by feedback: 👎 on FastPath lowers it, 👍 raises it
+// --- Learning loop: EMA Bandit over 👍/👎 feedback -------------------------
+// DISTILLED from katgpt-rs BanditPruner/ReviewMetrics (Test-Time Compute): the
+// FastPath confidence is an exponential moving average of the reward signal, not
+// a raw running sum. ema ← (1-α)·ema + α·reward, reward ∈ {+1 👍, -1 👎}. A 👎 on
+// a FastPath answer pulls the EMA down (the gate should trust FastPath less for
+// that kind of query); a 👍 pulls it up. The visible ratio = base FastPath share
+// biased by the EMA. Deterministic, 0 token — the real kernel loop persists this
+// server-side (/feedback → policy EMA); this mirrors it live in the browser.
+const BANDIT = {
+  ema: 0.0,            // reward EMA ∈ [-1, +1], starts neutral
+  alpha: 0.30,         // learning rate (katgpt default band)
+  n: 0,
+  reward(r){ this.n++; this.ema = (1 - this.alpha) * this.ema + this.alpha * r; return this.ema; },
+  // EMA → percentage-point bias on the displayed FastPath ratio (±18pp at |ema|=1)
+  bias(){ return Math.round(this.ema * 18); },
+};
 function updateRatio(){
   const total = auto + ai;
   if(total === 0) return;
   $('ratio-wrap').style.display = 'block';
-  let pct = Math.round((auto/total)*100 + learnBias);
+  let pct = Math.round((auto/total)*100 + BANDIT.bias());
   pct = Math.max(0, Math.min(100, pct));
   $('ratio-fill').style.width = pct + '%';
   $('ratio-pct').textContent = pct + '%';
+  if(BANDIT.n>0){
+    const note=$('ratio-note');
+    if(note) note.textContent = `kernel เรียนรู้จาก 👍/👎 · EMA reward = ${BANDIT.ema.toFixed(2)} (จาก ${BANDIT.n} โหวต) — bias ${BANDIT.bias()>=0?'+':''}${BANDIT.bias()}pp`;
+  }
 }
 
 // feedback UI appended to each answer — the self-learning loop
@@ -826,6 +899,15 @@ function fbUI(q, proof, entryId){
 // kernel endpoint for feedback. Empty = static demo (no backend): record locally
 // and show that the gate WOULD learn. Set to a reflex-serve URL for the real loop.
 const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
+// Fire-and-forget: record a question the KB could NOT answer, so it enters the
+// gap log (the self-improving-KB loop) and staff/curators see what to add. This
+// is what makes "บันทึกคำถามไว้ให้เจ้าหน้าที่แล้ว" a TRUE statement on web, not an
+// overclaim — we really do persist it. Best-effort; never blocks the UI.
+function logGap(q){
+  if(!KERNEL_API) return;
+  try{ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{ method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ q, source:'web' }), keepalive:true }).catch(()=>{}); }catch(_){}
+}
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
   const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||''; const entryId = rec.entryId||'';
@@ -844,8 +926,8 @@ async function sendFeedback(id, reward){
       ? '✅ บันทึกแล้ว — kernel จะยืนยันว่างานแบบนี้ตอบเองได้ (EMA +)'
       : '✅ บันทึกแล้ว — kernel จะเรียนรู้ว่างานแบบนี้ควรส่ง AI (EMA −)';
   }
-  // reflect learning in the visible fast-path ratio: 👍 nudges up, 👎 nudges down
-  learnBias += reward > 0 ? 2 : -4;
+  // feed the EMA bandit: 👍 = +1, 👎 = -1. The visible ratio shifts by the EMA.
+  BANDIT.reward(reward > 0 ? 1 : -1);
   updateRatio();
   el.innerHTML = `<span class="fb-done">${note}</span>`;
 }
