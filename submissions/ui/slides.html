@@ -412,14 +412,14 @@
       <span>🔌 เสียบ LLM ของทีมได้</span>
       <span>✅ PoC: LINE adapter มีแล้ว (integrations/line)</span>
     </div>
-    <div class="foot">ไม่แข่งกับระบบที่มี — เราคือชั้นที่ทำให้ระบบเดิม <b>ถูกลง ~80% + ตรวจสอบได้</b></div>
+    <div class="foot">ไม่แข่งกับระบบที่มี — เราคือชั้นที่ทำให้ระบบเดิม <b>ถูกลง ~80% (ประมาณการ) + ตรวจสอบได้</b></div>
   </section>
 
   <!-- Slide 7.5 — Token cost: ลด token ทีมอื่น 60-80% -->
   <section class="slide">
     <div class="pageno">11 / 17</div>
     <div class="kicker">ตัวเลขค่าใช้จ่าย · ทำไมผู้บริหารต้องสนใจ</div>
-    <h2>ReflexWork ลดค่า token ของระบบ AI เดิม <span style="color:var(--fast)">60–80%</span></h2>
+    <h2>ReflexWork ลดค่า token ของระบบ AI เดิม <span style="color:var(--fast)">60–80%</span> <span style="font-size:14px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;vertical-align:middle">ประมาณการ (projection)</span></h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1080px">
       <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--warn);border-radius:14px;padding:24px">
         <div style="color:var(--warn);font-weight:800;font-size:clamp(16px,1.8vw,20px)">ไม่มี ReflexWork</div>
@@ -452,7 +452,7 @@
         <div style="color:var(--muted);font-size:14px;margin-top:6px">ตรวจสอบย้อนหลังได้ทุกคำตอบ (BLAKE3) — AI ล้วนทำไม่ได้</div>
       </div>
     </div>
-    <div class="foot">ตัวเลขจริงจากทีม GradMahidol AI: ทุกคำถามผ่าน Gemini + RAG context เต็ม → <b>token พุ่งเพราะไม่มีชั้นคัด</b></div>
+    <div class="foot">📐 60–80% = <b>ประมาณการจากสัดส่วน fast-path ที่ออกแบบไว้</b> (ตอบจาก KB กี่ % คูณค่า token ที่ประหยัด) — <b>ยังไม่ได้วัดจาก production load จริง</b>. อ้างอิง: ทีม GradMahidol AI ยิงทุกคำถามผ่าน Gemini + RAG context เต็ม → token พุ่งเพราะไม่มีชั้นคัด</div>
   </section>
 
   <!-- Slide 8 — Self-learning / ruliology -->
