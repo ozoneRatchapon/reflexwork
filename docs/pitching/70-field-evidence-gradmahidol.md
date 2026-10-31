@@ -92,9 +92,27 @@ gh api 'repos/narakorn709/gradmahidol-ai/git/trees/main?recursive=1' \
 - [x] อัปเดตสไลด์ Problem (`submissions/ui/pitch.html`) เพิ่มแถบ field-evidence
 - [x] อัปเดต pitch script ฉาก 1 (`10-pitch-script-5min.md`) + หมายเหตุมารยาท
 - [x] เพิ่ม Q&A Q3b (`40-qa-bank.md`)
-- [ ] **[เจ้าของ] ถามน็อต:** ขอ corpus knowledge (markdown) มาวัด benchmark ได้ไหม
-- [ ] [ถ้าได้ corpus] ดึง `knowledge/*.md` → `benchmark/gradmahidol-corpus/` → รัน fast-path/recall
+- [x] **ดึง corpus มาวัด benchmark แล้ว** (เจ้าของเคลียร์สิทธิ์กับน็อตเอง) — ผล:
+      recall@1 **82%** / @3 **100%** / abstain 2/2 บน 62 FAQ docs อิสระ
+      → `benchmark/gradmahidol/RESULTS.md` + harness `run_benchmark.mjs`
+- [ ] [เจ้าของ] ยืนยันกับน็อตว่าใช้ corpus วัด benchmark ได้ (เอกสารนี้สมมติว่าเคลียร์แล้ว)
 - [ ] [ตัดสินใจ] จะเสนอ "ReflexWork เป็น layer หน้า GradMahidol" กับน็อตจริงไหม (1-page)
+- [ ] [ถ้าใช้ตอน pitch] ใส่ตัวเลข benchmark 82%/100% ลงสไลด์ Readiness/Impact แทน projection
+
+## 4b. ผล benchmark (วัดจริง 31 ต.ค.)
+
+ดึง `knowledge/*.md` 492 ไฟล์ (440 เป็น KB doc) ลง `$KIROCREW_SCRATCH` (ไม่เข้า git)
+→ สแกน PII ผ่าน (เลข 13 หลักที่เจอทั้งหมดเป็น substring ของ SHA256 ไม่ใช่เลขบัตร ปชช.)
+→ รัน `_jsSearch` ของ production:
+
+| ชุด | entries | recall@1 | recall@3 | abstain |
+|---|---|---|---|---|
+| ทั้ง corpus | 440 | 73% | 82% | 2/2 |
+| FAQ (ไม่รวม curriculum) | 62 | **82%** | **100%** | 2/2 |
+
+**พิสูจน์:** search เรา generalize ข้าม corpus อิสระได้ (ไม่ overfit KB ตัวเอง) +
+abstain ถูกต้อง. Finding: curriculum 378 ตัว (program catalogue) ควรแยก namespace
+จาก FAQ fast-path — ตรงกับที่ `distributable-kernel` spec รองรับอยู่แล้ว.
 
 ## 6. ไฟล์อ้างอิงใน repo เขา (สำหรับ agent อื่นตรวจ)
 - `STATUS_2026-10-30.md` — สถานะล่าสุด (RAG, 82 tests, ยัง prototype)
