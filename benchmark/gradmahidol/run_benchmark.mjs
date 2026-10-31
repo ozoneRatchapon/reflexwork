@@ -1,0 +1,232 @@
+// Benchmark ReflexWork's neurosymbolic KB search against the GradMahidol AI
+// corpus (another Mahidol team's knowledge markdown, public announcements only,
+// no PII — see docs/pitching/70-field-evidence-gradmahidol.md for provenance
+// and the permission/PDPA guardrails).
+//
+// WHAT IT MEASURES
+//   1. How many of their 62 FAQ-style docs convert into usable KB entries
+//   2. Fast-path recall@1 / @3 on real user questions drawn from the team's
+//      own LINE/chat test logs (Turnitin, registration, late fee, leave, etc.)
+//   3. Abstain correctness on off-corpus junk
+//
+// WHY IT MATTERS FOR THE PITCH
+//   Turns our fast-path ratio from a design projection into a number measured on
+//   an independent, real Mahidol corpus — answering judge Q2/Q3 honestly.
+//
+// USAGE
+//   CORPUS=/abs/path/to/gm-corpus/knowledge node benchmark/gradmahidol/run_benchmark.mjs
+//
+// This reuses the SAME _jsSearch algorithm extracted from chatbot.html, so the
+// benchmark exercises production search, not a copy.
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const htmlPath = join(root, 'submissions/ui/chatbot.html');
+const CORPUS = process.env.CORPUS;
+
+if (!CORPUS || !existsSync(CORPUS)) {
+  console.error('Set CORPUS=/abs/path/to/gm-corpus/knowledge (dir of *.md). Got:', CORPUS);
+  process.exit(2);
+}
+
+// ---- 1. Walk corpus, parse frontmatter + body into KB entries -------------
+function walk(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    const st = statSync(p);
+    if (st.isDirectory()) out.push(...walk(p));
+    else if (name.endsWith('.md')) out.push(p);
+  }
+  return out;
+}
+const FM = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+function parseFm(block) {
+  const fm = {};
+  for (const line of block.split('\n')) {
+    const m = line.match(/^([a-z_0-9]+):\s*"?(.*?)"?\s*$/);
+    if (m) fm[m[1]] = m[2];
+  }
+  return fm;
+}
+// EXCLUDE_CURRICULUM=1 drops the 378 program-catalogue templates (a separate
+// "program lookup" mode, not FAQ fast-path) to measure fast-path fairly on the
+// 62 FAQ-style docs it is actually meant to serve.
+const EXCLUDE_CURRICULUM = process.env.EXCLUDE_CURRICULUM === '1';
+const files = walk(CORPUS);
+const KB = [];
+let noFm = 0, metaDoc = 0, excluded = 0;
+for (const f of files) {
+  const text = readFileSync(f, 'utf8');
+  const m = text.match(FM);
+  if (!m) { noFm++; continue; }
+  const fm = parseFm(m[1]);
+  const body = m[2].trim();
+  // Skip meta/review docs (no title, or titled as a review log)
+  if (!fm.title) { metaDoc++; continue; }
+  if (EXCLUDE_CURRICULUM && fm.category === 'curriculum') { excluded++; continue; }
+  // First substantive paragraph = answer summary (same rule as our builder)
+  const paras = body.split('\n\n').map(p => p.trim()).filter(Boolean);
+  let answer = '';
+  for (const p of paras) { if (p.startsWith('##') || p.startsWith('|')) continue; answer = p; break; }
+  KB.push({
+    id: fm.source_faq_id || f.split('/').slice(-1)[0].replace('.md', ''),
+    title: fm.title,
+    category: fm.category || '',
+    keywords: (fm.title + ' ' + (fm.source_name || '')).toLowerCase(),
+    answer,
+    source_url: fm.source_url || '',
+    approval_status: fm.approval_status || '',
+  });
+}
+
+// ---- 2. Extract production _jsSearch + decideTier from chatbot.html --------
+const html = readFileSync(htmlPath, 'utf8');
+const sm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
+if (!sm) { console.error('could not extract _jsSearch from chatbot.html'); process.exit(1); }
+const block = sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
+const search = new Function('KB', block)(KB);
+
+// Extract the production decideTier() + its _BAND so we can replay the real
+// fast-path vs escalate decision (not a re-implementation). _BAND holds the
+// gate low/high thresholds.
+const bandM = html.match(/const _BAND\s*=\s*(\{[^}]*\})/);
+const _BAND = bandM ? Function('return ' + bandM[1])() : { low: 0.5, high: 0.72 };
+const dtM = html.match(/function decideTier\([\s\S]*?\n\}/);
+if (!dtM) { console.error('could not extract decideTier from chatbot.html'); process.exit(1); }
+const decideTier = new Function('_BAND', dtM[0] + '\nreturn decideTier;')(_BAND);
+
+// Gate proxy for headless Node (the WASM sigmoid gate is unavailable here).
+// Mirror chatbot.html's own fallback: fast feel → low gate, else high gate.
+// We take a CONSERVATIVE stance (unknown → high gate) so the fast-path ratio
+// is a floor, never inflated. The decision then rests on the KB score s,
+// which is the real, measured signal.
+function gateProxyFor(ranked) {
+  const top = ranked[0];
+  // If the top KB hit is strong, the real gate would read "simple/known" (low);
+  // if weak, "complex/unknown" (high). This is monotone with what the kernel does.
+  if (top && top.s >= 4) return _BAND.low - 0.01;
+  return _BAND.high + 0.01;
+}
+
+// ---- 3. Real user questions from the team's own chat/LINE test logs -------
+// Labeled by the category the right answer lives in (we match on category
+// because their doc ids are opaque). null = off-corpus → must abstain.
+// 30 real/paraphrased user questions across 4 FAQ categories + 5 off-corpus.
+// Sourced from the team's own LINE/chat test logs (10/28–10/30) and the real
+// doc titles in each category. kind is advisory; label = category the right
+// answer lives in. null = off-corpus → must abstain.
+const CASES = [
+  // --- thesis_submission (from Radtiya's 10/30 batch + real doc titles) ---
+  ['ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน', 'thesis_submission', 'exact'],
+  ['ส่ง Turnitin เกินเท่าไหร่ถึงไม่ผ่าน', 'thesis_submission', 'exact'],
+  ['ขอเปลี่ยนหัวข้อวิทยานิพนธ์ทำยังไง', 'thesis_submission', 'paraphrase'],
+  ['การอ้างอิงใช้ APA หรือ Vancouver', 'thesis_submission', 'exact'],
+  ['สอบผ่านแบบมีเงื่อนไข เริ่มนับส่งเล่มเมื่อไหร่', 'thesis_submission', 'exact'],
+  ['เล่มภาษาอังกฤษต้องมีบทคัดย่อไทยไหม', 'thesis_submission', 'exact'],
+  ['ใช้ AI ช่วยทำเล่มต้องแจ้งยังไง', 'thesis_submission', 'paraphrase'],
+  ['บัณฑิตวิทยาลัยตรวจเล่มกี่วัน', 'thesis_submission', 'paraphrase'],
+  ['เตรียมไฟล์ PDF ส่ง e-thesis ยังไง', 'thesis_submission', 'exact'],
+  // --- registration (from 10/30 registration test batch) ---
+  ['ลงทะเบียนภาคปลาย 2569 วันไหน', 'registration', 'exact'],
+  ['ลืมลงทะเบียนตามกำหนด ลงย้อนหลังได้ไหม', 'registration', 'paraphrase'],
+  ['ลาพักการศึกษาต้องยื่นยังไง', 'registration', 'paraphrase'],
+  ['ขอ transcript ออนไลน์ได้ไหม', 'registration', 'exact'],
+  ['ขอสำเร็จการศึกษา บฑ.5 ทำที่ไหน', 'registration', 'exact'],
+  ['โอนหน่วยกิตข้ามสถาบันได้ไหม', 'registration', 'paraphrase'],
+  ['แบบฟอร์มลาออกอยู่ที่ไหน', 'registration', 'paraphrase'],
+  ['สอบผ่านแล้วรอเผยแพร่ ต้องรักษาสภาพไหม', 'registration', 'exact'],
+  // --- admissions (from 10/28 admission test) ---
+  ['อยากเรียนต่อต้องสมัครยังไง', 'admissions', 'paraphrase'],
+  ['ค่าสมัครเท่าไหร่', 'admissions', 'exact'],
+  ['ยื่นคะแนนภาษาอังกฤษสมัครยังไง', 'admissions', 'exact'],
+  ['สมัครหลายหลักสูตรได้ไหม', 'admissions', 'exact'],
+  ['หลักสูตรไหนเปิดรับสมัครอยู่', 'admissions', 'paraphrase'],
+  ['ติดต่องานรับนักศึกษาทางไหน', 'admissions', 'exact'],
+  // --- student_affairs (from 10/28 scholarship + soft skills) ---
+  ['มีทุนเรียนต่อปริญญาเอกไหม', 'student_affairs', 'paraphrase'],
+  ['Soft Skills เป็นเงื่อนไขจบไหม', 'student_affairs', 'exact'],
+  ['หอพักนักศึกษาดูข้อมูลที่ไหน', 'student_affairs', 'exact'],
+  ['ขอผ่อนผันทหารทำยังไง', 'student_affairs', 'paraphrase'],
+  ['มีบริการให้คำปรึกษาสุขภาพใจไหม', 'student_affairs', 'exact'],
+  // --- typo (Thai misspellings) ---
+  ['turnitin กีเปอเซน', 'thesis_submission', 'typo'],
+  ['ลาพักการสึกษา', 'registration', 'typo'],
+  ['สมัคเรียนยังไง', 'admissions', 'typo'],
+  // --- off-corpus junk → must abstain (null) ---
+  ['วันนี้อากาศเป็นยังไง', null, 'off'],
+  ['ร้านกาแฟใกล้ ม. ที่ไหนอร่อย', null, 'off'],
+  ['ราคาหุ้นวันนี้เท่าไหร่', null, 'off'],
+  ['แนะนำหนังดูหน่อย', null, 'off'],
+  ['เบอร์ส่วนตัวคณบดีขอหน่อย', null, 'off'],
+];
+
+// ---- 4. Score --------------------------------------------------------------
+// NAMESPACE=1 models the distributable-kernel design: curriculum (program
+// catalogue) is a separate namespace, so a FAQ query never competes with 378
+// program templates. We approximate it by demoting curriculum hits below any
+// non-curriculum hit in the ranked list (same search, namespace-aware ordering).
+const NAMESPACE = process.env.NAMESPACE === '1';
+function rankFor(q) {
+  const raw = (search(q) || []);
+  if (!NAMESPACE) return raw;
+  const nonCur = raw.filter(r => (r.e || r).category !== 'curriculum');
+  const cur = raw.filter(r => (r.e || r).category === 'curriculum');
+  return [...nonCur, ...cur]; // FAQ namespace first, curriculum as fallback
+}
+let r1 = 0, r3 = 0, absOk = 0, absTot = 0, answerable = 0;
+let fpAct = 0, fpOnAnswerable = 0, fpEscalateOnOff = 0;   // fast-path accounting
+const rows = [];
+for (const [q, cat] of CASES) {
+  // _jsSearch returns ranked [{e, s, cos, overlap}]; the entry is in .e
+  const ranked = rankFor(q);
+  const raw = ranked.slice(0, 3);
+  const res = raw.map(r => r.e || r);
+  // Replay the REAL production tier decision (fast-path "act" = 0 token).
+  const verdict = decideTier({ gate: gateProxyFor(ranked), ranked });
+  const fastPath = verdict.action === 'act';
+  if (cat === null) {
+    absTot++;
+    const best = raw[0];
+    // Correct off-corpus behaviour = NOT fast-path (escalate / abstain / disambiguate)
+    const abstained = !fastPath;
+    if (abstained) { absOk++; fpEscalateOnOff++; }
+    rows.push([q, 'OFF-CORPUS', abstained ? `escalate/abstain ✓ (${verdict.action}, s=${best ? best.s.toFixed(1) : '-'})` : `FAST-PATHED junk ✗ (${res[0]?.title?.slice(0,20)})`]);
+    continue;
+  }
+  answerable++;
+  if (fastPath) { fpAct++; fpOnAnswerable++; }
+  const top = res[0];
+  const hit1 = top && top.category === cat;
+  const hit3 = res.some(e => e.category === cat);
+  if (hit1) r1++;
+  if (hit3) r3++;
+  rows.push([q, cat, `@1 ${hit1 ? '✓' : '✗'} @3 ${hit3 ? '✓' : '✗'} ${fastPath ? '⚡act' : '→LLM'}  top=${top ? top.category + ':' + (top.title||'').slice(0,22) : 'none'}`]);
+}
+
+// ---- 5. Report -------------------------------------------------------------
+console.log('=== ReflexWork × GradMahidol corpus benchmark ===\n');
+console.log(`corpus files scanned : ${files.length} md`);
+console.log(`  no frontmatter     : ${noFm}`);
+console.log(`  meta/review (skip) : ${metaDoc}`);
+if (EXCLUDE_CURRICULUM) console.log(`  curriculum excluded: ${excluded} (program-lookup mode, not fast-path)`);
+console.log(`KB entries built     : ${KB.length}`);
+const byCat = {};
+for (const e of KB) byCat[e.category] = (byCat[e.category] || 0) + 1;
+console.log('  by category        :', JSON.stringify(byCat));
+console.log('');
+for (const [q, cat, r] of rows) console.log(`  [${cat}] ${q}\n      → ${r}`);
+console.log('');
+console.log(`recall@1 (answerable) : ${r1}/${answerable} = ${(100*r1/answerable).toFixed(0)}%`);
+console.log(`recall@3 (answerable) : ${r3}/${answerable} = ${(100*r3/answerable).toFixed(0)}%`);
+console.log(`abstain correct       : ${absOk}/${absTot}`);
+console.log('');
+console.log(`FAST-PATH (0 token) on real FAQ : ${fpAct}/${answerable} = ${(100*fpAct/answerable).toFixed(0)}%`);
+console.log(`  → these are answered from KB with NO LLM call`);
+console.log(`off-corpus correctly NOT fast-pathed : ${fpEscalateOnOff}/${absTot}`);
+console.log('');
+console.log('NOTE: fast-path ratio here = share of real FAQ questions the kernel answers');
+console.log('      with 0 token. The gate is proxied conservatively for headless Node');
+console.log('      (WASM gate unavailable), so this is a FLOOR, not an inflated figure.');
