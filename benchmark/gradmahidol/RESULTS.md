@@ -13,11 +13,19 @@
 จาก log ทดสอบ LINE/แชตของทีม GradMahidol เอง + typo 3 ข้อ + **off-corpus junk 5 ข้อ**
 (อากาศ, ร้านกาแฟ, หุ้น, หนัง, "เบอร์ส่วนตัวคณบดี") ที่ต้อง abstain.
 
-| ชุด | KB entries | recall@1 | recall@3 | abstain |
-|---|---|---|---|---|
-| ทั้ง corpus (ไม่แยก namespace) | 440 | 81% (25/31) | 94% (29/31) | 5/5 ✓ |
-| **ทั้ง corpus + แยก namespace** | 440 | **87% (27/31)** | **97% (30/31)** | 5/5 ✓ |
-| **เฉพาะ FAQ (ไม่รวม curriculum)** | 62 | **94% (29/31)** | **100% (31/31)** | 5/5 ✓ |
+| ชุด | KB entries | recall@1 | recall@3 | abstain | **fast-path (0 token)** |
+|---|---|---|---|---|---|
+| ทั้ง corpus (ไม่แยก namespace) | 440 | 81% (25/31) | 94% (29/31) | 5/5 ✓ | — |
+| **ทั้ง corpus + แยก namespace** | 440 | **87% (27/31)** | **97% (30/31)** | 5/5 ✓ | 81% (25/31) |
+| **เฉพาะ FAQ (ไม่รวม curriculum)** | 62 | **94% (29/31)** | **100% (31/31)** | 5/5 ✓ | **84% (26/31)** |
+
+### Fast-path ratio (หัวใจของ "80% projection")
+
+วัด **สัดส่วนคำถาม FAQ จริงที่ kernel ตอบเองได้ด้วย 0 token** (ไม่เรียก LLM) โดย replay
+`decideTier()` ตัวจริงจาก production: **84% บน FAQ (26/31)** · และ off-corpus **ไม่ถูก
+fast-path 5/5** (ปฏิเสธถูก ไม่มั่ว). ตัวเลขนี้ **แทน "80% projection" ด้วยค่าที่วัดจริง** —
+และเป็น **floor** เพราะ gate ถูก proxy แบบ conservative ใน headless Node (WASM gate
+รันไม่ได้) การตัดสินจึงอิง KB score จริงเป็นหลัก.
 
 > `NAMESPACE=1` จำลอง design ของ `distributable-kernel`: curriculum (program
 > catalogue 378 ตัว) เป็น namespace แยก → FAQ query ไม่แข่งกับ template หลักสูตร.

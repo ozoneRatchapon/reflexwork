@@ -18,6 +18,9 @@ jobs:
       - name: Unit tests (learning-loop pure logic)
         run: node tests/learning_loop.test.mjs
 
+      - name: KB search recall floor (self-contained regression gate)
+        run: node tests/kb_search_floor.test.mjs
+
       - name: Syntax-check Workers + shared modules
         run: |
           set -e
