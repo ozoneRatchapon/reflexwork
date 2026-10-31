@@ -92,33 +92,73 @@ const search = new Function('KB', block)(KB);
 // ---- 3. Real user questions from the team's own chat/LINE test logs -------
 // Labeled by the category the right answer lives in (we match on category
 // because their doc ids are opaque). null = off-corpus → must abstain.
+// 30 real/paraphrased user questions across 4 FAQ categories + 5 off-corpus.
+// Sourced from the team's own LINE/chat test logs (10/28–10/30) and the real
+// doc titles in each category. kind is advisory; label = category the right
+// answer lives in. null = off-corpus → must abstain.
 const CASES = [
-  // thesis / submission (from Radtiya's 10/30 tests)
-  ['ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน', 'thesis_submission'],
-  ['ส่ง Turnitin เกินเท่าไหร่ถึงไม่ผ่าน', 'thesis_submission'],
-  ['ขอเปลี่ยนหัวข้อวิทยานิพนธ์ทำยังไง', 'thesis_submission'],
-  ['การอ้างอิงใช้ APA หรือ Vancouver', 'thesis_submission'],
-  // registration (from 10/30 registration test batch)
-  ['ลงทะเบียนภาคปลาย 2569 วันไหน', 'registration'],
-  ['ลืมลงทะเบียนตามกำหนด ลงย้อนหลังได้ไหม', 'registration'],
-  ['ลาพักการศึกษาต้องยื่นยังไง', 'registration'],
-  ['ขอ transcript ออนไลน์ได้ไหม', 'registration'],
-  // admissions (from 10/28 admission test)
-  ['อยากเรียนต่อต้องสมัครยังไง', 'admissions'],
-  ['ค่าสมัครเท่าไหร่', 'admissions'],
-  // student affairs / scholarship (from 10/28)
-  ['มีทุนเรียนต่อปริญญาเอกไหม', 'student_affairs'],
-  // off-corpus junk → must abstain (null)
-  ['วันนี้อากาศเป็นยังไง', null],
-  ['ร้านกาแฟใกล้ ม. ที่ไหนอร่อย', null],
+  // --- thesis_submission (from Radtiya's 10/30 batch + real doc titles) ---
+  ['ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน', 'thesis_submission', 'exact'],
+  ['ส่ง Turnitin เกินเท่าไหร่ถึงไม่ผ่าน', 'thesis_submission', 'exact'],
+  ['ขอเปลี่ยนหัวข้อวิทยานิพนธ์ทำยังไง', 'thesis_submission', 'paraphrase'],
+  ['การอ้างอิงใช้ APA หรือ Vancouver', 'thesis_submission', 'exact'],
+  ['สอบผ่านแบบมีเงื่อนไข เริ่มนับส่งเล่มเมื่อไหร่', 'thesis_submission', 'exact'],
+  ['เล่มภาษาอังกฤษต้องมีบทคัดย่อไทยไหม', 'thesis_submission', 'exact'],
+  ['ใช้ AI ช่วยทำเล่มต้องแจ้งยังไง', 'thesis_submission', 'paraphrase'],
+  ['บัณฑิตวิทยาลัยตรวจเล่มกี่วัน', 'thesis_submission', 'paraphrase'],
+  ['เตรียมไฟล์ PDF ส่ง e-thesis ยังไง', 'thesis_submission', 'exact'],
+  // --- registration (from 10/30 registration test batch) ---
+  ['ลงทะเบียนภาคปลาย 2569 วันไหน', 'registration', 'exact'],
+  ['ลืมลงทะเบียนตามกำหนด ลงย้อนหลังได้ไหม', 'registration', 'paraphrase'],
+  ['ลาพักการศึกษาต้องยื่นยังไง', 'registration', 'paraphrase'],
+  ['ขอ transcript ออนไลน์ได้ไหม', 'registration', 'exact'],
+  ['ขอสำเร็จการศึกษา บฑ.5 ทำที่ไหน', 'registration', 'exact'],
+  ['โอนหน่วยกิตข้ามสถาบันได้ไหม', 'registration', 'paraphrase'],
+  ['แบบฟอร์มลาออกอยู่ที่ไหน', 'registration', 'paraphrase'],
+  ['สอบผ่านแล้วรอเผยแพร่ ต้องรักษาสภาพไหม', 'registration', 'exact'],
+  // --- admissions (from 10/28 admission test) ---
+  ['อยากเรียนต่อต้องสมัครยังไง', 'admissions', 'paraphrase'],
+  ['ค่าสมัครเท่าไหร่', 'admissions', 'exact'],
+  ['ยื่นคะแนนภาษาอังกฤษสมัครยังไง', 'admissions', 'exact'],
+  ['สมัครหลายหลักสูตรได้ไหม', 'admissions', 'exact'],
+  ['หลักสูตรไหนเปิดรับสมัครอยู่', 'admissions', 'paraphrase'],
+  ['ติดต่องานรับนักศึกษาทางไหน', 'admissions', 'exact'],
+  // --- student_affairs (from 10/28 scholarship + soft skills) ---
+  ['มีทุนเรียนต่อปริญญาเอกไหม', 'student_affairs', 'paraphrase'],
+  ['Soft Skills เป็นเงื่อนไขจบไหม', 'student_affairs', 'exact'],
+  ['หอพักนักศึกษาดูข้อมูลที่ไหน', 'student_affairs', 'exact'],
+  ['ขอผ่อนผันทหารทำยังไง', 'student_affairs', 'paraphrase'],
+  ['มีบริการให้คำปรึกษาสุขภาพใจไหม', 'student_affairs', 'exact'],
+  // --- typo (Thai misspellings) ---
+  ['turnitin กีเปอเซน', 'thesis_submission', 'typo'],
+  ['ลาพักการสึกษา', 'registration', 'typo'],
+  ['สมัคเรียนยังไง', 'admissions', 'typo'],
+  // --- off-corpus junk → must abstain (null) ---
+  ['วันนี้อากาศเป็นยังไง', null, 'off'],
+  ['ร้านกาแฟใกล้ ม. ที่ไหนอร่อย', null, 'off'],
+  ['ราคาหุ้นวันนี้เท่าไหร่', null, 'off'],
+  ['แนะนำหนังดูหน่อย', null, 'off'],
+  ['เบอร์ส่วนตัวคณบดีขอหน่อย', null, 'off'],
 ];
 
 // ---- 4. Score --------------------------------------------------------------
+// NAMESPACE=1 models the distributable-kernel design: curriculum (program
+// catalogue) is a separate namespace, so a FAQ query never competes with 378
+// program templates. We approximate it by demoting curriculum hits below any
+// non-curriculum hit in the ranked list (same search, namespace-aware ordering).
+const NAMESPACE = process.env.NAMESPACE === '1';
+function rankFor(q) {
+  const raw = (search(q) || []);
+  if (!NAMESPACE) return raw;
+  const nonCur = raw.filter(r => (r.e || r).category !== 'curriculum');
+  const cur = raw.filter(r => (r.e || r).category === 'curriculum');
+  return [...nonCur, ...cur]; // FAQ namespace first, curriculum as fallback
+}
 let r1 = 0, r3 = 0, absOk = 0, absTot = 0, answerable = 0;
 const rows = [];
 for (const [q, cat] of CASES) {
   // _jsSearch returns ranked [{e, s, cos, overlap}]; the entry is in .e
-  const raw = (search(q) || []).slice(0, 3);
+  const raw = rankFor(q).slice(0, 3);
   const res = raw.map(r => r.e || r);
   if (cat === null) {
     absTot++;
