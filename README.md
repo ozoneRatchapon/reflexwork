@@ -67,8 +67,10 @@ CI runs these + Worker syntax checks on every push (`.github/workflows/ci.yml`).
 cd integrations/kernel-worker && npx wrangler deploy
 cd ../llm-proxy && npx wrangler deploy
 cd ../line-worker && npx wrangler deploy
-cd ../../submissions && npx wrangler pages deploy ui --project-name=reflexwork
+cd ../.. && submissions/deploy_pages.sh main   # Pages: committed files only (a branch other than main = preview)
 ```
+Never run `wrangler pages deploy ui` on the working folder: it uploads git-ignored, approval-gated data
+(`submissions/ui/knowledge/`).
 Secrets via `wrangler secret put` (GEMINI_API_KEY, OLLAMA_URL, STAFF_TOKEN,
 LINE_*). See `docs/` for runbooks.
 
