@@ -48,3 +48,6 @@ jobs:
 
       - name: KB recall eval on the built index
         run: node tests/kb_search.test.mjs
+
+      - name: Programme path (catalogue integrity, phrasings, no stolen KB questions, XSS)
+        run: node tests/programme_resolve.test.mjs

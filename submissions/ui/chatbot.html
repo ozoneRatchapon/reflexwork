@@ -329,6 +329,7 @@
 import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
+let PROGDOC=null, PROG=[];   // programme catalogue (programmes.json) — optional, page works without it
 const COST=2;
 
 async function load(){
@@ -338,6 +339,8 @@ async function load(){
   // team's private data.
   KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>FALLBACK_KB);
   if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
+  // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
+  fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes)){ PROGDOC=d; PROG=d.programmes; } }).catch(()=>{});
   ready=true; $('q').disabled=false; $('send').disabled=false;
   // kernel ready → replace the boot spinner with an inviting greeting
   const boot=$('boot'); if(boot) boot.remove();
@@ -568,6 +571,157 @@ function scopeClarify(q, ranked, kb){
 }
 // </scope-clarify>
 
+// <programme-resolve>
+// Programme-specific answer path (deterministic, no AI, no scoring change). A user who says
+// "I want to apply to <programme>" wants THAT programme's page and status, not a generic
+// how-to-apply answer. programmes.json is built from the public site by
+// submissions/build_programme_catalogue.py; this block only matches + renders it.
+// Matching is by character trigrams (Thai has no word breaks) plus ANCHORED removal of intent
+// words at the start/end of the question - never inside it, because filler such as "ต่อ"/"ที่"
+// can be part of a field name (ต่อมไร้ท่อ, ที่ปรึกษา).
+const _P_ZERO=/[​‌‍]/g;
+// Intent phrases are removed only as WHOLE phrases at the start/end of the question (never single
+// words like "ต่อ"/"ศึกษา"/"ทาง", which begin real field names: ต่อมไร้ท่อ, ศึกษาศาสตร์, ทางการแพทย์).
+const _P_LEAD=/^(?:(?:ผม|หนู|ฉัน|เรา|พี่|ขอ|รบกวน|ช่วย|สอบถาม|ถามหน่อย)\s*)?(?:(?:อยาก|จะ|ต้องการ|สนใจ|กำลังจะ|ตั้งใจจะ)?(?:สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เข้าเรียน|เข้าศึกษา|เรียน)(?:ทำ|ด้าน|สาย)?|มี(?=หลักสูตร|สาขา)|ขอ(?:ข้อมูล|รายละเอียด)|(?:ข้อมูล|รายละเอียด)(?:ของ|เกี่ยวกับ)?|เกี่ยวกับ|อยาก|สนใจ|ต้องการ|ต่อ(?=โท|เอก)|ด้าน|ใน|ที่(?=\s)|ของ|หลักสูตร|สาขาวิชา|สาขา|ระดับ|คณะ|หา|ดู|i want to|i would like to|i'd like to|how to apply to|apply(?:ing)? (?:to|for)|the|a|an|in|of|program(?:me)?|course)\s*/i;
+const _P_TAIL=/\s*(?:ครับ|ค่ะ|คะ|นะครับ|นะคะ|นะ|หน่อย|ด้วย|ได้ไหม|ได้หรือไม่|ได้ยังไง|ยังไง|อย่างไร|ไหม|หรือเปล่า|หรือไม่|สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|ปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|รับสมัคร|หรือยัง|เท่าไหร่|เท่าไร|กี่บาท|อะไรบ้าง|ต่อเทอม|เทอมละ|ต่อภาค(?:การศึกษา)?|ภาคละ|ทั้งหมด|ตลอดหลักสูตร|ที่ไหน|เมื่อไหร่|เมื่อไร|วันไหน|ปี ?\d{4}|\d{4}|หลักสูตร|program(?:me)?|course|please)\s*$/i;
+const _P_DEGREE=/ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต|ประกาศนียบัตร|ปริญญาโท|ปริญญาเอก|ปริญญา|ป\.\s?โท|ป\.\s?เอก|ระดับโท|ระดับเอก|มหาบัณฑิต|ดุษฎีบัณฑิต|ต่อโท|ต่อเอก|master(?:'s)?|doctoral|doctorate|ph\.?\s?d|\bmsc\b|m\.\s?sc\.?/gi;
+const _P_QUAL=/ภาคพิเศษ|ภาคปกติ|นานาชาติ|international(?: program(?:me)?)?|special program(?:me)?/gi;
+const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(?:ใน)?(?:การ)?สมัคร|ค่าปรับ|ค่า\S{0,10}สอบ|รักษาสถานภาพ|ใบรับรอง|ผ่อนผัน|โครงร่าง|ประมวลความรู้|อาจารย์ที่ปรึกษา|เปลี่ยนสาขา|ย้ายสาขา|วิทยานิพนธ์|ลงทะเบียน|ลาพัก|ลาออก|เกรด|transcript|ตารางสอบ|ย้ายหลักสูตร|เปลี่ยนหลักสูตร|ตารางเรียน|เรียนกี่|เรียนนาน|จบกี่ปี|ใช้เวลาเรียน|application fee|thesis|turnitin/i;
+// Topic of a programme question: "ค่าเทอม <programme>" / "ทุน <programme>" -> that programme's own fee table /
+// scholarship note from its announcement. Without a programme in the question the KB answers as before.
+const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย(?:ตลอดหลักสูตร)?|ค่าเรียน|เหมาจ่าย|tuition(?: fees?)?|\bfees?\b/i],
+  ['scholarship',/ทุนการศึกษา|ทุนเรียน|ทุน|scholarships?/i]];
+const _P_INTENT=/สมัคร|เรียน|สาขา|อยากเข้า|เรียนต่อ|ศึกษาต่อ|ต่อโท|ต่อเอก|สนใจ|เปิดรับ|ปิดรับ|รับสมัคร|ข้อมูล|รายละเอียด|หลักสูตร|apply|admission|enrol|programme|program\b|study/i;
+const _P_LEVEL=[['N',/ประกาศนียบัตรบัณฑิตชั้นสูง|ป\.?\s?บ\.?\s?ช\.?\s?สูง/i],['C',/ประกาศนียบัตร|certificate|diploma/i],['D',/ปริญญาเอก|ป\.\s?เอก|ระดับเอก|ดุษฎี|ด็อกเตอร์|ดอกเตอร์|ต่อเอก|doctor|ph\.?\s?d/i],['M',/ปริญญาโท|ป\.\s?โท|ระดับโท|มหาบัณฑิต|ต่อโท|master|m\.\s?sc|\bmsc\b/i]];
+// Abbreviations people really type. Each expansion is checked against the catalogue by the test
+// (must resolve to ≥1 programme); extend from the gap log, not from guesses.
+const _P_ALIAS={mph:['สาธารณสุขศาสตร','public health'],itm:['การจัดการเทคโนโลยีสารสนเทศ','information technology management']};
+function _pTri(s){ s=String(s||'').toLowerCase().replace(_P_ZERO,'').replace(/\s+/g,''); const g=new Set(); for(let i=0;i<s.length-2;i++) g.add(s.slice(i,i+3)); return g; }
+// Share of the needle covered by pieces (≥3 chars) that occur in the name: people drop middle words
+// ("พยาบาลชุมชน" = two pieces of "การพยาบาลเวชปฏิบัติชุมชน"), and the join trigrams exist in neither.
+function _pPieces(n, h){ let i=0, cov=0;
+  while(i<n.length){ let L=3; if(i+L<=n.length && h.includes(n.slice(i,i+L))){ while(i+L<n.length && h.includes(n.slice(i,i+L+1))) L++; cov+=L; i+=L; } else i++; }
+  return n.length ? cov/n.length : 0; }
+function _pCore(title){ let t=String(title||'').replace(/\([^)]*\)/g,' ');
+  const i=t.indexOf('สาขาวิชา'); t = i>=0 ? t.slice(i+8) : t.replace(/มหาบัณฑิต|ดุษฎีบัณฑิต|ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต/g,'');
+  return t.replace(/\s+/g,'').toLowerCase(); }
+function _pClean(q){ let s=String(q||'').toLowerCase().replace(_P_ZERO,'').replace(_P_DEGREE,' ').replace(_P_QUAL,' ').replace(/\s+/g,' ').trim(), prev;
+  do{ prev=s; s=s.replace(_P_LEAD,'').replace(_P_TAIL,'').replace(/\s+มี$/,'').trim(); }while(s!==prev && s);   // "ทุน X มีไหม" leaves a stray มี
+  return s.replace(/\s+/g,''); }
+const _P_FUNC=/^(?:ต้อง|สำหรับ|เพื่อ|การ|ของ|และ|ที่|ใน|มี|ได้|เป็น|จะ|ให้|กับ|แบบ|ทาง|ด้าน|เรื่อง|อะไร|ยังไง|อย่างไร|ไหม|บ้าง|ศึกษา|วิจัย|เรียน|สมัคร|ทำ|ไป|นี้|นั้น)+$/;
+function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; return ''; }
+function resolveProgramme(q, P){
+  const raw=String(q||''); if(!Array.isArray(P)||!P.length) return null;
+  if(_P_OTHER.test(raw)) return null;
+  const topic=(_P_TOPIC.find(([,re])=>re.test(raw))||[''])[0];
+  const code=raw.toUpperCase().match(/\b(\d{4}[MDNC]\d{2}[GS])\b/);
+  if(code){ const r=P.find(p=>p.code===code[1]); return r ? {kind:'one', row:r, via:'code', topic} : null; }
+  const text=_P_TOPIC.reduce((s,[,re])=>s.replace(new RegExp('(?:มี)?(?:'+re.source+')','gi'),' '), raw);
+  const alias=Object.keys(_P_ALIAS).find(a=>new RegExp('(?:^|[^a-z])'+a+'(?:[^a-z]|$)','i').test(raw));
+  const level=_pLevel(raw), intl=/นานาชาติ|international/i.test(raw), special=/ภาคพิเศษ|special program/i.test(raw);
+  const needles = alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : [_pClean(text)];
+  const need = needles.map(n=>({n, g:_pTri(n)})).filter(x=>x.g.size>=2 && !_P_FUNC.test(x.n));
+  if(!need.length) return null;
+  const intentOk=_P_INTENT.test(raw) || !!alias || !!topic;
+  const scored=[];
+  for(const p of P){
+    const core=_pCore(p.title), full=String(p.title||'').replace(/\([^)]*\)/g,'').replace(/\s+/g,'').toLowerCase(), en=String((p.announcement&&p.announcement.title_en)||p.title_en||'').toLowerCase().replace(/\s+/g,'');
+    let best=0;
+    for(const {n,g} of need){
+      for(const h of [core,full,en].filter(Boolean)){ const hg=_pTri(h);
+        let hit=0; for(const t of g) if(hg.has(t)) hit++; const cov=Math.max(hit/g.size, _pPieces(n,h));   // how much of the question is in the name
+        const exact = h===n ? 1 : 0, contained = h.includes(n) ? 0.3 : 0;
+        if(cov>=0.85) best=Math.max(best, cov + exact + contained - Math.min(0.2, Math.abs(h.length-n.length)/200));
+        // reverse: the WHOLE programme name appears in the question, whatever filler surrounds it ("เรียนทำกายอุปกรณ์").
+        // Needs ≥4 trigrams so short names (เคมี) cannot match incidental text; longer names rank higher.
+        if(hg.size>=4 && h===core){ let inQ=0; for(const t of hg) if(g.has(t)) inQ++; if(inQ===hg.size) best=Math.max(best, 1 + Math.min(h.length,40)/50); } }
+    }
+    if(best>0) scored.push({p, s:best});
+  }
+  if(!scored.length) return null;
+  // the question must either state an apply/info intent, or BE (almost) just a programme name
+  scored.sort((a,b)=>b.s-a.s);
+  if(!intentOk){ const n=need[0].n, t=scored[0].p, nk=x=>String(x||'').toLowerCase().replace(/\s+/g,''), hs=[_pCore(t.title), nk(String(t.title||'').replace(/\([^)]*\)/g,'')), nk((t.announcement&&t.announcement.title_en)||t.title_en)].filter(Boolean);
+    const rest=Math.min(...hs.map(h=>n.length*(1-_pPieces(n,h)))); if(rest>Math.max(3, n.length*0.25)) return null; }
+  const top=scored[0].s; let pool=scored.filter(x=>x.s>=top-0.15).map(x=>x.p);
+  let levelMissing=false;
+  const keep=(f)=>{ const r=pool.filter(f); if(r.length) pool=r; else return false; return true; };
+  if(level && !keep(p=>p.code[4]===level)) levelMissing=true;
+  if(intl) keep(p=>p.kind==='international');
+  if(special) keep(p=>p.code.endsWith('S'));
+  if(pool.length===1) return {kind:'one', row:pool[0], via:alias?'alias':'name', levelMissing, topic};
+  if(pool.length>12) return topic ? null   // "ค่าเทอมพยาบาล": the KB's general fee answer beats a 30-programme picker
+    : {kind:'broad', total:pool.length, rows:pool.slice(0,6), levelMissing};   // a field word, not a programme: ask for more, don't list 30
+  return {kind:'many', rows:pool.slice(0,6), total:pool.length, levelMissing, topic};
+}
+const _P_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function _pDate(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? `${+m[3]} ${_P_MON[+m[2]-1]} ${+m[1]+543}` : ''; }
+function _pEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _pUrl(u){ return /^https:\/\/graduate\.mahidol\.ac\.th\//.test(u||'') ? _pEsc(u) : ''; }   // only the official site
+function _pBtn(u,label,alt){ const h=_pUrl(u); return h ? `<a class="golink${alt?' alt':''}" href="${h}" target="_blank" rel="noopener">${label}</a>` : ''; }
+const _P_FEE_URL='https://graduate.mahidol.ac.th/thai/prospective-students/?topic=tuition-fee', _P_SCH_URL='https://graduate.mahidol.ac.th/thai/?p=scholarship';
+// The announcement's fee table, verbatim. Rows are read only when the page's own two header rows are the expected
+// ones (plan | duration | lump sum per semester | other fees for the whole programme = research/equipment | study visit);
+// nothing is added up or inferred. Cells split on "|" with optional spaces: an empty duration cell is "| |".
+// Certificates have no plan cell (4 cells); the study-visit cell may be prose ("อัตรา 20,000 บาท สำหรับ…").
+function _pFee(lines){
+  const L=lines||[], h1=L.some(l=>/^แผนการศึกษา \| ระยะเวลา/.test(l)), h2=L.some(l=>/^ค่าวิจัย.*\| ค่าธรรมเนียมการศึกษาดูงาน$/.test(l));
+  const rows=[]; let grp='';
+  for(const l of L){ if(/^นักศึกษา(?:ไทย|ต่างชาติ)$/.test(l)){ grp=l; continue; }
+    const c=l.split(/ ?\| ?/), amt=x=>/^(?:[\d,.]+|-)$/.test(x||'');
+    if(!h1||!h2) continue;
+    if(c.length===5 && c[0] && amt(c[2]) && amt(c[3]) && c[4]) rows.push({grp, plan:c[0], dur:c[1], lump:c[2], res:c[3], visit:c[4]});
+    else if(c.length===4 && amt(c[1]) && amt(c[2]) && c[3]) rows.push({grp, plan:'', dur:c[0], lump:c[1], res:c[2], visit:c[3]}); }
+  return {rows, notes:L.filter(l=>/^\[\d+\]/.test(l))};
+}
+function _pFeeHtml(a, year){
+  const f=_pFee(a&&a.sections&&a.sections['ค่าธรรมเนียมการศึกษา']);
+  if(!f.rows.length) return `💰 ค่าธรรมเนียม: ประกาศปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ยังไม่ระบุอัตรา — ดูอัตราของบัณฑิตวิทยาลัยที่ปุ่ม "ค่าธรรมเนียมการศึกษา"`;
+  const baht=x=>/^(?:[\d,.]+|-)$/.test(x) ? `${_pEsc(x)} บาท` : _pEsc(x);
+  const rows=f.rows.map(r=>`• ${[r.grp,r.plan].filter(Boolean).map(_pEsc).join(' · ')}${r.dur?` (${_pEsc(r.dur)})`:''}\n   เหมาจ่าย <b>${_pEsc(r.lump)}</b> บาท/ภาคการศึกษา · ชำระตลอดหลักสูตร: ค่าวิจัย/อุปกรณ์พิเศษ ${baht(r.res)} · ค่าศึกษาดูงาน ${baht(r.visit)}`).join('\n');
+  return `💰 ค่าธรรมเนียม (ตามประกาศ ปีการศึกษา ${_pEsc(a.year)})\n${rows}${f.notes.length?`<details><summary>หมายเหตุค่าธรรมเนียม</summary>${f.notes.map(_pEsc).join('<br>')}</details>`:''}`;
+}
+const _P_CONTACT='(ติดต่อ: ดูในประกาศฉบับเต็ม)';   // build_programme_catalogue.py EMAIL_MASK
+function _pSchHtml(a){
+  const all=((a&&a.sections&&a.sections['ทุนการศึกษาของหลักสูตร'])||[]).filter(l=>!/^-+$/.test(l));
+  const L = all.some(l=>l!==_P_CONTACT) ? all : [];   // only a contact line left (builder scrub) = nothing to show
+  if(!L.length && all.length) return '🎓 ประกาศของหลักสูตรนี้ให้ติดต่อผู้ประสานงานเรื่องทุน — ดูช่องทางในประกาศฉบับเต็ม';
+  return L.length ? `🎓 ทุนของหลักสูตร (ตามประกาศ)\n${L.map(_pEsc).join('\n')}` : '🎓 ประกาศของหลักสูตรนี้ไม่ได้ระบุทุนเฉพาะของหลักสูตร — ดูทุนของบัณฑิตวิทยาลัยที่ปุ่ม "ทุนการศึกษา"';
+}
+function programmeCard(p, asOf, year, topic){
+  const a=p.announcement, date=_pDate(asOf), tag=p.kind==='international'?'นานาชาติ':'หลักสูตรไทย';
+  const head=`<b>${_pEsc(p.title)}</b>${(a&&a.title_en)||p.title_en?`<br><small>${_pEsc((a&&a.title_en)||p.title_en)}</small>`:''}\n${_pEsc(p.level)} · ${_pEsc(p.faculty)} · ${tag}`;
+  const detail=_pBtn(p.detail_url,'📄 หน้ารายละเอียดหลักสูตร →');
+  const topicBtn = topic==='fee' ? _pBtn(_P_FEE_URL,'💰 ค่าธรรมเนียมการศึกษา',1) : topic==='scholarship' ? _pBtn(_P_SCH_URL,'🎓 ทุนการศึกษา',1) : '';
+  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากหน้าด้านล่าง)${topic?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}`,
+    links:detail+_pBtn('https://graduate.mahidol.ac.th/Admission/announce/cur_open_list.php','📋 หลักสูตรที่เปิดรับสมัคร',1)+topicBtn};
+  const S=a.sections||{};
+  // 3 states as the site shows them; an info-only page (no status line) is NOT "closed"
+  const light = a.status==='กำลังเปิดรับสมัคร' ? '🟢' : a.status ? '🔴' : '⚪';
+  const status = a.status ? `<b>${_pEsc(a.status)}</b>` : `ยังไม่มีรายละเอียดการรับสมัคร ณ วันที่ ${_pEsc(date)}`;
+  const row=l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; };
+  const sched=(S['กำหนดการสอบคัดเลือก']||[]).filter(l=>!/^รายละเอียดกิจกรรม/.test(l)).slice(0,8).map(row).join('\n');
+  const elig=(S['คุณสมบัติของผู้มีสิทธิ์สมัคร']||[]).map(_pEsc).join('<br>');   // folded, so all of it (a cut list hides whole plans' requirements)
+  const eng=(S['เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้']||[])[0];
+  const docs=(S['หลักฐานการสมัคร']||[]).map(_pEsc).join('<br>');
+  const fee=_pFeeHtml(a, year), sch=_pSchHtml(a), fold=h=>{ const [s1,...r]=h.split('\n'); return `<details><summary>${s1}</summary>${r.join('\n')}</details>`; };
+  // a fee / scholarship question leads with that block; the apply card keeps them folded
+  const html=[head,
+    topic==='fee' ? fee : topic==='scholarship' ? sch : '',
+    `${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})`,
+    (a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(_pEsc).join('\n')}` : '',
+    (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? `📚 แผนที่เปิดรับ: ${(S['แผนการศึกษาที่เปิดรับสมัคร']).map(_pEsc).join(' · ')}` : '',
+    sched ? `🗓️ กำหนดการ\n${sched}` : (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '',
+    eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '',
+    elig ? `<details><summary>📝 คุณสมบัติผู้สมัคร (ตามประกาศ)</summary>${elig}</details>` : '',
+    docs ? `<details><summary>📎 หลักฐานการสมัคร (ตามประกาศ)</summary>${docs}</details>` : '',
+    topic!=='fee' && _pFee(S['ค่าธรรมเนียมการศึกษา']).rows.length ? fold(fee) : '',
+    topic!=='scholarship' && sch.startsWith('🎓 ทุนของ') ? fold(sch) : '',
+    `<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`].filter(Boolean).join('\n\n');
+  return {html, links: detail+_pBtn(a.url,'📢 ประกาศรับสมัครฉบับเต็ม →',1)+(a.status==='กำลังเปิดรับสมัคร'?_pBtn(a.apply_url,'🖊️ ระบบสมัครออนไลน์ →',1):'')+topicBtn};   // no apply button on a closed programme
+}
+// </programme-resolve>
+
 // --- Intake layer (deterministic, no AI) -------------------------------------
 // Most unanswered messages are PERSONAL/TECHNICAL issues (account locked, data
 // stuck, can't use a system) — not knowledge questions. Instead of guessing
@@ -781,6 +935,35 @@ function ask(){
     </div>
     <div class="proof-full">🔒 BLAKE3 proof: <code>${d.blake3_proof}</code><br>
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ proof เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
+
+  // Programme path: "I want to apply to <programme>" → that programme's own page + status, not a
+  // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
+  const prog = resolveProgramme(q, PROG);
+  if(prog){
+    auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
+    const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
+    if(prog.kind==='one'){
+      const c = programmeCard(prog.row, asOf, yr, prog.topic);
+      add('b', `${kstrip}
+        <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🎯 ตรงหลักสูตร — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
+        <div class="ans">${prog.levelMissing?'ไม่พบหลักสูตรในระดับที่ระบุ — แสดงหลักสูตรที่ใกล้เคียงที่สุดแทนครับ\n\n':''}${c.html}</div>
+        <div class="meta">programme resolver: ${_pEsc(prog.via)} → ${_pEsc(prog.row.code)} · ข้อมูลเก็บ ${_pEsc(asOf)}</div>
+        ${c.links}
+        ${fbUI(q, d.blake3_proof)}`);
+    } else {
+      const opts = prog.rows.map(p=>`<span class="dis" data-t="${{fee:'ค่าเทอม ',scholarship:'ทุน '}[prog.topic]||'สมัคร '}${_pEsc(p.code)}">${_pEsc(p.level)} · ${_pEsc(p.title)} · ${_pEsc(p.faculty)}${p.announcement?` · ${_pEsc(p.announcement.status)}`:''}</span>`).join('');
+      const mid='prg'+(++fbN);
+      add('b', `${kstrip}
+        <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🎯 ${prog.kind==='broad'?'คำกว้างเกินไป — ช่วยระบุให้เจาะจงขึ้น':'พบหลายหลักสูตร — เลือกอันที่ต้องการ'} · ไม่เรียก AI</span>
+        <div class="ans">${prog.levelMissing?'ไม่พบหลักสูตรในระดับที่ระบุ — ':''}${prog.kind==='broad'?`คำนี้กว้างไปหน่อย พบ ${prog.total} หลักสูตร ช่วยระบุสาขาให้เจาะจงขึ้น (เช่น ชื่อสาขา หรือรหัสหลักสูตร) หรือเลือกจากตัวอย่างด้านล่างครับ`:`พบ ${prog.total} หลักสูตรที่ตรงกับที่ถาม — เลือกอันที่ต้องการได้เลยครับ`}</div>
+        <div class="dislist" id="${mid}">${opts}</div>
+        <div class="meta">programme resolver: ${prog.total} candidates</div>
+        <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมด →</a>`);
+      document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
+    }
+    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    return;
+  }
 
   const ranked = search(q);
   // The WASM kernel now exposes the raw sigmoid gate score g — use it directly
