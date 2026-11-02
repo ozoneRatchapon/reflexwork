@@ -26,7 +26,7 @@ else if (kpis.length === 3) {
   const dir = mkdtempSync(join(tmpdir(), 'rw-slides-')), out = join(dir, 'm.json');
   execFileSync('node', [join(root, 'benchmark/compare/compare_retrievers.mjs'), '--json', out], { stdio: 'ignore' });
   const m = JSON.parse(readFileSync(out, 'utf8')); rmSync(dir, { recursive: true, force: true });
-  const wrong = Math.round(m.rows.ours.errAtMatched);
+  const wrong = m.shippedWrong;   // wrong answers the page really gives (decideTier), not an estimate
   check(`slide 6 answered = measured (${m.answeredOurs} of ${m.n})`, kpis[0].k === m.answeredOurs && kpis[0].n === m.n, `slide ${kpis[0].k}/${kpis[0].n}, measured ${m.answeredOurs}/${m.n} - update the slide (and METHOD.md §5) after changing the KB or the eval`);
   check(`slide 6 wrong-among-answered = measured (${wrong} of ${m.answeredOurs})`, kpis[2].k === wrong && kpis[2].n === m.answeredOurs, `slide ${kpis[2].k}/${kpis[2].n}, measured ${wrong}/${m.answeredOurs}`);
 }

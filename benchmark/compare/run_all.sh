@@ -19,6 +19,10 @@ dirty=""; git diff --quiet HEAD -- submissions/ui/chatbot.html submissions/ui/pr
   echo
   node benchmark/compare/programme_names.mjs
   echo
+  echo '## Language and out-of-scope probe (hand-written, tiny sets: a probe, not a benchmark)'
+  echo
+  node benchmark/compare/decision_rule.mjs
+  echo
   node benchmark/compare/latency.mjs 2>/dev/null
 } > "$out"
 echo "$out"

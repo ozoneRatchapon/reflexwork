@@ -25,6 +25,7 @@ const evalSrc = readFileSync(join(root, 'tests/kb_search.test.mjs'), 'utf8');
 
 // ---- production code and the labelled eval, taken from their single sources of truth (no copies) ----------------------------------
 const pm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
+const decideTier = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
 const { jsSearch, gramSet } = new Function('KB', pm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {jsSearch:_jsSearch, gramSet:_jsGramSet};'))(KB);
 const CASES = [...evalSrc.matchAll(/^\s*\['([^']+)',\s*(null|'[^']*'),\s*'([^']*)'\],?$/gm)].map(m => ({ q: m[1], exp: m[2] === 'null' ? null : m[2].slice(1, -1), kind: m[3] }));
 const ALT = new Function('return ' + evalSrc.match(/const ALT = (\{[\s\S]*?\n\});/)[1])();
@@ -78,14 +79,16 @@ for (const [name, fn] of Object.entries(METHODS)) {
     return { c, top, f: name === 'ours' && r[0] ? r[0].f : null, r1: top && c.ok.has(top.id) ? 1 : 0, r3: r.slice(0, 3).some(x => c.ok.has(x.id)) ? 1 : 0, rr: pos >= 0 ? 1 / (pos + 1) : 0, conf: top ? top.conf : 0, margin: top ? top.conf - (r[1] ? r[1].conf : 0) : 0 }; });
 }
 const lab = Q.map((c, i) => i).filter(i => Q[i].exp !== null), nLab = lab.length;
-const answeredOurs = run.ours.filter(x => x.top && Math.floor(x.conf) >= 4).length;   // production gate: s >= 4
+// 'answered' = what the page really does: decideTier() (acts from score 3 unless two entries are within 1 point; gate ~0.061 as in the web chat)
+let answeredOurs = 0, shippedWrong = 0;
+for (const c of Q) { const v = decideTier({ gate: 0.061, ranked: jsSearch(c.q) }); if (v.action === 'act') { answeredOurs++; if (c.exp === null || !c.ok.has(v.entry.id)) shippedWrong++; } }
 const rows = {};
 for (const [name, rs] of Object.entries(run)) {
   const wrong = x => (x.c.exp === null || !x.r1) ? 1 : 0;
   const cand = name === 'ours' ? [rs.map(x => ({ conf: x.conf, wrong: wrong(x) }))] : [rs.map(x => ({ conf: x.conf, wrong: wrong(x) })), rs.map(x => ({ conf: x.margin, wrong: wrong(x) }))];
   const curves = cand.map(riskCurve), best = curves.reduce((a, b) => (b.aurc < a.aurc ? b : a));
   const r1 = lab.reduce((a, i) => a + rs[i].r1, 0), r3 = lab.reduce((a, i) => a + rs[i].r3, 0), mrr = lab.reduce((a, i) => a + rs[i].rr, 0) / nLab;
-  rows[name] = { r1, r3, mrr, ci: wilson(r1, nLab), errAtMatched: best.errAt(answeredOurs), aurc: best.aurc, auroc: Math.max(...curves.map(c => c.auroc)) };
+  rows[name] = { r1, r3, mrr, ci: wilson(r1, nLab), errAtMatched: name === 'ours' ? shippedWrong : best.errAt(answeredOurs), aurc: best.aurc, auroc: Math.max(...curves.map(c => c.auroc)) };   // ours: the errors the page really makes
 }
 function logistic(X, y, lam = 0.5, it = 1500, lr = 0.2) { // L2-regularised logistic regression on standardised features
   const d = X[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
@@ -119,11 +122,11 @@ for (const n of Object.keys(run).filter(k => k !== 'ours_learned')) out.push(`| 
 out.push('\nPaired difference in recall@1, ours minus baseline (bootstrap 95% CI, 4000 resamples, seed 20261102; exact McNemar on discordant pairs):\n\n| vs | diff | 95% CI | ours-only right | baseline-only right | p |\n|---|---|---|---|---|---|');
 for (const n of Object.keys(run).filter(k => k !== 'ours' && k !== 'ours_learned')) { const p = paired('ours', n); out.push(`| ${n} | ${(100 * p.diff).toFixed(0)}pp | ${(100 * p.lo).toFixed(0)}..${(100 * p.hi).toFixed(0)}pp | ${p.only} | ${p.onlyB} | ${p.p.toFixed(3)} |`); }
 out.push(`\n### 2. Confidence: can it tell when it is right? (this is what decides "answer without an LLM" vs "abstain")\n`);
-out.push(`Production answers ${answeredOurs}/${Q.length} queries on its own (score >= 4). Error counts below are at that SAME coverage; an off-corpus query that gets answered is an error.\n`);
+out.push(`The page answers ${answeredOurs}/${Q.length} queries on its own (decideTier: act). Error counts below are at that SAME coverage (for \`ours\`: the errors the page really makes; for the others: their wrong answers among their ${answeredOurs} most-confident); an off-corpus query that gets answered is an error.\n`);
 out.push('| method | wrong among the ' + answeredOurs + ' most-confident answers | AURC (lower = better) | AUROC (higher = better) |\n|---|---|---|---|');
 for (const [n, r] of Object.entries(rows)) out.push(`| ${n} | ${f2(r.errAtMatched)} (${pct(r.errAtMatched / answeredOurs)}) | ${f2(r.aurc)} | ${f2(r.auroc)} |`);
 out.push('\n`ours_learned` = the same ranking as `ours`, confidence from a logistic regression over (cosine, cosine margin, overlap, overlap lead), each row scored by a model trained WITHOUT it (leave-one-out). Exploratory: 52 queries and a handful of errors cannot support a claim either way.');
 const text = out.join('\n');
 console.log(text);
 const ji = process.argv.indexOf('--json');
-if (ji > 0) writeFileSync(process.argv[ji + 1], JSON.stringify({ n: Q.length, labelled: nLab, answeredOurs, rows }, null, 1));
+if (ji > 0) writeFileSync(process.argv[ji + 1], JSON.stringify({ n: Q.length, labelled: nLab, answeredOurs, shippedWrong, rows }, null, 1));

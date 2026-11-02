@@ -57,7 +57,7 @@ overlap   = |{ g ∈ grams(q) : g is a substring of d.keywords }|
 rank      = cos desc, overlap breaks ties                   ← ranking uses cosine only
 score s   = 6 if (ov≥8 ∧ lead≥4) ∨ (cos≥0.40 ∧ margin≥0.08);  5 if (ov≥5 ∧ lead≥2) ∨ cos≥0.30;
             4 if cos≥0.20;  3 if cos≥0.15;  else max(1, round(10·cos))
-answer without an LLM if s ≥ 4 (borderline 2–3 → ask which entry; below → hand off)
+decideTier() (what the page really does, web gate ≈ 0.06): act if s ≥ 4 and the runner-up is ≥ 2 behind; else if the top two are within 1 point (top s ≥ 2) → ask which entry; else act if s ≥ 3; else hand off
 ```
 `lead`/`margin` are overlap/cosine gaps to the runner-up. **Provenance of the constants:** chosen by hand. The overlap rule (`ov≥8 ∧ lead≥4`) was added to fix one observed failure ("Turnitin เกิน 25%": overlap 15 but cosine only 0.20) and the floors were set from this same 50-query eval, so the eval numbers below are **in-sample for the confidence thresholds** and should be read as optimistic.
 
@@ -87,7 +87,7 @@ Plain text in, escaped HTML out; only (a) `http(s)` URLs on `mahidol.ac.th | lin
 | C | independent FAQ queries from another university team's own logs, 440-doc corpus | 31 | `benchmark/gradmahidol` | **no** (corpus is another team's; script only) |
 | D | latency per layer, real WASM | — | `benchmark/compare/latency.mjs` | yes (machine-dependent) |
 
-Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the production coverage (k = 44/52), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
+Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 45/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
 
 ## 5. Results (run 002, commit `670ce68`)
 
@@ -105,13 +105,13 @@ Paired, ours − baseline: vs overlap **+6 pp** [0, 14], p = 0.25 · vs BM25-cha
 
 **A2 — confidence** (when is it safe to answer without an LLM?)
 
-| method | wrong among the 44 most-confident | AURC ↓ | AUROC ↑ |
+| method | wrong among the 45 answered / most-confident | AURC ↓ | AUROC ↑ |
 |---|---|---|---|
 | ours (hand-set score) | 5 (11 %) | 0.06 | 0.84 |
 | cosine only | 5 | 0.05 | 0.86 |
 | BM25-char3 | 7 | 0.06 | 0.91 |
-| lexical overlap only | 8 | 0.08 | 0.85 |
-| BM25-word | 23 | 0.24 | 0.99* |
+| lexical overlap only | 9 | 0.08 | 0.85 |
+| BM25-word | 24 | 0.24 | 0.99* |
 | ours, weights **fitted** (logistic, leave-one-out) | 6 | 0.07 | 0.81 |
 
 \*AUROC measures separation, not accuracy; BM25-word separates its many errors well but makes them — read it with AURC.
@@ -146,7 +146,7 @@ Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosin
 | Gate weights are learned from data | **false** as implemented: hand-seeded; and fitting them on 52 queries (leave-one-out) did **not** help |
 | The kernel gate decides whether an LLM is needed | **false in the web chat today** (§3.1: `g ≤ 0.451` always) |
 | The system learns from users' 👍/👎 | **partly, and only since 2026-11-03**: before that every click threw `ReferenceError` in the page, so no web vote reached the server (4 votes on record, all from curl). Now votes arrive. Until the vote-id fix (§8.6) the server de-duplicated them by the replay hash, identical for everyone who asks the same sentence, so each distinct question string could move the policy only once; from that fix each vote counts once per answer shown. Effect of votes on answer quality: not measured, and a script can still mint vote ids (only the per-IP rate limit brakes that) |
-| "87 % fast path" | **not a quality metric** (§3.1); use A2: 44/52 answered unaided at 5 errors |
+| "87 % fast path" | **not a quality metric** (§3.1); use A2: 45/52 answered unaided, 5 of them wrong |
 
 ## 7. Threats to validity
 
@@ -175,7 +175,7 @@ benchmark/compare/run_all.sh                         # writes benchmark/compare/
 node tests/kb_search.test.mjs && node tests/programme_resolve.test.mjs && node tests/linkify.test.mjs && node tests/chat_robust.test.mjs
 node benchmark/compare/compare_retrievers.mjs --json out.json   # machine-readable
 ```
-To compare another system fairly: (1) index the same `keywords` text of the 132 entries in `submissions/ui/knowledge-index.json`; (2) answer the 52 queries in `tests/kb_search.test.mjs` (labels and the per-query alternates in `ALT`); (3) report recall@1/@3 **and** the error count among your *k* = 44 most-confident answers, counting any off-corpus answer as an error; (4) report CIs. Obvious additions: a multilingual dense retriever (e.g. e5 / bge-m3) and an LLM-only baseline with and without retrieval — both worth running because the first is the natural competitor to our confidence and the second is what users compare us with. Queries contain no personal data; the KB is approved public FAQ text.
+To compare another system fairly: (1) index the same `keywords` text of the 132 entries in `submissions/ui/knowledge-index.json`; (2) answer the 52 queries in `tests/kb_search.test.mjs` (labels and the per-query alternates in `ALT`); (3) report recall@1/@3 **and** the error count among your *k* = 45 most-confident answers, counting any off-corpus answer as an error; (4) report CIs. Obvious additions: a multilingual dense retriever (e.g. e5 / bge-m3) and an LLM-only baseline with and without retrieval — both worth running because the first is the natural competitor to our confidence and the second is what users compare us with. Queries contain no personal data; the KB is approved public FAQ text.
 
 ## 10. Data and ethics notes
 

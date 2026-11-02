@@ -35,7 +35,7 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 - "the kernel gate decides when to call the LLM" (in the web chat the retrieval score decides; the gate cannot exceed 0.451);
 - "the system improves automatically from users' 👍/👎": the buttons only started working on 2026-11-03 (before, each click threw an error), the effect of votes on answer quality is not measured, and per-answer counting needs the kernel worker deploy (`docs/METHOD.md` §8.6). Say: "votes are collected per answer and reviewed by staff";
 - "proof" for the BLAKE3 hash (it is a replay fingerprint, not a proof of correctness) — the UI, slides, README and concept paper now say *fingerprint*; `docs/pitching/*.md` Q&A notes may still say proof, so say fingerprint out loud;
-- that slide 6 shows live data: it is an example screen filled with the **measured** test-set figures (44 of 52 answered unaided, 5 wrong among them) and says so; the real dashboard is `/dashboard`;
+- that slide 6 shows live data: it is an example screen filled with the **measured** test-set figures (45 of 52 answered unaided, 5 wrong among them) and says so; the real dashboard is `/dashboard`;
 - that statuses are live (they are a snapshot, dated on every card).
 
 ## If something breaks on stage
