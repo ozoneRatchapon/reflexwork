@@ -13,13 +13,13 @@ const evalSrc = readFileSync(join(root, 'tests/kb_search.test.mjs'), 'utf8');
 const search = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
 const src = html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0];
 const twinSrc = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
-const LIFT6 = 'if(ov>=8 && ovLead>=4) return 6;', LIFT5 = 'if(ov>=5 && ovLead>=2) return 5;';
+const LIFT6 = 'if(c>=0.15 && ov>=8 && ovLead>=4) return 6;', LIFT5 = 'if(c>=0.15 && ov>=5 && ovLead>=2) return 5;';   // the shipped rule since 2026-11-03
 if (!twinSrc.includes(LIFT6) || !twinSrc.includes(LIFT5)) throw new Error('_cosToScore changed: update the variants in this script');
 const mk = t => new Function('KB', t)(KB);
 const SCORERS = {
-  'shipped: overlap can lift any candidate to s=5/6':   mk(twinSrc),
-  'variant 1: overlap lifts only if cosine >= 0.15':    mk(twinSrc.replace(LIFT6, 'if(c>=0.15 && ov>=8 && ovLead>=4) return 6;').replace(LIFT5, 'if(c>=0.15 && ov>=5 && ovLead>=2) return 5;')),
-  'variant 2: cosine only (no overlap lift)':           mk(twinSrc.replace(LIFT6, '').replace(LIFT5, '')),
+  'shipped: overlap lifts only if cosine >= 0.15':       mk(twinSrc),
+  'before 2026-11-03: overlap could lift any candidate': mk(twinSrc.replace(LIFT6, 'if(ov>=8 && ovLead>=4) return 6;').replace(LIFT5, 'if(ov>=5 && ovLead>=2) return 5;')),
+  'cosine only (no overlap lift at all)':                mk(twinSrc.replace(LIFT6, '').replace(LIFT5, '')),
 };
 const decide = new Function(src + '\nreturn decideTier;')();
 const GATE = 0.061;
