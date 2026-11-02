@@ -202,6 +202,7 @@
   /* chips and feedback buttons lift on hover (affordance) */
   .chip{transition:transform .12s ease,box-shadow .12s ease,background .15s ease}
   .chip:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,99,232,.18)}
+  .ans a.inl,.steps a.inl{color:var(--accent);text-decoration:underline;word-break:break-all}
   .msg.b .golink{transition:transform .12s ease,filter .12s ease}
   .msg.b .golink:hover{transform:translateY(-1px)}
   @media (prefers-reduced-motion: reduce){
@@ -330,6 +331,7 @@
 import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
+let LINKS=[];   // system-links.json: named systems -> official URLs (optional)
 let PROGDOC=null, PROG=[], PCTX=null;   // PCTX: the one programme a follow-up question may refer to (last single-programme card)   // programme catalogue (programmes.json) — optional, page works without it
 const COST=2;
 
@@ -342,6 +344,7 @@ async function load(){
   if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
   // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
   fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes)){ PROGDOC=d; PROG=d.programmes; } }).catch(()=>{});
+  fetch('./system-links.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.links)) LINKS=d.links; }).catch(()=>{});
   ready=true; $('q').disabled=false; $('send').disabled=false;
   // kernel ready → replace the boot spinner with an inviting greeting
   const boot=$('boot'); if(boot) boot.remove();
@@ -572,6 +575,49 @@ function scopeClarify(q, ranked, kb){
 }
 // </scope-clarify>
 
+// <chat-normalize>
+// Chat input is not careful text: "เรียนรายยย", "ครับบบบ", "ได้้้้", zero-width characters pasted from LINE/Word. Run BEFORE any
+// matching. Only runs of 3+ of the SAME THAI letter/mark collapse to one (no Thai word has one) - Latin and digits are left
+// alone on purpose ("www", "10000" must survive). The user's own bubble keeps what they typed.
+function normChat(q){
+  return String(q==null?'':q).normalize('NFC').replace(/[​-‍﻿]/g,'').replace(/([ก-๎])\1{2,}/g,'$1').replace(/\s+/g,' ').trim();
+}
+// </chat-normalize>
+
+// <linkify>
+// Turns the places an answer SENDS the reader ("สมัครผ่านระบบ Online Admission", "LINE @160ohrzm", a bare https:// URL)
+// into clickable links. Input is PLAIN TEXT, never HTML: this function escapes everything, so text from the KB, the
+// official website or an LLM cannot inject markup. What becomes a link, and nothing else:
+//   1. a bare http(s) URL whose host is on the allowlist (Mahidol, LINE, Canva sites the KB itself uses);
+//   2. a phrase listed in system-links.json -> the official URL the Graduate School itself links it to (first mention);
+//   3. a LINE official-account id (@xxxxxxx) -> that account's page (first mention).
+const _L_HOST=/^(?:[a-z0-9-]+\.)*(?:mahidol\.ac\.th|line\.me|canva\.site)$/i;
+function _lEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _lUrlOk(u){ try{ const x=new URL(u); return /^https?:$/.test(x.protocol) && _L_HOST.test(x.hostname); }catch(e){ return false; } }
+function linkify(text, links){
+  const t=String(text==null?'':text), cand=[]; let m;
+  const urlRe=/https?:\/\/[^\s<>"'`]+/g;
+  while((m=urlRe.exec(t))){ const u=m[0].replace(/[.,;:!?)\]}、。]+$/,''); if(_lUrlOk(u)) cand.push({s:m.index, e:m.index+u.length, url:u}); }
+  const hostRe=/(?:[a-z0-9-]+\.)+mahidol\.ac\.th(?:\/[^\s<>"'`]*)?/gi;   // "ตั้งรหัสใหม่ที่ account.mahidol.ac.th" - a host written without https://
+  while((m=hostRe.exec(t))){ if(/[\w@.\/-]/.test(t[m.index-1]||'')) continue;   // e-mail domain, or inside a longer URL/word
+    const h=m[0].replace(/[.,;:!?)\]}、。]+$/,''); if(_lUrlOk('https://'+h)) cand.push({s:m.index, e:m.index+h.length, url:'https://'+h}); }
+  for(const l of (Array.isArray(links)?links:[])){
+    if(!l || !l.match || !_lUrlOk(l.url)) continue;
+    let re; try{ re=new RegExp(l.match,'gi'); }catch(e){ continue; }
+    while((m=re.exec(t))){ if(!m[0]) { re.lastIndex++; continue; } cand.push({s:m.index, e:m.index+m[0].length, url:l.url, label:l.label, key:l.id||l.url}); break; }   // first mention only
+  }
+  const lineRe=/@[a-z0-9]{5,20}/gi, seen={};
+  while((m=lineRe.exec(t))){ const prev=t[m.index-1]||'';
+    if(/[\w.~\/%-]/.test(prev) || seen[m[0].toLowerCase()]) continue;   // e-mail local part, part of a URL, or already linked
+    seen[m[0].toLowerCase()]=1; cand.push({s:m.index, e:m.index+m[0].length, url:'https://line.me/R/ti/p/'+m[0], label:'LINE '+m[0]}); }
+  const keep=[]; for(const c of cand){ if(!keep.some(k=>c.s<k.e && k.s<c.e)) keep.push(c); }   // first candidate wins an overlap (URL > registry > LINE)
+  keep.sort((a,b)=>a.s-b.s);
+  let out='', i=0;
+  for(const k of keep){ out+=_lEsc(t.slice(i,k.s))+`<a class="inl" href="${_lEsc(k.url)}" target="_blank" rel="noopener noreferrer"${k.label?` title="${_lEsc(k.label)}"`:''}>${_lEsc(t.slice(k.s,k.e))}</a>`; i=k.e; }
+  return out+_lEsc(t.slice(i));
+}
+// </linkify>
+
 // <programme-resolve>
 // Programme-specific answer path (deterministic, no AI, no scoring change). A user who says
 // "I want to apply to <programme>" wants THAT programme's page and status, not a generic
@@ -702,7 +748,7 @@ function _pSchHtml(a){
   const all=((a&&a.sections&&a.sections['ทุนการศึกษาของหลักสูตร'])||[]).filter(l=>!/^-+$/.test(l));
   const L = all.some(l=>l!==_P_CONTACT) ? all : [];   // only a contact line left (builder scrub) = nothing to show
   if(!L.length && all.length) return '🎓 ประกาศของหลักสูตรนี้ให้ติดต่อผู้ประสานงานเรื่องทุน — ดูช่องทางในประกาศฉบับเต็ม';
-  return L.length ? `🎓 ทุนของหลักสูตร (ตามประกาศ)\n${L.map(_pEsc).join('\n')}` : '🎓 ประกาศของหลักสูตรนี้ไม่ได้ระบุทุนเฉพาะของหลักสูตร — ดูทุนของบัณฑิตวิทยาลัยที่ปุ่ม "ทุนการศึกษา"';
+  return L.length ? `🎓 ทุนของหลักสูตร (ตามประกาศ)\n${L.map(l=>linkify(l,[])).join('\n')}` : '🎓 ประกาศของหลักสูตรนี้ไม่ได้ระบุทุนเฉพาะของหลักสูตร — ดูทุนของบัณฑิตวิทยาลัยที่ปุ่ม "ทุนการศึกษา"';
 }
 function programmeCard(p, asOf, year, topic){
   const a=p.announcement, date=_pDate(asOf), tag=p.kind==='international'?'นานาชาติ':'หลักสูตรไทย';
@@ -717,15 +763,15 @@ function programmeCard(p, asOf, year, topic){
   const status = a.status ? `<b>${_pEsc(a.status)}</b>` : `ยังไม่มีรายละเอียดการรับสมัคร ณ วันที่ ${_pEsc(date)}`;
   const row=l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; };
   const sched=(S['กำหนดการสอบคัดเลือก']||[]).filter(l=>!/^รายละเอียดกิจกรรม/.test(l)).slice(0,8).map(row).join('\n');
-  const elig=(S['คุณสมบัติของผู้มีสิทธิ์สมัคร']||[]).map(_pEsc).join('<br>');   // folded, so all of it (a cut list hides whole plans' requirements)
+  const elig=(S['คุณสมบัติของผู้มีสิทธิ์สมัคร']||[]).map(l=>linkify(l,[])).join('<br>');   // folded, so all of it (a cut list hides whole plans' requirements)
   const eng=(S['เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้']||[])[0];
-  const docs=(S['หลักฐานการสมัคร']||[]).map(_pEsc).join('<br>');
+  const docs=(S['หลักฐานการสมัคร']||[]).map(l=>linkify(l,[])).join('<br>');
   const fee=_pFeeHtml(a, year), sch=_pSchHtml(a), fold=h=>{ const [s1,...r]=h.split('\n'); return `<details><summary>${s1}</summary>${r.join('\n')}</details>`; };
   // a fee / scholarship question leads with that block; the apply card keeps them folded
   const html=[head,
     topic==='fee' ? fee : topic==='scholarship' ? sch : topic==='docs' ? (docs?`📎 หลักฐานการสมัคร (ตามประกาศ)\n${docs.replace(/<br>/g,'\n')}`:'📎 ประกาศนี้ไม่ได้ระบุหลักฐานการสมัคร — ดูประกาศฉบับเต็ม') : topic==='elig' ? (elig?`📝 คุณสมบัติผู้สมัคร (ตามประกาศ)\n${elig.replace(/<br>/g,'\n')}`:'📝 ประกาศนี้ไม่ได้ระบุคุณสมบัติผู้สมัคร — ดูประกาศฉบับเต็ม') : '',
     `${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})`,
-    (a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(_pEsc).join('\n')}` : '',
+    (a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(l=>linkify(l,[])).join('\n')}` : '',
     (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? `📚 แผนที่เปิดรับ: ${(S['แผนการศึกษาที่เปิดรับสมัคร']).map(_pEsc).join(' · ')}` : '',
     sched ? `🗓️ กำหนดการ\n${sched}` : (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '',
     eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '',
@@ -741,6 +787,9 @@ function programmeCard(p, asOf, year, topic){
 // programme) with live counts, until a handful of programmes is left to open as cards. Pure; the chat wires clicks.
 const _P_FINDQ=/(?:เรียน|ศึกษาต่อ|ต่อ(?:โท|เอก)|สาขา|หลักสูตร|คณะ)\s*(?:อะไร|ไร|ไหน)\s*ดี|ไม่รู้จะเรียน|แนะนำ(?:หลักสูตร|สาขา|คณะ|ที่เรียน)|(?:มี|เปิด(?:รับ)?)\s*(?:หลักสูตร|สาขา|คณะ)\s*(?:อะไร|ไหน)(?:บ้าง)?|หลักสูตร(?:ทั้งหมด|อะไรบ้าง)|หลักสูตรที่เปิด(?:รับ)?(?:สมัคร)?(?:มี)?(?:อะไร)?บ้าง|what should i study|which (?:program|course)s?|list of programs?/i;
 const _P_LV=[['M','ปริญญาโท'],['D','ปริญญาเอก'],['C','ประกาศนียบัตรบัณฑิต'],['N','ป.บัณฑิตชั้นสูง']];
+// A question that is ABOUT studying but names no programme we can find (typo, slang, "เรียนรายยย"): the finder is the
+// graceful way out - better than a staff hand-off. Fee / registration / thesis topics are excluded (the KB owns them).
+function hasStudyIntent(q){ const s=String(q||''); return !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)) && /เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร(?!สอบ)|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply/i.test(s); }   // bare "ศึกษา" is not a signal (ลาพักการศึกษา, วุฒิการศึกษา); "สมัครสอบ" is an exam, not a programme
 function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && !_P_OTHER.test(s); }
 function finderInit(q){ const s=String(q||''); return {level:_pLevel(s), faculty:'', open:/เปิดรับ/.test(s), intl:/นานาชาติ|international/i.test(s), special:/ภาคพิเศษ|special program/i.test(s)}; }
 function finderFacets(P, f){
@@ -803,15 +852,18 @@ function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(
 function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 async function groundedHybrid(q, entries){
-  if(!KERNEL_API) return null;
+  if(!LLM_API) return null;
   const context = entries.slice(0,3).map((e,i)=>`[${i+1}] ${e.title}\n${e.answer}`).join('\n\n');
+  const ac = new AbortController(), timer = setTimeout(()=>ac.abort(), 25000);   // proxy tries local model (20 s) then Gemini; never leave the user on a spinner
   try{
-    const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/llm',{
+    const r = await fetch(LLM_API.replace(/\/$/,'')+'/llm',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({input:q, context})
+      body: JSON.stringify({input:q, context}), signal: ac.signal
     });
-    const j = await r.json(); return j.answer || null;
-  }catch{ return null; }
+    if(!r.ok) return null;
+    const j = await r.json();
+    return (j && j.answer && j.source!=='fallback') ? String(j.answer) : null;   // the proxy's own apology is not an answer: show the KB text instead
+  }catch{ return null; } finally{ clearTimeout(timer); }
 }
 
 // --- Affect kernel (deterministic mood, no AI) -------------------------------
@@ -947,10 +999,43 @@ function smalltalkReply(kind){
   }
 }
 
+// Programme finder message. `explicit`: the user asked "what should I study" (counts as answered); otherwise it is the
+// rescue for a study-ish question we could not resolve (the caller already counted it).
+function renderFinder(q, d, kstrip, intro, explicit){
+  if(explicit){ auto++; saved+=COST; MOOD.felt('hit'); renderMood(true); }
+  let f=finderInit(q), all=false; const fid='fd'+(++fbN);
+  add('b', `${kstrip}
+    <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ช่วยเลือกหลักสูตร — จากแคตตาล็อกทางการ · ไม่เรียก AI</span>
+    ${intro?`<div class="ans">${_lEsc(intro)}</div>`:''}
+    <div class="ans" id="${fid}"></div>
+    <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมดบนเว็บ →</a>
+    ${fbUI(q, d.blake3_proof)}`);
+  const el=document.getElementById(fid);
+  const draw=()=>{ el.innerHTML=finderHtml(finderFacets(PROG,f), f, PROGDOC.fetched_at, all);
+    el.querySelectorAll('[data-fk]').forEach(x=>x.addEventListener('click',()=>{ const k=x.dataset.fk, v=x.dataset.fv||'';
+      if(k==='reset'){ f=finderInit(''); all=false; } else if(k==='more') all=true;
+      else if(k==='open'||k==='intl'||k==='special') f[k]=!f[k];
+      else { f[k]=v; if(k==='level'){ f.faculty=''; all=false; } }
+      draw(); }));
+    el.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value='สมัคร '+x.dataset.code; ask(); })); };
+  draw();
+  $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+}
+
+// Starting points for a question we did not understand: from each of the most populated KB categories, the first entry whose
+// own title retrieves itself (so tapping the chip is guaranteed to answer). Derived from the KB, nothing hand-listed.
+function starterEntries(){
+  const by=new Map(); for(const e of KB){ if(!e.category) continue; (by.get(e.category)||by.set(e.category,[]).get(e.category)).push(e); }
+  const out=[]; for(const [,es] of [...by].sort((a,b)=>b[1].length-a[1].length)){
+    const hit=es.find(e=>{ const r=search(e.title); return r[0] && r[0].e===e && r[0].s>=4; }); if(hit) out.push(hit); if(out.length>=4) break; }
+  return out;
+}
+
 function ask(){
   if(!ready) return;
-  const q=$('q').value.trim(); if(!q) return;
-  add('u', q); $('q').value='';
+  const typed=$('q').value.trim(); if(!typed) return;
+  add('u', typed); $('q').value='';
+  const q=normChat(typed) || typed;   // everything below reads the normalised text; the bubble above shows what was typed
 
   // Smalltalk first — a greeting/thanks is NOT a knowledge question and NOT a
   // staff case. Greet back and INVITE the user to say what they need (let them
@@ -1015,26 +1100,7 @@ function ask(){
   }
 
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
-  if(PROG.length && isFinderQuestion(q)){
-    auto++; saved+=COST; MOOD.felt('hit'); renderMood(true); PCTX=null;
-    let f=finderInit(q), all=false; const fid='fd'+(++fbN);
-    add('b', `${kstrip}
-      <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ช่วยเลือกหลักสูตร — จากแคตตาล็อกทางการ · ไม่เรียก AI</span>
-      <div class="ans" id="${fid}"></div>
-      <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมดบนเว็บ →</a>
-      ${fbUI(q, d.blake3_proof)}`);
-    const el=document.getElementById(fid);
-    const draw=()=>{ el.innerHTML=finderHtml(finderFacets(PROG,f), f, PROGDOC.fetched_at, all);
-      el.querySelectorAll('[data-fk]').forEach(x=>x.addEventListener('click',()=>{ const k=x.dataset.fk, v=x.dataset.fv||'';
-        if(k==='reset'){ f=finderInit(''); all=false; } else if(k==='more') all=true;
-        else if(k==='open'||k==='intl'||k==='special') f[k]=!f[k];
-        else { f[k]=v; if(k==='level'){ f.faculty=''; all=false; } }
-        draw(); }));
-      el.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value='สมัคร '+x.dataset.code; ask(); })); };
-    draw();
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
-    return;
-  }
+  if(PROG.length && isFinderQuestion(q)){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
   const aspect = PCTX ? followUpAspect(q) : '';
@@ -1134,7 +1200,7 @@ function ask(){
         const srcH0 = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
         add('b', `${kstrip}
           <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">✅ ตอบจากคู่มือ (เรียบเรียงแบบ deterministic · ไม่เรียก AI) ${stageTag}</span>
-          <div class="ans">${humanize(hit, q)}</div>
+          <div class="ans">${linkify(humanize(hit, q), LINKS)}</div>
           <span class="topic">อ้างอิง: ${hit.title}</span>
           <div class="meta">KB ตรงชัด (score ${topScore}) → ใช้ template NLG ไม่ต้องเรียก AI · 0 token · ไม่มีโอกาสแต่งนอกคู่มือ</div>
           ${srcH0}
@@ -1153,7 +1219,7 @@ function ask(){
         ${fbUI(q, d.blake3_proof, hit.id)}`);
       groundedHybrid(q, ranked.map(r=>r.e)).then(ans=>{
         const n=document.getElementById(mid);
-        if(n) n.textContent = ans || humanize(hit, q);   // fall back to raw KB if AI unavailable
+        if(n) n.innerHTML = linkify(ans || humanize(hit, q), LINKS);   // fall back to raw KB if AI unavailable; linkify escapes (LLM text is untrusted)
       });
       $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
       return;
@@ -1167,11 +1233,11 @@ function ask(){
     // a wizard the user can tick through.
     const steps = Array.isArray(hit.steps) && hit.steps.length
       ? `<div class="steps"><div class="steps-h">ทำตามขั้นตอน (กดติ๊กเมื่อทำเสร็จ):</div>` +
-        hit.steps.map((s,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${String(s).replace(/</g,'&lt;')}</span></label>`).join('') +
+        hit.steps.map((s,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${linkify(s, LINKS)}</span></label>`).join('') +
         `</div>` : '';
     add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI ${stageTag}</span>
-      <div class="ans">${humanize(hit, q)}</div>
+      <div class="ans">${linkify(humanize(hit, q), LINKS)}</div>
       ${steps}
       <span class="topic">หัวข้อ: ${hit.title}</span>
       <div class="meta">${verdict.reason}</div>
@@ -1192,7 +1258,6 @@ function ask(){
     }));
   } else {
     ai++;
-    const mid = 'llm'+(++fbN);
     // Gap log: this question had no manual answer. Record it (fire-and-forget)
     // so staff get a backlog of what the KB is missing — the self-improving loop.
     if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
@@ -1240,11 +1305,24 @@ function ask(){
         ${fbUI(q, d.blake3_proof)}`);
     } else {
     logGap(q);
+    // Nothing in the KB matches. The LLM is NOT asked to improvise an answer here (its facts would be unverifiable - the whole
+    // point of this bot is that facts come from the KB / the official catalogue). Instead: (1) a study-ish question that names
+    // no programme we can find -> the finder; (2) otherwise the nearest KB entries or the common starting points; always
+    // with the staff hand-off. The question is already in the gap log, which is how the KB learns it (LLM drafts, staff approve).
+    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    if(PROG.length && hasStudyIntent(q)){
+      renderFinder(q, d, kstrip, 'ผมยังไม่แน่ใจว่าหมายถึงสาขาหรือหลักสูตรไหน (บันทึกคำถามนี้ไว้ให้ทีมดูแลคู่มือแล้ว) — ลองเลือกจากตัวช่วยนี้ได้เลย หรือพิมพ์ชื่อสาขาที่สนใจ', false);
+      return;
+    }
+    const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
+    const picks = near.length ? near : starterEntries();
+    const cid = 'sg'+(++fbN);
     add('b', `${kstrip}
-      <span class="route ai">🤖 ไม่พบในคู่มือ → kernel เปิด LLM path ${stageTag}</span>
+      <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ยังไม่พบคำตอบตรงในคู่มือ — บันทึกให้ทีมดูแลคู่มือแล้ว ${stageTag}</span>
       ${frustratedNote()}
-      <div class="meta">${verdict.reason}</div>
-      <span id="${mid}">${KERNEL_API ? '⏳ กำลังถาม AI…' : 'คำถามนี้ไม่มีคำตอบตรงในคู่มือ kernel จึงตัดสินส่งต่อให้ AI ช่วยร่าง แล้วให้เจ้าหน้าที่ตรวจก่อนยืนยัน'}</span>
+      <div class="ans">${near.length?'ใกล้เคียงที่สุดในคู่มือ — เลือกได้เลยครับ:':'ผมยังไม่เข้าใจคำถามนี้ ลองถามเรื่องเหล่านี้ หรือพิมพ์ใหม่อีกครั้งครับ:'}</div>
+      <div class="dislist" id="${cid}">${picks.map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('')}</div>
+      <div class="meta">${verdict.reason} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
       <div class="staffbox">
         <div class="staff-h">ไม่พบคำตอบที่ต้องการ? ติดต่อเจ้าหน้าที่โดยตรงได้เลยครับ</div>
         <div class="staff-btns">
@@ -1253,14 +1331,8 @@ function ask(){
         </div>
       </div>
       ${fbUI(q, d.blake3_proof)}`);
-    if(KERNEL_API){
-      fetch(KERNEL_API.replace(/\/$/,'')+'/llm',{
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({input:q})
-      }).then(r=>r.json()).then(r=>{
-        const n=document.getElementById(mid); if(n) n.textContent = r.answer || 'ตอนนี้ยังไม่มีคำตอบที่ยืนยันได้จากคู่มือ — ผมบันทึกคำถามนี้ไว้ให้เจ้าหน้าที่/ทีมดูแลคู่มือแล้วครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง';
-      }).catch(()=>{ const n=document.getElementById(mid); if(n) n.textContent='ตอนนี้ยังไม่มีคำตอบที่ยืนยันได้ และเรียก AI ไม่สำเร็จ — ผมบันทึกคำถามนี้ไว้ให้เจ้าหน้าที่แล้วครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง'; });
-    }
+    document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
+    return;
     }
   }
   $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved;
@@ -1316,6 +1388,9 @@ function fbUI(q, proof, entryId){
 // kernel endpoint for feedback. Empty = static demo (no backend): record locally
 // and show that the gate WOULD learn. Set to a reflex-serve URL for the real loop.
 const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
+// The LLM proxy is a SEPARATE worker from the kernel (the kernel has /route /gap /feedback ... but no /llm; calling it there
+// was a silent 404 on every AI request). ?llm=<url> overrides, e.g. for a local proxy.
+const LLM_API = (new URLSearchParams(location.search)).get('llm') || 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
 // Fire-and-forget: record a question the KB could NOT answer, so it enters the
 // gap log (the self-improving-KB loop) and staff/curators see what to add. This
 // is what makes "บันทึกคำถามไว้ให้เจ้าหน้าที่แล้ว" a TRUE statement on web, not an

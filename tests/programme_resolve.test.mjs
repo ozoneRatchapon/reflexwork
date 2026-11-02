@@ -18,6 +18,9 @@ let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 
 const bm = html.match(/\/\/ <programme-resolve>([\s\S]*?)\/\/ <\/programme-resolve>/);
+const lk = html.match(/\/\/ <linkify>([\s\S]*?)\/\/ <\/linkify>/);   // the card links URLs in site text via linkify()
+check('linkify block found in chatbot.html', lk);
+if (lk && bm) bm[1] = lk[1] + '\n' + bm[1];
 check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
