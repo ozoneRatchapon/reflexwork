@@ -67,6 +67,19 @@ check('empty / malformed lists give no model instead of throwing', pickModels([]
   const before = calls.filter(c => c.includes('/v1beta/models?')).length; await ask({ GEMINI_API_KEY: KEY }, up);
   check('the model list is cached (one list call serves later requests)', calls.filter(c => c.includes('/v1beta/models?')).length === before, `${before} -> ${calls.filter(c => c.includes('/v1beta/models?')).length}`); }
 
+
+// --- thinking: ask for a low level; never shrink maxOutputTokens; retry without it when a model rejects the field -----------------------
+{ const bodies = [];
+  const up = (url, init) => { const u2 = String(url); if (u2.includes('/v1beta/models?')) return reply(200, { models: LIST }); bodies.push(JSON.parse(init.body)); return reply(200, { candidates: [{ content: { parts: [{ text: 'ความคิด', thought: true }, { text: 'คำตอบจริง' }] } }] }); };
+  const r = await ask({ GEMINI_API_KEY: KEY, GEMINI_MODEL: 'm-think' }, up);
+  const g = bodies[0] && bodies[0].generationConfig;
+  check('asks for thinkingLevel "low" and does not cap the output at 512', g && g.thinkingConfig && g.thinkingConfig.thinkingLevel === 'low' && g.maxOutputTokens >= 1024, JSON.stringify(g));
+  check('thought parts are not shown to the user; only the answer text is returned', r.json && r.json.answer === 'คำตอบจริง', r.text.slice(0, 100)); }
+{ const seen = [];
+  const up = (url, init) => { const u2 = String(url); if (u2.includes('/v1beta/models?')) return reply(200, { models: LIST }); const cfg = JSON.parse(init.body).generationConfig; seen.push(!!cfg.thinkingConfig); return cfg.thinkingConfig ? reply(400, { error: { status: 'INVALID_ARGUMENT' } }) : reply(200, { candidates: [{ content: { parts: [{ text: 'ตอบได้' }] } }] }); };
+  const r = await ask({ GEMINI_API_KEY: KEY, GEMINI_MODEL: 'm-old' }, up);
+  check('a model that rejects thinkingLevel is retried once without it and then answers', r.json && r.json.source === 'gemini' && seen.join() === 'true,false', seen.join() + ' ' + r.text.slice(0, 80)); }
+
 clearInterval(keepAlive);
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
