@@ -35,6 +35,68 @@ def parse_fm(block: str) -> dict:
     return fm
 
 
+ANSWER_CAP = 1500  # chars; multi-section docs (e.g. registration schedules) are cut at a section boundary
+
+
+def _content_lines(paragraph: str) -> str:
+    """Drop heading lines (#...) and the keyword line; keep the real content lines."""
+    keep = [ln for ln in paragraph.splitlines()
+            if ln.strip() and not ln.lstrip().startswith("#") and not ln.lstrip().startswith("คำค้น")]
+    return "\n".join(keep).strip()
+
+
+_SKIP_SECTIONS = ("แหล่งอ้างอิง", "หมายเหตุ")  # citations / notes-to-the-bot, not student-facing answers
+
+
+def _bullets(text: str) -> str:
+    return "\n".join(("• " + ln[2:] if ln.startswith("- ") else ln) for ln in text.splitlines())
+
+
+def extract_answer(body: str) -> str:
+    """Answer text shown by the chatbot for one KB file.
+
+    Single-answer docs (all hand-written entries): `## title`, keyword line, one plain
+    paragraph -> that first paragraph (unchanged behaviour).
+    Multi-section docs (imported registration schedules, directories): content may sit in
+    the same paragraph as its `## heading`, as the `คำค้น` line, or in separate paragraphs
+    after the heading — all of which used to be dropped or mis-picked (empty / title-only /
+    provenance-blurb answers). Attach every content paragraph to the heading before it and
+    keep the sections in order up to ANSWER_CAP at a section boundary, so a question about
+    late fees is not answered with only section one. Notes addressed to an LLM
+    ("หมายเหตุ…") and citation blocks are skipped.
+    """
+    preamble, sections, cur = [], [], None
+    for p in (q.strip() for q in body.split("\n\n")):
+        if not p:
+            continue
+        first = p.splitlines()[0].lstrip()
+        if first.startswith("##"):
+            cur = [first.lstrip("#").strip(), []]
+            sections.append(cur)
+            rest = _content_lines("\n".join(p.splitlines()[1:]))
+            if rest:
+                cur[1].append(rest)
+        elif first.startswith("#"):
+            cur = None  # document title
+        else:
+            text = _content_lines(p)
+            if text:
+                (cur[1] if cur else preamble).append(text)
+    usable = [(h, c) for h, c in sections if c and not h.startswith(_SKIP_SECTIONS)]
+    if len(usable) < 2:  # single-answer layout
+        if usable:
+            return usable[0][1][0]
+        return preamble[0] if preamble else ""
+    out = "\n\n".join(preamble)
+    for head, paras in usable:
+        block = "▪ " + head + "\n" + _bullets("\n".join(paras))
+        cand = (out + "\n\n" + block) if out else block
+        if out and len(cand) > ANSWER_CAP:
+            break
+        out = cand
+    return out
+
+
 def main() -> int:
     # Default: publish ONLY entries whose owner has approved them, so the
     # other team's "pending_owner_approval" data never leaks into a public
@@ -68,14 +130,17 @@ def main() -> int:
         title = fm.get("title", md.stem)
         kw_match = re.search(r"คำค้นภาษาอังกฤษ:\s*(.+)", body)
         en_keywords = kw_match.group(1).strip() if kw_match else ""
-        # First substantive paragraph = the answer summary.
-        paras = [p.strip() for p in body.split("\n\n") if p.strip()]
-        answer = ""
-        for p in paras:
-            if p.startswith("##") or p.startswith("คำค้น"):
-                continue
-            answer = p
-            break
+        answer = extract_answer(body)
+
+        # Applicability scope (only when the source states it): lets the chatbot ask
+        # "which year/semester?" instead of silently answering with the wrong one.
+        scope = {}
+        yr = fm.get("academic_year", "").strip()
+        if re.fullmatch(r"25\d{2}", yr):
+            scope["academic_year"] = yr
+        sem = fm.get("semester", "").strip().replace("ภาคฤดูร้อน", "ฤดูร้อน")
+        if sem in ("ภาคต้น", "ภาคปลาย", "ฤดูร้อน"):
+            scope["semester"] = sem
 
         entries.append({
             "id": md.stem,
@@ -86,6 +151,7 @@ def main() -> int:
             "source_url": fm.get("source_url", ""),
             "faq_number": fm.get("source_faq_number", ""),
             "approval_status": approval,
+            **scope,
             # Optional guided steps: frontmatter `steps: "a | b | c"` → array.
             # Rendered as an interactive checklist in the chatbot (no AI).
             **({"steps": [s.strip() for s in fm["steps"].split("|") if s.strip()]}
