@@ -81,7 +81,7 @@
   .route.auto{background:rgba(34,197,139,.16);color:var(--auto)} .route.ai{background:rgba(246,169,59,.16);color:var(--ai)}
   .msg.b .src{display:block;margin-top:8px;font-size:12px;color:var(--muted)}
   .msg.b .src a{color:var(--accent)}
-  .msg.b .ans{font-size:15px;line-height:1.6;margin:2px 0 6px}
+  .msg.b .ans{font-size:15px;line-height:1.6;margin:2px 0 6px;white-space:pre-line}
   .msg.b .topic{display:inline-block;font-size:11px;color:var(--muted);background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:2px 9px;margin-right:6px}
   .msg.b .golink{display:inline-block;margin-top:9px;background:var(--accent);color:#07122e;text-decoration:none;font-weight:700;font-size:13px;border-radius:9px;padding:8px 14px}
   .msg.b .golink:hover{filter:brightness(1.08)}
@@ -521,6 +521,53 @@ function decideTier({gate, ranked}){
   return {action:'escalate', stage:'rethink', reason:'คิดซ้ำแล้วยังไม่พบในคู่มือ — จึงส่งให้ AI'};
 }
 
+// <scope-clarify>
+// Year/semester applicability guard (deterministic, no AI, no scoring change).
+// Several KB entries answer the SAME question for different academic years /
+// semesters (registration schedules 2569 vs 2570 ...). If the user did not say
+// which, a keyword tie would silently pick one year — a confident wrong answer.
+// So: ask which one (reusing the disambiguate chips); and if the user names a
+// year the KB has no data for, say so instead of substituting another year.
+const _TH_DIGITS='๐๑๒๓๔๕๖๗๘๙';
+const _TERMS=[['ภาคต้น',/ภาคต้น|ภาคเรียนที่ ?1|first semester|semester 1/i],['ภาคปลาย',/ภาคปลาย|ภาคเรียนที่ ?2|second semester|semester 2/i],['ฤดูร้อน',/ฤดูร้อน|summer/i]];
+function scopeOf(q){
+  const s=String(q||'').replace(/[๐-๙]/g,c=>_TH_DIGITS.indexOf(c));
+  const term=(_TERMS.find(([,re])=>re.test(s))||[''])[0];
+  let year=''; const re=/(?:^|[^A-Za-z0-9])(\d{4})(?![A-Za-z0-9])/g; let m;   // no lookbehind: older Safari fails to parse the whole page
+  while((m=re.exec(s))){
+    const at=m.index+m[0].length-4, n=+m[1], before=s.slice(Math.max(0,at-14),at), after=s.slice(at+4,at+10);
+    if(/(?:เกณฑ์|ข้อบังคับ|regulation)\s*(?:พ\.?ศ\.?\s*)?$/i.test(before)) continue;   // regulation year != academic year
+    if(/^\s*(?:บาท|baht|thb|฿|%)/i.test(after)) continue;                              // "2000 บาท" is money
+    if(n>=2567&&n<=2588){ year=String(n); break; }
+    if(n>=2024&&n<=2045){ year=String(n+543); break; }
+  }
+  return {year,term};
+}
+function scopeClarify(q, ranked, kb){
+  const top=ranked[0]; if(!top||top.s<4||!top.e.academic_year) return null;
+  const sc=scopeOf(q), shape=!!top.e.semester;
+  // same kind of document as the top hit (a schedule vs a schedule), dated, same category
+  const same=ranked.filter(r=>r.e.academic_year&&r.e.category===top.e.category&&!!r.e.semester===shape);
+  const ask=near=>{
+    const ambY=!sc.year&&new Set(near.map(r=>r.e.academic_year)).size>1;
+    const ambT=!sc.term&&new Set(near.map(r=>r.e.semester)).size>1;
+    return (ambY||ambT) ? {kind:'ask', axis:ambY&&ambT?'both':ambY?'year':'term', candidates:near.slice(0,4).map(r=>r.e)} : null;
+  };
+  if(sc.year||sc.term){
+    const hit=same.filter(r=>(!sc.year||r.e.academic_year===sc.year)&&(!sc.term||r.e.semester===sc.term));
+    if(hit.length && hit[0].s>=Math.max(3,top.s-2)){
+      const a=ask(hit.filter(r=>r.s>=hit[0].s-1)); if(a) return a;
+      return hit[0].e!==top.e ? {kind:'pick', entry:hit[0].e} : null;
+    }
+    const inCat=(kb||[]).filter(e=>e.category===top.e.category&&e.academic_year);
+    if(sc.year && !inCat.some(e=>e.academic_year===sc.year))
+      return {kind:'no_year', year:sc.year, years:[...new Set(inCat.map(e=>e.academic_year))].sort(), category:top.e.category};
+    return null;
+  }
+  return ask(same.filter(r=>r.s>=top.s-1));
+}
+// </scope-clarify>
+
 // --- Intake layer (deterministic, no AI) -------------------------------------
 // Most unanswered messages are PERSONAL/TECHNICAL issues (account locked, data
 // stuck, can't use a system) — not knowledge questions. Instead of guessing
@@ -750,6 +797,36 @@ function ask(){
   const stageTag = verdict.stage==='rethink'
     ? `<span class="km" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔁 rethink</span>`
     : `<span class="km">⚡ reflex</span>`;
+
+  // Scope guard: same question, different academic year/semester → ask, never guess a year.
+  const scope = verdict.action==='act' ? scopeClarify(q, ranked, KB) : null;
+  if(scope && scope.kind==='pick') verdict.entry = scope.entry;
+  if(scope && (scope.kind==='ask' || scope.kind==='no_year')){
+    auto++; saved+=COST;
+    const en = isEnglish(q);
+    if(scope.kind==='ask'){
+      const what = scope.axis==='both' ? (en?'academic year and semester':'ปีการศึกษาและภาคเรียน') : scope.axis==='year' ? (en?'academic year':'ปีการศึกษา') : (en?'semester':'ภาคเรียน');
+      const mid='scp'+(++fbN);
+      const opts = scope.candidates.map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
+      add('b', `${kstrip}
+        <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'Which one? (answer differs)':'ขอถามก่อน — คำตอบต่างกันตามปี/ภาค'} ${stageTag}</span>
+        <div class="ans">${en?`The answer depends on the ${what}. Which do you mean?`:`เรื่องนี้คำตอบไม่เหมือนกันในแต่ละ${what}ครับ — หมายถึงอันไหน?`}</div>
+        <div class="dislist" id="${mid}">${opts}</div>
+        <div class="meta">scope guard: พบหลายปี/ภาคที่คะแนนใกล้กัน → ถามแทนการเดา (0 token, ไม่เรียก AI)</div>`);
+      document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
+    } else {
+      const link = scope.category==='registration' ? 'https://graduate.mahidol.ac.th/thai/current-students/?p=academic-calendar'
+                 : scope.category==='admissions' ? 'https://graduate.mahidol.ac.th/thai/prospective-students/?topic=schedule'
+                 : 'https://graduate.mahidol.ac.th/thai/contact-us/';
+      add('b', `${kstrip}
+        <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'No data for that year':'คู่มือยังไม่มีข้อมูลปีนั้น'} ${stageTag}</span>
+        <div class="ans">${en?`The knowledge base has no verified data for academic year ${scope.year} (it covers ${scope.years.join(', ')}). I won't substitute another year — please check the official page below.`:`ตอนนี้คู่มือยังไม่มีข้อมูลที่ยืนยันแล้วของปีการศึกษา ${scope.year} ครับ (มีเฉพาะปี ${scope.years.join(', ')}) ผมจึงไม่เอาข้อมูลของปีอื่นมาตอบแทน ตรวจสอบจากหน้าทางการด้านล่างได้เลย`}</div>
+        <div class="meta">scope guard: ไม่พบปี ${scope.year} ในหมวด ${scope.category} — ไม่แทนด้วยปีอื่น</div>
+        <a class="golink" href="${link}" target="_blank" rel="noopener">📄 ${en?'Open the official page':'เปิดหน้าทางการ'} →</a>`);
+    }
+    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    return;
+  }
 
   if(verdict.action==='act'){
     const hit = verdict.entry;
