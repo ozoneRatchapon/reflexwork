@@ -22,7 +22,7 @@ check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
 if (!existsSync(progPath)) process.exit(1);
-const { resolveProgramme, programmeCard, _P_ALIAS, _pFee } = new Function(bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee};')();
+const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect } = new Function(bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect};')();
 const DOC = JSON.parse(readFileSync(progPath, 'utf8')), P = DOC.programmes;
 const by = Object.fromEntries(P.map(p => [p.code, p]));
 
@@ -140,6 +140,23 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
   const solid = PH.filter(x => !x[2]).length;
   console.log(`  phrasings: ${ok}/${solid} resolved · ${gaps} known vocabulary gaps${gapsClosed.length ? ` (now closed, flip gap→false: ${gapsClosed.join(' | ')})` : ''}`);
   check('every non-gap phrasing resolves to the right programme', regress.length === 0, regress.join(' ; '));
+}
+
+// --- follow-up turns: after a programme card, a short aspect question refers to THAT programme ---------------------
+{
+  const want = [['แล้วค่าเทอมล่ะ', 'fee'], ['ค่าเทอมเท่าไหร่', 'fee'], ['มีทุนไหม', 'scholarship'], ['ใช้เอกสารอะไรบ้าง', 'docs'], ['ต้องจบอะไรมา', 'elig'],
+    ['คุณสมบัติผู้สมัครมีอะไรบ้าง', 'elig'], ['ภาษาอังกฤษต้องได้เท่าไหร่', 'english'], ['สอบวันไหน', 'schedule'], ['สัมภาษณ์เมื่อไหร่', 'schedule'], ['ยังเปิดรับอยู่ไหม', 'status'], ['รับกี่คน', 'status']];
+  const bad = want.filter(([q, a]) => followUpAspect(q) !== a).map(([q, a]) => `${q} -> ${followUpAspect(q) || 'none'} (want ${a})`);
+  check(`follow-up aspect read correctly (${want.length} phrasings)`, bad.length === 0, bad.join(' ; '));
+  // a question that brings its own scope is NOT a follow-up: level, code, other topic, university-wide, long, or no aspect at all
+  const not = ['ค่าเทอม ป.โท เท่าไหร่', 'ค่าเทอม 2022M04G', 'ค่าสมัครเท่าไหร่', 'ค่าเทอมทุกหลักสูตรเท่าไหร่', 'ทุนของมหิดลมีอะไรบ้าง', 'ลงทะเบียนภาคปลายวันไหน', 'ส่งเล่มวิทยานิพนธ์กี่วัน',
+    'ขอบคุณครับ', 'โอเค', 'อยากถามเรื่องการลาพักการศึกษาระหว่างภาคเรียนว่าต้องยื่นเอกสารที่ไหนและใช้เวลากี่วัน'];
+  const wrong = not.filter(q => followUpAspect(q));
+  check('questions with their own scope are not read as follow-ups', wrong.length === 0, wrong.map(q => `${q} -> ${followUpAspect(q)}`).join(' ; '));
+  // every aspect renders for every announced programme (the follow-up card can never throw or come out empty)
+  const aspects = ['fee', 'scholarship', 'docs', 'elig', 'english', 'schedule', 'status'];
+  check('every aspect renders a card for every programme', P.every(p => aspects.every(a => { try { return programmeCard(p, DOC.fetched_at, DOC.year, a).html.length > 40; } catch (e) { return false; } })));
+  { const h = programmeCard(by['2231D03G'], DOC.fetched_at, DOC.year, 'docs').html; check('docs follow-up leads with the documents list, unfolded', /^[\s\S]*?📎 หลักฐานการสมัคร \(ตามประกาศ\)\n/.test(h) && !/<summary>📎/.test(h), h.slice(0, 160)); }
 }
 
 // --- (3) the KB questions must not be stolen by the programme path --------------------------------------------

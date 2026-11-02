@@ -329,7 +329,7 @@
 import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
-let PROGDOC=null, PROG=[];   // programme catalogue (programmes.json) — optional, page works without it
+let PROGDOC=null, PROG=[], PCTX=null;   // PCTX: the one programme a follow-up question may refer to (last single-programme card)   // programme catalogue (programmes.json) — optional, page works without it
 const COST=2;
 
 async function load(){
@@ -654,6 +654,21 @@ function resolveProgramme(q, P){
     : {kind:'broad', total:pool.length, rows:pool.slice(0,6), levelMissing};   // a field word, not a programme: ask for more, don't list 30
   return {kind:'many', rows:pool.slice(0,6), total:pool.length, levelMissing, topic};
 }
+// Follow-up turn: right after a single-programme card, a SHORT question about one of its aspects that names no
+// programme, level, code or other topic of its own ("แล้วค่าเทอมล่ะ", "มีทุนไหม", "สอบวันไหน") is about THAT programme.
+// Pure: the chat holds the one remembered programme, always says how it read the question, and offers an undo.
+const _P_ASPECT=[['fee',_P_TOPIC[0][1]],['scholarship',_P_TOPIC[1][1]],
+  ['docs',/เอกสาร|หลักฐาน|ใช้อะไรบ้าง|documents?/i],
+  ['elig',/คุณสมบัติ|จบ(?:อะไร|สาขา|ป\.?ตรี)|เกรดเฉลี่ย|\bgpa\b|eligib|requirements?/i],
+  ['english',/ภาษาอังกฤษ|อังกฤษ|toefl|ielts|english/i],
+  ['schedule',/สอบ|สัมภาษณ์|ประกาศผล|กำหนดการ|ปิดรับวัน|สมัครได้ถึง|ถึงวันไหน|วันไหน|เมื่อไหร่|เมื่อไร|deadline|interview|schedule|รอบ/i],
+  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับ(?:สมัคร)?(?:อยู่)?ไหม|\bopen\b/i]];
+const _P_ASPECT_TH={fee:'ค่าธรรมเนียม',scholarship:'ทุน',docs:'หลักฐานการสมัคร',elig:'คุณสมบัติผู้สมัคร',english:'เกณฑ์ภาษาอังกฤษ',schedule:'กำหนดการ',status:'สถานะการรับสมัคร'};
+function followUpAspect(q){
+  const raw=String(q||'').trim(); if(!raw || raw.replace(/\s+/g,'').length>40) return '';
+  if(_P_OTHER.test(raw) || _pLevel(raw) || /\d{4}[MDNC]\d{2}[GS]/i.test(raw) || /มหิดล|บัณฑิตวิทยาลัย|ทั่วไป|ทุกหลักสูตร|mahidol/i.test(raw)) return '';
+  const hit=_P_ASPECT.find(([,re])=>re.test(raw)); return hit ? hit[0] : '';
+}
 const _P_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 function _pDate(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? `${+m[3]} ${_P_MON[+m[2]-1]} ${+m[1]+543}` : ''; }
 function _pEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -707,14 +722,14 @@ function programmeCard(p, asOf, year, topic){
   const fee=_pFeeHtml(a, year), sch=_pSchHtml(a), fold=h=>{ const [s1,...r]=h.split('\n'); return `<details><summary>${s1}</summary>${r.join('\n')}</details>`; };
   // a fee / scholarship question leads with that block; the apply card keeps them folded
   const html=[head,
-    topic==='fee' ? fee : topic==='scholarship' ? sch : '',
+    topic==='fee' ? fee : topic==='scholarship' ? sch : topic==='docs' ? (docs?`📎 หลักฐานการสมัคร (ตามประกาศ)\n${docs.replace(/<br>/g,'\n')}`:'📎 ประกาศนี้ไม่ได้ระบุหลักฐานการสมัคร — ดูประกาศฉบับเต็ม') : topic==='elig' ? (elig?`📝 คุณสมบัติผู้สมัคร (ตามประกาศ)\n${elig.replace(/<br>/g,'\n')}`:'📝 ประกาศนี้ไม่ได้ระบุคุณสมบัติผู้สมัคร — ดูประกาศฉบับเต็ม') : '',
     `${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})`,
     (a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(_pEsc).join('\n')}` : '',
     (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? `📚 แผนที่เปิดรับ: ${(S['แผนการศึกษาที่เปิดรับสมัคร']).map(_pEsc).join(' · ')}` : '',
     sched ? `🗓️ กำหนดการ\n${sched}` : (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '',
     eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '',
-    elig ? `<details><summary>📝 คุณสมบัติผู้สมัคร (ตามประกาศ)</summary>${elig}</details>` : '',
-    docs ? `<details><summary>📎 หลักฐานการสมัคร (ตามประกาศ)</summary>${docs}</details>` : '',
+    elig && topic!=='elig' ? `<details><summary>📝 คุณสมบัติผู้สมัคร (ตามประกาศ)</summary>${elig}</details>` : '',
+    docs && topic!=='docs' ? `<details><summary>📎 หลักฐานการสมัคร (ตามประกาศ)</summary>${docs}</details>` : '',
     topic!=='fee' && _pFee(S['ค่าธรรมเนียมการศึกษา']).rows.length ? fold(fee) : '',
     topic!=='scholarship' && sch.startsWith('🎓 ทุนของ') ? fold(sch) : '',
     `<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`].filter(Boolean).join('\n\n');
@@ -943,6 +958,7 @@ function ask(){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
     if(prog.kind==='one'){
+      PCTX = prog.row;
       const c = programmeCard(prog.row, asOf, yr, prog.topic);
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🎯 ตรงหลักสูตร — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
@@ -964,6 +980,23 @@ function ask(){
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
     return;
   }
+
+  // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
+  const aspect = PCTX ? followUpAspect(q) : '';
+  if(aspect){
+    auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
+    const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect), uid='fu'+(++fbN);
+    add('b', `${kstrip}
+      <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🔗 ถามต่อจากหลักสูตรก่อนหน้า — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
+      <div class="ans">ตีความว่าถามเรื่อง<b>${_P_ASPECT_TH[aspect]}</b>ของ <b>${_pEsc(p.title)}</b> <span class="dis" id="${uid}">ไม่ใช่ — ถามแบบทั่วไป</span>\n\n${c.html}</div>
+      <div class="meta">follow-up: ${_pEsc(aspect)} → ${_pEsc(p.code)} (หลักสูตรล่าสุดที่คุยกัน) · ข้อมูลเก็บ ${_pEsc(PROGDOC.fetched_at)}</div>
+      ${c.links}
+      ${fbUI(q, d.blake3_proof)}`);
+    document.getElementById(uid).addEventListener('click',()=>{ PCTX=null; $('q').value=q; ask(); });
+    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    return;
+  }
+  PCTX = null;   // the conversation moved on: never pin a later question to an old programme
 
   const ranked = search(q);
   // The WASM kernel now exposes the raw sigmoid gate score g — use it directly
