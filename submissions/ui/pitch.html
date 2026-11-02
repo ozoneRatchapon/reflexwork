@@ -133,7 +133,10 @@
       <div class="prob"><div class="n">🔍</div><div class="t">ตรวจสอบไม่ได้</div>
         <div class="d">AI มั่วตัวเลขได้ + ย้อนดูไม่ได้ว่าตอบอะไรไป — ขัด PDPA และธรรมาภิบาลข้อมูล</div></div>
     </div>
-    <div class="foot">หน่วยงานงบจำกัดที่ต้องการ accountability จึง scale AI ไม่ได้</div>
+    <div class="foot" style="border-left:3px solid var(--acc,#f6a93b);padding-left:12px;text-align:left">
+      <b>ไม่ใช่ปัญหาสมมติ</b> — ทีมผู้ช่วย AI อีกทีมในมหิดลเอง (LLM-first) รายงานเองว่าช่วงทดสอบ
+      <b>"token พุ่งก้าวกระโดด"</b> และ dashboard สรุปค่าใช้จ่ายได้ไม่แม่น เพราะทุกคำถามยิง LLM ตรง
+    </div>
   </section>
 
   <!-- 3 — Swimlane (ภาษาคน) -->
@@ -206,7 +209,8 @@
           <li>Rust → WebAssembly รันในเบราว์เซอร์ 100% · 0 backend</li>
           <li><b style="color:var(--fast)">ข้อมูลไม่ออกนอกเครื่อง</b> — ตรงกับ PDPA โดยดีไซน์</li>
           <li>production-hardening: staff auth · D1 backup · tunnel token</li>
-          <li>11 unit tests + CI · kernel live (fast-path 87% จริงตอนนี้)</li>
+          <li>11 unit tests + CI · kernel live บน production</li>
+          <li><b style="color:var(--fast)">วัดจริงบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล</b>: ค้นถูก <b>recall@1 94%</b> · in-top-3 <b>100%</b> · ปฏิเสธคำถามนอกคู่มือ 5/5</li>
         </ul>
         <div class="url">🌐 reflexwork.pages.dev</div>
       </div>
@@ -220,7 +224,7 @@
         </ul>
       </div>
     </div>
-    <div class="foot">kernel เดียว รันทั้ง server (native) และเบราว์เซอร์ (WASM) ตรงกัน bit-for-bit — พิสูจน์ reproducibility</div>
+    <div class="foot"><b>ตัวเลขวัดจริง ไม่ใช่ประมาณการ</b> — รันบนคู่มืออิสระที่ระบบไม่เคยเห็น · kernel เดียวรันทั้ง server (native) และเบราว์เซอร์ (WASM) ตรงกัน bit-for-bit</div>
   </section>
 
   <!-- 6 — Scale (federated) -->
@@ -245,6 +249,11 @@
       </div>
     </div>
     <div class="foot">ออกแบบครบแล้วใน Kiro spec <code style="color:var(--accent)">.kiro/specs/distributable-kernel/</code> (requirements → design → tasks) · คณะ A เติมแล้ว คณะ B ได้ด้วย</div>
+    <div class="foot" style="border-left:3px solid var(--fast,#22c58b);padding-left:12px;text-align:left;margin-top:8px">
+      <b>วัดแล้วว่าการแยก corpus ต่อหน่วยงานได้ผลจริง:</b> เมื่อรวมทุกหมวดเป็น index เดียว
+      ค้นถูกอันดับ 1 = 81% · เมื่อแยก namespace ต่อหน่วยงานตาม design นี้ → <b style="color:var(--fast)">ขึ้นเป็น 87%</b>
+      (วัดบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล)
+    </div>
   </section>
 
   <!-- 7 — Impact -->
@@ -253,9 +262,9 @@
     <div class="kicker">คุณค่าที่เกิดกับมหาวิทยาลัย (Impact)</div>
     <h2>ถูกลง · เร็วขึ้น · ตรวจสอบได้</h2>
     <div class="cards">
-      <div class="card c1"><div class="big">~80%</div>
-        <div class="lab">💰 ต้นทุนไม่โตตามทราฟฟิก</div>
-        <div class="sub">คัดคำถามซ้ำออกจาก AI — fast-path = 0 token. local Typhoon = $0 ค่า API</div></div>
+      <div class="card c1"><div class="big">84%</div>
+        <div class="lab">💰 ตอบเองไม่เรียก AI (วัดจริง)</div>
+        <div class="sub">วัดบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล: <b>84% ของคำถาม FAQ จริง = 0 token</b> (ไม่ใช่ประมาณการ). local Typhoon = $0 ค่า API</div></div>
       <div class="card c2"><div class="big">~12 ชม.</div>
         <div class="lab">⚡ คืนเวลาเจ้าหน้าที่/วัน/คณะ</div>
         <div class="sub">ช่วง peak: 240 คำถามซ้ำ/วัน × 3 นาที = ~12 ชม.คน ไปทำงานที่ต้องใช้คนจริง</div></div>

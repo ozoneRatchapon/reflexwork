@@ -9,6 +9,6 @@ approval_status: "approved"
 ---
 ## วิธีจองรายวิชาภาษาอังกฤษ GRID ทำอย่างไร
 
-คำค้นภาษาอังกฤษ: grid course booking student service system
+คำค้นภาษาอังกฤษ: grid course booking student service system จองวิชา grid ยังไง วิธีจอง จองเรียน booking history
 
 Login เข้าระบบ Student Service System > คลิกเมนู GRID System > เลือก Booking GRID Course > ตรวจสอบรายวิชาและวันที่เรียนที่จองได้ที่เมนู Booking History

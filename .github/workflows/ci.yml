@@ -18,6 +18,9 @@ jobs:
       - name: Unit tests (learning-loop pure logic)
         run: node tests/learning_loop.test.mjs
 
+      - name: KB search recall floor (self-contained regression gate)
+        run: node tests/kb_search_floor.test.mjs
+
       - name: Syntax-check Workers + shared modules
         run: |
           set -e
@@ -36,3 +39,15 @@ jobs:
 
       - name: Build knowledge index (approved-only, publish-safe)
         run: python3 submissions/build_knowledge_index.py
+
+      - name: KB answer quality (no empty / title-only answers)
+        run: node tests/kb_answers.test.mjs
+
+      - name: KB year/semester scope guard
+        run: node tests/kb_scope.test.mjs
+
+      - name: KB recall eval on the built index
+        run: node tests/kb_search.test.mjs
+
+      - name: Programme path (catalogue integrity, phrasings, no stolen KB questions, XSS)
+        run: node tests/programme_resolve.test.mjs

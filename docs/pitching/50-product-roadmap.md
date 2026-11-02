@@ -40,7 +40,7 @@ staff workflow เต็ม, PDPA sign-off.
 
 ### Phase 1 — Pilot-ready (1 คณะจริง) · ~2-4 สัปดาห์
 เป้า: บัณฑิตวิทยาลัยใช้จริงกับผู้ใช้จริง.
-- [ ] เติมคู่มือจาก **ข้อมูล FAQ จริง** (ตอนนี้ KB ~70 หัวข้อ public) — ดู gap log
+- [ ] เติมคู่มือจาก **ข้อมูล FAQ จริง** (ตอนนี้ KB 132 หัวข้อ public: ของเรา 70 + GradMahidol 62) — ดู gap log
 - [ ] **Load test** kernel + llm-proxy ภายใต้ concurrency (จุดที่ runbook บอกว่ายังขาด)
 - [ ] Rate limiting ด้วย KV/Durable Object counter (ไม่ใช่ best-effort per-isolate)
 - [ ] **PDPA review** ของ gap_log retention window (เป็นทางการ)
@@ -63,6 +63,7 @@ staff workflow เต็ม, PDPA sign-off.
 - [ ] central dashboard: root-cause ข้ามหน่วย ("ระบบต้นทางไหนก่อคำถามเยอะสุด")
 - [ ] SLA + monitoring + on-call runbook
 - [ ] integration กับ SSO/ระบบมหาวิทยาลัย (ถ้าจำเป็น — ระวัง PDPA)
+- [ ] rule lattice (Rust, no ML) สำหรับคำถามเรื่องสิทธิ์ — ข้อมูลไม่พอ/ขัดกัน = abstain (ยืมแนวคิดจาก LDT, ดู `docs/ldt-evaluation.md`)
 
 ---
 

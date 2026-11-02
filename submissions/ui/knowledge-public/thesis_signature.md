@@ -11,4 +11,4 @@ approval_status: "approved"
 
 คำค้นภาษาอังกฤษ: signature page approval digital electronic sign
 
-ลงนามในหน้าลายเซ็น (หน้าเสนอ+หน้าอนุมัติ) ได้ทั้งแบบ digital sign, electronic sign, ลงนามจริง หรือแบบผสม ในไฟล์ PDF โดยขึ้นอยู่กับความสะดวกของอาจารย์ หากเป็นแบบผสมขอให้อาจารย์ที่ลงนามจริงลงนามเป็นกลุ่มสุดท้าย. การส่งหน้าลายเซ็นฉบับจริง (Hard copy) ทำได้หลังจาก e-thesis เสร็จสิ้น โดยไม่มีค่าปรับเพิ่มและไม่มีผลต่อการส่ง บฑ.5
+ลงนามในหน้าลายเซ็น (หน้าเสนอ+หน้าอนุมัติ) ได้ทั้งแบบ digital sign, electronic sign, ลงนามจริง หรือแบบผสม ในไฟล์ PDF โดยขึ้นอยู่กับความสะดวกของอาจารย์ หากเป็นแบบผสมขอให้อาจารย์ที่ลงนามจริงลงนามเป็นกลุ่มสุดท้าย. ตั้งแต่ 17 ส.ค. 2569 ส่งหน้าลงนามผ่านระบบ e-Thesis Submission (แท็บ Sign-Off Page Submission) แทนการส่งฉบับจริง ดูขั้นตอน: https://graduate.mahidol.ac.th/download/current-student/pdf/Electronic-Thesis-Signature-Process.pdf

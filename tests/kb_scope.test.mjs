@@ -1,0 +1,79 @@
+// Scope guard (year/semester) in submissions/ui/chatbot.html.
+// Run: node tests/kb_scope.test.mjs   (exit 0 = pass, 1 = fail)
+//
+// Several KB entries answer the same question for different academic years /
+// semesters. Without a guard a keyword tie silently picks one year. We EXTRACT the
+// real scopeOf()/scopeClarify() and the JS search twin from the HTML so the test
+// exercises production code. Needs the generated knowledge-index.json.
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const idxPath = join(root, 'submissions/ui/knowledge-index.json');
+const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
+
+let pass = 0, fail = 0;
+const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
+
+if (!existsSync(idxPath)) { console.log('⚠ knowledge-index.json not present — run build_knowledge_index.py. Skipping.'); process.exit(0); }
+const KB = JSON.parse(readFileSync(idxPath, 'utf8'));
+
+const sm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
+const cm = html.match(/\/\/ <scope-clarify>([\s\S]*?)\/\/ <\/scope-clarify>/);
+check('_jsSearch block found', sm);
+check('scope-clarify block found', cm);
+if (!sm || !cm) process.exit(1);
+const search = new Function('KB', sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
+const { scopeOf, scopeClarify } = new Function(cm[1] + '\nreturn {scopeOf, scopeClarify};')();
+
+const run = q => scopeClarify(q, search(q), KB);
+const ids = r => (r && r.candidates || []).map(e => e.id);
+
+// --- scopeOf -----------------------------------------------------------------
+const eq = (name, got, want) => check(name, JSON.stringify(got) === JSON.stringify(want), `got ${JSON.stringify(got)} want ${JSON.stringify(want)}`);
+eq('BE year + term', scopeOf('ลงทะเบียนภาคปลาย ปี 2569'), { year: '2569', term: 'ภาคปลาย' });
+eq('Thai digits', scopeOf('ภาคต้น ๒๕๗๐'), { year: '2570', term: 'ภาคต้น' });
+eq('CE year converted to BE', scopeOf('registration 2027 summer'), { year: '2570', term: 'ฤดูร้อน' });
+eq('money is not a year', scopeOf('ค่าสมัคร 2000 บาท'), { year: '', term: '' });
+eq('regulation year is not an academic year', scopeOf('เกณฑ์ 2560 ลงทะเบียน'), { year: '', term: '' });
+eq('no scope', scopeOf('ส่งเล่มกี่วัน'), { year: '', term: '' });
+
+// --- the bug: ambiguous year must ask, not guess ----------------------------------
+const a1 = run('ลงทะเบียนภาคปลายวันไหน');
+check('no year → asks which year', a1 && a1.kind === 'ask' && a1.axis === 'year', JSON.stringify(a1 && { k: a1.kind, a: a1.axis }));
+check('…offers both 2569 and 2570 second-semester', ids(a1).includes('gm_registration_2569_second_semester') && ids(a1).includes('gm_registration_2570_second'), ids(a1).join());
+check('…no off-topic entry among the options', !ids(a1).includes('gm_registration_exemption_2570'), ids(a1).join());
+const a2 = run('ลงทะเบียนภาคต้นวันไหน');
+check('first semester, no year → asks year', a2 && a2.kind === 'ask', JSON.stringify(a2 && a2.kind));
+
+// --- user supplied the scope: answer that one, no question ---------------------------
+const p1 = run('ลงทะเบียนภาคปลาย ปี 2569 วันไหน');
+const final1 = !p1 ? search('ลงทะเบียนภาคปลาย ปี 2569 วันไหน')[0].e : p1.kind === 'pick' ? p1.entry : null;
+check('year+term given → resolves to 2569 second semester', final1 && final1.id === 'gm_registration_2569_second_semester', p1 ? JSON.stringify(p1.kind) : 'null→' + (final1 && final1.id));
+const p2 = run('ลงทะเบียนภาคต้นปี 2570 วันไหน');
+const final2 = !p2 ? search('ลงทะเบียนภาคต้นปี 2570 วันไหน')[0].e : p2.kind === 'pick' ? p2.entry : null;
+check('2570 first semester resolves', final2 && final2.id === 'gm_registration_2570_first', p2 ? p2.kind : 'null→' + (final2 && final2.id));
+
+// --- year with no data: say so, never substitute -------------------------------------
+const n1 = run('ลงทะเบียนภาคปลาย ปี 2571 วันไหน');
+check('unknown year → no_year', n1 && n1.kind === 'no_year' && n1.year === '2571', JSON.stringify(n1 && n1.kind));
+check('…lists the years we do have', n1 && n1.years.includes('2569') && n1.years.includes('2570'), JSON.stringify(n1 && n1.years));
+
+// --- no false alarms on undated topics -----------------------------------------------
+for (const q of ['ส่งเล่มวิทยานิพนธ์ช้าสุดกี่วัน', 'ลาพักการศึกษาต้องทำอย่างไร', 'ทุนการศึกษามีอะไรบ้าง', 'วันนี้อากาศเป็นยังไง']) {
+  const r = run(q);
+  check(`undated topic untouched: ${q}`, r === null, JSON.stringify(r && r.kind));
+}
+
+// --- chip round-trip: clicking an option's title must resolve to THAT entry, never re-ask ---
+const dated = KB.filter(e => e.academic_year && e.semester && e.category === 'registration');
+check('registration schedule entries exist', dated.length >= 6, String(dated.length));
+for (const e of dated) {
+  const r = run(e.title), top = search(e.title)[0].e;
+  const final = r && r.kind === 'pick' ? r.entry : r === null ? top : null;
+  check(`chip resolves: ${e.id}`, final && final.id === e.id, r ? r.kind : `top=${top.id}`);
+}
+
+console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
+process.exit(fail ? 1 : 0);
