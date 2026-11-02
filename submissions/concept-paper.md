@@ -187,7 +187,7 @@ provider — **Typhoon (Thai-tuned) รันในเครื่องผ่�
   - แชตบอต + แดชบอร์ด **live** ที่ `reflexwork.pages.dev` (WASM kernel ในเบราว์เซอร์)
   - **self-improving KB (learning loop)** — gap log (PII-masked) + entry confidence (EMA) + auto-draft → human approve
   - **EMA-bandit จาก 👍/👎** — สัดส่วน FastPath ปรับตัวเองจาก feedback ผู้ใช้แบบ exponential moving average (deterministic, 0 token)
-  - **UX แยกชั้น user/หลักฐาน** — หน้าแชตแบ่งสองคอลัมน์: ซ้าย = สิ่งที่ผู้ใช้เห็น (คำตอบสะอาด), ขวา = หลักฐานที่ตรวจสอบได้ (เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 proof) ต่อแต่ละข้อความ — สื่อจุดขาย auditable โดยไม่รกหน้าผู้ใช้
+  - **UX แยกชั้น user/หลักฐาน** — หน้าแชตแบ่งสองคอลัมน์: ซ้าย = สิ่งที่ผู้ใช้เห็น (คำตอบสะอาด), ขวา = หลักฐานที่ตรวจสอบได้ (เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 fingerprint) ต่อแต่ละข้อความ — สื่อจุดขาย auditable โดยไม่รกหน้าผู้ใช้
   - **Feature Coverage Radar** — สรุป coverage ต่อมิติของเราเอง (FastPath 95% · Audit 95% · KB 90% · Abstain 90% …) ในสไลด์/one-pager
   - **@reflexwork/kernel** — แพ็กเป็น npm lib ติดตั้งไปใช้ได้จริง (smoke test ผ่าน) + `reflexwork init` scaffolder
   - **federated corpus** — หลาย install ช่วยกันโต corpus กลางผ่าน signal ที่ mask แล้ว (ไม่มี raw text ออกจากเครื่อง); two-install demo รันได้จริง
@@ -241,7 +241,7 @@ ReflexWork เปิดให้ใช้งานได้ 3 ทางตาม
 REST API (reflex-serve)  หรือ  Kiro Hook        ← ทางเข้า
       │
       ▼
-Reflex Kernel  ──fast path (µs)──►  ตอบกลับทันที (คัดประเภท/ตรวจครบ/จัดลำดับ) + BLAKE3 proof
+Reflex Kernel  ──fast path (µs)──►  ตอบกลับทันที (คัดประเภท/ตรวจครบ/จัดลำดับ) + BLAKE3 fingerprint
       │
       └──LLM path──►  Kiro MCP → Amazon Bedrock  (สรุป/ร่างเอกสารที่ซับซ้อน)
       │
@@ -254,7 +254,7 @@ Audit Trail (BLAKE3 reproducible)  ──►  Dashboard ผู้บริหา
 **ก. ลองในเบราว์เซอร์ทันที — เปิด URL เดียว ไม่ต้องติดตั้งอะไร (เหมาะกับกรรมการ/ผู้ใช้ทั่วไป):**
 
 🌐 **ลองสดได้ที่ [https://reflexwork.pages.dev](https://reflexwork.pages.dev)** (deploy บน Cloudflare Pages)
-- **ลองใน browser** — [reflexwork.pages.dev/try.html](https://reflexwork.pages.dev/try.html) : พิมพ์งาน → เห็น route + BLAKE3 proof สด
+- **ลองใน browser** — [reflexwork.pages.dev/try.html](https://reflexwork.pages.dev/try.html) : พิมพ์งาน → เห็น route + BLAKE3 fingerprint สด
 - **แชตบอต** — [reflexwork.pages.dev/chatbot.html](https://reflexwork.pages.dev/chatbot.html) : ถาม-ตอบลงทะเบียน/วิทยานิพนธ์
 - **ยื่นคำร้อง** — [reflexwork.pages.dev/student-desk.html](https://reflexwork.pages.dev/student-desk.html) : ฟอร์มคำร้อง + มุมมองเจ้าหน้าที่
 - **แดชบอร์ด** — [reflexwork.pages.dev/dashboard.html](https://reflexwork.pages.dev/dashboard.html) : สถิติ fast/LLM + audit trail

@@ -282,7 +282,7 @@
         <div class="swact">🦀 Reflex Kernel</div>
         <div class="swbody">
           <div class="swstep">ตัดสินเส้นทาง + ค้นคู่มือ + ผนึกหลักฐาน</div>
-          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 84% / @3 96%, eval 50 เคส) · ทุกคำตอบผนึก <code>BLAKE3 proof</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns route</code></div>
+          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 84% / @3 96%, eval 50 เคส) · ทุกคำตอบผนึก <code>BLAKE3 fingerprint</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns route</code></div>
         </div>
       </div>
       <div class="swrow swa">
@@ -305,7 +305,7 @@
       <div class="arrow">↓</div>
       <div class="split">
         <div class="node fast"><div class="t">การตัดสินใจ &nbsp;(kernel)</div>
-          <div class="d">แม่นระดับไมโครวินาที · 0 token · มี BLAKE3 proof — <b>ไม่ใช้ AI</b></div></div>
+          <div class="d">แม่นระดับไมโครวินาที · 0 token · มี BLAKE3 fingerprint — <b>ไม่ใช้ AI</b></div></div>
         <div class="node fast"><div class="t">การแสดงผล &nbsp;(Template NLG)</div>
           <div class="d">ประกอบประโยคลื่นเหมือนคนพิมพ์ จาก opener/frame/closer ที่สุ่มแบบ deterministic — <b>ไม่ใช้ AI</b></div></div>
       </div>
@@ -382,7 +382,7 @@
         <ul>
           <li>algorithm เดียวกับฝั่ง server เป๊ะ (sigmoid gate θ=0.72, seeded weights)</li>
           <li>ไม่มี backend · ไม่มี network call · ข้อมูลไม่ออกจากเครื่องผู้ใช้</li>
-          <li>พิมพ์งาน → เห็น route decision + BLAKE3 proof ภายในไมโครวินาที</li>
+          <li>พิมพ์งาน → เห็น route decision + BLAKE3 fingerprint ภายในไมโครวินาที</li>
           <li>แชร์เป็น URL เดียว กรรมการ/ผู้ใช้ทั่วไป "กดลองได้เลย"</li>
         </ul>
         <div class="url">🌐 reflexwork.pages.dev/try.html — กดลองได้เลย</div>
@@ -438,28 +438,27 @@
   <section class="slide">
     <div class="pageno">11 / 19</div>
     <div class="kicker">สำหรับผู้บริหาร / ผู้ตรวจสอบ</div>
-    <h2>แดชบอร์ด: เห็นสัดส่วน "ตอบเอง / ส่ง AI" + บันทึกตรวจย้อนหลัง แบบสด</h2>
+    <h2>แดชบอร์ด: เห็นสัดส่วน "ตอบเอง / ส่งต่อ" + บันทึกตรวจย้อนหลัง</h2>
+    <div style="display:inline-block;margin:-6px 0 10px;padding:3px 12px;border:1px dashed var(--line);border-radius:999px;font-size:clamp(11px,1.2vw,13px);font-weight:700;color:var(--muted)">ตัวอย่างหน้าจอ — ตัวเลขจากชุดทดสอบ 52 ข้อ (benchmark/compare) ไม่ใช่ข้อมูลผู้ใช้จริง · ของจริงดูที่ /dashboard</div>
     <div class="dash">
-      <div class="dkpi f"><div class="n">82%</div><div class="l">ตอบเองไม่เรียก AI — ยิ่งสูงยิ่งประหยัด</div></div>
-      <div class="dkpi l2"><div class="n">18%</div><div class="l">ส่งให้ AI จริง (เฉพาะที่ยาก)</div></div>
-      <div class="dkpi a"><div class="n">v3</div><div class="l">เวอร์ชันนโยบาย · รันซ้ำได้ผลเดิม</div></div>
+      <div class="dkpi f"><div class="n">85%</div><div class="l">ตอบเองจากคู่มือ — 44 จาก 52 ข้อทดสอบ</div></div>
+      <div class="dkpi l2"><div class="n">15%</div><div class="l">ถามกลับ / ส่งต่อเจ้าหน้าที่ — 8 จาก 52</div></div>
+      <div class="dkpi a"><div class="n">11%</div><div class="l">ผิดในข้อที่ตอบเอง — 5 จาก 44 (วัดจริง ไม่ซ่อน)</div></div>
     </div>
     <div class="dashbar">
-      <div class="f" style="width:82%"></div>
-      <div class="l" style="width:14%"></div>
-      <div class="r" style="width:4%"></div>
+      <div class="f" style="width:85%"></div>
+      <div class="l" style="width:15%"></div>
     </div>
     <div class="dashlegend">
-      <span><span class="sw" style="background:var(--fast)"></span>ตอบเอง <b>82%</b></span>
-      <span><span class="sw" style="background:var(--llm)"></span>ส่ง AI <b>14%</b></span>
-      <span><span class="sw" style="background:var(--warn)"></span>ปฏิเสธ <b>4%</b></span>
+      <span><span class="sw" style="background:var(--fast)"></span>ตอบเอง <b>85%</b></span>
+      <span><span class="sw" style="background:var(--llm)"></span>ถามกลับ/ส่งต่อ <b>15%</b></span>
     </div>
     <div style="margin-top:26px;color:var(--muted);font-size:clamp(13px,1.4vw,16px);max-width:1000px;line-height:1.7">
-      ทุกการตัดสินใจบันทึกเป็น <b style="color:var(--audit)">BLAKE3 proof</b> ที่ re-run ได้ผลเดิมเสมอ —
-      ตารางด้านล่าง (เวลา · ประเภทงาน · เส้นทาง · latency · proof) ตอบโจทย์ <b style="color:var(--ink)">PDPA</b>
-      และการตรวจสอบธรรมาภิบาลข้อมูลของมหาวิทยาลัย
+      ทุกการตัดสินใจมี <b style="color:var(--audit)">BLAKE3 fingerprint</b> ที่ re-run ได้ผลเดิมเสมอ —
+      แดชบอร์ดจริงมีตารางบันทึกตรวจย้อนหลัง (เวลา · ประเภทงาน · เส้นทาง · latency · fingerprint)
+      เพื่อรองรับ <b style="color:var(--ink)">PDPA</b> และการตรวจสอบธรรมาภิบาลข้อมูลของมหาวิทยาลัย
     </div>
-    <div class="foot">dashboard.html · ดึงจาก GET /status + /audit ของ reflex-serve แบบ real-time</div>
+    <div class="foot">ตัวเลขบนสไลด์นี้: tests/kb_search.test.mjs + benchmark/compare (รันซ้ำได้) · แดชบอร์ดจริง: dashboard.html ดึงจาก GET /status + /audit</div>
   </section>
 
   <!-- Slide 7 — Positioning: screening layer -->
@@ -546,7 +545,7 @@
       คำถาม <span class="ar">→</span> <b class="k">kernel ตัดสิน</b> <span class="ar">→</span> ตอบ
       <span class="ar">→</span> 👍/👎 ผู้ใช้ <span class="ar">→</span> <b>EMA ปรับ weight</b>
       <span class="ar">→</span> <b class="k">policy version +1</b> <span class="ar">↻</span>
-      <br/>ทุกการเรียนรู้มี BLAKE3 proof — ตรวจย้อนได้ว่า "ทำไม weight เปลี่ยน" (ruliology)
+      <br/>ทุกการเรียนรู้มี BLAKE3 fingerprint — ตรวจย้อนได้ว่า "ทำไม weight เปลี่ยน" (ruliology)
     </div>
     <div class="foot">LLM ทั่วไปตอบแล้วจบ ไม่เรียนรู้ว่างานไหนเปลืองเงิน — ของเราเรียนรู้ตรงนั้นได้ · POST /feedback พร้อมแล้ว</div>
   </section>
