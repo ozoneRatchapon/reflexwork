@@ -282,7 +282,7 @@
         <div class="swact">🦀 Reflex Kernel</div>
         <div class="swbody">
           <div class="swstep">ตัดสินเส้นทาง + ค้นคู่มือ + ผนึกหลักฐาน</div>
-          <div class="swtech"><code>sigmoid gate (θ=0.72)</code> ตัดสิน FastPath/LLM · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82% / @3 96%, eval 50 เคส) · ทุกคำตอบผนึก <code>BLAKE3 proof</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns route</code></div>
+          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 84% / @3 96%, eval 50 เคส) · ทุกคำตอบผนึก <code>BLAKE3 proof</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns route</code></div>
         </div>
       </div>
       <div class="swrow swa">
@@ -293,7 +293,7 @@
         </div>
       </div>
     </div>
-    <div class="foot">neurosymbolic: สัญลักษณ์ (lexical) + ซับสัญลักษณ์ (cosine) ร่วมกัน · deterministic · ตรวจสอบได้ทุกขั้น</div>
+    <div class="foot">ค้นคืนแบบผสม: ศัพท์ (lexical overlap) + เวกเตอร์ (TF-IDF cosine) · ไม่มี neural network ในชั้นตอบ · deterministic · ตรวจสอบได้ทุกขั้น</div>
   </section>
   <section class="slide">
     <div class="pageno">06 / 19</div>

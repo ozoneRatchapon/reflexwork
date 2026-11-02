@@ -1,4 +1,4 @@
-// Benchmark ReflexWork's neurosymbolic KB search against the GradMahidol AI
+// Benchmark ReflexWork's hybrid lexical+vector KB search against the GradMahidol AI
 // corpus (another Mahidol team's knowledge markdown, public announcements only,
 // no PII — see docs/pitching/70-field-evidence-gradmahidol.md for provenance
 // and the permission/PDPA guardrails).

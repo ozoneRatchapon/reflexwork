@@ -196,7 +196,7 @@ fn hex_encode(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
-// ─── KB retrieval: neurosymbolic TF-IDF cosine (modelless "latent") ──────────
+// ─── KB retrieval: hybrid lexical + vector (TF-IDF cosine); no neural model ──
 // Single source of truth for the chatbot's search(), ported from the JS PoC
 // winner (recall@1 80% / @3 96% on the 50-case eval). TF-IDF cosine over char
 // n-grams + tokens is the PRIMARY ranker (IDF makes rare meaning-bearing grams
@@ -240,7 +240,7 @@ struct KbHit {
     overlap: i32,
 }
 
-/// cosine + lexical overlap → integer gate score (the neurosymbolic blend).
+/// cosine + lexical overlap → integer gate score (a blend of the vector and the lexical signal).
 /// Cosine alone under-scores entries with LONG keyword lists (TF-IDF norm divides
 /// by a big vector), so a clearly-dominant lexical match like "Turnitin เกิน 25%"
 /// → thesis_turnitin (overlap 15, cosine only 0.20 because the entry has 20+
