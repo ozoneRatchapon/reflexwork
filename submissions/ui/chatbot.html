@@ -1381,12 +1381,14 @@ function updateRatio(){
 
 // feedback UI appended to each answer — the self-learning loop
 let fbN = 0;
+// one random id per rendered answer: lets the server count each user's vote once instead of once per question TEXT
+function newVoteId(){ try{ return crypto.randomUUID(); }catch(e){ return Array.from({length:4},()=>Math.random().toString(36).slice(2,10).padEnd(8,'0')).join('-'); } }
 function fbUI(q, proof, entryId){
   const id = 'fb'+(++fbN);
   // store the question so the 👍/👎 handler can send it as the reward signal.
   // entryId (when the answer came from a KB entry) lets the kernel decay THAT
   // entry's confidence on 👎 — learning which entries are weak.
-  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof, entryId};
+  window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof, entryId, voteId:newVoteId()};
   return `<div class="fb" id="${id}">
       <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
       <button class="fb-b up" onclick="sendFeedback('${id}',1)">👍 ใช่</button>
@@ -1411,13 +1413,13 @@ function logGap(q){
 }
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
-  const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||''; const entryId = rec.entryId||'';
+  const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||''; const entryId = rec.entryId||''; const voteId = rec.voteId||'';
   let note;
   if(KERNEL_API){
     try{
       const r = await fetch(KERNEL_API.replace(/\/$/,'')+'/feedback',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({category:'DataQuery', input:q, reward, proof, entry_id:entryId})
+        body: JSON.stringify({category:'DataQuery', input:q, reward, proof, entry_id:entryId, vote_id:voteId})
       }).then(r=>r.json());
       note = `✅ kernel เรียนรู้แล้ว · policy v${r.policy_version}`;
     }catch(e){ note = '⚠ ส่ง feedback ไม่สำเร็จ (kernel ไม่ตอบ)'; }
