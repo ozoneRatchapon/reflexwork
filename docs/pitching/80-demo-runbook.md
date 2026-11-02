@@ -37,7 +37,7 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 - "proof" for the BLAKE3 hash (it is a replay fingerprint, not a proof of correctness) — the UI, slides, README and concept paper now say *fingerprint*; `docs/pitching/*.md` Q&A notes may still say proof, so say fingerprint out loud;
 - that slide 6 shows live data: it is an example screen filled with the **measured** test-set figures (44 of 52 answered unaided, 4 wrong among them) and says so; the real dashboard is `/dashboard`;
 - that statuses are live (they are a snapshot, dated on every card).
-- that it "declines when it does not know": on 34 hand-written out-of-scope questions it still answered 25 % (English) / 39 % (Thai) with an unrelated entry (`docs/METHOD.md` §5 F). If a judge asks something off-topic, the honest line is "it usually declines, not always — we measured it and know why";
+- that it "declines when it does not know": on 34 hand-written out-of-scope questions it still answered 13 % (English) / 17 % (Thai) with an unrelated entry (25 % / 39 % before the 2026-11-03 fix) (`docs/METHOD.md` §5 F). If a judge asks something off-topic, the honest line is "it usually declines, not always — we measured it and know why";
 - that it "works in English": it understands English and mixed Thai–English, but **answers in Thai** (it refuses honestly when nothing matches).
 
 ## If something breaks on stage
