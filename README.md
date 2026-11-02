@@ -62,6 +62,8 @@ node tests/learning_loop.test.mjs        # pure-logic unit tests
 ```
 CI runs these + Worker syntax checks on every push (`.github/workflows/ci.yml`).
 
+**Method, exact formulas and reproducible benchmarks (baselines, ablations, latency, what the evidence does and does not support):** [`docs/METHOD.md`](docs/METHOD.md) — rerun with `benchmark/compare/run_all.sh`.
+
 ## Deploy (Cloudflare)
 ```bash
 cd integrations/kernel-worker && npx wrangler deploy

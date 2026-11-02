@@ -18,6 +18,9 @@ let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 
 const bm = html.match(/\/\/ <programme-resolve>([\s\S]*?)\/\/ <\/programme-resolve>/);
+const lk = html.match(/\/\/ <linkify>([\s\S]*?)\/\/ <\/linkify>/);   // the card links URLs in site text via linkify()
+check('linkify block found in chatbot.html', lk);
+if (lk && bm) bm[1] = lk[1] + '\n' + bm[1];
 check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
@@ -180,6 +183,21 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
   const h = finderHtml(finderFacets([{ ...P[0], faculty: '"><img src=x onerror=alert(1)>', title: '<script>alert(2)</script>' }], { level: '', faculty: '', open: false, intl: false, special: false }), { level: '', faculty: '"><img src=x onerror=alert(1)>', open: false, intl: false, special: false }, '2026-11-02', false);
   check('finder escapes catalogue text (also inside data attributes)', !/<img|<script/i.test(h), h.slice(0, 160));
   check('finder never claims a "best" programme', !/ดีที่สุด(?!\")/.test(finderHtml(F0, f0, DOC.fetched_at, false).replace(/ไม่ได้ตัดสินว่าสาขาไหน "ดี" ที่สุด/, '')));
+}
+
+// --- typing slips: tone marks, one dropped letter, near-miss picker ---------------------------------------------------------------------
+{
+  const coreOf = t => { t = t.replace(/\([^)]*\)/g, ' '); const i = t.indexOf('สาขาวิชา'); return (i >= 0 ? t.slice(i + 8) : t).replace(/\s+/g, ''); };
+  const loose = q => resolveProgramme(q, P, true);
+  expectIn('อยากสมัคร ทันตแพทย', '3319M04G');                                            // no karan: "ทันตแพทย์" typed as "ทันตแพทย"
+  { const r = run('ชีวเมีและชีววิทยาโมเลกุลทางการแพทย์'); check('a short name hidden inside a mistyped LONG name never becomes the single card ("ชีววิทยา")', !(r && r.kind === 'one' && coreOf(r.row.title) === 'ชีววิทยา'), r ? `${r.kind} ${codes(r).join()}` : ''); }
+  { const r = loose('ชีวเมีและชีววิทยาโมเลกุลทางการแพทย์'); check('near-miss picker finds the long name despite the slip', r && r.kind === 'many' && r.near && r.rows.some(x => /ชีวเคมีและชีววิทยาโมเลกุล/.test(x.title)), r ? codes(r).join() : 'null'); }
+  { const r = loose('กายอุปกณ์'); check('near-miss: "กายอุปกณ์" -> the กายอุปกรณ์ programmes, as a picker', r && r.kind === 'many' && r.rows.some(x => x.code === '2044M03G'), r ? codes(r).join() : 'null'); }
+  // property: the near-miss mode can never assert one programme, for any slip in any official name
+  let single = 0, tried = 0;
+  for (const p of P) { const c = [...coreOf(p.title)]; if (c.length < 7) continue; for (const cut of [3, Math.floor(c.length / 2)]) { const q = c.filter((_, i) => i !== cut).join(''); const r = loose(q); tried++; if (r && r.kind !== 'many') single++; } }
+  check(`near-miss mode never returns a single card (${tried} slipped names)`, single === 0, String(single));
+  for (const q of ['วันนี้อากาศเป็นยังไง', 'ร้านกาแฟใกล้ที่นี่อยู่ไหน', 'ลืมรหัสผ่านเข้าระบบ', 'ขอบคุณมากครับ']) check(`near-miss stays silent on unrelated text: ${q}`, loose(q) === null, (loose(q) || {}).kind);
 }
 
 // --- (3) the KB questions must not be stolen by the programme path --------------------------------------------

@@ -51,3 +51,15 @@ jobs:
 
       - name: Programme path (catalogue integrity, phrasings, no stolen KB questions, XSS)
         run: node tests/programme_resolve.test.mjs
+
+      - name: Clickable links in answers (escaping, allowlist, text preserved)
+        run: node tests/linkify.test.mjs
+
+      - name: Chat robustness (sloppy typing, never a dead end)
+        run: node tests/chat_robust.test.mjs
+
+      - name: Benchmarks still run (baseline comparison, programme names) - smoke, no thresholds
+        run: |
+          set -e
+          node benchmark/compare/compare_retrievers.mjs > /dev/null
+          node benchmark/compare/programme_names.mjs > /dev/null

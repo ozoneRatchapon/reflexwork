@@ -1,0 +1,85 @@
+name: programmes-refresh
+
+# Weekly: re-read the Graduate School's public pages, say what changed, and open a pull request if an applicant would notice.
+# The chatbot's programme statuses / fees are a dated SNAPSHOT (submissions/ui/programmes.json); this keeps the snapshot honest.
+# It never deploys: merging the PR and running submissions/deploy_pages.sh main stay human steps.
+# Fails LOUDLY (job red, repo owner is e-mailed) when the site's HTML changed under the parser, instead of publishing empty data.
+
+on:
+  schedule:
+    - cron: "0 1 * * 1"        # Mondays 01:00 UTC = 08:00 Bangkok
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: programmes-refresh
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build knowledge index (approved-only)
+        run: python3 submissions/build_knowledge_index.py
+
+      - name: Link rot - every official URL the answers link to still answers
+        run: node tests/linkify.test.mjs --online
+
+      - name: Crawl the official site (read-only; one request per programme, 0.4 s apart, ~25 min)
+        run: >
+          python3 -I submissions/build_programme_catalogue.py --year 2570
+          --out "$RUNNER_TEMP/new.json" --cache "$RUNNER_TEMP/cache"
+          --fetched-at "$(date -u +%F)" --delay 0.4
+
+      - name: What changed
+        id: diff
+        run: |
+          set +e
+          python3 -I submissions/diff_programmes.py submissions/ui/programmes.json "$RUNNER_TEMP/new.json" > "$RUNNER_TEMP/summary.md"
+          code=$?
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          if [ "$code" = 2 ]; then echo "::error::The new crawl looks structurally broken - see the job summary"; exit 1; fi
+          exit 0
+
+      - name: Tests on the new data
+        if: steps.diff.outputs.code == '10'
+        run: |
+          cp "$RUNNER_TEMP/new.json" submissions/ui/programmes.json
+          node tests/programme_resolve.test.mjs
+          node tests/chat_robust.test.mjs
+          node tests/linkify.test.mjs
+
+      - name: Open a pull request
+        if: steps.diff.outputs.code == '10'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          day="$(date -u +%Y%m%d)"
+          branch="bot/programmes-$day"
+          git config user.name "reflexwork-bot"
+          git config user.email "reflexwork-bot@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add submissions/ui/programmes.json
+          git commit -m "chore(data): refresh programme catalogue $day"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "chore(data): refresh programme catalogue $day" \
+            --body-file "$RUNNER_TEMP/summary.md" \
+            || echo "::warning::Could not open the PR. Enable Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'. The branch $branch was pushed."
+
+      - name: Keep the raw crawl for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: programmes-crawl
+          path: ${{ runner.temp }}/new.json
+          if-no-files-found: ignore
+          retention-days: 14

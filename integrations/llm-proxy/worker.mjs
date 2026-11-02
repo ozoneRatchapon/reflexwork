@@ -166,6 +166,7 @@ export default {
     // first that returns a candidate. (GEMINI_MODEL secret overrides the head.)
     const models = [env.GEMINI_MODEL, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'].filter(Boolean);
     let text = null;
+    const trail = [];   // per-model outcome (status codes only - never the key / URL) so a failing key / retired model is diagnosable
     for (const model of models) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
       const payload = {
@@ -178,12 +179,14 @@ export default {
         const data = await r.json();
         const t = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (r.ok && t) { text = t; break; }
-      } catch { /* try next model */ }
+        trail.push(`${model}:${r.status}${data?.error?.status ? '/' + data.error.status : (r.ok ? '/empty' : '')}`);
+      } catch { trail.push(`${model}:network`); /* try next model */ }
     }
     if (!text) {
       // Gemini unavailable AND (for grounded) we skipped Ollama — last resort:
       // an honest hand-off rather than silence.
-      return new Response(JSON.stringify({ answer: 'ขออภัย ระบบ AI ตอบไม่ได้ในขณะนี้ — รบกวนติดต่อเจ้าหน้าที่ครับ', source: 'fallback' }), {
+      console.log('llm-proxy: every Gemini model failed:', trail.join(' '));   // visible in `wrangler tail`
+      return new Response(JSON.stringify({ answer: 'ขออภัย ระบบ AI ตอบไม่ได้ในขณะนี้ — รบกวนติดต่อเจ้าหน้าที่ครับ', source: 'fallback', detail: trail }), {
         headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
