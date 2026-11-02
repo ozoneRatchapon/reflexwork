@@ -1,7 +1,7 @@
 // The LLM proxy (integrations/llm-proxy/worker.mjs) must ALWAYS answer within its budget and say why a backend failed.
 // Run: node tests/llm_proxy.test.mjs   (no network: upstream is mocked)
 //   regression for 2026-11-03: a stalled upstream left the request hanging for > 90 s with nothing in the logs.
-import worker from '../integrations/llm-proxy/worker.mjs';
+import worker, { pickModels } from '../integrations/llm-proxy/worker.mjs';
 
 let pass = 0, fail = 0, n = 0;
 const keepAlive = setInterval(() => {}, 50);   // Node's AbortSignal.timeout() timers are unref'd; Workers keep a request alive, Node would exit mid-await
@@ -38,6 +38,34 @@ async function ask(env, upstream, body = { input: 'สวัสดี', context:
 // 6) bad requests are rejected before any upstream call
 { let called = false; const r = await ask({ GEMINI_API_KEY: KEY }, () => { called = true; return reply(200, {}); }, { input: '' });
   check('empty input -> 400 without calling upstream', r.status === 400 && !called); }
+
+
+// --- model discovery: names churn (1.5 gone 2025-09, 2.0 gone 2026-06), so the proxy asks the API what this key can call -------------
+const GC = ['generateContent', 'countTokens'];
+const LIST = [
+  { name: 'models/gemini-1.5-flash', supportedGenerationMethods: GC },
+  { name: 'models/gemini-2.5-flash', supportedGenerationMethods: GC },
+  { name: 'models/gemini-2.5-flash-lite', supportedGenerationMethods: GC },
+  { name: 'models/gemini-3.9-flash', supportedGenerationMethods: GC },
+  { name: 'models/gemini-3.10-flash', supportedGenerationMethods: GC },
+  { name: 'models/gemini-3.10-flash-lite', supportedGenerationMethods: GC },
+  { name: 'models/gemini-3.10-flash-preview-05-20', supportedGenerationMethods: GC },
+  { name: 'models/gemini-3.10-flash-image', supportedGenerationMethods: GC },
+  { name: 'models/gemini-3.10-flash-live-001', supportedGenerationMethods: ['bidiGenerateContent'] },
+  { name: 'models/gemini-3.10-pro', supportedGenerationMethods: GC },
+  { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
+];
+{ const got = pickModels(LIST);
+  check('picks stable Flash first, newest first (3.10 > 3.9: numeric, not text, order), then Flash-Lite', got.slice(0, 3).join() === 'gemini-3.10-flash,gemini-3.9-flash,gemini-2.5-flash' && got.indexOf('gemini-3.10-flash-lite') > got.indexOf('gemini-1.5-flash'), got.join()); 
+  check('never picks preview / image / live / pro / embedding / non-generateContent models', !got.some(id => /preview|image|live|pro|embedding/.test(id)), got.join()); }
+check('with only preview Flash models it still finds one (loose fallback), never image / tts', pickModels([{ name: 'models/gemini-4-flash-preview', supportedGenerationMethods: GC }, { name: 'models/gemini-4-flash-image', supportedGenerationMethods: GC }]).join() === 'gemini-4-flash-preview');
+check('empty / malformed lists give no model instead of throwing', pickModels([]).length === 0 && pickModels(undefined).length === 0 && pickModels([null, {}, { name: 5 }]).length === 0);
+{ const calls = []; 
+  const up = (url, init) => { const u = String(url); calls.push(u.replace(/key=[^&]+/, 'key=…')); if (u.includes('/v1beta/models?')) return reply(200, { models: LIST }); return reply(200, { candidates: [{ content: { parts: [{ text: 'เปิดทำการจันทร์-ศุกร์' }] } }] }); };
+  const r = await ask({ GEMINI_API_KEY: KEY }, up); const used = calls.find(c => c.includes(':generateContent'));
+  check('uses the newest model the API lists, not a hard-coded name', r.json && r.json.source === 'gemini' && /models\/gemini-3\.10-flash:generateContent/.test(used || ''), used);
+  const before = calls.filter(c => c.includes('/v1beta/models?')).length; await ask({ GEMINI_API_KEY: KEY }, up);
+  check('the model list is cached (one list call serves later requests)', calls.filter(c => c.includes('/v1beta/models?')).length === before, `${before} -> ${calls.filter(c => c.includes('/v1beta/models?')).length}`); }
 
 clearInterval(keepAlive);
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);

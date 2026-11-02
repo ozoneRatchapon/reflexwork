@@ -59,6 +59,31 @@ function groundedGuard(answer, context) {
     || 'คู่มือมีข้อมูลไม่พอสำหรับคำถามนี้ รบกวนติดต่อเจ้าหน้าที่เพื่อความถูกต้องครับ';
 }
 
+// Gemini model ids churn: 1.5 shut down 2025-09, 2.0 shut down 2026-06, and Google's own pages name different successors.
+// A hard-coded list is therefore a time bomb (it silently killed the LLM path). Ask the API which models THIS key can call and pick
+// the newest stable Flash. Pure so it can be tested: `list` is the `models` array of GET /v1beta/models.
+export function pickModels(list) {
+  const ids = (Array.isArray(list) ? list : [])
+    .filter(m => m && typeof m.name === 'string' && (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => m.name.replace(/^models\//, ''));
+  const ver = id => { const m = id.match(/^gemini-(\d+)(?:\.(\d+))?-/); return m ? [Number(m[1]), Number(m[2] || 0)] : [0, 0]; };
+  const newest = (a, b) => { const x = ver(a), y = ver(b); return y[0] - x[0] || y[1] - x[1] || (a < b ? -1 : 1); };
+  const stable = re => ids.filter(id => re.test(id)).sort(newest);          // no -preview / -exp / dated / image / tts / live variants
+  const picked = [...stable(/^gemini-\d+(\.\d+)?-flash$/), ...stable(/^gemini-\d+(\.\d+)?-flash-lite$/)];
+  if (picked.length) return picked;
+  return ids.filter(id => /flash/.test(id) && !/image|tts|live|audio|embed|vision|robotics|computer/.test(id)).sort(newest);
+}
+const modelCache = { at: 0, ids: [] };
+async function discoverModels(key, budgetMs) {
+  if (Date.now() - modelCache.at < 3600000 && modelCache.ids.length) return { ids: modelCache.ids, note: 'cached' };
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${key}`, { signal: AbortSignal.timeout(Math.max(500, Math.min(4000, budgetMs))) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) return { ids: [], note: `list:${r.status}${data?.error?.status ? '/' + data.error.status : ''}` };
+  const ids = pickModels(data.models);
+  if (ids.length) { modelCache.at = Date.now(); modelCache.ids = ids; }
+  return { ids, note: ids.length ? `list:ok(${ids.slice(0, 3).join(',')})` : 'list:no-flash-model' };
+}
+
 function cors(origin) {
   const ok = origin === ALLOWED_ORIGIN;
   return {
@@ -172,7 +197,11 @@ export default {
     // Gemini generateContent. The exact flash model id changes over time, so we
     // try the configured one first, then a few known-good fallbacks, and use the
     // first that returns a candidate. (GEMINI_MODEL secret overrides the head.)
-    const models = [env.GEMINI_MODEL, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'].filter(Boolean);
+    // GEMINI_MODEL (secret) still wins if set; then whatever the API says this key can use; 'gemini-flash-latest' is a last-resort alias.
+    let found = [];
+    try { const d = await discoverModels(env.GEMINI_API_KEY, left() - 3000); found = d.ids; trail.push(d.note); }
+    catch (e) { trail.push(`list:${e && (e.name === 'TimeoutError' || e.name === 'AbortError') ? 'timeout' : 'network'}`); }
+    const models = [...new Set([env.GEMINI_MODEL, ...found.slice(0, 2), 'gemini-flash-latest'].filter(Boolean))];
     let text = null;
     for (const model of models) {
       if (left() < 1500) { trail.push(`${model}:skipped(budget)`); continue; }
@@ -182,7 +211,7 @@ export default {
         generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
       };
       try {
-        const call = () => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(8000, left())) });
+        const call = () => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(Number(env.GEMINI_TIMEOUT_MS) || 10000, left())) });   // newer Flash models can "think" for several seconds
         let r = await call();
         if (r.status === 503 && left() > 2500) { await new Promise(res => setTimeout(res, 800)); r = await call(); }
         const data = await r.json();
