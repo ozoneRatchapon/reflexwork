@@ -206,16 +206,21 @@ export default {
     for (const model of models) {
       if (left() < 1500) { trail.push(`${model}:skipped(budget)`); continue; }
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
-      const payload = {
+      // Newer Flash models think by default (3.8 Flash: "medium"), which made every call outlast its timeout. Rephrasing a KB answer
+      // needs no deep reasoning: ask for thinkingLevel "low". Do NOT shrink maxOutputTokens to go faster - thinking tokens count against
+      // it and the answer comes back truncated or empty (Google's docs say to lower the level instead). Models that do not take
+      // thinkingLevel (e.g. 2.5, which uses a budget) answer 400; we then retry once without it.
+      const payload = thinking => ({
         contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
-        generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
-      };
+        generationConfig: { maxOutputTokens: 1024, temperature: 0.3, ...(thinking ? { thinkingConfig: { thinkingLevel: 'low' } } : {}) },
+      });
       try {
-        const call = () => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(Number(env.GEMINI_TIMEOUT_MS) || 10000, left())) });   // newer Flash models can "think" for several seconds
-        let r = await call();
-        if (r.status === 503 && left() > 2500) { await new Promise(res => setTimeout(res, 800)); r = await call(); }
+        const call = thinking => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload(thinking)), signal: AbortSignal.timeout(Math.min(Number(env.GEMINI_TIMEOUT_MS) || 14000, left())) });
+        let r = await call(true);
+        if (r.status === 400 && left() > 2500) { trail.push(`${model}:thinkingLevel-rejected`); r = await call(false); }
+        if (r.status === 503 && left() > 2500) { await new Promise(res => setTimeout(res, 800)); r = await call(false); }
         const data = await r.json();
-        const t = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const t = (data?.candidates?.[0]?.content?.parts || []).filter(x => x && x.text && !x.thought).map(x => x.text).join('').trim();
         if (r.ok && t) { text = t; break; }
         trail.push(`${model}:${r.status}${data?.error?.status ? '/' + data.error.status : (r.ok ? '/empty' : '')}`);
       } catch (e) { trail.push(`${model}:${e && (e.name === 'TimeoutError' || e.name === 'AbortError') ? 'timeout' : 'network'}`); /* try next model */ }
