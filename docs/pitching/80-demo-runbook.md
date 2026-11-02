@@ -33,7 +33,7 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 **Don't say:**
 - "neuro-symbolic" (no neural network in the answering path);
 - "the kernel gate decides when to call the LLM" (in the web chat the retrieval score decides; the gate cannot exceed 0.451);
-- "learns from 👍/👎" before the thumbs fix (#94) is deployed — until then the buttons threw an error and no vote ever arrived;
+- "learns from every user's 👍/👎": the buttons only started working on 2026-11-03 (before, each click threw an error), and the server counts the first vote per distinct question sentence only (`docs/METHOD.md` §8.6). Say: "votes are collected and reviewed by staff" — not "the system improves automatically";
 - "proof" for the BLAKE3 hash (it is a replay fingerprint, not a proof of correctness);
 - any percentage from slide 6 (hard-coded example numbers, policy "v3"; live is v11);
 - that statuses are live (they are a snapshot, dated on every card).
