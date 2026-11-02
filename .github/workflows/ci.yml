@@ -67,6 +67,7 @@ jobs:
           node tests/ratio_meter.test.mjs
           node tests/inline_handlers.test.mjs
           node tests/slides_claims.test.mjs
+          node tests/feedback_votes.test.mjs
 
       - name: Benchmarks still run (baseline comparison, programme names) - smoke, no thresholds
         run: |

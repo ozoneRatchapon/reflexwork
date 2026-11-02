@@ -222,7 +222,12 @@ async function feedback(request, env) {
   if (!input) return json({ error: 'input required' }, 400);
   const reward = Math.max(-1, Math.min(1, Number(body.reward) || 0));
   // per-answer dedup: a given answer (identified by its BLAKE3 proof) counts once.
-  const proof = String(body.proof || '').slice(0, 64);
+  // A vote counts once per ANSWER the user was shown. The replay hash (`proof`) is identical for every user who asks the same sentence, so
+  // de-duplicating on it let only the FIRST vote on a sentence ever count. The page now sends `vote_id`, a random id made when the answer is
+  // rendered and used by one click (the buttons disappear after it). Clients without a usable vote_id keep the old per-hash behaviour.
+  // Residual risk: a script can mint vote_ids; the per-IP rate limit above is the only brake on that.
+  const voteId = String(body.vote_id || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 40);
+  const proof = voteId.length >= 16 ? 'v:' + voteId : String(body.proof || '').slice(0, 64);
   if (proof) {
     const seen = await env.DB.prepare("SELECT 1 FROM feedback_log WHERE proof=?1").bind(proof).first();
     if (seen) {
