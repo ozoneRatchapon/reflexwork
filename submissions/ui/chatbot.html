@@ -392,7 +392,7 @@ const FALLBACK_KB = [
     source_url:'https://graduate.mahidol.ac.th/', faq_number:'' },
 ];
 
-// KB retrieval — NEUROSYMBOLIC HYBRID, now implemented IN RUST (reflex-wasm
+// KB retrieval — HYBRID lexical + vector (TF-IDF cosine; no neural model), implemented IN RUST (reflex-wasm
 // crates/reflex-wasm/src/lib.rs::kb_search), called over WASM. Single source of
 // truth: the same TF-IDF cosine + calibrated gate score runs in the kernel crate
 // (native tests) and in the browser (this call), so there is no JS/Rust logic
@@ -404,7 +404,7 @@ function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new S
   for(const tok of s.split(/\s+/)) if(tok.length>1) g.add(tok);
   for(let i=0;i<s.length-2;i++){ const t=s.slice(i,i+3).trim(); if(t.length===3) g.add(t);} return g; }
 function _cosToScore(c, margin, ov, ovLead){
-  // neurosymbolic blend (lockstep with reflex-wasm::cos_to_score): a dominant
+  // blend of the vector and lexical signals (lockstep with reflex-wasm::cos_to_score): a dominant
   // lexical overlap lifts the score even when TF-IDF cosine is diluted by a long
   // keyword list (the "Turnitin เกิน 25%" case: overlap 15, cosine only 0.20).
   if(ov>=8 && ovLead>=4) return 6;

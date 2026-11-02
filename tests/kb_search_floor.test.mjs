@@ -1,4 +1,4 @@
-// CI regression floor for the neurosymbolic KB search, SELF-CONTAINED.
+// CI regression floor for the hybrid lexical+vector KB search, SELF-CONTAINED.
 //
 // Unlike kb_search.test.mjs (which needs the generated knowledge-index.json and
 // silently skips when it's absent), this builds a tiny index DIRECTLY from our

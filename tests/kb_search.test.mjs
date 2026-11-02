@@ -1,4 +1,4 @@
-// Recall eval for the neurosymbolic KB search in submissions/ui/chatbot.html.
+// Recall eval for the hybrid lexical+vector KB search in submissions/ui/chatbot.html.
 // Run: node tests/kb_search.test.mjs   (exit 0 = pass, 1 = fail)
 //
 // search() is a HYBRID: TF-IDF cosine (modelless "latent", 0 token, deterministic)
