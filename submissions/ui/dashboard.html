@@ -167,7 +167,7 @@ async function tick(){
       <td>${routePill(e.route,e.fast_path)}</td>
       <td class="mono">${fmtUs(e.kernel_us)}</td>
       <td class="mono proof">${e.blake3_proof.slice(0,16)}…</td></tr>`).join('')
-      + (rows.length>shown.length ? `<tr><td colspan="5" class="empty">+ อีก ${rows.length-shown.length} การตัดสินใจ (ทุกแถวมี proof ตรวจย้อนหลังได้)</td></tr>` : '')
+      + (rows.length>shown.length ? `<tr><td colspan="5" class="empty">+ อีก ${rows.length-shown.length} การตัดสินใจ (ทุกแถวมี fingerprint ตรวจย้อนหลังได้)</td></tr>` : '')
       : '<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>';
     const gaprows = (g&&g.entries)||[];
     $('gaprows').innerHTML = gaprows.length ? gaprows.map(e=>`<tr>

@@ -147,7 +147,7 @@
   .greet .g-p{color:var(--muted);font-size:13.5px}
   .greet .g-cta{color:var(--accent);font-size:13px;margin-top:8px;font-weight:600}
 
-  /* P2: the BLAKE3 proof flashes once when an answer lands, so the eye catches
+  /* P2: the BLAKE3 fingerprint flashes once when an answer lands, so the eye catches
      the auditability — the thing judges should notice. */
   @keyframes proof-flash{0%{box-shadow:0 0 0 0 rgba(176,123,255,.0);border-color:var(--line)}
     30%{box-shadow:0 0 0 4px rgba(176,123,255,.28);border-color:var(--audit)}
@@ -278,7 +278,7 @@
           <div class="swstep"><b>2.</b> รับคำถาม → ถามตัวเองว่า "เคยตอบเรื่องนี้ได้ไหม?"</div>
           <div class="swstep ok"><b>→</b> เคย (เจอในคู่มือ) → ตอบเลย <b style="color:var(--fast,#22c58b)">ฟรี · เร็วมาก</b></div>
           <div class="swstep esc"><b>→</b> ไม่แน่ใจ → ส่งต่อ + บันทึกไว้ปรับปรุงคู่มือ</div>
-          <div class="swtech"><code>sigmoid gate (θ=0.72)</code> + ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82%) · ทุกคำตอบผนึก <code>BLAKE3 proof</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns</code></div>
+          <div class="swtech"><code>sigmoid gate (θ=0.72)</code> + ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82%) · ทุกคำตอบผนึก <code>BLAKE3 fingerprint</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns</code></div>
         </div></div>
         <div class="swrow swa"><div class="swact">🤖 AI / เจ้าหน้าที่</div><div class="swbody">
           <div class="swstep"><b>3.</b> เฉพาะคำถาม <b>ใหม่จริง ~20%</b> เท่านั้นที่มาถึงชั้นนี้</div>
@@ -312,7 +312,7 @@
     </div>
     <aside class="evidence" id="evidence" aria-label="หลักฐานเบื้องหลัง">
       <div class="evidence-h"><span class="dot"></span>🔬 หลักฐานเบื้องหลัง</div>
-      <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ผู้ใช้เห็น · ฝั่งนี้คือ<b>การตัดสินใจของ kernel ที่ตรวจสอบได้</b> — เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 proof</div>
+      <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ผู้ใช้เห็น · ฝั่งนี้คือ<b>การตัดสินใจของ kernel ที่ตรวจสอบได้</b> — เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 fingerprint</div>
       <div id="ev-list"><div class="ev-empty">
         <div style="font-size:12px;margin-bottom:12px">ถามคำถามด้านซ้าย แล้ว<b style="color:var(--ink)">หลักฐานการตัดสินใจ</b>ของแต่ละคำตอบจะขึ้นที่นี่ — ตัวอย่างหน้าตา 👇</div>
         <div class="ev-example">
@@ -1075,8 +1075,8 @@ function ask(){
       <span class="km">⚡ ${us} µs</span>
       <span class="km">💰 ${d.fast_path?'0 token':'LLM path'}</span>
     </div>
-    <div class="proof-full">🔒 BLAKE3 proof: <code>${d.blake3_proof}</code><br>
-      <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ proof เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
+    <div class="proof-full">🔒 BLAKE3 fingerprint: <code>${d.blake3_proof}</code><br>
+      <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ fingerprint เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
 
   // Programme path: "I want to apply to <programme>" → that programme's own page + status, not a
   // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
