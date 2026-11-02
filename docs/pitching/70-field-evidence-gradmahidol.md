@@ -95,6 +95,10 @@ gh api 'repos/narakorn709/gradmahidol-ai/git/trees/main?recursive=1' \
 - [x] **ดึง corpus มาวัด benchmark แล้ว** (เจ้าของเคลียร์สิทธิ์กับน็อตเอง) — ผล:
       recall@1 **82%** / @3 **100%** / abstain 2/2 บน 62 FAQ docs อิสระ
       → `benchmark/gradmahidol/RESULTS.md` + harness `run_benchmark.mjs`
+- [x] **นำเข้า 62 FAQ docs เป็น KB public แล้ว (น็อตอนุญาต, 2026-10-31)** — `submissions/ui/knowledge-public/gm_*.md`
+      (เงื่อนไขข้อ 3 ด้านบน "ไม่ commit เข้า KB public" จึงถูกแทนด้วยการอนุญาตนี้). KB 70 → **132 หัวข้อ**.
+      eval 50 เคสหลังรวม: recall@1 **84%** (42/50) / @3 96% / FP 5 / off-corpus 2/2. WASM = JS ตรงกัน 52/52.
+      หัวข้อซ้ำ ~10 คู่ → เก็บทั้งคู่ + eval รับคำตอบที่อ่านแล้วว่าเทียบเท่า (รายละเอียด `.plans/001_kb-gradmahidol-faq-import.md`)
 - [ ] [เจ้าของ] ยืนยันกับน็อตว่าใช้ corpus วัด benchmark ได้ (เอกสารนี้สมมติว่าเคลียร์แล้ว)
 - [ ] [ตัดสินใจ] จะเสนอ "ReflexWork เป็น layer หน้า GradMahidol" กับน็อตจริงไหม (1-page)
 - [ ] [ถ้าใช้ตอน pitch] ใส่ตัวเลข benchmark 82%/100% ลงสไลด์ Readiness/Impact แทน projection
