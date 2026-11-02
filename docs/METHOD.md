@@ -23,7 +23,7 @@ A student-facing assistant for a university graduate school whose design rule is
 | learning loop | unanswered questions → PII-masked gap log → LLM *drafts* → human approves | server side | LLM only drafts, a human publishes | `integrations/kernel-worker`, `docs/learning-loop-design.md` |
 | LLM | rephrase an already-retrieved KB answer (grounded), guarded by `groundedGuard` | Gemini / local model | **no** | `integrations/llm-proxy` |
 
-There is **no neural network in the answering path**. The LLM is optional and cannot add facts: a sentence of its output containing numbers or names absent from the supplied KB text is dropped (`groundedGuard`). As of this writing the LLM backend is failing in production (the proxy returns its `fallback`), so every answer a user receives is produced by the deterministic layers.
+There is **no neural network in the answering path**. The LLM is optional and cannot add facts: a sentence of its output containing numbers or names absent from the supplied KB text is dropped (`groundedGuard`). The LLM is used in exactly one place: an *advice-style* question whose KB match is mid-strength (score 4–5) is rephrased from the retrieved entries; a strong match (≥ 6) is rendered by a deterministic template and a weak one is never handed to the model. It did not work until 2026-11-03: the page called the wrong host, and the proxy's hard-coded Gemini ids had been retired (§8.5). Since then it is verified end to end on production (page → proxy → Gemini → rephrased answer, ≈ 4 s through the proxy, 7.5 s first call from the page); in the one answer audited, every figure it printed (3,500 baht, 120 points, 11.00) was present in the KB entries it was given. Until 2026-11-03 every answer users received came from the deterministic layers alone.
 
 ## 2. Terminology — what we can honestly call it
 
@@ -163,7 +163,7 @@ Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosin
 2. **The on-page "fast-path ratio" is not a measurement.** `updateRatio()` displays `auto/total·100 + 18·EMA(👍/👎)` percentage points — the 👍/👎 vote shifts the displayed percentage by up to ±18 pp. Show the raw ratio and the feedback EMA separately.
 3. **Wording:** replace "neurosymbolic" (§2).
 4. **KB search recomputes the index on every query.** Caching the per-KB gram sets / document frequencies gave **1775 → 275 µs (6.4×)** with identical results on the JS twin (scratch measurement); the WASM export needs a stateful index object (and a rebuild of the committed `.wasm`) to get the same.
-5. Run the LLM backend diagnostics (`integrations/llm-proxy`, now reports each Gemini model's status) before claiming any LLM path in a demo.
+5. **LLM path — fixed 2026-11-03, with lessons.** (a) The page sent `/llm` to the kernel worker, which has no such route. (b) The proxy's Gemini ids were retired (1.5: 2025-09, 2.0: 2026-06) and every error was swallowed. (c) No upstream wait was bounded. (d) Measured on the live key: the *newest* models were overloaded (503 after 5–11 s), one Flash-Lite hung, and one model was listed by the API yet answered 404 "no longer available to new users" — while 3.6 Flash and 3.1 Flash-Lite answered in ≈ 3 s. The proxy therefore discovers models from the API, tries them in parallel waves (first good answer wins), remembers what worked, bounds every wait by one budget, and reports each stage in `detail`. Regression tests: `tests/llm_proxy.test.mjs` (21, mocked). Not done: the local-model (Ollama) tunnel still answers 404.
 
 ## 9. Reproduce and compare
 
