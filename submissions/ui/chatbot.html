@@ -302,11 +302,11 @@
         <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
         <button id="send" disabled>ถาม</button>
       </div>
-      <div class="bar"><span>ตอบจากคู่มือทันที: <b id="b-auto">0</b></span><span>ส่ง AI: <b id="b-ai">0</b></span><span>ประหยัดค่า AI: <b id="b-saved">฿0</b></span></div>
+      <div class="bar"><span>ตอบจากคู่มือ/ข้อมูลทางการ: <b id="b-auto">0</b></span><span>ไม่พบในคู่มือ (ส่งต่อเจ้าหน้าที่): <b id="b-ai">0</b></span><span title="ประมาณการ ไม่ใช่ค่าที่วัดจากบิลจริง: สมมติว่าถ้าให้ LLM ตอบ แต่ละคำถามจะมีต้นทุนราว ฿2">ประหยัดโดยประมาณ (฿2/คำถาม): <b id="b-saved">฿0</b></span></div>
       <div class="ratio-wrap" id="ratio-wrap" style="display:none">
-        <div class="ratio-head"><span>สัดส่วนที่ตอบเองได้ (ยิ่งสูง = ยิ่งประหยัด)</span><b id="ratio-pct">—</b></div>
+        <div class="ratio-head"><span>สัดส่วนที่ตอบจากข้อมูลทางการได้ (นับจริงในเซสชันนี้)</span><b id="ratio-pct">—</b></div>
         <div class="ratio-track"><div class="ratio-fill" id="ratio-fill" style="width:0%"></div></div>
-        <div class="ratio-note" id="ratio-note">ระบบเรียนรู้จาก 👍/👎 ของคุณ — กด 👎 บนคำตอบที่ตอบเอง แล้วดูสัดส่วนขยับ</div>
+        <div class="ratio-note" id="ratio-note">นับจากคำถามในเซสชันนี้เท่านั้น · กด 👍/👎 เพื่อให้คะแนนคำตอบ (คะแนนไม่ปรับตัวเลขสัดส่วนข้างบน)</div>
       </div>
       <div class="note" id="note">⏳ กำลังโหลด…</div>
     </div>
@@ -1353,31 +1353,30 @@ function ask(){
 // --- Learning loop: EMA Bandit over 👍/👎 feedback -------------------------
 // DISTILLED from katgpt-rs BanditPruner/ReviewMetrics (Test-Time Compute): the
 // FastPath confidence is an exponential moving average of the reward signal, not
-// a raw running sum. ema ← (1-α)·ema + α·reward, reward ∈ {+1 👍, -1 👎}. A 👎 on
-// a FastPath answer pulls the EMA down (the gate should trust FastPath less for
-// that kind of query); a 👍 pulls it up. The visible ratio = base FastPath share
-// biased by the EMA. Deterministic, 0 token — the real kernel loop persists this
-// server-side (/feedback → policy EMA); this mirrors it live in the browser.
+// a raw running sum. ema ← (1-α)·ema + α·reward, reward ∈ {+1 👍, -1 👎}.
+// The votes are sent to the server (/feedback) where the real learning loop persists them; here the EMA is only DISPLAYED, as a
+// satisfaction score. It never changes the ratio bar below - it used to add up to ±18 points to it, which made a count look measured.
 const BANDIT = {
   ema: 0.0,            // reward EMA ∈ [-1, +1], starts neutral
   alpha: 0.30,         // learning rate (katgpt default band)
   n: 0,
   reward(r){ this.n++; this.ema = (1 - this.alpha) * this.ema + this.alpha * r; return this.ema; },
-  // EMA → percentage-point bias on the displayed FastPath ratio (±18pp at |ema|=1)
-  bias(){ return Math.round(this.ema * 18); },
 };
+// <ratio>
+// The bar is a COUNT and nothing else: questions answered from verified data / all questions asked in this session.
+function ratioStats(answered, escalated){ const total = answered + escalated; return { total, pct: total ? Math.round(answered / total * 100) : null }; }
+function satisfactionNote(ema, n){
+  if(!n) return 'นับจากคำถามในเซสชันนี้เท่านั้น · กด 👍/👎 เพื่อให้คะแนนคำตอบ (คะแนนไม่ปรับตัวเลขสัดส่วนข้างบน)';
+  return `นับจากคำถามในเซสชันนี้เท่านั้น · คะแนนความพอใจจาก 👍/👎 = ${ema >= 0 ? '+' : ''}${ema.toFixed(2)} (จาก ${n} โหวต, ช่วง −1…+1) — แสดงแยก ไม่ปรับตัวเลขสัดส่วนข้างบน`;
+}
+// </ratio>
 function updateRatio(){
-  const total = auto + ai;
-  if(total === 0) return;
+  const st = ratioStats(auto, ai);
+  if(!st.total) return;
   $('ratio-wrap').style.display = 'block';
-  let pct = Math.round((auto/total)*100 + BANDIT.bias());
-  pct = Math.max(0, Math.min(100, pct));
-  $('ratio-fill').style.width = pct + '%';
-  $('ratio-pct').textContent = pct + '%';
-  if(BANDIT.n>0){
-    const note=$('ratio-note');
-    if(note) note.textContent = `kernel เรียนรู้จาก 👍/👎 · EMA reward = ${BANDIT.ema.toFixed(2)} (จาก ${BANDIT.n} โหวต) — bias ${BANDIT.bias()>=0?'+':''}${BANDIT.bias()}pp`;
-  }
+  $('ratio-fill').style.width = st.pct + '%';
+  $('ratio-pct').textContent = `${st.pct}% (${auto}/${st.total})`;
+  const note = $('ratio-note'); if(note) note.textContent = satisfactionNote(BANDIT.ema, BANDIT.n);
 }
 
 // feedback UI appended to each answer — the self-learning loop
@@ -1433,6 +1432,9 @@ async function sendFeedback(id, reward){
   updateRatio();
   el.innerHTML = `<span class="fb-done">${note}</span>`;
 }
+// The 👍/👎 buttons are inline onclick="sendFeedback(...)" (markup built as strings). This script is a MODULE, so its functions are not
+// global: without this line every click threw ReferenceError and no vote ever reached the kernel (nor the satisfaction score).
+window.sendFeedback = sendFeedback;
 $('send').addEventListener('click', ask);
 $('q').addEventListener('keydown', e=>{ if(e.key==='Enter') ask(); });
 // 'how it works' swimlane: tech toggle

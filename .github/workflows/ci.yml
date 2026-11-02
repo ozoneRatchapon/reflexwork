@@ -61,6 +61,12 @@ jobs:
       - name: LLM proxy always answers within its budget and says why a backend failed
         run: node tests/llm_proxy.test.mjs
 
+      - name: The on-page meter is a count, and inline handlers can reach their functions
+        run: |
+          set -e
+          node tests/ratio_meter.test.mjs
+          node tests/inline_handlers.test.mjs
+
       - name: Benchmarks still run (baseline comparison, programme names) - smoke, no thresholds
         run: |
           set -e
