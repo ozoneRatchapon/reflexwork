@@ -58,6 +58,9 @@ jobs:
       - name: Chat robustness (sloppy typing, never a dead end)
         run: node tests/chat_robust.test.mjs
 
+      - name: LLM proxy always answers within its budget and says why a backend failed
+        run: node tests/llm_proxy.test.mjs
+
       - name: Benchmarks still run (baseline comparison, programme names) - smoke, no thresholds
         run: |
           set -e

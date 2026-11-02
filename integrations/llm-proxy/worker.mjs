@@ -126,10 +126,16 @@ export default {
     // the correctness backstop regardless of which model answers. (Gemini, when
     // a valid key + model is configured, obeys grounding better and is tried as
     // the fallback below.)
+    // Every upstream wait is bounded by ONE wall-clock budget (LLM_BUDGET_MS, default 18 s - the chat page gives up at 25 s).
+    // Before this, the local-model timer was cleared as soon as the response HEADERS arrived (the body read was unbounded) and the
+    // Gemini calls had no timeout at all, so one stalled upstream left the user hanging with no log line saying why.
+    const t0 = Date.now(), budget = Number(env.LLM_BUDGET_MS) || 18000, left = () => Math.max(0, budget - (Date.now() - t0));
+    const trail = [];   // per-stage outcome (status codes / 'timeout' only - never the key or a URL) so a failing backend is diagnosable
     if (env.OLLAMA_URL) {
+      let ot;
       try {
         const oc = new AbortController();
-        const ot = setTimeout(() => oc.abort(), Number(env.OLLAMA_TIMEOUT_MS) || 20000);
+        ot = setTimeout(() => oc.abort(), Math.min(Number(env.OLLAMA_TIMEOUT_MS) || 12000, 14000, left()));
         const or = await fetch(env.OLLAMA_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
@@ -142,8 +148,8 @@ export default {
             options: { temperature: 0.3, num_predict: 512 },
           }),
           signal: oc.signal,
-        }).finally(() => clearTimeout(ot));
-        const od = await or.json().catch(() => ({}));
+        });
+        const od = await or.json().catch(() => ({}));   // still under the same timer: it is cleared in `finally`, after the body
         let otext = od?.choices?.[0]?.message?.content ?? od?.message?.content ?? od?.response ?? null;
         if (or.ok && otext) {
           if (grounded) otext = groundedGuard(otext, context);   // correctness backstop
@@ -151,8 +157,10 @@ export default {
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
         }
+        trail.push(oc.signal.aborted ? 'ollama:timeout' : `ollama:${or.status}${or.ok ? '/empty' : ''}`);
         // local failed → fall through to Gemini if a key is configured
-      } catch { /* abort/network → fall through */ }
+      } catch (e) { trail.push(`ollama:${e && e.name === 'AbortError' ? 'timeout' : 'network'}`); /* fall through */ }
+      finally { clearTimeout(ot); }
     }
 
     if (!env.GEMINI_API_KEY) {
@@ -166,21 +174,22 @@ export default {
     // first that returns a candidate. (GEMINI_MODEL secret overrides the head.)
     const models = [env.GEMINI_MODEL, 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'].filter(Boolean);
     let text = null;
-    const trail = [];   // per-model outcome (status codes only - never the key / URL) so a failing key / retired model is diagnosable
     for (const model of models) {
+      if (left() < 1500) { trail.push(`${model}:skipped(budget)`); continue; }
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
       const payload = {
         contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
         generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
       };
       try {
-        let r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (r.status === 503) { await new Promise(res => setTimeout(res, 800)); r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
+        const call = () => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(8000, left())) });
+        let r = await call();
+        if (r.status === 503 && left() > 2500) { await new Promise(res => setTimeout(res, 800)); r = await call(); }
         const data = await r.json();
         const t = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (r.ok && t) { text = t; break; }
         trail.push(`${model}:${r.status}${data?.error?.status ? '/' + data.error.status : (r.ok ? '/empty' : '')}`);
-      } catch { trail.push(`${model}:network`); /* try next model */ }
+      } catch (e) { trail.push(`${model}:${e && (e.name === 'TimeoutError' || e.name === 'AbortError') ? 'timeout' : 'network'}`); /* try next model */ }
     }
     if (!text) {
       // Gemini unavailable AND (for grounded) we skipped Ollama — last resort:
