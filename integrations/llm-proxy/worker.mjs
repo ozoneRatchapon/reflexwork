@@ -84,6 +84,47 @@ async function discoverModels(key, budgetMs) {
   return { ids, note: ids.length ? `list:ok(${ids.slice(0, 3).join(',')})` : 'list:no-flash-model' };
 }
 
+// Which models answered / failed recently (per isolate, best effort). Measured on the owner's key (2026-11-03): the NEWEST models were
+// overloaded (3.8 Flash 503 after 5 s, 3.7 Flash 503 after 11 s), 3.5 Flash-Lite hung, 2.5 Flash-Lite was listed but 404 "no longer
+// available to new users", while 3.6 Flash and 3.1 Flash-Lite answered in ~3 s. "Newest first, one at a time" burns the whole budget
+// on dead ends, so models are tried in WAVES of three, in parallel: the first good answer wins and the siblings are cancelled.
+const geminiState = { good: '', bad: new Map() };
+export function resetGeminiState() { geminiState.good = ''; geminiState.bad.clear(); modelCache.at = 0; modelCache.ids = []; }
+async function geminiAttempt(model, ctrl, o) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${o.key}`;
+  const signal = AbortSignal.any([ctrl.signal, AbortSignal.timeout(Math.max(1, Math.min(o.ms, o.left())))]);
+  const call = thinking => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(o.payload(thinking)), signal });
+  try {
+    let r = await call(true);
+    if (r.status === 400) { o.trail.push(`${model}:thinkingLevel-rejected`); r = await call(false); }   // e.g. 2.5 takes a budget, not a level
+    const data = await r.json();
+    const t = (data?.candidates?.[0]?.content?.parts || []).filter(x => x && x.text && !x.thought).map(x => x.text).join('').trim();
+    if (r.ok && t) { geminiState.good = model; return { model, text: t }; }
+    o.trail.push(`${model}:${r.status}${data?.error?.status ? '/' + data.error.status : (r.ok ? '/empty' : '')}`);
+    geminiState.bad.set(model, Date.now() + (r.status === 404 ? 3600000 : 180000));   // gone for the hour / overloaded for 3 min
+  } catch (e) {
+    if (ctrl.signal.aborted) return null;                                          // a sibling already won: not a failure
+    o.trail.push(`${model}:${e && (e.name === 'TimeoutError' || e.name === 'AbortError') ? 'timeout' : 'network'}`);
+    geminiState.bad.set(model, Date.now() + 180000);
+  }
+  return null;
+}
+async function geminiRace(models, o) {
+  const rest = [...models];
+  while (rest.length && o.left() > 1500) {
+    const wave = rest.splice(0, 3), ctrls = wave.map(() => new AbortController());
+    const win = await new Promise(resolve => {
+      let pending = wave.length;
+      wave.forEach((m, i) => geminiAttempt(m, ctrls[i], o).then(res => {
+        if (res) { ctrls.forEach(c => c.abort()); resolve(res); } else if (--pending === 0) resolve(null);
+      }));
+    });
+    if (win) return win;
+  }
+  rest.forEach(m => o.trail.push(`${m}:skipped(budget)`));
+  return null;
+}
+
 function cors(origin) {
   const ok = origin === ALLOWED_ORIGIN;
   return {
@@ -201,30 +242,19 @@ export default {
     let found = [];
     try { const d = await discoverModels(env.GEMINI_API_KEY, left() - 3000); found = d.ids; trail.push(d.note); }
     catch (e) { trail.push(`list:${e && (e.name === 'TimeoutError' || e.name === 'AbortError') ? 'timeout' : 'network'}`); }
-    const models = [...new Set([env.GEMINI_MODEL, ...found.slice(0, 2), 'gemini-flash-latest'].filter(Boolean))];
-    let text = null;
-    for (const model of models) {
-      if (left() < 1500) { trail.push(`${model}:skipped(budget)`); continue; }
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
-      // Newer Flash models think by default (3.8 Flash: "medium"), which made every call outlast its timeout. Rephrasing a KB answer
-      // needs no deep reasoning: ask for thinkingLevel "low". Do NOT shrink maxOutputTokens to go faster - thinking tokens count against
-      // it and the answer comes back truncated or empty (Google's docs say to lower the level instead). Models that do not take
-      // thinkingLevel (e.g. 2.5, which uses a budget) answer 400; we then retry once without it.
-      const payload = thinking => ({
-        contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
-        generationConfig: { maxOutputTokens: 1024, temperature: 0.3, ...(thinking ? { thinkingConfig: { thinkingLevel: 'low' } } : {}) },
-      });
-      try {
-        const call = thinking => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload(thinking)), signal: AbortSignal.timeout(Math.min(Number(env.GEMINI_TIMEOUT_MS) || 14000, left())) });
-        let r = await call(true);
-        if (r.status === 400 && left() > 2500) { trail.push(`${model}:thinkingLevel-rejected`); r = await call(false); }
-        if (r.status === 503 && left() > 2500) { await new Promise(res => setTimeout(res, 800)); r = await call(false); }
-        const data = await r.json();
-        const t = (data?.candidates?.[0]?.content?.parts || []).filter(x => x && x.text && !x.thought).map(x => x.text).join('').trim();
-        if (r.ok && t) { text = t; break; }
-        trail.push(`${model}:${r.status}${data?.error?.status ? '/' + data.error.status : (r.ok ? '/empty' : '')}`);
-      } catch (e) { trail.push(`${model}:${e && (e.name === 'TimeoutError' || e.name === 'AbortError') ? 'timeout' : 'network'}`); /* try next model */ }
-    }
+    // Order: pinned GEMINI_MODEL, the last model that worked, then what the API lists (newest first), then the alias. Models that failed
+    // in the last minutes are skipped (all of them failing = start over rather than answer nothing).
+    const all = [...new Set([env.GEMINI_MODEL, geminiState.good, ...found, 'gemini-flash-latest'].filter(Boolean))];
+    const fresh = all.filter(m => !((geminiState.bad.get(m) || 0) > Date.now()));
+    // Newer Flash models think by default (3.8 Flash: "medium"). Rephrasing a KB answer needs no deep reasoning: ask for thinkingLevel
+    // "low". Do NOT shrink maxOutputTokens to go faster - thinking tokens count against it and the answer comes back truncated or empty
+    // (Google's docs say to lower the level instead). Models that do not take thinkingLevel answer 400 and are retried without it.
+    const payload = thinking => ({
+      contents: [{ parts: [{ text: sys + '\n\n' + userMsg }] }],
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.3, ...(thinking ? { thinkingConfig: { thinkingLevel: 'low' } } : {}) },
+    });
+    const won = await geminiRace(fresh.length ? fresh : all, { key: env.GEMINI_API_KEY, payload, ms: Number(env.GEMINI_TIMEOUT_MS) || 4500, left, trail });
+    let text = won ? won.text : null;
     if (!text) {
       // Gemini unavailable AND (for grounded) we skipped Ollama — last resort:
       // an honest hand-off rather than silence.
