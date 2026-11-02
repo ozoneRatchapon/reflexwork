@@ -80,7 +80,7 @@
 <header>
   <div class="kicker">ReflexWork · In-browser Demo</div>
   <h1>ส่งคำถามเข้าไป → ตัวคัดกรองตัดสินใจทันทีในเบราว์เซอร์</h1>
-  <div class="sub">คัดก่อนเรียก AI · ตอบเองได้ = ฟรี 0 token · ทุกคำตอบมีลายเซ็นตรวจย้อนหลัง (BLAKE3 proof)</div>
+  <div class="sub">คัดก่อนเรียก AI · ตอบเองได้ = ฟรี 0 token · ทุกคำตอบมีลายเซ็นตรวจย้อนหลัง (BLAKE3 fingerprint)</div>
   <div class="badge-wasm" id="wasm-badge">⏳ กำลังโหลด Rust kernel (WASM)…</div>
 </header>
 
@@ -174,9 +174,9 @@ $('go').addEventListener('click', () => {
         <div class="k">complexity (dim 8)</div><div class="v">${d.gate_dim8_complexity.toFixed(3)}</div>
         <div class="k">เวลา route (ในเบราว์เซอร์)</div><div class="v">${us} µs</div>
         <div class="k">ต้นทุน token</div><div class="v">${d.token_cost}</div>
-        <div class="k">BLAKE3 proof</div><div class="v proof">${d.blake3_proof}</div>
+        <div class="k">BLAKE3 fingerprint</div><div class="v proof">${d.blake3_proof}</div>
       </div>
-      <div class="hint">🔐 รันงานเดิมซ้ำ ได้ proof เดิมเป๊ะ (reproducible audit)</div>`;
+      <div class="hint">🔐 รันงานเดิมซ้ำ ได้ fingerprint เดิมเป๊ะ (reproducible audit)</div>`;
   } catch(e) {
     body.innerHTML = `<div class="err">error: ${e.message||e}</div>`;
   }
