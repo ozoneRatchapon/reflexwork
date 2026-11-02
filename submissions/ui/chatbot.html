@@ -643,7 +643,9 @@ const _P_LEVEL=[['N',/ประกาศนียบัตรบัณฑิต�
 // Abbreviations people really type. Each expansion is checked against the catalogue by the test
 // (must resolve to ≥1 programme); extend from the gap log, not from guesses.
 const _P_ALIAS={mph:['สาธารณสุขศาสตร','public health'],itm:['การจัดการเทคโนโลยีสารสนเทศ','information technology management']};
-function _pTri(s){ s=String(s||'').toLowerCase().replace(_P_ZERO,'').replace(/\s+/g,''); const g=new Set(); for(let i=0;i<s.length-2;i++) g.add(s.slice(i,i+3)); return g; }
+// Tone marks, karan and mai-taikhu (U+0E47-0E4C) are typed inconsistently ("ทันตแพทย" for "ทันตแพทย์"): ignored on both sides.
+function _pTone(s){ return String(s||'').replace(/[\u0E47-\u0E4C]/g,''); }
+function _pTri(s){ s=_pTone(String(s||'').toLowerCase().replace(_P_ZERO,'').replace(/\s+/g,'')); const g=new Set(); for(let i=0;i<s.length-2;i++) g.add(s.slice(i,i+3)); return g; }
 // Share of the needle covered by pieces (≥3 chars) that occur in the name: people drop middle words
 // ("พยาบาลชุมชน" = two pieces of "การพยาบาลเวชปฏิบัติชุมชน"), and the join trigrams exist in neither.
 function _pPieces(n, h){ let i=0, cov=0;
@@ -651,13 +653,15 @@ function _pPieces(n, h){ let i=0, cov=0;
   return n.length ? cov/n.length : 0; }
 function _pCore(title){ let t=String(title||'').replace(/\([^)]*\)/g,' ');
   const i=t.indexOf('สาขาวิชา'); t = i>=0 ? t.slice(i+8) : t.replace(/มหาบัณฑิต|ดุษฎีบัณฑิต|ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต/g,'');
-  return t.replace(/\s+/g,'').toLowerCase(); }
+  return _pTone(t.replace(/\s+/g,'').toLowerCase()); }
 function _pClean(q){ let s=String(q||'').toLowerCase().replace(_P_ZERO,'').replace(_P_DEGREE,' ').replace(_P_QUAL,' ').replace(/\s+/g,' ').trim(), prev;
   do{ prev=s; s=s.replace(_P_LEAD,'').replace(_P_TAIL,'').replace(/\s+มี$/,'').trim(); }while(s!==prev && s);   // "ทุน X มีไหม" leaves a stray มี
   return s.replace(/\s+/g,''); }
 const _P_FUNC=/^(?:ต้อง|สำหรับ|เพื่อ|การ|ของ|และ|ที่|ใน|มี|ได้|เป็น|จะ|ให้|กับ|แบบ|ทาง|ด้าน|เรื่อง|อะไร|ยังไง|อย่างไร|ไหม|บ้าง|ศึกษา|วิจัย|เรียน|สมัคร|ทำ|ไป|นี้|นั้น)+$/;
 function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; return ''; }
-function resolveProgramme(q, P){
+// loose=true: used ONLY after the strict pass AND the KB found nothing (a slip such as "กายอุปกณ์"). Lower bar (>= 0.5 of the
+// question's trigrams), but the answer is always a picker of the nearest names, never a single card - it cannot assert a wrong programme.
+function resolveProgramme(q, P, loose){
   const raw=String(q||''); if(!Array.isArray(P)||!P.length) return null;
   if(_P_OTHER.test(raw)) return null;
   const topic=(_P_TOPIC.find(([,re])=>re.test(raw))||[''])[0];
@@ -666,29 +670,32 @@ function resolveProgramme(q, P){
   const text=_P_TOPIC.reduce((s,[,re])=>s.replace(new RegExp('(?:มี)?(?:'+re.source+')','gi'),' '), raw);
   const alias=Object.keys(_P_ALIAS).find(a=>new RegExp('(?:^|[^a-z])'+a+'(?:[^a-z]|$)','i').test(raw));
   const level=_pLevel(raw), intl=/นานาชาติ|international/i.test(raw), special=/ภาคพิเศษ|special program/i.test(raw);
-  const needles = alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : [_pClean(text)];
-  const need = needles.map(n=>({n, g:_pTri(n)})).filter(x=>x.g.size>=2 && !_P_FUNC.test(x.n));
+  const needles = (alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : [_pClean(text)]).filter(n=>!_P_FUNC.test(n)).map(_pTone);   // function-word test BEFORE tone marks go ("เพื่อ" must still read as เพื่อ)
+  const need = needles.map(n=>({n, g:_pTri(n)})).filter(x=>x.g.size>=2);
   if(!need.length) return null;
   const intentOk=_P_INTENT.test(raw) || !!alias || !!topic;
   const scored=[];
   for(const p of P){
-    const core=_pCore(p.title), full=String(p.title||'').replace(/\([^)]*\)/g,'').replace(/\s+/g,'').toLowerCase(), en=String((p.announcement&&p.announcement.title_en)||p.title_en||'').toLowerCase().replace(/\s+/g,'');
+    const core=_pCore(p.title), full=_pTone(String(p.title||'').replace(/\([^)]*\)/g,'').replace(/\s+/g,'').toLowerCase()), en=String((p.announcement&&p.announcement.title_en)||p.title_en||'').toLowerCase().replace(/\s+/g,'');
     let best=0;
     for(const {n,g} of need){
       for(const h of [core,full,en].filter(Boolean)){ const hg=_pTri(h);
         let hit=0; for(const t of g) if(hg.has(t)) hit++; const cov=Math.max(hit/g.size, _pPieces(n,h));   // how much of the question is in the name
         const exact = h===n ? 1 : 0, contained = h.includes(n) ? 0.3 : 0;
-        if(cov>=0.85) best=Math.max(best, cov + exact + contained - Math.min(0.2, Math.abs(h.length-n.length)/200));
+        if(cov>=(loose?0.5:0.85)) best=Math.max(best, cov + exact + contained - Math.min(0.2, Math.abs(h.length-n.length)/200));
         // reverse: the WHOLE programme name appears in the question, whatever filler surrounds it ("เรียนทำกายอุปกรณ์").
         // Needs ≥4 trigrams so short names (เคมี) cannot match incidental text; longer names rank higher.
-        if(hg.size>=4 && h===core){ let inQ=0; for(const t of hg) if(g.has(t)) inQ++; if(inQ===hg.size) best=Math.max(best, 1 + Math.min(h.length,40)/50); } }
+        // ...but a short name hidden inside a longer, mistyped one ("ชีววิทยา" inside "ชีวเคมีและชีววิทยา…") is not the programme asked for:
+        // the contained name must be a real share (>= 40%) of what was asked.
+        if(hg.size>=4 && h===core && h.length>=0.4*n.length){ let inQ=0; for(const t of hg) if(g.has(t)) inQ++; if(inQ===hg.size) best=Math.max(best, 1 + Math.min(h.length,40)/50); } }
     }
     if(best>0) scored.push({p, s:best});
   }
   if(!scored.length) return null;
+  if(loose){ scored.sort((a,b)=>b.s-a.s); const top=scored[0].s; let rows=scored.filter(x=>x.s>=top-0.3).slice(0,5); if(rows.length<3) rows=scored.slice(0,3); return {kind:'many', rows:rows.map(x=>x.p), total:scored.length, near:true}; }
   // the question must either state an apply/info intent, or BE (almost) just a programme name
   scored.sort((a,b)=>b.s-a.s);
-  if(!intentOk){ const n=need[0].n, t=scored[0].p, nk=x=>String(x||'').toLowerCase().replace(/\s+/g,''), hs=[_pCore(t.title), nk(String(t.title||'').replace(/\([^)]*\)/g,'')), nk((t.announcement&&t.announcement.title_en)||t.title_en)].filter(Boolean);
+  if(!intentOk){ const n=need[0].n, t=scored[0].p, nk=x=>_pTone(String(x||'').toLowerCase().replace(/\s+/g,'')), hs=[_pCore(t.title), nk(String(t.title||'').replace(/\([^)]*\)/g,'')), nk((t.announcement&&t.announcement.title_en)||t.title_en)].filter(Boolean);
     const rest=Math.min(...hs.map(h=>n.length*(1-_pPieces(n,h)))); if(rest>Math.max(3, n.length*0.25)) return null; }
   const top=scored[0].s; let pool=scored.filter(x=>x.s>=top-0.15).map(x=>x.p);
   let levelMissing=false;
@@ -1001,16 +1008,18 @@ function smalltalkReply(kind){
 
 // Programme finder message. `explicit`: the user asked "what should I study" (counts as answered); otherwise it is the
 // rescue for a study-ish question we could not resolve (the caller already counted it).
-function renderFinder(q, d, kstrip, intro, explicit){
+function renderFinder(q, d, kstrip, intro, explicit, near, facets){
   if(explicit){ auto++; saved+=COST; MOOD.felt('hit'); renderMood(true); }
   let f=finderInit(q), all=false; const fid='fd'+(++fbN);
   add('b', `${kstrip}
     <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ช่วยเลือกหลักสูตร — จากแคตตาล็อกทางการ · ไม่เรียก AI</span>
     ${intro?`<div class="ans">${_lEsc(intro)}</div>`:''}
-    <div class="ans" id="${fid}"></div>
+    ${near&&near.length?`<div class="ans" id="${fid}n">หมายถึงหลักสูตรเหล่านี้หรือเปล่า?<div class="dislist">${near.map(p=>`<span class="dis" data-code="${_lEsc(p.code)}">${_lEsc(p.title)} · ${_lEsc(p.faculty)}</span>`).join('')}</div></div>`:''}
+    <div class="ans" id="${fid}"${facets===false?' style="display:none"':''}></div>
     <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมดบนเว็บ →</a>
     ${fbUI(q, d.blake3_proof)}`);
-  const el=document.getElementById(fid);
+  const el=document.getElementById(fid), nel=document.getElementById(fid+'n');
+  if(nel) nel.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value='สมัคร '+x.dataset.code; ask(); }));
   const draw=()=>{ el.innerHTML=finderHtml(finderFacets(PROG,f), f, PROGDOC.fetched_at, all);
     el.querySelectorAll('[data-fk]').forEach(x=>x.addEventListener('click',()=>{ const k=x.dataset.fk, v=x.dataset.fv||'';
       if(k==='reset'){ f=finderInit(''); all=false; } else if(k==='more') all=true;
@@ -1310,8 +1319,9 @@ function ask(){
     // no programme we can find -> the finder; (2) otherwise the nearest KB entries or the common starting points; always
     // with the staff hand-off. The question is already in the gap log, which is how the KB learns it (LLM drafts, staff approve).
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
-    if(PROG.length && hasStudyIntent(q)){
-      renderFinder(q, d, kstrip, 'ผมยังไม่แน่ใจว่าหมายถึงสาขาหรือหลักสูตรไหน (บันทึกคำถามนี้ไว้ให้ทีมดูแลคู่มือแล้ว) — ลองเลือกจากตัวช่วยนี้ได้เลย หรือพิมพ์ชื่อสาขาที่สนใจ', false);
+    const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
+    if(PROG.length && (hasStudyIntent(q) || nearP)){
+      renderFinder(q, d, kstrip, 'ผมยังไม่แน่ใจว่าหมายถึงสาขาหรือหลักสูตรไหน (บันทึกคำถามนี้ไว้ให้ทีมดูแลคู่มือแล้ว) — ลองเลือกจากตัวช่วยนี้ได้เลย หรือพิมพ์ชื่อสาขาที่สนใจ', false, nearP && nearP.rows, hasStudyIntent(q));
       return;
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
