@@ -240,20 +240,28 @@ struct KbHit {
     overlap: i32,
 }
 
+/// Lexical overlap may only RAISE a candidate the vector already supports: below this cosine (= the lowest
+/// tier that answers at all, s=3) a pile of shared n-grams proves nothing. Measured 2026-11-03 on hand-written
+/// out-of-scope questions: without this floor, generic question words ("คืออะไร", "ได้ไหม") lifted candidates
+/// with cosine 0.11 to s=5-6 and 25% (English) / 39% (Thai) of such questions were answered with an unrelated
+/// entry; with it, 13% / 17%, and no question the manual covers lost its answer (docs/METHOD.md section 5 F).
+const OVERLAP_LIFT_MIN_COS: f32 = 0.15;
+
 /// cosine + lexical overlap → integer gate score (a blend of the vector and the lexical signal).
 /// Cosine alone under-scores entries with LONG keyword lists (TF-IDF norm divides
 /// by a big vector), so a clearly-dominant lexical match like "Turnitin เกิน 25%"
 /// → thesis_turnitin (overlap 15, cosine only 0.20 because the entry has 20+
 /// keywords) was landing at s=3 (disambiguate) despite being obviously right.
-/// We lift the score when the SYMBOLIC signal is strong: high overlap AND a clear
-/// overlap lead over the runner-up means "confident", even if the sub-symbolic
-/// cosine is diluted. `margin` = cosine gap; `ov`/`ov_lead` = overlap + lead.
+/// We lift the score when the lexical signal is strong AND the cosine is at least
+/// `OVERLAP_LIFT_MIN_COS`: high overlap with a clear overlap lead over the runner-up
+/// means "confident", even if the cosine is diluted.
+/// `margin` = cosine gap; `ov`/`ov_lead` = overlap + lead.
 fn cos_to_score(c: f32, margin: f32, ov: i32, ov_lead: i32) -> i32 {
-    // strong symbolic: dominant lexical overlap with a clear lead → humanize-grade
-    if ov >= 8 && ov_lead >= 4 {
+    // strong lexical match with a clear lead (and some vector support) → humanize-grade
+    if c >= OVERLAP_LIFT_MIN_COS && ov >= 8 && ov_lead >= 4 {
         return 6;
     }
-    if ov >= 5 && ov_lead >= 2 {
+    if c >= OVERLAP_LIFT_MIN_COS && ov >= 5 && ov_lead >= 2 {
         return 5;
     }
     // otherwise fall back to the calibrated cosine tiers (+ margin for the top)
