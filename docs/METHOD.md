@@ -89,7 +89,7 @@ Plain text in, escaped HTML out; only (a) `http(s)` URLs on `mahidol.ac.th | lin
 
 Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 45/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
 
-## 5. Results (run 002, commit `670ce68`)
+## 5. Results (runs 002–003; `benchmark/compare/results/`, run 003 at commit `a158c67` for the decision-rule, language and out-of-scope tables)
 
 **A1 — ranking** (50 labelled queries)
 
@@ -110,7 +110,7 @@ Paired, ours − baseline: vs overlap **+6 pp** [0, 14], p = 0.25 · vs BM25-cha
 | ours (hand-set score) | 5 (11 %) | 0.06 | 0.84 |
 | cosine only | 5 | 0.05 | 0.86 |
 | BM25-char3 | 7 | 0.06 | 0.91 |
-| lexical overlap only | 9 | 0.08 | 0.85 |
+| lexical overlap only | 9 (8.6) | 0.08 | 0.85 |
 | BM25-word | 24 | 0.24 | 0.99* |
 | ours, weights **fitted** (logistic, leave-one-out) | 6 | 0.07 | 0.81 |
 
@@ -131,6 +131,26 @@ Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosin
 
 **C — independent corpus (not reproducible here):** FAQ-only (62 docs, 31 queries) recall@1 94 %, @3 100 %, 5/5 off-corpus rejected; full 440-doc corpus with a separate namespace for the 378 programme templates 87 % / 97 % (`benchmark/gradmahidol/RESULTS.md`). This is the least tuned evidence we have — but it is 31 queries and the corpus is not in the repo.
 
+**E — English and mixed Thai–English** (`benchmark/compare/decision_rule.mjs`; the real `search()` + `decideTier()`; hand-written, small sets — a probe, not a benchmark):
+
+| questions | n | answered right / answered WRONG / asked which / handed on |
+|---|---|---|
+| Thai, the manual has the answer | 35 | 29 / 3 / 0 / 3 |
+| **English only**, the manual has the answer | 15 | 11 / 2 / 2 / 0 |
+| **Thai + English mixed**, the manual has the answer | 12 | 11 / 1 / 0 / 0 |
+
+Mixed text is handled as well as Thai (both scripts' character n-grams match; English words inside programme names also match the catalogue's English titles). English-only questions are understood but **always answered in Thai**: in the browser the visible answer was 70–100 % Thai script on every English question tried. The one language-specific behaviour is a refusal: an English-only question for which nothing in the manual matches gets an English "not in the (Thai) manual → official English FAQ / staff" message instead of a guess; it never translates. When something does match, the Thai answer is shown as is. Not built: an English answer (see §8.7).
+
+**F — questions the manual does not cover** (same sets: 16 English, 18 Thai, hand-written; some are near-domain such as "can I defer my enrollment", some obviously out of scope such as "what is the capital of France"):
+
+| scoring | answered anyway — English | answered anyway — Thai | in-corpus right (Thai / English / mixed) |
+|---|---|---|---|
+| shipped | **4 / 16 (25 %)** | **7 / 18 (39 %)** | 29 / 11 / 11 |
+| *modelled, not applied:* overlap may lift a candidate only if cosine ≥ 0.15 | 2 / 16 (13 %) | 3 / 18 (17 %) | 29 / 11 / 11 |
+| *modelled:* no overlap lift at all | 2 / 16 (13 %) | 3 / 18 (17 %) | 29 / 11 / 11 |
+
+Cause (inspected): the lexical-overlap rule in `_cosToScore` (`ov ≥ 8 ∧ lead ≥ 4 → s = 6`, `ov ≥ 5 ∧ lead ≥ 2 → s = 5`) counts raw shared character n-grams, including those of generic question words ("คืออะไร", "ได้ไหม", "เรียน"). It lifts a candidate whose cosine is 0.11 — which would score s = 1 — to s = 5–6, so "เมืองหลวงของฝรั่งเศสคืออะไร" is answered with the `best_scores` entry. Stricter thresholds do **not** help (the false answers already score ≥ 5); limiting the lift does, and costs nothing on the questions the manual does cover in these sets. This is the same signal that §6 finds no better than cosine on the labelled eval. Earlier "5/5 off-corpus rejected" figures (`benchmark/gradmahidol`) used five obviously irrelevant queries and should not be read as a general abstention rate.
+
 **D — latency** (Apple M-series, Node 24; medians): gate + fingerprint **1.9 µs** · input cleaning 0.3 µs · linkification 4.8 µs · programme resolver 3.4 µs (many queries exit early) with p95 **2.7 ms** (full scoring) · **KB search 3.7 ms (WASM) / 1.8 ms (JS twin)** — versus the 350–800 ms figure quoted for an LLM call (not measured here). The two nanosecond/microsecond figures quoted elsewhere (`policy_route` 12 ns, `feature_encode` 63 ns, Criterion) describe the gate only, not retrieval.
 
 ## 6. What the evidence supports
@@ -144,6 +164,8 @@ Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosin
 | The deterministic layers are 10²–10⁵× faster than an LLM call | **supported** for routing and retrieval (µs–ms vs hundreds of ms) |
 | The symbolic-overlap + cosine blend beats cosine alone | **not supported**: identical ranking by construction; confidence not better (AURC 0.06 vs 0.05, AUROC 0.84 vs 0.86); BM25-char3 has higher AUROC (0.91) |
 | Gate weights are learned from data | **false** as implemented: hand-seeded; and fitting them on 52 queries (leave-one-out) did **not** help |
+| It declines instead of guessing | **only partly**: on 34 hand-written out-of-scope questions the shipped scoring answers anyway 25 % (English) / 39 % (Thai) of the time (§5 F); a modelled one-line change halves that without losing answers the manual has, not yet applied |
+| It works in English | **understands, but answers in Thai**; refuses honestly when nothing matches; mixed Thai–English works as well as Thai (§5 E) |
 | The kernel gate decides whether an LLM is needed | **false in the web chat today** (§3.1: `g ≤ 0.451` always) |
 | The system learns from users' 👍/👎 | **partly, and only since 2026-11-03**: before that every click threw `ReferenceError` in the page, so no web vote reached the server (4 votes on record, all from curl). Now votes arrive. Until the vote-id fix (§8.6) the server de-duplicated them by the replay hash, identical for everyone who asks the same sentence, so each distinct question string could move the policy only once; from that fix each vote counts once per answer shown. Effect of votes on answer quality: not measured, and a script can still mint vote ids (only the per-IP rate limit brakes that) |
 | "87 % fast path" | **not a quality metric** (§3.1); use A2: 45/52 answered unaided, 5 of them wrong |
@@ -166,6 +188,7 @@ Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosin
 4. **KB search recomputes the index on every query.** Caching the per-KB gram sets / document frequencies gave **1775 → 275 µs (6.4×)** with identical results on the JS twin (scratch measurement); the WASM export needs a stateful index object (and a rebuild of the committed `.wasm`) to get the same.
 5. **LLM path — fixed 2026-11-03, with lessons.** (a) The page sent `/llm` to the kernel worker, which has no such route. (b) The proxy's Gemini ids were retired (1.5: 2025-09, 2.0: 2026-06) and every error was swallowed. (c) No upstream wait was bounded. (d) Measured on the live key: the *newest* models were overloaded (503 after 5–11 s), one Flash-Lite hung, and one model was listed by the API yet answered 404 "no longer available to new users" — while 3.6 Flash and 3.1 Flash-Lite answered in ≈ 3 s. The proxy therefore discovers models from the API, tries them in parallel waves (first good answer wins), remembers what worked, bounds every wait by one budget, and reports each stage in `detail`. Regression tests: `tests/llm_proxy.test.mjs` (21, mocked). Not done: the local-model (Ollama) tunnel still answers 404.
 6. **Feedback de-duplication — fixed (page sends a per-answer `vote_id`; tests `tests/feedback_votes.test.mjs`), needs the kernel worker to be deployed.** Before: `integrations/kernel-worker` `feedback()` ignored a vote whose `proof` it had seen. The page's `proof` is `BLAKE3(input ‖ route ‖ category)` — the same for every user asking the same sentence (checked: identical digest for identical input) — so the first vote on a sentence is the only one that ever counts, and later votes return `deduped: true` before the per-entry confidence is updated. It stops one person from stuffing the ballot, but also drops every independent vote after the first. The fix is a random per-answer id generated when the answer is rendered and sent with the vote; the server de-duplicates on that (clients without it keep the old behaviour). Residual: ballot-stuffing by a script that mints ids, limited only by the per-IP rate limit.
+7. **Out-of-scope answers and English (found 2026-11-03).** (a) Limit the overlap lift to candidates with cosine ≥ 0.15 (`_cosToScore` in `chatbot.html` and `cos_to_score` in `crates/reflex-wasm`): modelled effect in §5 F; needs the Rust change, a `wasm-pack` rebuild of the committed `submissions/ui/wasm/*`, lockstep 52/52 and the recall floors re-checked; **a scoring change — owner's approval required**. (b) English answers: the manual is Thai. The LLM path now works, so for an English-only question with a confident match the page could ask the proxy to *translate the retrieved entry* into English under the same figure-checking guard (`groundedGuard`), and fall back to the Thai text; it needs a `lang` parameter in the proxy prompt and a deploy of the proxy. Neither is built.
 
 ## 9. Reproduce and compare
 
