@@ -22,7 +22,7 @@ check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
 if (!existsSync(progPath)) process.exit(1);
-const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect } = new Function(bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect};')();
+const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
 const DOC = JSON.parse(readFileSync(progPath, 'utf8')), P = DOC.programmes;
 const by = Object.fromEntries(P.map(p => [p.code, p]));
 
@@ -157,6 +157,29 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
   const aspects = ['fee', 'scholarship', 'docs', 'elig', 'english', 'schedule', 'status'];
   check('every aspect renders a card for every programme', P.every(p => aspects.every(a => { try { return programmeCard(p, DOC.fetched_at, DOC.year, a).html.length > 40; } catch (e) { return false; } })));
   { const h = programmeCard(by['2231D03G'], DOC.fetched_at, DOC.year, 'docs').html; check('docs follow-up leads with the documents list, unfolded', /^[\s\S]*?📎 หลักฐานการสมัคร \(ตามประกาศ\)\n/.test(h) && !/<summary>📎/.test(h), h.slice(0, 160)); }
+}
+
+// --- finder ("เรียนไรดี"): narrow the catalogue by official facets, never pick a "best" programme ---------------------
+{
+  const yes = ['เรียนไรดี', 'เรียนอะไรดี', 'อยากเรียนต่อโท เรียนอะไรดี', 'ป.โท สาขาไหนดี', 'มีหลักสูตรอะไรบ้าง', 'ไม่รู้จะเรียนอะไร', 'แนะนำหลักสูตรหน่อย', 'หลักสูตรที่เปิดรับมีอะไรบ้าง', 'what should i study'];
+  const no = ['มีสาขาเคมีไหม', 'จิตวิทยาคลินิกดีไหม', 'ลงทะเบียนวิชาอะไรดี', 'สมัครเรียนจิตวิทยาคลินิก', 'ค่าเทอมเท่าไหร่', 'ส่งเล่มวิทยานิพนธ์กี่วัน'];
+  check('finder triggers on "what should I study" questions only', yes.every(isFinderQuestion) && !no.some(isFinderQuestion), [...yes.filter(q => !isFinderQuestion(q)), ...no.filter(isFinderQuestion)].join(' | '));
+  const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
+  check('finder takes none of the KB titles', !KB.some(e => isFinderQuestion(e.title)), KB.filter(e => isFinderQuestion(e.title)).map(e => e.id).join());
+  const isOpen = p => p.announcement && p.announcement.status === 'กำลังเปิดรับสมัคร';
+  const f0 = finderInit('เรียนไรดี'), F0 = finderFacets(P, f0);
+  check('finder start: all programmes, levels sum to the catalogue', F0.total === P.length && F0.levels.reduce((a, l) => a + l.n, 0) === P.length && F0.open === P.filter(isOpen).length);
+  const fM = finderInit('ป.โท สาขาไหนดี'), FM = finderFacets(P, fM);
+  check('level read from the question and counts match the data', fM.level === 'M' && FM.total === P.filter(p => p.code[4] === 'M').length && FM.faculties.reduce((a, x) => a + x.n, 0) === FM.total);
+  const fx = { ...fM, open: true, intl: true }, Fx = finderFacets(P, fx);
+  check('filters combine (master + open + international)', Fx.total === P.filter(p => p.code[4] === 'M' && isOpen(p) && p.kind === 'international').length);
+  const fac = FM.faculties.find(x => x.n <= 12 && x.n >= 2), Ff = finderFacets(P, { ...fM, faculty: fac.name });
+  check('narrowed to ≤ 12 -> the programmes themselves are listed', Ff.rows.length === fac.n && Ff.rows.every(p => p.faculty === fac.name && p.code[4] === 'M'));
+  const big = FM.faculties[0], Fb = finderFacets(P, { ...fM, faculty: big.name });
+  check(`a chosen faculty with > 12 programmes still lists them (${big.n}), no loop back to the faculty step`, big.n > 12 && Fb.rows.length === big.n);
+  const h = finderHtml(finderFacets([{ ...P[0], faculty: '"><img src=x onerror=alert(1)>', title: '<script>alert(2)</script>' }], { level: '', faculty: '', open: false, intl: false, special: false }), { level: '', faculty: '"><img src=x onerror=alert(1)>', open: false, intl: false, special: false }, '2026-11-02', false);
+  check('finder escapes catalogue text (also inside data attributes)', !/<img|<script/i.test(h), h.slice(0, 160));
+  check('finder never claims a "best" programme', !/ดีที่สุด(?!\")/.test(finderHtml(F0, f0, DOC.fetched_at, false).replace(/ไม่ได้ตัดสินว่าสาขาไหน "ดี" ที่สุด/, '')));
 }
 
 // --- (3) the KB questions must not be stolen by the programme path --------------------------------------------

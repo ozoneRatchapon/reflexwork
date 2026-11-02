@@ -115,6 +115,7 @@
   .ratio-note{font-size:11px;color:#6b7aa3;margin-top:6px}
   .dislist{display:flex;flex-direction:column;gap:6px;margin:8px 0}
   .dis{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--accent);cursor:pointer}
+  .dis.on{border-color:var(--accent);font-weight:700}
   .dis:hover{background:#15203f;border-color:var(--accent)}
   .ask{display:flex;gap:10px;background:var(--panel);padding:10px;border-radius:14px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6);border:1px solid var(--line)}
   .ask input{flex:1;background:var(--raised);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:13px 15px;font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
@@ -735,6 +736,38 @@ function programmeCard(p, asOf, year, topic){
     `<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`].filter(Boolean).join('\n\n');
   return {html, links: detail+_pBtn(a.url,'📢 ประกาศรับสมัครฉบับเต็ม →',1)+(a.status==='กำลังเปิดรับสมัคร'?_pBtn(a.apply_url,'🖊️ ระบบสมัครออนไลน์ →',1):'')+topicBtn};   // no apply button on a closed programme
 }
+// Programme finder ("เรียนไรดี"): there is no single right answer, so the bot does not pick one. It narrows the
+// official catalogue by facets the site itself publishes (level, faculty, open now, international, special
+// programme) with live counts, until a handful of programmes is left to open as cards. Pure; the chat wires clicks.
+const _P_FINDQ=/(?:เรียน|ศึกษาต่อ|ต่อ(?:โท|เอก)|สาขา|หลักสูตร|คณะ)\s*(?:อะไร|ไร|ไหน)\s*ดี|ไม่รู้จะเรียน|แนะนำ(?:หลักสูตร|สาขา|คณะ|ที่เรียน)|(?:มี|เปิด(?:รับ)?)\s*(?:หลักสูตร|สาขา|คณะ)\s*(?:อะไร|ไหน)(?:บ้าง)?|หลักสูตร(?:ทั้งหมด|อะไรบ้าง)|หลักสูตรที่เปิด(?:รับ)?(?:สมัคร)?(?:มี)?(?:อะไร)?บ้าง|what should i study|which (?:program|course)s?|list of programs?/i;
+const _P_LV=[['M','ปริญญาโท'],['D','ปริญญาเอก'],['C','ประกาศนียบัตรบัณฑิต'],['N','ป.บัณฑิตชั้นสูง']];
+function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && !_P_OTHER.test(s); }
+function finderInit(q){ const s=String(q||''); return {level:_pLevel(s), faculty:'', open:/เปิดรับ/.test(s), intl:/นานาชาติ|international/i.test(s), special:/ภาคพิเศษ|special program/i.test(s)}; }
+function finderFacets(P, f){
+  const isOpen=p=>!!(p.announcement&&p.announcement.status==='กำลังเปิดรับสมัคร');
+  const base=P.filter(p=>(!f.open||isOpen(p))&&(!f.intl||p.kind==='international')&&(!f.special||p.code.endsWith('S')));
+  const byLv=base.filter(p=>!f.level||p.code[4]===f.level), rows=byLv.filter(p=>!f.faculty||p.faculty===f.faculty);
+  const count=(arr,key)=>{ const m=new Map(); for(const p of arr){ const k=key(p), c=m.get(k)||[0,0]; c[0]++; if(isOpen(p)) c[1]++; m.set(k,c); } return m; };
+  const lv=count(base,p=>p.code[4]), fac=count(byLv,p=>p.faculty);
+  return { total:rows.length, open:rows.filter(isOpen).length,
+    levels:_P_LV.filter(([k])=>lv.has(k)).map(([k,label])=>({k, label, n:lv.get(k)[0], open:lv.get(k)[1]})),
+    faculties:[...fac].map(([name,[n,open]])=>({name, n, open})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'th')),
+    rows: (rows.length<=12 || f.faculty) ? rows : [] };   // a chosen faculty always lists its programmes (largest: 38)
+}
+function finderHtml(F, f, asOf, showAll){
+  const b=(k,v,label,on)=>`<span class="dis${on?' on':''}" data-fk="${k}" data-fv="${_pEsc(v)}">${label}</span>`;
+  const lvName=(_P_LV.find(([k])=>k===f.level)||[])[1];
+  const picked=[lvName, f.faculty, f.open&&'เปิดรับอยู่', f.intl&&'นานาชาติ', f.special&&'ภาคพิเศษ'].filter(Boolean).map(_pEsc).join(' · ');
+  const out=[`พบ <b>${F.total}</b> หลักสูตร (กำลังเปิดรับ ${F.open})${picked?` — ${picked}`:''} <small>ข้อมูล ณ ${_pEsc(_pDate(asOf))}</small>`];
+  if(!F.total) out.push('ไม่พบหลักสูตรตามเงื่อนไขนี้ — ลองเอาตัวกรองบางอันออก');
+  else if(F.rows.length) out.push(`เลือกหลักสูตรเพื่อดูรายละเอียด สถานะ ค่าธรรมเนียม:<div class="dislist">${F.rows.map(p=>`<span class="dis" data-code="${_pEsc(p.code)}">${_pEsc(p.title)} · ${_pEsc(p.faculty)}${p.announcement&&p.announcement.status?` · ${_pEsc(p.announcement.status)}`:''}</span>`).join('')}</div>`);
+  else if(!f.level) out.push(`1) อยากเรียนระดับไหน<div class="dislist">${F.levels.map(l=>b('level',l.k,`${_pEsc(l.label)} · ${l.n} (เปิด ${l.open})`)).join('')}</div>`);
+  else { const fs=showAll?F.faculties:F.faculties.slice(0,12);
+    out.push(`2) คณะ/สถาบันที่สนใจ<div class="dislist">${fs.map(x=>b('faculty',x.name,`${_pEsc(x.name.length>48?x.name.slice(0,46)+'…':x.name)} · ${x.n} (เปิด ${x.open})`)).join('')}${!showAll&&F.faculties.length>12?b('more','',`ดูทั้งหมด ${F.faculties.length} คณะ/สถาบัน`):''}</div>`); }
+  out.push(`<div class="dislist">${b('open','',(f.open?'✅ ':'')+'เฉพาะที่เปิดรับ',f.open)}${b('intl','',(f.intl?'✅ ':'')+'นานาชาติ',f.intl)}${b('special','',(f.special?'✅ ':'')+'ภาคพิเศษ',f.special)}${f.level?b('level','','↩ เปลี่ยนระดับ'):''}${f.faculty?b('faculty','','↩ เปลี่ยนคณะ'):''}${b('reset','','เริ่มใหม่')}</div>`);
+  out.push('<small>ระบบไม่ได้ตัดสินว่าสาขาไหน "ดี" ที่สุด — ช่วยกรองจากข้อมูลทางการ หรือพิมพ์สิ่งที่สนใจ เช่น "สมัครเรียนวิทยาศาสตร์ข้อมูล" เพื่อหาชื่อหลักสูตรตรงๆ</small>');
+  return out.join('\n\n');
+}
 // </programme-resolve>
 
 // --- Intake layer (deterministic, no AI) -------------------------------------
@@ -977,6 +1010,28 @@ function ask(){
         <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมด →</a>`);
       document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
     }
+    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    return;
+  }
+
+  // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
+  if(PROG.length && isFinderQuestion(q)){
+    auto++; saved+=COST; MOOD.felt('hit'); renderMood(true); PCTX=null;
+    let f=finderInit(q), all=false; const fid='fd'+(++fbN);
+    add('b', `${kstrip}
+      <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ช่วยเลือกหลักสูตร — จากแคตตาล็อกทางการ · ไม่เรียก AI</span>
+      <div class="ans" id="${fid}"></div>
+      <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมดบนเว็บ →</a>
+      ${fbUI(q, d.blake3_proof)}`);
+    const el=document.getElementById(fid);
+    const draw=()=>{ el.innerHTML=finderHtml(finderFacets(PROG,f), f, PROGDOC.fetched_at, all);
+      el.querySelectorAll('[data-fk]').forEach(x=>x.addEventListener('click',()=>{ const k=x.dataset.fk, v=x.dataset.fv||'';
+        if(k==='reset'){ f=finderInit(''); all=false; } else if(k==='more') all=true;
+        else if(k==='open'||k==='intl'||k==='special') f[k]=!f[k];
+        else { f[k]=v; if(k==='level'){ f.faculty=''; all=false; } }
+        draw(); }));
+      el.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value='สมัคร '+x.dataset.code; ask(); })); };
+    draw();
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
     return;
   }
