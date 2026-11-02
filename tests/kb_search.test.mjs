@@ -90,6 +90,13 @@ const C = [
   ['วันนี้อากาศเป็นยังไง', null, 'offcorpus'],
   ['ร้านกาแฟใกล้ที่นี่อยู่ไหน', null, 'offcorpus'],
 ];
+// Per-query verified-equivalent answers (imported GradMahidol docs, 2026-10-31).
+// Keyed by query, not by expected id: a gm_ doc is accepted only where its answer
+// was read by hand and judged to answer THAT question (.plans/001 Appendix A).
+const ALT = {
+  'thesis submission deadline days': ['gm_thesis_submission_10_deadline'],  // states the 21-day rule directly
+  'turnitin originality report': ['gm_thesis_submission_12_upload_documents'], // which Turnitin pages to upload
+};
 const ids = new Set(KB.map(e => e.id));
 const known = C.filter(c => c[1] === null || ids.has(c[1]));
 let h1 = 0, h3 = 0, fp = 0, nq = 0, offOK = 0, offN = 0;
@@ -97,9 +104,10 @@ for (const [q, exp] of known) {
   const r = search(q), top = r[0];
   if (exp === null) { offN++; if (!top || top.s < 4) offOK++; continue; }
   nq++;
-  const in1 = top && top.e.id === exp, in3 = r.slice(0, 3).some(x => x.e.id === exp);
+  const ok = new Set([exp, ...(ALT[q] || [])]);
+  const in1 = top && ok.has(top.e.id), in3 = r.slice(0, 3).some(x => ok.has(x.e.id));
   if (in1) h1++; if (in3) h3++;
-  if (top && top.e.id !== exp && top.s >= 4) fp++;
+  if (top && !in1 && top.s >= 4) fp++;
 }
 console.log(`eval: ${nq} labeled queries + ${offN} off-corpus`);
 // Floors = measured on 2026-10-17 (recall@1 80% / @3 96% / FP 6% / off-corpus 2/2).
