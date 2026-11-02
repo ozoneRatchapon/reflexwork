@@ -406,9 +406,12 @@ function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new S
 function _cosToScore(c, margin, ov, ovLead){
   // blend of the vector and lexical signals (lockstep with reflex-wasm::cos_to_score): a dominant
   // lexical overlap lifts the score even when TF-IDF cosine is diluted by a long
-  // keyword list (the "Turnitin เกิน 25%" case: overlap 15, cosine only 0.20).
-  if(ov>=8 && ovLead>=4) return 6;
-  if(ov>=5 && ovLead>=2) return 5;
+  // keyword list (the "Turnitin เกิน 25%" case: overlap 15, cosine only 0.20) - but only if the
+  // vector supports the candidate too (cosine >= 0.15, the lowest answering tier). Without that floor
+  // generic question words lifted cosine-0.11 candidates to s=5-6 and 25-39% of out-of-scope
+  // questions got an unrelated answer (docs/METHOD.md section 5 F).
+  if(c>=0.15 && ov>=8 && ovLead>=4) return 6;
+  if(c>=0.15 && ov>=5 && ovLead>=2) return 5;
   if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.20) return 4;
   if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
 function _jsSearch(q){
