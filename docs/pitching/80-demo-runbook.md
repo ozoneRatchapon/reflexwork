@@ -47,6 +47,28 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 - that it "declines when it does not know": on 34 hand-written out-of-scope questions it still answered 13 % (English) / 17 % (Thai) with an unrelated entry (25 % / 39 % before the 2026-11-03 fix) (`docs/METHOD.md` §5 F). If a judge asks something off-topic, the honest line is "it usually declines, not always — we measured it and know why";
 - that it "works in English": it understands English and mixed Thai–English, but **answers in Thai** (it refuses honestly when nothing matches).
 
+## Staff answer goes live — stage step 5 (added 2026-11-03)
+**Before the talk, on the demo laptop:**
+1. Open `reflexwork.pages.dev/dashboard` in a second tab.
+2. Click **🔑 ตั้ง Staff Token** and paste the STAFF_TOKEN (the owner has it; it is stored only in that browser).
+3. Type a name in "ชื่อผู้ตรวจ".
+4. Keep this answer in a note, ready to paste. It was checked on 2026-11-03: the library site has a "เวลาเปิด-ปิดทั้งหมด" section.
+
+   > ดูเวลาเปิด-ปิดของหอสมุดและคลังความรู้ มหาวิทยาลัยมหิดลทุกแห่งได้ที่ https://www.li.mahidol.ac.th/ (หัวข้อ "เวลาเปิด-ปิดทั้งหมด")
+
+**On stage (≈ 45 s):**
+1. In the chat, ask `ห้องสมุดเปิดกี่โมง`. You get "ยังจับใจความไม่ได้", and the question goes to the dashboard's gap list.
+2. Switch to the dashboard tab. Click **ตอบ** next to that question, paste the answer, and click **✅ บันทึกและอนุมัติ (ขึ้นแชท)**.
+3. Switch back to the chat tab. Coming back to the tab refreshes at once. Ask again: you see **📝 เจ้าหน้าที่ตอบ**, the date, and "ยังไม่อยู่ในคู่มือหลัก".
+
+**If it fails** (no token, kernel slow): say "ขอโชว์จากภาพที่อัดไว้" and show `demo_backup/51_dashboard_live.png`, then `50_staff_live.png`.
+
+**After the pitch:** retract it ("ถอนออกจากแชท") or merge it into the manual with the markdown the approval shows.
+
+What to say:
+- "Every answer is approved by a person; it can be taken back."
+- Do **not** say "the system learns by itself".
+
 ## Web only, and protect the AI quota (added 2026-11-03)
 - The stage demo is the **web page only**. LINE uses the same manual, but its search declines off-topic questions less well than the web's. If asked: "there is a LINE channel on the same manual"; do not demo it.
 - **Test proxy:** benchmarks go through `node scripts/llm_forward.mjs`. It forwards to `reflexwork-llm-proxy-dev`, which has its own key, and needs `--prod` to touch production. Until the second key is set (`echo KEY | npx wrangler secret put GEMINI_API_KEY --env dev` in `integrations/llm-proxy`), the test proxy returns no AI. Benchmarks then show the AI-off numbers, and the live quota is safe.
