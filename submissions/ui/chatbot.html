@@ -992,10 +992,13 @@ function classifySmalltalk(text){
   // Prefer the Rust/WASM scorer (single source of truth, reflex-wasm
   // ::classify_smalltalk) — returns "" for non-smalltalk. JS scorer is fallback.
   if(typeof wasm_classify==='function'){
-    try{ const k=wasm_classify(text); return k && k.length ? k : null; }catch(_){}
+    try{ const k=wasm_classify(text); return k && k.length && !_HAS_TOPIC.test(text) ? k : null; }catch(_){}
   }
-  const r=scoreSmalltalk(text); return r?r.kind:null;
+  const r=scoreSmalltalk(text); return r && !_HAS_TOPIC.test(text) ? r.kind : null;
 }
+// A message that names a real topic is a question, not small talk: "อยากรู้ว่าค่าเทอมที่นี่เป็นยังไงบ้าง" contains the
+// how-are-you phrase "เป็นยังไงบ้าง" and used to get "สบายดีครับ". (Guard lives here; the Rust classifier is unchanged.)
+const _HAS_TOPIC=/ค่าเทอม|ค่าเล่าเรียน|ค่าธรรมเนียม|ค่าใช้จ่าย|ค่าสอบ|ทุน|หลักสูตร|สาขา|สมัคร|ลงทะเบียน|วิทยานิพนธ์|turnitin|tuition|\bfees?\b|programme|scholarship/i;
 function smalltalkReply(kind){
   const op = MOOD.greetOpener();
   switch(kind){
@@ -1330,6 +1333,10 @@ function ask(){
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
     if(PROG.length && (hasStudyIntent(q) || nearP)){
       renderFinder(q, d, kstrip, 'ผมยังไม่แน่ใจว่าหมายถึงสาขาหรือหลักสูตรไหน (บันทึกคำถามนี้ไว้ให้ทีมดูแลคู่มือแล้ว) — ลองเลือกจากตัวช่วยนี้ได้เลย หรือพิมพ์ชื่อสาขาที่สนใจ', false, nearP && nearP.rows, hasStudyIntent(q));
+      return;
+    }
+    if(PROG.length && _P_TOPIC[0][1].test(q)){   // a fee question that names no programme: fees differ per programme, so help find it
+      renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, nearP && nearP.rows, true);
       return;
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);

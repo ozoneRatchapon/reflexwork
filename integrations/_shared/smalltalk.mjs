@@ -136,9 +136,12 @@ export function scoreSmalltalk(text) {
 
 // Back-compatible API: returns just the intent kind (or null). Same contract
 // the old regex classifier had, so callers/tests are unchanged.
+// A message that names a real topic is a question, not small talk ("อยากรู้ว่าค่าเทอมที่นี่เป็นยังไงบ้าง" contains the
+// how-are-you phrase "เป็นยังไงบ้าง"). Same guard as submissions/ui/chatbot.html.
+const HAS_TOPIC = /ค่าเทอม|ค่าเล่าเรียน|ค่าธรรมเนียม|ค่าใช้จ่าย|ค่าสอบ|ทุน|หลักสูตร|สาขา|สมัคร|ลงทะเบียน|วิทยานิพนธ์|turnitin|tuition|\bfees?\b|programme|scholarship/i;
 export function classifySmalltalk(text) {
   const r = scoreSmalltalk(text);
-  return r ? r.kind : null;
+  return r && !HAS_TOPIC.test(String(text || '')) ? r.kind : null;
 }
 
 export function smalltalkReply(kind, mood) {

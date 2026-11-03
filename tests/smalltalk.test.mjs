@@ -27,6 +27,10 @@ eq('thanks + genuine praise', classifySmalltalk('ขอบคุณครับ 
 eq('praise word alone', classifySmalltalk('สุดยอด'), 'thanks');
 eq('whatcan', classifySmalltalk('ทำอะไรได้บ้าง'), 'whatcan');
 eq('howareyou', classifySmalltalk('สบายดีไหม'), 'howareyou');
+// a real topic inside a how-are-you phrase is a question (found on the live site 2026-11-03)
+eq('fee question is not howareyou', classifySmalltalk('อยากรู้ว่าค่าเทอมที่นี่เป็นยังไงบ้าง'), null);
+eq('programme question is not howareyou', classifySmalltalk('หลักสูตรนี้เป็นยังไงบ้าง'), null);
+eq('plain how are you still works', classifySmalltalk('เป็นยังไงบ้าง'), 'howareyou');
 eq('bye', classifySmalltalk('บาย'), 'bye');
 
 // --- SARCASM must fall through (NOT cheerful smalltalk) ----------------------
