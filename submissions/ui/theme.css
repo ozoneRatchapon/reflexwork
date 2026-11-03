@@ -1,0 +1,19 @@
+/* ReflexWork shared theme - ONE place for the palette and the top navigation. Linked by index, chatbot, student-desk, try, dashboard.
+   Pages keep only their own extra variables. Change a colour here and every page follows. */
+:root{
+  --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8; --line:#2a3660;
+  --accent:#5b8cff; --audit:#b07bff; --warn:#ff6b7a;
+  --fast:#22c58b; --auto:#22c58b;      /* answered by the knowledge base / official data, no AI */
+  --llm:#f6a93b;  --ai:#f6a93b;        /* handed to the AI */
+  --staff:#b07bff;
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* top navigation (same markup on every page) */
+.rw-nav{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;position:sticky;top:0;z-index:50}
+.rw-nav a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px}
+.rw-nav a:hover{color:var(--ink)}
+.rw-nav a.on{color:var(--accent);background:var(--panel);font-weight:700}
+.rw-nav a.brand{font-weight:800;color:var(--accent);background:var(--panel);margin-right:14px;font-size:15px}
+.rw-nav .sp{flex:1}
