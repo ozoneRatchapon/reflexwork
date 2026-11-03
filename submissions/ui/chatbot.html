@@ -474,7 +474,10 @@ function search(q){
 const EV_SEL = '.route, .meta, .proof-full, .kernel-strip';
 let lastUserQ = '';   // the question the next bot bubble is answering
 let turnN = 0;        // evidence-card counter
-function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; $('chat').appendChild(d);
+function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls;
+  // The user's own bubble is TEXT, never HTML: typing <img onerror=...> must show those characters, not run them.
+  if(cls==='u') d.textContent=html; else d.innerHTML=html;
+  $('chat').appendChild(d);
   if(cls==='u'){ lastUserQ = d.textContent.trim(); $('chat').scrollTop=1e9; return; }
   // bot bubble → split evidence out into the right panel, keep the clean answer left
   if(cls==='b'){
@@ -487,7 +490,7 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
     if(ev.length && !d.classList.contains('greet')){
       turnN++;
       const card = document.createElement('div'); card.className='ev-card active';
-      const qlabel = lastUserQ ? (lastUserQ.length>46?lastUserQ.slice(0,46)+'…':lastUserQ) : '(ทักทาย/ระบบ)';
+      const qlabel = lastUserQ ? _lEsc(lastUserQ.length>46?lastUserQ.slice(0,46)+'…':lastUserQ) : '(ทักทาย/ระบบ)';   // escaped: this goes through innerHTML
       card.innerHTML = `<div class="ev-q"><b>${qlabel}</b><span class="ev-n">#${turnN}</span></div>`;
       // move each evidence node from the bubble into the card (order preserved)
       ev.forEach(n=>{ card.appendChild(n); });
