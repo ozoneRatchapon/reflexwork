@@ -536,6 +536,9 @@ const VOICE = {
   frustrated:    '🙇 ขออภัยที่ยังหาคำตอบที่ตรงให้ไม่ได้ครับ เพื่อไม่ให้เสียเวลา ติดต่อเจ้าหน้าที่ได้เลยนะครับ (ปุ่มด้านล่าง)',
   adviceAbstain: 'เรื่องนี้เป็นคำถามขอคำแนะนำที่คู่มือยังตอบได้ไม่ครบครับ ผมไม่อยากตอบพลาด เลยจดคำถามไว้ให้เจ้าหน้าที่/ทีมคู่มือแล้ว ระหว่างนี้ติดต่อเจ้าหน้าที่ได้จากปุ่มด้านล่าง',
   feePremise:    'ผมบอกไม่ได้ว่าฟรีหรือเปล่าครับ เพราะค่าเทอมต่างกันตามหลักสูตร (บางหลักสูตรมีทุนตามประกาศ) เลือกหลักสูตรด้านล่างเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการได้เลย',
+  understanding: 'ขอเวลาสักครู่ครับ ผมกำลังลองทำความเข้าใจคำถามนี้',
+  understoodLead: 'ผมเข้าใจว่าถามเรื่อง',
+  notThis:       'ไม่ใช่เรื่องนี้',
   careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
 };
 let lastUserQ = '';   // the question the next bot bubble is answering
@@ -734,7 +737,7 @@ const _P_LEAD=/^(?:(?:ผม|หนู|ฉัน|เรา|พี่|ขอ|ร�
 const _P_TAIL=/\s*(?:ครับ|ค่ะ|คะ|นะครับ|นะคะ|นะ|หน่อย|ด้วย|ได้ไหม|ได้หรือไม่|ได้ยังไง|ยังไง|อย่างไร|ไหม|หรือเปล่า|หรือไม่|สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|ปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|รับสมัคร|หรือยัง|เท่าไหร่|เท่าไร|กี่บาท|อะไรบ้าง|ต่อเทอม|เทอมละ|ต่อภาค(?:การศึกษา)?|ภาคละ|ทั้งหมด|ตลอดหลักสูตร|ที่ไหน|เมื่อไหร่|เมื่อไร|วันไหน|ปี ?\d{4}|\d{4}|หลักสูตร|program(?:me)?|course|please)\s*$/i;
 const _P_DEGREE=/ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต|ประกาศนียบัตร|ปริญญาโท|ปริญญาเอก|ปริญญา|ป\.\s?โท|ป\.\s?เอก|ระดับโท|ระดับเอก|มหาบัณฑิต|ดุษฎีบัณฑิต|ต่อโท|ต่อเอก|master(?:'s)?|doctoral|doctorate|ph\.?\s?d|\bmsc\b|m\.\s?sc\.?/gi;
 const _P_QUAL=/ภาคพิเศษ|ภาคปกติ|นานาชาติ|international(?: program(?:me)?)?|special program(?:me)?/gi;
-const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(?:ใน)?(?:การ)?สมัคร|ค่าปรับ|ค่า\S{0,10}สอบ|รักษาสถานภาพ|ใบรับรอง|ผ่อนผัน|โครงร่าง|ประมวลความรู้|อาจารย์ที่ปรึกษา|เปลี่ยนสาขา|ย้ายสาขา|วิทยานิพนธ์|ลงทะเบียน|ลาพัก|ลาออก|เกรด|transcript|ตารางสอบ|ย้ายหลักสูตร|เปลี่ยนหลักสูตร|ตารางเรียน|เรียนกี่|เรียนนาน|จบกี่ปี|ใช้เวลาเรียน|application fee|thesis|turnitin/i;
+const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(?:ใน)?(?:การ)?สมัคร|ค่าปรับ|ค่า\S{0,10}สอบ|รักษาสถานภาพ|ใบรับรอง|ผ่อนผัน|โครงร่าง|ประมวลความรู้|อาจารย์ที่ปรึกษา|เปลี่ยนสาขา|ย้ายสาขา|วิทยานิพนธ์|ลงทะเบียน|ลาพัก|ลาออก|หยุดเรียน|พักการเรียน|เกรด|transcript|ตารางสอบ|ย้ายหลักสูตร|เปลี่ยนหลักสูตร|ตารางเรียน|เรียนกี่|เรียนนาน|จบกี่ปี|ใช้เวลาเรียน|application fee|thesis|turnitin/i;
 // Topic of a programme question: "ค่าเทอม <programme>" / "ทุน <programme>" -> that programme's own fee table /
 // scholarship note from its announcement. Without a programme in the question the KB answers as before.
 const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย(?:ตลอดหลักสูตร)?|ค่าเรียน|เหมาจ่าย|tuition(?: fees?)?|\bfees?\b/i],
@@ -977,6 +980,43 @@ function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(
 // prone LLM path or replying in Thai. A question mixing Thai + English (common)
 // is treated as Thai and uses the normal KB path.
 function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
+
+// Deep link to the exact official page, and the entry's steps as a tick-list (deterministic, no AI).
+function kbSource(hit){ return hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : ''; }
+function kbSteps(hit){
+  return Array.isArray(hit.steps) && hit.steps.length
+    ? `<div class="steps"><div class="steps-h">ทำตามขั้นตอน (กดติ๊กเมื่อทำเสร็จ):</div>` +
+      hit.steps.map((s,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${linkify(s, LINKS)}</span></label>`).join('') +
+      `</div>` : '';
+}
+
+// --- Understand step: AI reads the question, the manual answers ---------------
+// Only used when the direct search found nothing. The proxy's /rewrite turns the question into 1-3 short search phrases (the
+// model sees only the question, never the manual, and is told not to answer). Each phrase goes through the SAME KB search, and
+// we answer only when the phrases agree on ONE entry that clears the same bar as a direct answer (score >= 4, 2-point lead).
+const _RW_CACHE = new Map();
+async function rewriteQuery(q){
+  if(!LLM_API || AI_OFF) return [];
+  if(_RW_CACHE.has(q)) return _RW_CACHE.get(q);
+  try{
+    const r = await fetch(LLM_API.replace(/\/$/,'')+'/rewrite',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ input:q }), signal: AbortSignal.timeout(9000) });
+    const j = r.ok ? await r.json() : {};
+    const qs = (Array.isArray(j.queries) ? j.queries : []).filter(x=>typeof x==='string' && x.trim()).slice(0,3);
+    _RW_CACHE.set(q, qs); return qs;
+  }catch{ return []; }
+}
+function understand(phrases){
+  const clear = [];
+  for(const p of phrases){ const r = search(p), top = r[0], second = r[1];
+    if(top && top.s>=4 && (!second || top.s-second.s>=2)) clear.push({ e:top.e, s:top.s, via:p }); }
+  const ids = [...new Set(clear.map(c=>c.e.id))];
+  if(ids.length===1){ const best = clear.sort((a,b)=>b.s-a.s)[0];
+    const others = phrases.flatMap(p=>search(p).slice(0,3)).map(r=>r.e).filter((e,i,a)=>e.id!==best.e.id && a.findIndex(x=>x.id===e.id)===i).slice(0,3);
+    return { kind:'one', entry:best.e, score:best.s, via:best.via, others }; }
+  if(ids.length>1) return { kind:'many', entries: ids.map(id=>clear.find(c=>c.e.id===id).e).slice(0,3) };
+  return { kind:'none' };
+}
 
 async function groundedHybrid(q, entries){
   if(!LLM_API || AI_OFF) return null;
@@ -1376,14 +1416,7 @@ function _askCore(){
     auto++; saved+=COST;
     // Deep link: a prominent button to the exact official page (not just a tiny
     // link) so a user who needs more than the summary lands on the right source.
-    const src = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
-    // Guided steps: if the KB entry carries a `steps` array, render an
-    // interactive checklist (deterministic, no AI) — turns a wall of text into
-    // a wizard the user can tick through.
-    const steps = Array.isArray(hit.steps) && hit.steps.length
-      ? `<div class="steps"><div class="steps-h">ทำตามขั้นตอน (กดติ๊กเมื่อทำเสร็จ):</div>` +
-        hit.steps.map((s,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${linkify(s, LINKS)}</span></label>`).join('') +
-        `</div>` : '';
+    const src = kbSource(hit), steps = kbSteps(hit);
     add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${kbBody(hit, q)}</div>
@@ -1469,15 +1502,18 @@ function _askCore(){
       return;
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
-    // nothing close: offer the demo-safe starting questions (programme finder, fees, thesis) - not a random slice of the KB
-    const picks = near.length ? near.map(e=>e.title) : AGENCY.examples.filter(e=>!e.ai).slice(0,4).map(e=>e.q);
-    const cid = 'sg'+(++fbN);
-    add('b', `${kstrip}
+    const showNotFound = (aiPicks) => {
+      // aiPicks: entries the AI's reading of the question pointed at, but not clearly enough to answer with one of them
+      const offer = (aiPicks && aiPicks.length) ? aiPicks : near;
+      // nothing close: offer the demo-safe starting questions (programme finder, fees, thesis) - not a random slice of the KB
+      const picks = offer.length ? offer.map(e=>e.title) : AGENCY.examples.filter(e=>!e.ai).slice(0,4).map(e=>e.q);
+      const cid = 'sg'+(++fbN);
+      add('b', `${kstrip}
       <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ${VOICE.notInManual} ${stageTag}</span>
       ${frustratedNote()}
-      <div class="ans">${near.length?VOICE.nearest:VOICE.notUnderstood}</div>
+      <div class="ans">${offer.length?VOICE.nearest:VOICE.notUnderstood}</div>
       <div class="dislist" id="${cid}">${picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('')}</div>
-      <div class="meta">${verdict.reason} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
+      <div class="meta">${verdict.reason}${aiPicks?' · AI ช่วยตีความแล้วแต่ยังไม่ตรงข้อเดียวชัด':''} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
       <div class="staffbox">
         <div class="staff-h">${VOICE.staffHelp}</div>
         <div class="staff-btns">
@@ -1486,7 +1522,31 @@ function _askCore(){
         </div>
       </div>
       ${fbUI(q, d.blake3_proof)}`);
-    document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
+      document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
+    };
+    if(!LLM_API || AI_OFF){ showNotFound(); return; }
+    // Understand step: the AI only re-words the question into search phrases (it never sees the manual and never answers);
+    // the normal KB search then has to find ONE clear entry, otherwise we fall back to exactly the old "not found" reply.
+    const wait = document.createElement('div'); wait.className='msg b pending'; wait.setAttribute('aria-busy','true');
+    wait.innerHTML = `<div class="ans"><span class="typing"><i></i><i></i><i></i></span> ${VOICE.understanding}</div>`;
+    $('chat').appendChild(wait); wait.scrollIntoView({block:'end'});
+    rewriteQuery(q).then(phrases=>{
+      wait.remove();
+      const u = understand(phrases);
+      if(u.kind!=='one'){ showNotFound(u.kind==='many' ? u.entries : null); return; }
+      const hit = u.entry, uid='un'+(++fbN);   // counted as an AI turn (ai++ above): the rewrite is an LLM call
+      add('b', `${kstrip}
+      <span class="route auto">✅ ตอบจากคู่มือ · 🧠 AI ช่วยตีความคำถาม ${stageTag}</span>
+      <div class="ans">${VOICE.understoodLead} <b>${_lEsc(hit.title)}</b> <span class="dis" id="${uid}">${VOICE.notThis}</span>\n\n${linkify(humanize(hit, q), LINKS)}</div>
+      ${kbSteps(hit)}
+      <span class="topic">ที่มา: ${hit.title}</span>
+      <div class="meta">ค้นตรงไม่เจอ → AI แปลงคำถามเป็นคำค้น "${_lEsc(u.via)}" → ค้นคู่มือเจอข้อเดียวชัด (score ${u.score}) · คำตอบเป็นข้อความคู่มือ AI ไม่ได้เขียน</div>
+      ${kbSource(hit)}
+      ${fbUI(q, d.blake3_proof, hit.id)}`);
+      document.getElementById(uid).addEventListener('click',()=>showNotFound(u.others));
+      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      try{ addFollowUps(q); }catch(_){}
+    });
     return;
     }
   }

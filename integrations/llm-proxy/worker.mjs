@@ -125,6 +125,28 @@ async function geminiRace(models, o) {
   return null;
 }
 
+// /rewrite — the "understand the question" step. The model never answers and never sees the knowledge base: it only turns an
+// oddly-phrased question into 1-3 short Thai search phrases in the manual's own vocabulary. The page then runs its normal,
+// deterministic KB search on those phrases and only shows an answer if that search finds a clear match, so every fact shown
+// still comes from the approved manual. Off-topic questions must come back as NONE (no phrases).
+export const REWRITE_SYS = 'งานของคุณ: แปลงคำถามของผู้ใช้ให้เป็น "คำค้น" ภาษาไทยสั้น ๆ สำหรับค้นในคู่มือนักศึกษาบัณฑิตศึกษา มหาวิทยาลัยมหิดล '
+  + '(ตัวอย่างคำค้น: ลาพักการศึกษา, ขยายระยะเวลาการศึกษา, สอบป้องกันวิทยานิพนธ์, ส่งเล่มวิทยานิพนธ์ฉบับสมบูรณ์, ชำระค่าธรรมเนียมการศึกษา, '
+  + 'เกณฑ์ภาษาอังกฤษสำเร็จการศึกษา, ขอหนังสือรับรองสถานภาพนักศึกษา, ลงทะเบียนรายวิชา).\n'
+  + 'กฎ: ห้ามตอบคำถาม ห้ามใส่ตัวเลข วันที่ หรือข้อเท็จจริงใด ๆ. ตอบ 1-3 บรรทัด บรรทัดละหนึ่งคำค้น ไม่เกิน 10 คำ ใช้ศัพท์ทางการของมหาวิทยาลัย '
+  + 'ไม่ต้องมีเลขข้อหรือเครื่องหมายนำหน้า.\n'
+  + 'ถ้าคำถามไม่เกี่ยวกับการเรียน การสมัครเรียน ทุน ค่าธรรมเนียม วิทยานิพนธ์ หรือระเบียบของบัณฑิตศึกษา ให้ตอบคำเดียวว่า NONE';
+export function parseRewrite(text) {
+  const out = [];
+  for (let line of String(text || '').split(/\n+/)) {
+    line = line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').replace(/["'“”‘’`]/g, '').replace(/^คำค้น\s*[:：]\s*/, '').trim();
+    if (line.length < 2 || /^none\b/i.test(line)) continue;
+    if (line.length > 60 || /\d/.test(line)) continue;           // a long line is an answer, a digit is a fact: neither is a search phrase
+    if (!out.includes(line)) out.push(line);
+    if (out.length === 3) break;
+  }
+  return out;
+}
+
 function cors(origin) {
   const ok = origin === ALLOWED_ORIGIN;
   return {
@@ -143,7 +165,7 @@ export default {
     if (request.method !== 'POST') return new Response('method not allowed', { status: 405, headers });
 
     const path = new URL(request.url).pathname;
-    if (path !== '/llm' && path !== '/') {
+    if (path !== '/llm' && path !== '/' && path !== '/rewrite') {
       return new Response(JSON.stringify({ error: 'not found' }), {
         status: 404, headers: { ...headers, 'Content-Type': 'application/json' },
       });
@@ -164,6 +186,25 @@ export default {
         status: 400, headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
+    if (path === '/rewrite') {
+      const t0 = Date.now(), budget = Number(env.REWRITE_BUDGET_MS) || 7000, left = () => Math.max(0, budget - (Date.now() - t0));
+      const json = o => new Response(JSON.stringify(o), { headers: { ...headers, 'Content-Type': 'application/json' } });
+      if (!env.GEMINI_API_KEY) return json({ queries: [], source: 'none' });
+      const trail = [];
+      let found = [];
+      try { found = (await discoverModels(env.GEMINI_API_KEY, left() - 3000)).ids; } catch { /* fall back to the alias */ }
+      const all = [...new Set([env.GEMINI_MODEL, geminiState.good, ...found, 'gemini-flash-latest'].filter(Boolean))];
+      const fresh = all.filter(m => !((geminiState.bad.get(m) || 0) > Date.now()));
+      const user = `คำถาม: ${prompt.slice(0, 300)}`;
+      const payload = thinking => ({
+        contents: [{ parts: [{ text: REWRITE_SYS + '\n\n' + user }] }],
+        generationConfig: { maxOutputTokens: 512, temperature: 0, ...(thinking ? { thinkingConfig: { thinkingLevel: 'low' } } : {}) },
+      });
+      const won = await geminiRace(fresh.length ? fresh : all, { key: env.GEMINI_API_KEY, payload, ms: Number(env.GEMINI_TIMEOUT_MS) || 4500, left, trail });
+      if (!won) { console.log('llm-proxy /rewrite: no model answered:', trail.join(' ')); return json({ queries: [], source: 'fallback' }); }
+      return json({ queries: parseRewrite(won.text), source: 'gemini' });
+    }
+
     // Optional KB grounding (grounded-hybrid): when the caller passes `context`
     // (KB entries the kernel matched), the model MUST rephrase from it only and
     // not invent facts. This is the ReflexWork twist on RAG — the kernel decides
