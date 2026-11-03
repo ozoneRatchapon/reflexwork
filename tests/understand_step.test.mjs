@@ -16,6 +16,8 @@ const understand = new Function('search', src[0] + 'return understand;')(p => ta
 const one = understand(['ลาพัก', 'พักเรียน']);
 check('phrases agreeing on one clear entry -> answer it', one.kind === 'one' && one.entry.id === 'leave' && one.score === 6 && one.via === 'ลาพัก', JSON.stringify(one));
 check('"not this" alternatives exclude the chosen entry', one.others.every(e => e.id !== 'leave') && one.others.some(e => e.id === 'quit'));
+check('one clear hit among several phrases is NOT enough (measured: wrong 2 of 6)', understand(['ลาพัก', 'อ่อน']).kind === 'none');
+check('a single-phrase reply with a clear hit is enough', understand(['ลาออก']).kind === 'one');
 check('a close runner-up (lead < 2) is not an answer', understand(['กำกวม']).kind === 'none');
 check('a weak match (score < 4) is not an answer', understand(['อ่อน']).kind === 'none');
 check('phrases pointing at different entries -> offer them, do not pick', (u => u.kind === 'many' && u.entries.length === 2)(understand(['ลาพัก', 'ลาออก'])));

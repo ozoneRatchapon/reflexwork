@@ -1011,7 +1011,10 @@ function understand(phrases){
   for(const p of phrases){ const r = search(p), top = r[0], second = r[1];
     if(top && top.s>=4 && (!second || top.s-second.s>=2)) clear.push({ e:top.e, s:top.s, via:p }); }
   const ids = [...new Set(clear.map(c=>c.e.id))];
-  if(ids.length===1){ const best = clear.sort((a,b)=>b.s-a.s)[0];
+  // One phrase alone is not enough when the model gave several: measured 2026-11-03, a single clear hit from one of 2-3 phrases
+  // was wrong in 2 of 6 cases (the lexical search over-matches one word). Require two phrases to agree, or a single-phrase reply.
+  const agree = ids.length===1 && (clear.length>=2 || phrases.length===1);
+  if(agree){ const best = clear.sort((a,b)=>b.s-a.s)[0];
     const others = phrases.flatMap(p=>search(p).slice(0,3)).map(r=>r.e).filter((e,i,a)=>e.id!==best.e.id && a.findIndex(x=>x.id===e.id)===i).slice(0,3);
     return { kind:'one', entry:best.e, score:best.s, via:best.via, others }; }
   if(ids.length>1) return { kind:'many', entries: ids.map(id=>clear.find(c=>c.e.id===id).e).slice(0,3) };
