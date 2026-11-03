@@ -1132,7 +1132,7 @@ function _askCore(){
       <span class="kbadge ${d.fast_path?'kf':'kl'}">🦀 kernel: ${d.route}</span>
       <span class="km">gate θ=0.72 · ความซับซ้อน ${complexity}${typeof d.gate_score==='number'?` · g=${d.gate_score.toFixed(3)}`:''}</span>
       <span class="km" title="นาฬิกาเบราว์เซอร์ละเอียดแค่ 0.1 ms; ตัวเลขละเอียดกว่านี้วัดใน benchmark/compare/latency.mjs">⚡ ${usLabel}</span>
-      <span class="km">💰 ${d.fast_path?'0 token':'LLM path'}</span>
+      <span class="km" title="นับเฉพาะขั้นคัดกรองเส้นทาง; ถ้าคำตอบใช้ AI ช่วยเรียบเรียง จะมีป้ายบอกที่หัวคำตอบ">💰 ขั้นคัดกรอง: ${d.fast_path?'0 token':'ส่งต่อ AI'}</span>
     </div>
     <div class="proof-full">🔒 BLAKE3 fingerprint: <code>${d.blake3_proof}</code><br>
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ fingerprint เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
