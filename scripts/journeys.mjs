@@ -48,7 +48,10 @@ const JOURNEYS = [
 const rows = [];
 for (const j of JOURNEYS) {
   await send('Page.navigate', { url: URL_ });
-  for (let i = 0; i < 60; i++) { await wait(250); if (await ev(`document.getElementById('q') && !document.getElementById('q').disabled`)) break; }
+  // ready = input enabled AND the programme catalogue has finished loading (on a real network it arrives after the input is enabled;
+  // asking earlier gets a different, knowledge-base-only answer and makes the probe flaky)
+  for (let i = 0; i < 80; i++) { await wait(250); if (await ev(`!!document.getElementById('q') && !document.getElementById('q').disabled && performance.getEntriesByType('resource').some(e => /programmes\\.json/.test(e.name) && e.responseEnd > 0)`)) break; }
+  await wait(150);
   let ms = 0, miss = false;
   for (const s of j.steps) { const r = await step(s); if (r.miss) { miss = true; break; } ms += r.ms; }
   const text = await ev(`[...document.querySelectorAll('#chat .msg.b')].pop().innerText.replace(/\\s+/g, ' ')`);

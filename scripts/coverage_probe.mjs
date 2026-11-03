@@ -32,7 +32,10 @@ const classify = r => r.notUnderstood ? 'not understood' : r.finder ? 'finder (n
 const rows = [];
 for (const q of QS) {
   await send('Page.navigate', { url: URL_ });
-  for (let i = 0; i < 60; i++) { await wait(250); if (await ev(`document.getElementById('q') && !document.getElementById('q').disabled`)) break; }
+  // ready = input enabled AND the programme catalogue has finished loading (on a real network it arrives after the input is enabled;
+  // asking earlier gets a different, knowledge-base-only answer and makes the probe flaky)
+  for (let i = 0; i < 80; i++) { await wait(250); if (await ev(`!!document.getElementById('q') && !document.getElementById('q').disabled && performance.getEntriesByType('resource').some(e => /programmes\\.json/.test(e.name) && e.responseEnd > 0)`)) break; }
+  await wait(150);
   const r = await ev(`new Promise(res => { const chat = document.getElementById('chat'), n0 = chat.querySelectorAll('.msg.b').length, t0 = performance.now();
     const i = document.getElementById('q'); i.value = ${JSON.stringify(q)}; document.getElementById('send').click();
     const tick = () => { const b = [...chat.querySelectorAll('.msg.b')]; const l = b[b.length - 1];
