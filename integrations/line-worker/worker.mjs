@@ -128,26 +128,11 @@ async function saveKbDraft(env, question, answer) {
   return r.json().catch(() => ({ ok: false }));
 }
 
-// Graceful fallback shown when the LLM is unavailable (quota/throttle/outage).
-// Redirects the user to the verified manual, which always works — so a demo
-// never dead-ends on a Gemini hiccup.
-const LLM_UNAVAILABLE =
-  'ขออภัยครับ คำถามนี้ยังไม่มีคำตอบตรงในคู่มือ 🙏\n' +
-  'ระหว่างนี้ลองถามเรื่องที่มีในคู่มือได้ทันที เช่น:\n' +
-  '• ส่งรูปเล่มภายในกี่วัน\n' +
-  '• ค่าสอบ MU GRAD Plus เท่าไร\n' +
-  '• ตรวจบทคัดย่อใช้เวลากี่วัน\n' +
-  '\nหรือรอสักครู่ เดี๋ยวเจ้าหน้าที่จะมาตอบในแชทนี้ต่อให้ครับ 🙇';
-
-async function answerLLM(text, env) {
-  // LLM path goes through the team-integration adapter. By default the provider
-  // is 'gemini' (our proxy) → behavior is unchanged. To forward to ANOTHER
-  // team's backend (e.g. gradmahidol-ai), set TEAM_API_PROVIDER=gradmahidol +
-  // TEAM_API_URL (+ TEAM_API_KEY) as Worker secrets — no code change needed.
-  // env may be undefined in older call sites; fall back to the gemini proxy URL.
-  const bag = { LLM_PROXY, ...(env || {}) };
-  const r = await askTeam(text, bag);              // {text, ok, source}
-  return r.ok ? { text: r.text, ok: true } : { text: LLM_UNAVAILABLE, ok: false };
+// Reply when the manual has no answer (exported for tests). Nearest titles only when they share real words with the question.
+export function notInManualText(q, kb = KB) {
+  const near = searchKB(q, kb).filter(r => r.s >= 3).slice(0, 3).map(r => r.e.title);
+  return ['เรื่องนี้ยังไม่มีในคู่มือครับ ผมจดคำถามไว้ให้ทีมเติมแล้ว และเจ้าหน้าที่จะตอบต่อในแชทนี้',
+    near.length ? `ระหว่างนี้ หัวข้อใกล้เคียงที่ถามได้:\n${near.map((t, i) => `${i + 1}. ${t}`).join('\n')}` : ''].filter(Boolean).join('\n\n');
 }
 
 // Footers: students see a plain source label (like the web's "✅ ข้อมูลทางการ"); the engineering trail (route, 0 token,
@@ -276,17 +261,11 @@ async function processEvents(raw, env) {
           answer = intakePrompt(issue.category);
           footer = footerFor(env, '', `\n\n🦀 คัดเป็น “${issue.label}” · ส่งต่อเจ้าหน้าที่ (เก็บข้อมูลให้ครบก่อน)${proof ? `\n🔒 ${proof}…` : ''}`);
         } else {
-          const llm = await answerLLM(text, env);
-          if (llm.ok) {
-            // AI drafted an answer — but on LINE a human agent is in this same
-            // chat, so tell the user staff can verify/continue here (no external
-            // "contact us" button: they are already in the staff conversation).
-            answer = `${llm.text}\n\n(ร่างโดยผู้ช่วย AI — เดี๋ยวเจ้าหน้าที่ตรวจและตอบเพิ่มในแชทนี้ได้ครับ)`;
-            footer = footerFor(env, '', `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
-          } else {
-            answer = llm.text;   // fallback already says staff will reply here
-            footer = '';
-          }
+          // Not in the manual: say so, show the nearest topics, and leave it to staff in this chat. The LLM is NOT asked to
+          // improvise an answer (its facts would be unverifiable) - same rule as the web chat. The question is already in the
+          // gap log above, which is how the manual learns it (AI drafts, staff approve).
+          answer = notInManualText(text);
+          footer = footerFor(env, '', `\n\n🦀 ไม่พบในคู่มือ · ไม่ให้ AI เดา · ส่งต่อเจ้าหน้าที่${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
         }
       }
 

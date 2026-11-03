@@ -22,3 +22,8 @@
 | 8 | `gm_registration_proof` ขอ Transcript | "อย่าขอรหัสผ่านนักศึกษาในแชท ให้ผู้ใช้ล็อกอินด้วยตนเอง…" | "ล็อกอินเข้าระบบด้วยตัวเอง (ไม่ต้องให้รหัสผ่านกับใคร) ถ้าติดขัดติดต่องานทะเบียน" |
 
 **ไฟล์ต้นทาง:** `submissions/ui/knowledge-public/<id>.md` เมื่อเจ้าของงานตอบแล้ว ทีมจะแก้ไฟล์ สร้างดัชนีใหม่ (`python3 submissions/build_knowledge_index.py`) และรันชุดวัดซ้ำ
+
+## ชุดที่ 2 (3 พ.ย. 2569) — 11 หัวข้อ แก้แล้วตามที่เจ้าของโครงการอนุมัติ
+ประโยคแนวบันทึกการทำงานของผู้รวบรวม ("รอบนี้ยังไม่ได้อ่าน…", "ชุดนี้ยังไม่อ่าน…", "ไม่แต่งเวลาออก", "ไม่รับรอง…") เปลี่ยนเป็นบอกนักศึกษาว่าข้อมูลนั้นดูได้ที่ไหน ข้อเท็จจริงไม่เปลี่ยน
+หัวข้อ: `gm_dormitory_navigation`, `gm_health_service_navigation`, `gm_mental_wellbeing_navigation`, `gm_military_deferment_directory_2570`, `gm_registration_exemption_2570`, `gm_registration_fee_navigation`, `gm_registration_flat_refund`, `gm_registration_transfer`, `gm_scholarship_directory`, `gm_student_support_directory`, `gm_travel_navigation`
+ชื่อหัวข้อและคำค้นในดัชนีไม่เปลี่ยน (0 จุด) จึงไม่กระทบการค้นหา มีเพียงคำตอบ 11 ข้อที่เปลี่ยน
