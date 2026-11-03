@@ -1,0 +1,31 @@
+// KB answers are shown as short points, in the manual's own words (staff feedback 2026-11-03: "long paragraphs, hard to read").
+// Runs the real answerPoints()/kbBody() from chatbot.html over the whole knowledge index. Run: node tests/readable_answer.test.mjs
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const page = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
+const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
+let pass = 0, fail = 0;
+const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
+const src = page.match(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=\/\/ --- Slot-filling)/);
+const slot = page.match(/const _SLOTS=[\s\S]*?\n  return ''; }\n/);
+check('formatter and slot-filling source found', !!src && !!slot);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const { answerPoints, kbBody } = new Function('linkify', 'LINKS', slot[0] + src[0] + 'return { answerPoints, kbBody };')(t => esc(t), null);
+const norm = t => String(t).replace(/^\s*(?:[-•*]|\d+[.)])\s+/gm, '').replace(/[\s.。]/g, '');
+const lost = KB.filter(e => norm(e.answer) !== norm(answerPoints(e.answer).join(' ')));
+check('every entry keeps all of its words (only spaces, full stops and list markers change)', lost.length === 0, lost.map(e => e.id).join(','));
+check('no abbreviation is cut (พ.ศ. 2569 stays together)', answerPoints('ประกาศ พ.ศ. 2569 กำหนดให้ส่ง. หากเกินให้แจ้ง').join('|') === 'ประกาศ พ.ศ. 2569 กำหนดให้ส่ง|หากเกินให้แจ้ง');
+check('a list in the manual stays a list', answerPoints('ช่องทาง:\n- โทร 02\n- อีเมล a@b').length === 3);
+const leave = KB.find(e => e.id === 'leave_of_absence'), html = kbBody(leave, 'ลาพักทำยังไง');
+check('leave of absence: answer first, then bullet points, no glued opener', html.startsWith('ยื่นแบบฟอร์ม RA-04') && (html.match(/\n• /g) || []).length === 2 && !/ขั้นตอนเป็นแบบนี้/.test(html), html.slice(0, 80));
+check('a number asked for is shown first in bold', /^<b>ภายใน 21 วัน<\/b>\n/.test(kbBody(KB.find(e => e.id === 'thesis_submit_days'), 'ส่งเล่มภายในกี่วัน')));
+const longest = KB.reduce((a, e) => answerPoints(e.answer).length > answerPoints(a.answer).length ? e : a);
+const lh = kbBody(longest, 'x');
+check('long answers fold after 4 points behind "อ่านเพิ่ม"', (lh.split('<details')[0].match(/\n• /g) || []).length === 3 && /<summary>อ่านเพิ่มอีก \d+ ข้อ<\/summary>/.test(lh));
+check('text is escaped (manual text cannot inject HTML)', !kbBody({ answer: 'a <img src=x onerror=alert(1)>. หากb' }, '').includes('<img'));
+check('the old glued openers are gone from the page', !/ขั้นตอนเป็นแบบนี้ |เรื่องระยะเวลา |— รายละเอียด:/.test(page));
+const one = KB.filter(e => answerPoints(e.answer).length === 1).length;
+check(`one-paragraph answers: ${one} of ${KB.length} (was 93 before the formatter)`, one < 93);
+console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);
