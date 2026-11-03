@@ -115,6 +115,11 @@ await ev(`(()=>{ const i=document.getElementById('q'); i.value=''; i.dispatchEve
 r = await ask('ลาพักการเรียนทำยังไง');
 const fu = await ev(`document.querySelectorAll('#chat .msg.b:last-child .followups .dis').length`);
 fu >= 1 ? ok(`9c. after a knowledge-base answer the page offers ${fu} "ask next" question(s)`) : soft('9c. no "ask next" chips after a KB answer (the answer may have been a clarification)');
+// 9d) what a curious visitor types: markup must stay text. (Safe payload: sets a flag instead of opening a dialog.)
+await ev(`(()=>{ window.__xss = 0; const i=document.getElementById('q'); i.value='<img src=x onerror=window.__xss=1><b>x</b>'; document.getElementById('send').click(); return 1; })()`);
+await wait(2500);
+const xss = await ev(`({ flag: window.__xss, imgs: document.querySelectorAll('#chat img[src=x], #ev-list img[src=x]').length, bold: document.querySelectorAll('#chat .msg.u b').length, shown: ([...document.querySelectorAll('#chat .msg.u')].pop()||{}).textContent })`);
+xss.flag === 0 && xss.imgs === 0 && xss.bold === 0 && /<img/.test(xss.shown || '') ? ok('9d. typed HTML stays text (no element created, no handler ran)') : bad('9d. typed markup was interpreted', JSON.stringify(xss));
 // 10) the page itself
 errs.length ? bad('10. no script errors on the page', errs.slice(0, 3).join(' | ')) : ok('10. no script errors on the page');
 

@@ -129,6 +129,7 @@
 </div>
 
 <script type="module">
+const fmtUs = us => (Number(us) < 100 ? '< 0.1 ms' : (Number(us)/1000).toFixed(1) + ' ms');   // browsers round performance.now() to 0.1 ms: never print a fake '0 µs'
 import init, { route_task } from './wasm/reflex_wasm.js';
 const $ = id => document.getElementById(id);
 let ready = false;
@@ -167,7 +168,7 @@ $('go').addEventListener('click', () => {
       <div class="kv">
         <div class="k">ประเภท</div><div class="v">${$('cat').value}</div>
         <div class="k">complexity (dim 8)</div><div class="v">${d.gate_dim8_complexity.toFixed(3)}</div>
-        <div class="k">เวลา route (ในเบราว์เซอร์)</div><div class="v">${us} µs</div>
+        <div class="k">เวลา route (ในเบราว์เซอร์)</div><div class="v">${fmtUs(us)}</div>
         <div class="k">ต้นทุน token</div><div class="v">${d.token_cost}</div>
         <div class="k">BLAKE3 fingerprint</div><div class="v proof">${d.blake3_proof}</div>
       </div>
@@ -197,7 +198,7 @@ $('compare').addEventListener('click', () => {
     <div class="side f">
       <div class="hd">🦀 FastPath — งานทั่วไป</div>
       <div class="q">"${easyQ}"</div>
-      <div class="big">${a.us} µs</div>
+      <div class="big">${fmtUs(a.us)}</div>
       <div class="metric"><span class="lab">route</span><span class="val">${a.d.route}</span></div>
       <div class="metric"><span class="lab">token</span><span class="val">0</span></div>
       <div class="metric"><span class="lab">ต้นทุน</span><span class="val">฿0.00</span></div>
@@ -214,10 +215,10 @@ $('compare').addEventListener('click', () => {
       <div class="metric"><span class="lab">network</span><span class="val">เรียก LLM</span></div>
       <div class="metric"><span class="lab">proof</span><span class="val proof">${b.d.blake3_proof.slice(0,12)}…</span></div>
     </div>`;
-  const faster = Math.round(LLM_MS*1000 / parseFloat(a.us));
+  const faster = Math.round(LLM_MS*1000 / Math.max(parseFloat(a.us), 100));   // the clock cannot resolve below 0.1 ms: say 'at least', never divide by 0
   const tk = $('takeaway');
   tk.style.display = 'block';
-  tk.innerHTML = `kernel คัดงานง่ายออกจาก LLM → <b>เร็วกว่า ~${faster.toLocaleString()} เท่า · 0 token · ฿0</b><br>
+  tk.innerHTML = `kernel คัดงานง่ายออกจาก LLM → <b>เร็วกว่าอย่างน้อย ~${faster.toLocaleString()} เท่า (เทียบกับการเรียก LLM ที่สมมติ ~${LLM_MS} ms) · 0 token · ฿0</b><br>
     <span style="color:var(--muted);font-size:14px;font-weight:400">เรียก AI เฉพาะงานที่ซับซ้อนจริง — นี่คือที่มาของ "ลดต้นทุน ~80%"</span>`;
 });
 </script>
