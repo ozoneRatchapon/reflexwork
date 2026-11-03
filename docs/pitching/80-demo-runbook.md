@@ -19,7 +19,8 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 | # | type | the audience sees | say |
 |---|---|---|---|
 | 1 | `อยากสมัครเรียนจิตวิทยาคลินิก` | that programme's card: status (as shown on the Graduate School's site), plans, schedule, buttons to the official pages | "From the school's own announcement, word for word. Status is a dated snapshot — the card says the date." |
-| 2 | `แล้วค่าเทอมล่ะ` | "ตีความว่าถามเรื่องค่าธรรมเนียมของ …" + that programme's fee table, with an *undo* button | "It tells you how it read the question, and lets you say no." |
+| 2 | `แล้วสอบสัมภาษณ์วันไหน` | first line: **สอบสัมภาษณ์: รอบ 2 พ. 24 ก.พ. 2570 · รอบ 3 พ. 21 เม.ย. 2570**, then "ตีความว่าถามเรื่องกำหนดการของ …" with an *undo* button; the rest of the card folded (smoke step 2b) | "Ask one thing, get that thing on the first line. It tells you how it read the question, and lets you say no." |
+| 2x | (do not use) `แล้วค่าเทอมล่ะ` on this programme | its 2570 announcement has **no fee rates**, so the reply is "ยังไม่ระบุอัตรา". Use step 3 for a fee table | |
 | 3 | `ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก` | Thai / international rates per plan | "Straight from the announcement. It adds nothing up and invents nothing." |
 | 4 | `เรียนไรดี` | level → faculty → open now buttons with live counts (379 → 240 → 133 → 12) | "There is no right answer to 'what should I study', so it narrows the official list instead of picking one." |
 | 4b | `อยากทำเกี่ยวกับคอม` (or `ทำงานอะไรดี`) | "no single right answer, I do not predict jobs or pay" + the official list narrowed by area (17 programmes for computer/data) + interest chips + a link to the university's own career-based tool | "If you start from a career, it narrows the official list by your interest and sends you to the university's own recommender. It does not invent career advice." |
@@ -45,6 +46,12 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 - that statuses are live (they are a snapshot, dated on every card).
 - that it "declines when it does not know": on 34 hand-written out-of-scope questions it still answered 13 % (English) / 17 % (Thai) with an unrelated entry (25 % / 39 % before the 2026-11-03 fix) (`docs/METHOD.md` §5 F). If a judge asks something off-topic, the honest line is "it usually declines, not always — we measured it and know why";
 - that it "works in English": it understands English and mixed Thai–English, but **answers in Thai** (it refuses honestly when nothing matches).
+
+## Web only, and protect the AI quota (added 2026-11-03)
+- The stage demo is the **web page only**. LINE uses the same manual, but its search declines off-topic questions less well than the web's. If asked: "there is a LINE channel on the same manual"; do not demo it.
+- **Gemini quota:** on 2026-11-03, after a day of AI-heavy benchmark runs, every model returned `429 RESOURCE_EXHAUSTED`. The page still worked (KB text shown, smoke step 8 = warning).
+  - **Do not run** `odd_e2e`, `coverage_probe` with AI, or `finish31.sh` on 11-06/11-07.
+  - Run `demo_smoke.mjs` once on the morning of the pitch. If step 8 warns, skip demo step 7 (AI rephrase) and keep the `?ai=off` tab ready.
 
 ## If something breaks on stage
 | symptom | what to do |

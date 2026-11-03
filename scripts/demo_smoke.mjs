@@ -78,6 +78,9 @@ has(r, 'จิตวิทยาคลินิก', 'สถานะบนเ�
 // 2) follow-up
 r = await ask('แล้วค่าเทอมล่ะ');
 has(r, 'ตีความว่าถามเรื่อง', 'ค่าธรรมเนียม', 'จิตวิทยาคลินิก') ? ok('2. "แล้วค่าเทอมล่ะ" -> understood as a follow-up about the same programme', `${r.ms} ms`) : bad('2. follow-up question', r.text.slice(0, 100));
+// 2b) answer first: a follow-up about one thing leads with that thing (stage step 2 from 2026-11-03)
+r = await ask('แล้วสอบสัมภาษณ์วันไหน');
+has(r, 'ตีความว่าถามเรื่องกำหนดการ', 'สอบสัมภาษณ์: รอบ') && r.text.indexOf('สอบสัมภาษณ์: รอบ') < r.text.indexOf('สถานะบนเว็บบัณฑิตวิทยาลัย') ? ok('2b. "แล้วสอบสัมภาษณ์วันไหน" -> the interview dates come first, the rest folded', `${r.ms} ms`) : bad('2b. answer-first follow-up', r.text.slice(0, 120));
 // 3) fees of a programme
 r = await ask('ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก');
 has(r, 'เหมาจ่าย', 'บาท/ภาคการศึกษา') ? ok('3. fee table of one programme (Thai and international students)', `${r.ms} ms`) : bad('3. fee table', r.text.slice(0, 100));
