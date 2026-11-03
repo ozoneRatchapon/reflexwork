@@ -141,6 +141,9 @@
   .sg-i{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--line);color:var(--ink)}
   .sg-i:last-child{border-bottom:0}.sg-i:hover,.sg-i.on{background:#15203f;color:var(--accent)}
   .followups{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.followups .fu-h{font-size:12.5px;color:var(--muted)}
+  /* Student view is the default: only the question, the answer and the examples. Judge view (evidence panel ON, or ?view=judge) shows the machinery. */
+  body:not(.judge) .bar, body:not(.judge) .ratio-wrap, body:not(.judge) .mood, body:not(.judge) .judge-only{display:none !important}
+  body:not(.judge) .chip-fast, body:not(.judge) .chip-ai{background:var(--raised);border-color:var(--line);color:var(--accent)}
   .top-inner{position:relative}
   .ai-off-note{margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--auto);border:1px solid rgba(34,197,139,.5);border-radius:999px;padding:3px 12px;background:rgba(34,197,139,.1)}
   .ev-toggle{position:absolute;right:0;bottom:0;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
@@ -276,7 +279,7 @@
 <div class="top">
   <div class="top-inner">
   <div class="org">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
-  <h1>ถาม-ตอบ เรื่องลงทะเบียน & ส่งวิทยานิพนธ์</h1>
+  <h1>ถามเรื่องเรียนต่อ ลงทะเบียน และวิทยานิพนธ์</h1>
   <p>ถามเรื่องสมัครเรียน ค่าเทอม และการส่งวิทยานิพนธ์ — ตอบจากประกาศและคู่มือทางการ ไม่เดา ถ้าไม่แน่ใจจะบอกและพาไปหาเจ้าหน้าที่</p>
   <button type="button" id="ev-toggle" class="ev-toggle" aria-controls="evidence" aria-expanded="true">🔬 ซ่อนหลักฐานเบื้องหลัง</button>
   <div class="mood" id="mood" title="สถานะอารมณ์ของผู้ช่วย — เปลี่ยนตามบทสนทนา (deterministic, ไม่ใช้ AI)">
@@ -288,7 +291,7 @@
 </div>
 
 <div class="wrap" role="main">
-  <details class="howto" id="howto">
+  <details class="howto judge-only" id="howto">
     <summary><span class="howto-t">🗺️ ระบบทำงานยังไง (จากคำถาม → คำตอบ)</span><span class="howto-hint">กดเพื่อดู · มีสวิตช์ดูเบื้องหลังเทคนิค</span></summary>
     <div class="howto-body">
       <label class="sw-toggle"><input type="checkbox" id="swtech"><span class="pip"></span>🔬 เบื้องหลังเทคนิค</label>
@@ -346,7 +349,7 @@
           <div class="ev-ex-line">🎯 เจอในคู่มือ: <b>Turnitin Originality Report</b> (คะแนนความมั่นใจสูง)</div>
           <div class="ev-ex-line">🔒 ลายเซ็นตรวจย้อนหลัง: <code>a1b2c3…</code> (รันซ้ำได้ผลเดิม)</div>
         </div>
-        <div style="font-size:11px;margin-top:10px;opacity:.8">= ระบบคัดเองว่าตอบได้จากคู่มือ จึงไม่เสียค่า AI และพิสูจน์ได้</div>
+        <div style="font-size:11px;margin-top:10px;opacity:.8">= ระบบคัดเองว่าตอบได้จากคู่มือ จึงไม่เสียค่า AI และตรวจสอบย้อนหลังได้</div>
       </div></div>
     </aside>
   </div>
@@ -375,10 +378,10 @@ async function load(){
   const boot=$('boot'); if(boot) boot.remove();
   $('chat').innerHTML = `<div class="msg b greet">
       <div class="g-h">สวัสดีครับ 🦀</div>
-      <div class="g-p">ถามเรื่องกำหนดส่งวิทยานิพนธ์ · Turnitin · ค่าสอบ · หรือหาหลักสูตร / ค่าเทอม / สถานะรับสมัคร ได้เลย</div>
-      <div class="g-cta">👇 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
+      <div class="g-p">ถามเรื่องสมัครเรียน หลักสูตร ค่าเทอม หรือการส่งวิทยานิพนธ์ได้เลย</div>
+      <div class="g-cta">👆 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
     </div>`;
-  $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ค้นคู่มือในเบราว์เซอร์ · ไม่ต้องล็อกอิน';
+  $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+KB.length+' หัวข้อ · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์</span>';
   const seeds=[
     {t:'เรียนไรดี', k:'f'},
     {t:'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก', k:'f'},
@@ -388,10 +391,10 @@ async function load(){
     {t:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์', k:'a'},
   ];
   $('chips').innerHTML =
-    `<div class="chip-hint">ลองกดดู — 🟢 ตอบเองทันที (0 token)${AI_OFF?'':' · 🟠 ส่งให้ AI'}</div>` +
-    '<div class="chip-row">'+seeds.filter(s=>!AI_OFF||s.k!=='a').map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}">${s.k==='a'?'🟠':'🟢'} ${s.t}</span>`).join('')+'</div>';
+    `<div class="chip-hint">ลองถามเรื่องเหล่านี้ได้เลย<span class="judge-only"> — 🟢 ตอบเองทันที (0 token)${AI_OFF?'':' · 🟠 ส่งให้ AI'}</span></div>` +
+    '<div class="chip-row">'+seeds.filter(s=>!AI_OFF||s.k!=='a').map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}" data-q="${_lEsc(s.t)}"><span class="judge-only">${s.k==='a'?'🟠':'🟢'} </span>${_lEsc(s.t)}</span>`).join('')+'</div>';
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
-    $('q').value=c.textContent.replace(/^[🟢🟠]\s*/,''); ask();
+    $('q').value=c.dataset.q; ask();
   }));
   renderMood(false);
 }
@@ -1582,11 +1585,13 @@ $('q').addEventListener('keydown', e=>{
 // 'how it works' swimlane: tech toggle
 (function(){ const cb=$('swtech'), box=$('howto'); if(cb&&box) cb.addEventListener('change',()=>box.classList.toggle('showtech',cb.checked)); })();
 if(AI_OFF){ const t=document.querySelector('.top-inner'); if(t) t.insertAdjacentHTML('beforeend','<div class="ai-off-note">🔒 โหมดไม่ใช้ AI — ตอบจากคู่มือและประกาศทางการเท่านั้น</div>'); }
-// evidence panel: open by default on a wide screen (it is the demo's proof), closed on a phone; the choice is remembered
+// Student view (default): just the question, the answer and examples. Judge view = evidence panel + counters + mood. ?view=judge or ?view=student
+// forces one; otherwise the visitor's last choice is remembered.
 (()=>{ const b=document.getElementById('ev-toggle'), c=document.querySelector('.cols'); if(!b||!c) return;
   let saved=null; try{ saved=localStorage.getItem('rw_ev'); }catch(e){}
-  const set=on=>{ c.classList.toggle('ev-off',!on); b.setAttribute('aria-expanded',String(on)); b.textContent=on?'🔬 ซ่อนหลักฐานเบื้องหลัง':'🔬 ดูหลักฐานเบื้องหลัง'; try{ localStorage.setItem('rw_ev',on?'1':'0'); }catch(e){} };
-  set(saved===null ? innerWidth>=1000 : saved==='1');
+  const view=(new URLSearchParams(location.search)).get('view');
+  const set=on=>{ c.classList.toggle('ev-off',!on); document.body.classList.toggle('judge',on); b.setAttribute('aria-expanded',String(on)); b.textContent=on?'🔬 ซ่อนหลักฐานเบื้องหลัง':'🔬 ดูหลักฐานเบื้องหลัง'; if(!view){ try{ localStorage.setItem('rw_ev',on?'1':'0'); }catch(e){} } };
+  set(view==='judge' ? true : view==='student' ? false : saved==='1');
   b.addEventListener('click',()=>set(c.classList.contains('ev-off'))); })();
 </script>
 </body>

@@ -101,9 +101,9 @@ if (BASE.includes('ai=off')) (!call && has(r, 'Turnitin') ? ok('8. AI-off mode: 
 else if (call && (call.source === 'gemini' || call.source === 'ollama')) ok(`8. advice question -> the LLM proxy answered (source: ${call.source}) and the page showed its rephrasing`, `${(r.ms / 1000).toFixed(1)} s`);
 else (REQUIRE_LLM ? bad : soft)('8. the LLM did NOT answer - the page showed the KB text instead (the demo still works)', call ? (call.failed ? `request failed: ${call.failed} (CORS from a non-production origin?)` : `source: ${call.source}, detail: ${JSON.stringify(call.detail)}`) : 'no request to /llm was made');
 // 9) the meter and the thumbs
-const m0 = await ev(`document.getElementById('ratio-pct').innerText`);
+const m0 = await ev(`document.getElementById('ratio-pct').textContent`);
 await ev(`(()=>{ const b=[...document.querySelectorAll('.fb-b')].filter(x=>/ไม่/.test(x.innerText)).pop(); if(b) b.click(); return !!b; })()`); await wait(1200);
-const m1 = await ev(`({pct:document.getElementById('ratio-pct').innerText, note:document.getElementById('ratio-note').innerText})`);
+const m1 = await ev(`({pct:document.getElementById('ratio-pct').textContent, note:document.getElementById('ratio-note').textContent})`);
 /^\d+% \(\d+\/\d+\)$/.test(m0) && m1.pct === m0 && /ความพอใจ/.test(m1.note) ? ok(`9. meter is a count (${m0}) and a 👎 vote does not move it`) : bad('9. meter / thumbs', `${m0} -> ${m1.pct} | ${m1.note.slice(0, 60)}`);
 // 9a) career-first question: narrows the official list by an area of interest, never predicts jobs/pay, points to the university's own tool
 r = await ask('อยากทำเกี่ยวกับคอม');

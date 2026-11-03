@@ -7,7 +7,7 @@ import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
-const BASE = arg('--url') || 'https://reflexwork.pages.dev/chatbot', OUT = arg('--out') || '/tmp/rw_prod/demo_backup';
+const BASE = arg('--url') || 'https://reflexwork.pages.dev/chatbot?view=judge', OUT = arg('--out') || '/tmp/rw_prod/demo_backup';
 const URL_ = BASE + (BASE.includes('?') ? '&' : '?') + 'api=http://127.0.0.1:9';
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PORT = 9467, wait = ms => new Promise(r => setTimeout(r, ms));

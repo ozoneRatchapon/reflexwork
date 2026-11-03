@@ -28,6 +28,11 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 | 7 | `ช่วยแนะนำเรื่องส่ง Turnitin Originality Report` | the "KB-grounded + rephrased" badge (≈ 3–6 s) | "The LLM only rephrases entries the knowledge base already gave it; figures it prints are checked against them." |
 | 8 | point at the evidence panel | kernel strip, route, replay hash | "Same input, same hash — anyone can replay it." |
 
+## Two views of the chat page (from 2026-11-03)
+- **Default = student view:** only the question box, example chips and answers (no counters, mood chip, evidence panel or jargon). Step 8 of the demo clicks **ดูหลักฐานเบื้องหลัง** to switch to the judge view.
+- **Judge view:** evidence panel + counters + mood chip. Open it from the start with `?view=judge`; force the student view with `?view=student`. The choice is remembered per browser.
+- Backup tab: `reflexwork.pages.dev/chatbot?ai=off` (no AI call).
+
 ## What you can say — and what not (details: `docs/METHOD.md` §6, §8)
 **Say:** facts come from the official pages / the approved FAQ, never from the model · reproducible · +42 points for character trigrams over word tokens on Thai (p < 0.001) · 0 wrong programme cards on 1,915 mistyped names · microseconds to route, milliseconds to retrieve vs hundreds of ms for an LLM call · every claim above has a command that re-measures it.
 
