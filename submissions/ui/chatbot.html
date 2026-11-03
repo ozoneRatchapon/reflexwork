@@ -123,6 +123,12 @@
   .ask button:disabled{opacity:.5}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;color:var(--accent);cursor:pointer}
+  .ask{position:relative}
+  .sg{position:absolute;left:0;right:0;bottom:100%;margin-bottom:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;z-index:20;box-shadow:0 8px 24px -10px rgba(0,0,0,.7)}
+  .sg[hidden]{display:none}
+  .sg-i{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--line);color:var(--ink)}
+  .sg-i:last-child{border-bottom:0}.sg-i:hover,.sg-i.on{background:#15203f;color:var(--accent)}
+  .followups{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.followups .fu-h{font-size:12.5px;color:var(--muted)}
   .ev-bar{display:flex;justify-content:flex-end}
   .ev-toggle{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
   .ev-toggle:hover{color:var(--ink);border-color:var(--accent)}
@@ -303,7 +309,8 @@
         </div>
       </div>
       <div class="ask">
-        <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled />
+        <input id="q" placeholder="เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง" disabled autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="sg" aria-expanded="false" />
+        <div class="sg" id="sg" role="listbox" hidden></div>
         <button id="send" disabled>ถาม</button>
       </div>
       <div class="bar"><span>ตอบจากคู่มือ/ข้อมูลทางการ: <b id="b-auto">0</b></span><span>ไม่พบในคู่มือ (ส่งต่อเจ้าหน้าที่): <b id="b-ai">0</b></span><span title="ประมาณการ ไม่ใช่ค่าที่วัดจากบิลจริง: สมมติว่าถ้าให้ LLM ตอบ แต่ละคำถามจะมีต้นทุนราว ฿2">ประหยัดโดยประมาณ (฿2/คำถาม): <b id="b-saved">฿0</b></span></div>
@@ -1051,7 +1058,7 @@ function starterEntries(){
   return out;
 }
 
-function ask(){
+function _askCore(){
   if(!ready) return;
   const typed=$('q').value.trim(); if(!typed) return;
   add('u', typed); $('q').value='';
@@ -1454,7 +1461,49 @@ async function sendFeedback(id, reward){
 // global: without this line every click threw ReferenceError and no vote ever reached the kernel (nor the satisfaction score).
 window.sendFeedback = sendFeedback;
 $('send').addEventListener('click', ask);
-$('q').addEventListener('keydown', e=>{ if(e.key==='Enter') ask(); });
+// ---- suggestions: (1) after an answer, "ask next"; (2) while typing, matching questions. Deterministic, 0 token, from the KB.
+function ask(){
+  const typed=$('q').value.trim(); closeTypeahead();
+  _askCore();
+  if(!typed) return;
+  try{ addFollowUps(typed); }catch(_){}
+}
+const _FU_PROG=['แล้วค่าเทอมล่ะ','มีทุนไหม'];
+function addFollowUps(typed){
+  const bots=[...$('chat').querySelectorAll('.msg.b')], last=bots[bots.length-1]; if(!last||last.querySelector('.dislist,.followups,.finder')) return;
+  const q=normChat(typed)||typed; let picks=[];
+  if(PCTX) picks=_FU_PROG;                                  // a programme card is on screen: its fees / scholarships are the natural next questions
+  else { const t=last.querySelector('.topic'); if(!t) return;  // only after a knowledge-base answer
+    const shown=t.textContent.replace(/^(?:หัวข้อ|อ้างอิง):\s*/,'').trim();
+    picks=search(q).filter(r=>r.s>=2 && r.e.title!==shown).slice(0,3).map(r=>r.e.title);
+    const cur=KB.find(e=>e.title===shown);               // too few close matches: top up with other entries of the same topic area
+    if(cur && cur.category) for(const e of KB){ if(picks.length>=3) break; if(e.category===cur.category && e.title!==shown && !picks.includes(e.title)) picks.push(e.title); } }
+  if(!picks.length) return;
+  const box=document.createElement('div'); box.className='followups';
+  box.innerHTML='<span class="fu-h">ถามต่อ:</span>'+picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('');
+  box.querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value=el.dataset.t; ask(); }));
+  last.appendChild(box);
+}
+let _sgIdx=-1;
+function closeTypeahead(){ const b=document.getElementById('sg'); if(b){ b.hidden=true; b.innerHTML=''; } _sgIdx=-1; $('q').setAttribute('aria-expanded','false'); }
+function typeahead(){
+  if(!ready) return; const v=$('q').value.trim(); const b=document.getElementById('sg');
+  if(v.length<2){ closeTypeahead(); return; }
+  const seen=new Set(), out=[];
+  for(const r of search(normChat(v)||v)){ if(r.s>=2 && !seen.has(r.e.title)){ seen.add(r.e.title); out.push(r.e.title); if(out.length>=4) break; } }
+  for(const t of ['เรียนไรดี','ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก','ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร','ค่าสอบ MU GRAD Plus เท่าไร']) if(out.length<5 && !seen.has(t) && t.toLowerCase().includes(v.toLowerCase())){ seen.add(t); out.push(t); }
+  if(!out.length){ closeTypeahead(); return; }
+  b.innerHTML=out.map((t,i)=>`<div class="sg-i" role="option" data-t="${_lEsc(t)}" id="sg${i}">${_lEsc(t)}</div>`).join(''); b.hidden=false; _sgIdx=-1; $('q').setAttribute('aria-expanded','true');
+  b.querySelectorAll('.sg-i').forEach(el=>el.addEventListener('mousedown',e=>{ e.preventDefault(); $('q').value=el.dataset.t; ask(); }));
+}
+$('q').addEventListener('input', typeahead);
+$('q').addEventListener('blur', ()=>setTimeout(closeTypeahead,120));
+$('q').addEventListener('keydown', e=>{
+  const b=document.getElementById('sg'), items=b&&!b.hidden?[...b.querySelectorAll('.sg-i')]:[];
+  if(items.length && (e.key==='ArrowDown'||e.key==='ArrowUp')){ e.preventDefault(); _sgIdx=(_sgIdx+(e.key==='ArrowDown'?1:-1)+items.length)%items.length; items.forEach((x,i)=>x.classList.toggle('on',i===_sgIdx)); return; }
+  if(e.key==='Escape'){ closeTypeahead(); return; }
+  if(e.key==='Enter'){ if(items.length && _sgIdx>=0) $('q').value=items[_sgIdx].dataset.t; ask(); }
+});
 // 'how it works' swimlane: tech toggle
 (function(){ const cb=$('swtech'), box=$('howto'); if(cb&&box) cb.addEventListener('change',()=>box.classList.toggle('showtech',cb.checked)); })();
 // evidence panel: open by default on a wide screen (it is the demo's proof), closed on a phone; the choice is remembered
