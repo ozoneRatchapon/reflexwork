@@ -94,6 +94,10 @@
   .meta{font-size:11px;color:var(--muted);margin-top:6px}
   /* technical lines (score, rule, kernel timings) are for judges: they follow the 'show evidence' switch, a student sees the answer */
   .cols.ev-off .msg.b .meta,.cols.ev-off .kernel-strip{display:none}
+  .skel{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+  .skel i{display:block;height:10px;width:100%;border-radius:6px;background:linear-gradient(90deg,var(--line) 25%,#33426f 50%,var(--line) 75%);background-size:200% 100%;animation:skel 1.4s ease-in-out infinite}
+  @keyframes skel{from{background-position:200% 0}to{background-position:-200% 0}}
+  @media (prefers-reduced-motion:reduce){.skel i{animation:none}}
   .src-badge{display:none;align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:8px;border:1px solid}
   .cols.ev-off .src-badge{display:inline-block}
   .src-badge.official{color:var(--auto);border-color:rgba(34,197,139,.5);background:rgba(34,197,139,.1)}
@@ -1280,7 +1284,7 @@ function _askCore(){
       const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔀 KB-grounded + เรียบเรียงโดย local AI ${stageTag}</span>
-        <div class="ans" id="${mid}"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงจากคู่มือ…</div>
+        <div class="ans" id="${mid}"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงจากคู่มือ…<div class="skel" aria-hidden="true"><i></i><i></i><i style="width:55%"></i></div></div>
         <span class="topic">อ้างอิง: ${hit.title}</span>
         <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
         ${srcH}
