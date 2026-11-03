@@ -21,7 +21,7 @@ check('a weak match (score < 4) is not an answer', understand(['อ่อน']).
 check('phrases pointing at different entries -> offer them, do not pick', (u => u.kind === 'many' && u.entries.length === 2)(understand(['ลาพัก', 'ลาออก'])));
 check('no phrases (model down / NONE) -> old behaviour', understand([]).kind === 'none');
 check('?ai=off and no proxy skip the AI step entirely', /if\(!LLM_API \|\| AI_OFF\)\{ showNotFound\(\); return; \}/.test(page) && /async function rewriteQuery\(q\)\{\n  if\(!LLM_API \|\| AI_OFF\) return \[\];/.test(page));
-check('the answer text is the manual entry (humanize), never model text', /\$\{linkify\(humanize\(hit, q\), LINKS\)\}<\/div>\n      \$\{kbSteps\(hit\)\}/.test(page));
+check('the answer text is the manual entry (kbBody), never model text', /\$\{kbBody\(hit, q\)\}<\/div>\n      \$\{kbSteps\(hit\)\}/.test(page));
 check('the student sees how the question was read, with a way out', /VOICE\.understoodLead\} <b>\$\{_lEsc\(hit\.title\)\}<\/b> <span class="dis" id="\$\{uid\}">\$\{VOICE\.notThis\}/.test(page));
 check('the rewrite call has a timeout', /\/rewrite',\{[\s\S]{0,200}AbortSignal\.timeout\(9000\)/.test(page));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

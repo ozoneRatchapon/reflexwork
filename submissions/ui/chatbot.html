@@ -1537,7 +1537,7 @@ function _askCore(){
       const hit = u.entry, uid='un'+(++fbN);   // counted as an AI turn (ai++ above): the rewrite is an LLM call
       add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือ · 🧠 AI ช่วยตีความคำถาม ${stageTag}</span>
-      <div class="ans">${VOICE.understoodLead} <b>${_lEsc(hit.title)}</b> <span class="dis" id="${uid}">${VOICE.notThis}</span>\n\n${linkify(humanize(hit, q), LINKS)}</div>
+      <div class="ans">${VOICE.understoodLead} <b>${_lEsc(hit.title)}</b> <span class="dis" id="${uid}">${VOICE.notThis}</span>\n\n${kbBody(hit, q)}</div>
       ${kbSteps(hit)}
       <span class="topic">ที่มา: ${hit.title}</span>
       <div class="meta">ค้นตรงไม่เจอ → AI แปลงคำถามเป็นคำค้น "${_lEsc(u.via)}" → ค้นคู่มือเจอข้อเดียวชัด (score ${u.score}) · คำตอบเป็นข้อความคู่มือ AI ไม่ได้เขียน</div>
