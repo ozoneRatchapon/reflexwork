@@ -11,7 +11,9 @@
 pub mod answer;
 pub mod catalogue;
 pub mod decide;
+pub mod intake;
 pub mod resolve;
+mod re;
 pub mod understand;
 
 use blake3::Hasher;
@@ -529,12 +531,17 @@ mod tests {
     }
 }
 
+/// Serialise for JS the way the page's own functions return values: `None` is `null` (not `undefined`), also inside objects.
+fn to_js<T: serde::Serialize>(v: &T) -> JsValue {
+    v.serialize(&serde_wasm_bindgen::Serializer::new().serialize_missing_as_null(true)).unwrap_or(JsValue::NULL)
+}
+
 // ─── Answer formatting (.plans/002 step 1; contract: benchmark/golden/answer_points.json) ─────────────────────
 
 /// The manual's own words cut into short points (port of chatbot.html `answerPoints`).
 #[wasm_bindgen]
 pub fn answer_points(body: &str) -> JsValue {
-    serde_wasm_bindgen::to_value(&answer::answer_points(body)).unwrap_or(JsValue::NULL)
+    to_js(&answer::answer_points(body))
 }
 
 /// The number a question asks for, taken from the answer (port of chatbot.html `slotLead`); "" when none.
@@ -548,19 +555,19 @@ pub fn slot_lead(answer: &str, question: &str) -> String {
 #[wasm_bindgen]
 pub fn decide_tier(gate: f64, scores: Vec<f64>) -> JsValue {
     let g = (!gate.is_nan()).then_some(gate);
-    serde_wasm_bindgen::to_value(&decide::decide_tier(g, &scores)).unwrap_or(JsValue::NULL)
+    to_js(&decide::decide_tier(g, &scores))
 }
 
 /// Admission schedule of one programme as `{cols, rows, notes, list}` (port of `_pSchedule`, data part).
 #[wasm_bindgen]
 pub fn schedule_table(lines: Vec<String>) -> JsValue {
-    serde_wasm_bindgen::to_value(&catalogue::schedule_table(&lines)).unwrap_or(JsValue::NULL)
+    to_js(&catalogue::schedule_table(&lines))
 }
 
 /// Fee table of one programme as `{rows, notes}` (port of `_pFee`).
 #[wasm_bindgen]
 pub fn fee_table(lines: Vec<String>) -> JsValue {
-    serde_wasm_bindgen::to_value(&catalogue::fee_table(&lines)).unwrap_or(JsValue::NULL)
+    to_js(&catalogue::fee_table(&lines))
 }
 
 /// The programme catalogue, indexed once, so each question only pays for matching (port of `resolveProgramme`).
@@ -580,7 +587,7 @@ impl Resolver {
 
     /// `{kind: "one"|"many"|"broad", codes, topic, via, levelMissing, total}` or `null`. `loose` = nearest names only.
     pub fn resolve(&self, q: &str, loose: bool) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.inner.resolve(q, loose)).unwrap_or(JsValue::NULL)
+        to_js(&self.inner.resolve(q, loose))
     }
 }
 
@@ -589,5 +596,23 @@ impl Resolver {
 #[wasm_bindgen]
 pub fn understand(phrases: Vec<String>, results: JsValue) -> JsValue {
     let rows: Vec<Vec<understand::Hit>> = serde_wasm_bindgen::from_value(results).unwrap_or_default();
-    serde_wasm_bindgen::to_value(&understand::understand(&phrases, &rows)).unwrap_or(JsValue::NULL)
+    to_js(&understand::understand(&phrases, &rows))
+}
+
+/// `{kind: "personal", category, label}` for a personal/technical issue that needs staff, else `null` (port of `classifyIssue`).
+#[wasm_bindgen]
+pub fn classify_issue(text: &str) -> JsValue {
+    to_js(&intake::classify_issue(text))
+}
+
+/// Open-ended advice question (rephrase-worthy), not a factual lookup (port of `isAdvice`).
+#[wasm_bindgen]
+pub fn is_advice(q: &str) -> bool {
+    intake::is_advice(q)
+}
+
+/// Latin letters and no Thai letters (port of `isEnglish`).
+#[wasm_bindgen]
+pub fn is_english(q: &str) -> bool {
+    intake::is_english(q)
 }

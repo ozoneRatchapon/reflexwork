@@ -1,41 +1,8 @@
-//! The page's regexes, compiled once. They are used verbatim (`patterns_src.rs`); only JS-only syntax is translated:
-//! `\s` / `\S` (the ECMAScript whitespace set), `\d` (ASCII digits) and `\b` (ASCII word boundary).
-use super::patterns_src::{Re, ASKS, DEGREE, FUNC, INTENT, LEAD, LEVELS, OTHER, QUAL, TAIL, TOPICS};
-use regex_lite::{Regex, RegexBuilder};
+//! The programme-matching regexes of the page, compiled once (see `crate::re` for how JS syntax is translated).
+use super::patterns_src::{ASKS, DEGREE, FUNC, INTENT, LEAD, LEVELS, OTHER, QUAL, TAIL, TOPICS};
+use crate::re::{compile, compile_src};
+use regex_lite::Regex;
 use std::sync::OnceLock;
-
-const WS: &str = r"\t-\r \u{a0}\u{1680}\u{2000}-\u{200a}\u{2028}\u{2029}\u{202f}\u{205f}\u{3000}\u{feff}";
-
-fn translate(src: &str) -> String {
-    let mut out = String::with_capacity(src.len() + 32);
-    let mut it = src.chars();
-    while let Some(c) = it.next() {
-        if c != '\\' {
-            out.push(c);
-            continue;
-        }
-        match it.next() {
-            Some('s') => out.push_str(&format!("[{WS}]")),
-            Some('S') => out.push_str(&format!("[^{WS}]")),
-            Some('d') => out.push_str("[0-9]"),
-            Some('b') => out.push_str(r"\b"),
-            Some(n) => {
-                out.push('\\');
-                out.push(n);
-            }
-            None => out.push('\\'),
-        }
-    }
-    out
-}
-
-fn compile_src(src: &str, flags: &str) -> Regex {
-    RegexBuilder::new(&translate(src)).case_insensitive(flags.contains('i')).build().expect("page regex compiles")
-}
-
-fn compile(re: &Re) -> Regex {
-    compile_src(re.src, re.flags)
-}
 
 /// `_P_LEAD` uses three lookaheads, which this regex engine lacks. Each becomes a capture group; the match is then cut where the
 /// lookahead would have stopped (la1, la2: the group's start; la3 is whitespace the pattern's own `\s*` would have eaten anyway).
