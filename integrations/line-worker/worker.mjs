@@ -31,7 +31,7 @@ const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
 // every entry whose title contains "วิธี".
 const STOP_GRAMS = new Set(['วิธี', 'ทำอ', 'ทำย', 'การ', 'ได้', 'อย่', 'ย่า', 'งไร', 'ไหม', 'เท่', 'ท่า', 'าไร']);
 
-function searchKB(q) {
+export function searchKB(q, kb = KB) {
   const ql = (q || '').toLowerCase();
   const grams = new Set();
   // Space-separated tokens. Latin/number tokens (turnitin, 25, grad) are highly
@@ -48,7 +48,7 @@ function searchKB(q) {
     if (g.length === 3 && !STOP_GRAMS.has(g)) { grams.add(g); if (!weight.has(g)) weight.set(g, 1); }
   }
   const scored = [];
-  for (const e of KB) {
+  for (const e of kb) {
     let s = 0;
     for (const g of grams) if (e.keywords.includes(g)) s += (weight.get(g) || 1);
     if (s > 0) scored.push({ e, s });
@@ -61,8 +61,8 @@ function searchKB(q) {
 //   confident  -> answer from the manual (0 token)
 //   ambiguous  -> offer the top matches so the user picks (guards typos/ambiguity)
 //   escalate   -> no KB hit, hand to the LLM
-function pickFromKB(q, gate) {
-  const ranked = searchKB(q);
+export function pickFromKB(q, gate, kb = KB) {
+  const ranked = searchKB(q, kb);
   if (!ranked.length) return { tier: 'escalate', stage: 'reflex', reason: 'ไม่พบในคู่มือ' };
   // Delegate to the shared rethink layer (System 1 / System 2). It recovers a
   // FastPath answer in the borderline band instead of paying for an LLM.
@@ -150,6 +150,9 @@ async function answerLLM(text, env) {
   return r.ok ? { text: r.text, ok: true } : { text: LLM_UNAVAILABLE, ok: false };
 }
 
+// Footers: students see a plain source label (like the web's "✅ ข้อมูลทางการ"); the engineering trail (route, 0 token,
+// rethink, BLAKE3 fingerprint) only when the worker runs with LINE_VIEW=judge (the web's ?view=judge). Staff, 2026-11-03.
+const footerFor = (env, student, judge) => (env && env.LINE_VIEW === 'judge') ? judge : student;
 async function reply(replyToken, text, footer, token) {
   const body = footer ? text + footer : text;
   if (!token) return; // PoC: no credentials → skip actual LINE call
@@ -203,7 +206,7 @@ async function processEvents(raw, env) {
       const _st = classifySmalltalk(text);
       if (_st) {
         const mood = createMood().felt(_st === 'thanks' ? 'thanks' : 'neutral');
-        await reply(ev.replyToken, smalltalkReply(_st, mood), '\n\n💬 คุยทั่วไป · ไม่เรียก AI · 0 token', token);
+        await reply(ev.replyToken, smalltalkReply(_st, mood), footerFor(env, '', '\n\n💬 คุยทั่วไป · ไม่เรียก AI · 0 token'), token);
         continue;
       }
 
@@ -239,11 +242,11 @@ async function processEvents(raw, env) {
           const r = await askTeam(ground, bag).catch(() => ({ ok: false }));
           if (r.ok && r.text) {
             answer = `${r.text}${src}`;
-            footer = `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`;
+            footer = footerFor(env, `\n\n🤖 AI ช่วยเรียบเรียงจากคู่มือ · อ้างอิง: ${pick.entry.title}`, `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`);
           } else {
             // AI unavailable → fall back to the raw KB answer (still correct)
             answer = `${readableText(pick.entry, text)}${src}`;
-            footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+            footer = footerFor(env, '\n\n✅ ข้อมูลทางการจากคู่มือ', `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
           }
         } else {
           // Guided steps as a numbered list when the entry carries them.
@@ -251,12 +254,12 @@ async function processEvents(raw, env) {
             ? `\n\nทำตามขั้นตอน:\n${pick.entry.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
             : '';
           answer = `${readableText(pick.entry, text)}${steps}${src}`;
-          footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+          footer = footerFor(env, '\n\n✅ ข้อมูลทางการจากคู่มือ', `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
         }
       } else if (pick.tier === 'ambiguous') {
         const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
         answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
-        footer = `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI${stageTag}`;
+        footer = footerFor(env, '', `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI${stageTag}`);
       } else {
         // Gap log: KB could not answer → record it for the staff backlog
         // (fire-and-forget; a logging failure must never block the reply).
@@ -271,7 +274,7 @@ async function processEvents(raw, env) {
         const issue = classifyIssue(text);
         if (issue) {
           answer = intakePrompt(issue.category);
-          footer = `\n\n🦀 คัดเป็น “${issue.label}” · ส่งต่อเจ้าหน้าที่ (เก็บข้อมูลให้ครบก่อน)${proof ? `\n🔒 ${proof}…` : ''}`;
+          footer = footerFor(env, '', `\n\n🦀 คัดเป็น “${issue.label}” · ส่งต่อเจ้าหน้าที่ (เก็บข้อมูลให้ครบก่อน)${proof ? `\n🔒 ${proof}…` : ''}`);
         } else {
           const llm = await answerLLM(text, env);
           if (llm.ok) {
@@ -279,7 +282,7 @@ async function processEvents(raw, env) {
             // chat, so tell the user staff can verify/continue here (no external
             // "contact us" button: they are already in the staff conversation).
             answer = `${llm.text}\n\n(ร่างโดยผู้ช่วย AI — เดี๋ยวเจ้าหน้าที่ตรวจและตอบเพิ่มในแชทนี้ได้ครับ)`;
-            footer = `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
+            footer = footerFor(env, '', `\n\n🦀 LLM path · ตอบโดย AI${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
           } else {
             answer = llm.text;   // fallback already says staff will reply here
             footer = '';
