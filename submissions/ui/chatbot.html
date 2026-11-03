@@ -483,7 +483,7 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
   if(cls==='b'){
     // Student-facing source badge (the technical route chips go to the evidence panel and are hidden with it).
     if(!d.classList.contains('greet')){
-      const raw=html, ai=/เรียบเรียงโดย local AI/.test(raw), official=/class="route auto"[^>]*>[^<]*(ตอบจากคู่มือ|ตรงหลักสูตร|แคตตาล็อกทางการ|ถามต่อจากหลักสูตร)/.test(raw);
+      const raw=html, ai=/AI ช่วยเรียบเรียง/.test(raw), official=/class="route auto"[^>]*>[^<]*(ตอบจากคู่มือ|ตรงหลักสูตร|แคตตาล็อกทางการ|ถามต่อจากหลักสูตร)/.test(raw);
       if(ai||official){ const b=document.createElement('div'); b.className='src-badge '+(ai?'ai':'official'); b.textContent=ai?'🤖 AI ช่วยเรียบเรียง จากข้อมูลทางการ':'✅ ข้อมูลทางการ'; d.insertBefore(b,d.firstChild); }
     }
     const ev = d.querySelectorAll(EV_SEL);
@@ -1045,6 +1045,8 @@ function classifySmalltalk(text){
 // A message that names a real topic is a question, not small talk: "อยากรู้ว่าค่าเทอมที่นี่เป็นยังไงบ้าง" contains the
 // how-are-you phrase "เป็นยังไงบ้าง" and used to get "สบายดีครับ". (Guard lives here; the Rust classifier is unchanged.)
 const _HAS_TOPIC=/ค่าเทอม|ค่าเล่าเรียน|ค่าธรรมเนียม|ค่าใช้จ่าย|ค่าสอบ|ทุน|หลักสูตร|สาขา|สมัคร|ลงทะเบียน|วิทยานิพนธ์|turnitin|tuition|\bfees?\b|programme|scholarship/i;
+// The model answers with a little markdown (**bold**, "* " bullets). linkify() has already escaped the text, so we only add <b> and bullets.
+function mdLite(html){ return String(html).replace(/\*\*([^*]{1,120}?)\*\*/g,'<b>$1</b>').replace(/^[ \t]*[*-][ \t]+/gm,'• '); }
 function smalltalkReply(kind){
   const op = MOOD.greetOpener();
   switch(kind){
@@ -1124,15 +1126,16 @@ function _askCore(){
   // The KERNEL decides the route — this is the real sigmoid gate running in WASM,
   // not a keyword lookup. We show its actual decision + reproducible proof.
   const d=route_task('DataQuery', q, 2048, Number(128));
-  const us=((performance.now()-t0)*1000).toFixed(0);
+  const us=((performance.now()-t0)*1000);   // browsers round performance.now() to 0.1 ms, so below that we say so instead of printing a fake '0 µs'
+  const usLabel = us<100 ? '< 0.1 ms' : (us/1000).toFixed(1)+' ms';
   const complexity = (typeof d.gate_dim8_complexity==='number') ? d.gate_dim8_complexity.toFixed(3) : '—';
 
   // kernel decision strip — always shown, proves it's a decision engine not a search box
   const kstrip = `<div class="kernel-strip">
       <span class="kbadge ${d.fast_path?'kf':'kl'}">🦀 kernel: ${d.route}</span>
       <span class="km">gate θ=0.72 · ความซับซ้อน ${complexity}${typeof d.gate_score==='number'?` · g=${d.gate_score.toFixed(3)}`:''}</span>
-      <span class="km">⚡ ${us} µs</span>
-      <span class="km">💰 ${d.fast_path?'0 token':'LLM path'}</span>
+      <span class="km" title="นาฬิกาเบราว์เซอร์ละเอียดแค่ 0.1 ms; ตัวเลขละเอียดกว่านี้วัดใน benchmark/compare/latency.mjs">⚡ ${usLabel}</span>
+      <span class="km" title="นับเฉพาะขั้นคัดกรองเส้นทาง; ถ้าคำตอบใช้ AI ช่วยเรียบเรียง จะมีป้ายบอกที่หัวคำตอบ">💰 ขั้นคัดกรอง: ${d.fast_path?'0 token':'ส่งต่อ AI'}</span>
     </div>
     <div class="proof-full">🔒 BLAKE3 fingerprint: <code>${d.blake3_proof}</code><br>
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ fingerprint เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
@@ -1286,7 +1289,7 @@ function _askCore(){
       const mid='hyb'+(++fbN);
       const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
       add('b', `${kstrip}
-        <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔀 KB-grounded + เรียบเรียงโดย local AI ${stageTag}</span>
+        <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔀 KB-grounded + AI ช่วยเรียบเรียง ${stageTag}</span>
         <div class="ans" id="${mid}"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงจากคู่มือ…<div class="skel" aria-hidden="true"><i></i><i></i><i style="width:55%"></i></div></div>
         <span class="topic">อ้างอิง: ${hit.title}</span>
         <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
@@ -1294,7 +1297,7 @@ function _askCore(){
         ${fbUI(q, d.blake3_proof, hit.id)}`);
       groundedHybrid(q, ranked.map(r=>r.e)).then(ans=>{
         const n=document.getElementById(mid);
-        if(n) n.innerHTML = linkify(ans || humanize(hit, q), LINKS);   // fall back to raw KB if AI unavailable; linkify escapes (LLM text is untrusted)
+        if(n) n.innerHTML = ans ? mdLite(linkify(ans, LINKS)) : linkify(humanize(hit, q), LINKS);   // fall back to raw KB if AI unavailable; linkify escapes (LLM text is untrusted)
       });
       $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
       return;
