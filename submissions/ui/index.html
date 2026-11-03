@@ -38,47 +38,40 @@
   .tile.dash{border-top:3px solid var(--audit)}
   .foot{max-width:900px;margin:0 auto;padding:0 6vw 6vh;text-align:center;color:var(--muted);font-size:13px}
   @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .cta{display:inline-block;margin:18px 0 6px;padding:14px 28px;border-radius:999px;background:#5b8cff;color:#071022;font-weight:800;font-size:18px;text-decoration:none}
+  .cta:hover{filter:brightness(1.1)}
+  .behind{max-width:1000px;margin:34px auto 0;padding:0 16px}
+  .behind h2{font-size:18px;margin-bottom:10px}.behind h2 span{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px}
 </style>
 </head>
 <body>
 <!-- ReflexWork-nav -->
 <nav style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:10px 16px;background:#0b1020;border-bottom:1px solid #2a3660;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans Thai',sans-serif;position:sticky;top:0;z-index:50">
   <a href="./index.html" style="font-weight:800;color:#5b8cff;background:#121a33;text-decoration:none;margin-right:14px;font-size:15px;padding:6px 12px;border-radius:8px">🦀 ReflexWork</a>
-  <a href="./try.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ลองใน browser</a>
-  <a href="./chatbot.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">แชตบอต</a>
+  <a href="./chatbot.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ถามคำถาม</a>
   <a href="./student-desk.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">ยื่นคำร้อง</a>
-  <a href="./dashboard.html" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">แดชบอร์ด</a>
+  <a href="./index.html#behind" style="color:#9fb0d8;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:14px">เบื้องหลังระบบ</a>
   <span style="flex:1"></span>
-  <span style="color:#5b8cff;font-size:12px">ตัวคัดกรองเดียว · 4 มุมมอง</span>
 </nav>
 
 <div class="hero">
-  <div class="kicker">Mahidol AI Community 2026 · AI Adoption with Kiro</div>
-  <h1>คัดงานด้วย <span class="g">reflex</span><br/>ก่อนเรียก AI</h1>
-  <div class="sub">Reflex Kernel ตัดสินใน ~12 นาโนวินาที ว่างานไหนตอบเองได้ (0 token) งานไหนต้องใช้ AI จริง — ลดต้นทุน ~80% + ตรวจสอบย้อนหลังได้ด้วย BLAKE3</div>
+  <div class="kicker">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
+  <h1>ถามเรื่องเรียนต่อบัณฑิตมหิดล<br/>ได้คำตอบจากแหล่งทางการ</h1>
+  <div class="sub">ตอบจากประกาศและคู่มือของบัณฑิตวิทยาลัยโดยตรง ไม่เดาเอง · ถ้าไม่แน่ใจจะบอกและพาไปหาเจ้าหน้าที่</div>
+  <a class="cta" href="./chatbot.html">💬 เริ่มถามเลย →</a>
   <div class="stats">
-    <div class="stat a"><div class="n">~80%</div><div class="l">ลดต้นทุน AI</div></div>
-    <div class="stat b"><div class="n">µs</div><div class="l">ตัดสินใจระดับไมโครวินาที</div></div>
-    <div class="stat c"><div class="n">BLAKE3</div><div class="l">ตรวจสอบย้อนหลังได้ทุกคำตอบ</div></div>
-  </div>
-  <div class="how">
-    คำถาม/งาน <span class="ar">→</span> <span class="k">🦀 ตัวคัดกรอง (Reflex Kernel)</span> <span class="ar">→</span>
-    ตอบเองทันที (ฟรี 0 token) <span class="ar">/</span> ส่ง AI เฉพาะที่จำเป็น <span class="ar">→</span> ลายเซ็นตรวจย้อนหลัง (BLAKE3)
+    <div class="stat a"><div class="n">379</div><div class="l">หลักสูตรจากประกาศทางการ</div></div>
+    <div class="stat b"><div class="n">85%</div><div class="l">ตอบจากคู่มือ ไม่ใช้ AI (ชุดทดสอบ 44/52 ข้อ)</div></div>
+    <div class="stat c"><div class="n">0</div><div class="l">การ์ดผิด จากชื่อพิมพ์ผิด 1,915 แบบ</div></div>
   </div>
 </div>
 
 <div class="grid">
-  <a class="tile try" href="./try.html">
-    <div class="ic">🦀</div>
-    <div class="t">ลองใน browser</div>
-    <div class="d">เห็น "เครื่องยนต์" ทำงานดิบ ๆ — พิมพ์งานแล้วดูตัวคัดกรองตัดสินว่า "ตอบเอง / ส่ง AI" + ลายเซ็นตรวจย้อนหลังทันที (รันในเบราว์เซอร์ 100% ไม่มี backend). มีปุ่มเทียบ "ตอบเอง vs ส่ง AI" ข้างกัน</div>
-    <span class="who">เริ่มที่นี่ · สำหรับกรรมการ/dev</span>
-  </a>
   <a class="tile chat" href="./chatbot.html">
     <div class="ic">💬</div>
-    <div class="t">แชตบอต</div>
-    <div class="d">ถาม-ตอบเรื่องลงทะเบียน/วิทยานิพนธ์ — ตอบจากคู่มือทันทีถ้ารู้ ส่ง AI เฉพาะที่ไม่รู้ ทุกคำตอบโชว์การตัดสินใจ + ลายเซ็นตรวจย้อนหลัง + ปุ่ม 👍/👎 ให้ระบบเรียนรู้</div>
-    <span class="who">สำหรับนักศึกษา</span>
+    <div class="t">ถามคำถาม</div>
+    <div class="d">หาหลักสูตร ค่าเทอม สถานะรับสมัคร กำหนดส่งวิทยานิพนธ์ Turnitin ค่าสอบ — พิมพ์ภาษาไทยหรืออังกฤษได้ (ตอบเป็นภาษาไทย)</div>
+    <span class="who">สำหรับนักศึกษา · เริ่มที่นี่</span>
   </a>
   <a class="tile desk" href="./student-desk.html">
     <div class="ic">📝</div>
@@ -86,16 +79,22 @@
     <div class="d">ฟอร์มยื่นคำร้อง + มุมมองเจ้าหน้าที่ว่าวันนี้มีคำร้องอะไรเข้ามา ระบบคัดให้ว่าเรื่องไหนตอบเองได้ เรื่องไหนส่งต่อ</div>
     <span class="who">สำหรับนักศึกษา + เจ้าหน้าที่</span>
   </a>
-  <a class="tile dash" href="./dashboard.html">
-    <div class="ic">📊</div>
-    <div class="t">แดชบอร์ด</div>
-    <div class="d">ภาพรวมผู้บริหาร: สัดส่วน "ตอบเอง vs ส่ง AI" + บันทึกการตัดสินใจที่รันซ้ำได้ผลเดิม — เห็นว่าประหยัดไปเท่าไหร่ และตรวจสอบได้ตาม PDPA</div>
-    <span class="who">สำหรับผู้บริหาร/ผู้ตรวจสอบ</span>
-  </a>
+</div>
+
+<div class="behind" id="behind">
+  <h2>เบื้องหลังระบบ <span>สำหรับกรรมการ ผู้ตรวจสอบ และนักพัฒนา</span></h2>
+  <div class="grid">
+    <a class="tile try" href="./try.html"><div class="ic">🦀</div><div class="t">ลองใน browser</div>
+      <div class="d">เห็นตัวคัดกรอง (Reflex Kernel) ตัดสินว่า "ตอบเอง / ส่ง AI" แบบดิบ ๆ รันในเบราว์เซอร์ 100% ไม่มี backend</div></a>
+    <a class="tile dash" href="./dashboard.html"><div class="ic">📊</div><div class="t">แดชบอร์ด</div>
+      <div class="d">สัดส่วน "ตอบเอง vs ส่ง AI" และบันทึกการตัดสินใจที่รันซ้ำได้ผลเดิม (ลายนิ้วมือ BLAKE3 ใช้ตรวจว่าเป็นอินพุตเดียวกัน ไม่ใช่การพิสูจน์ว่าคำตอบถูก)</div></a>
+    <a class="tile try" href="./pitch.html"><div class="ic">🎤</div><div class="t">สไลด์และเอกสารนำเสนอ</div>
+      <div class="d">แนวคิด วิธีวัด และข้อจำกัดที่รู้อยู่ (วิธีวัดเต็มอยู่ใน docs/METHOD.md)</div></a>
+  </div>
 </div>
 
 <div class="foot">
-  ทั้ง 4 หน้าใช้ <b style="color:var(--ink)">Reflex Kernel ตัวเดียวกัน</b> — ต่างแค่มุมมองสำหรับผู้ใช้คนละกลุ่ม<br/>
+  ทุกหน้าใช้ <b style="color:var(--ink)">Reflex Kernel ตัวเดียวกัน</b> — ต่างแค่มุมมองสำหรับผู้ใช้คนละกลุ่ม<br/>
   Ratchapon (Ozone) · Napatsakorn · Built with Kiro + Amazon Bedrock
 </div>
 </body>
