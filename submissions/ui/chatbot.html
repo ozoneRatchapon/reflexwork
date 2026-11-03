@@ -142,6 +142,7 @@
   .sg-i:last-child{border-bottom:0}.sg-i:hover,.sg-i.on{background:#15203f;color:var(--accent)}
   .followups{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.followups .fu-h{font-size:12.5px;color:var(--muted)}
   .top-inner{position:relative}
+  .ai-off-note{margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--auto);border:1px solid rgba(34,197,139,.5);border-radius:999px;padding:3px 12px;background:rgba(34,197,139,.1)}
   .ev-toggle{position:absolute;right:0;bottom:0;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
   .ev-toggle:hover{color:var(--ink);border-color:var(--accent)}
   .cols.ev-off{grid-template-columns:1fr}.cols.ev-off .evidence{display:none}
@@ -276,7 +277,7 @@
   <div class="top-inner">
   <div class="org">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
   <h1>ถาม-ตอบ เรื่องลงทะเบียน & ส่งวิทยานิพนธ์</h1>
-  <p>พิมพ์คำถาม → ระบบคัดก่อน: เจอในคู่มือ = ตอบทันทีไม่ใช้ AI · ไม่เจอ = ส่งให้ AI ช่วย</p>
+  <p>ถามเรื่องสมัครเรียน ค่าเทอม และการส่งวิทยานิพนธ์ — ตอบจากประกาศและคู่มือทางการ ไม่เดา ถ้าไม่แน่ใจจะบอกและพาไปหาเจ้าหน้าที่</p>
   <button type="button" id="ev-toggle" class="ev-toggle" aria-controls="evidence" aria-expanded="true">🔬 ซ่อนหลักฐานเบื้องหลัง</button>
   <div class="mood" id="mood" title="สถานะอารมณ์ของผู้ช่วย — เปลี่ยนตามบทสนทนา (deterministic, ไม่ใช้ AI)">
     <span class="mood-face" id="mood-face">🦀</span>
@@ -377,7 +378,7 @@ async function load(){
       <div class="g-p">ถามเรื่องกำหนดส่งวิทยานิพนธ์ · Turnitin · ค่าสอบ · หรือหาหลักสูตร / ค่าเทอม / สถานะรับสมัคร ได้เลย</div>
       <div class="g-cta">👇 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
     </div>`;
-  $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ทำงานในเบราว์เซอร์ 100%';
+  $('note').textContent='🦀 Reflex Kernel (WASM) + คู่มือ '+KB.length+' หัวข้อ · ค้นคู่มือในเบราว์เซอร์ · ไม่ต้องล็อกอิน';
   const seeds=[
     {t:'เรียนไรดี', k:'f'},
     {t:'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก', k:'f'},
@@ -387,8 +388,8 @@ async function load(){
     {t:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์', k:'a'},
   ];
   $('chips').innerHTML =
-    '<div class="chip-hint">ลองกดดู — 🟢 ตอบเองทันที (0 token) · 🟠 ส่งให้ AI</div>' +
-    '<div class="chip-row">'+seeds.map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}">${s.k==='a'?'🟠':'🟢'} ${s.t}</span>`).join('')+'</div>';
+    `<div class="chip-hint">ลองกดดู — 🟢 ตอบเองทันที (0 token)${AI_OFF?'':' · 🟠 ส่งให้ AI'}</div>` +
+    '<div class="chip-row">'+seeds.filter(s=>!AI_OFF||s.k!=='a').map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}">${s.k==='a'?'🟠':'🟢'} ${s.t}</span>`).join('')+'</div>';
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     $('q').value=c.textContent.replace(/^[🟢🟠]\s*/,''); ask();
   }));
@@ -846,6 +847,7 @@ const _AREAS=[
   {k:'education',  label:'การศึกษา · การสอน', say:/ครู|สอน|การศึกษา|อาจารย์|teach|educat/i, title:/การศึกษา|การสอน|ครุ/},
 ];
 const _P_CAREER=/ทำงานอะไร|งานอะไรดี|งานไหนดี|อาชีพ|สายงาน|ตำแหน่งงาน|อยากทำงาน|หางาน|เปลี่ยนสายงาน|(?:พัฒนา|เพิ่ม|เรียนรู้).{0,12}(?:skill|ทักษะ|สกิล)|(?:skill|ทักษะ|สกิล).{0,6}(?:อะไร|ไหนดี)|อยากทำ(?:งาน)?เกี่ยวกับ|อยากทำงานสาย|career/i;
+const _P_FREEQ=/ฟรี|ไม่เสียค่า|ไม่มีค่า(?:ใช้จ่าย|เทอม|ธรรมเนียม)|เรียนฟรี|free of charge|\bfree\b/i;
 function isCareerQuestion(q){ const s=String(q||''); return _P_CAREER.test(s) && !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)); }
 function careerArea(q){ const s=String(q||''); const hit=_AREAS.find(a=>a.say.test(s)); return hit?hit.k:''; }
 function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && !_P_OTHER.test(s); }
@@ -913,7 +915,7 @@ function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(
 function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 async function groundedHybrid(q, entries){
-  if(!LLM_API) return null;
+  if(!LLM_API || AI_OFF) return null;
   const context = entries.slice(0,3).map((e,i)=>`[${i+1}] ${e.title}\n${e.answer}`).join('\n\n');
   const ac = new AbortController(), timer = setTimeout(()=>ac.abort(), 25000);   // proxy tries local model (20 s) then Gemini; never leave the user on a spinner
   try{
@@ -1197,6 +1199,12 @@ function _askCore(){
   }
   PCTX = null;   // the conversation moved on: never pin a later question to an old programme
 
+  // A yes/no question with a premise about fees ("...ฟรีใช่ไหม"): never confirm it. Fees differ per programme, so say that and open the fee finder.
+  if(PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
+    renderFinder(q, d, kstrip, 'ผมยืนยันไม่ได้ว่าไม่มีค่าใช้จ่าย — ค่าธรรมเนียมต่างกันตามหลักสูตรและระบบการศึกษา และบางหลักสูตรมีทุนตามประกาศ เลือกหลักสูตรเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการได้ครับ', true, null, true, 'ค่าเทอม ');
+    return;
+  }
+
   const ranked = search(q);
   // The WASM kernel now exposes the raw sigmoid gate score g — use it directly
   // (falls back to a proxy only on an older build that lacks the field).
@@ -1250,7 +1258,7 @@ function _askCore(){
     // a wrong answer). If KB matches well enough → rephrase via local AI grounded
     // ONLY on those entries (facts stay from KB). Factual questions skip this.
     const topScore = (ranked[0]||{}).s || 0;
-    if(isAdvice(q)){
+    if(isAdvice(q) && !AI_OFF){
       if(topScore < 4){
         // weak KB match on an advice question → abstain, hand to staff + gap log
         ai++;
@@ -1279,7 +1287,7 @@ function _askCore(){
         add('b', `${kstrip}
           <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">✅ ตอบจากคู่มือ (เรียบเรียงแบบ deterministic · ไม่เรียก AI) ${stageTag}</span>
           <div class="ans">${linkify(humanize(hit, q), LINKS)}</div>
-          <span class="topic">อ้างอิง: ${hit.title}</span>
+          <span class="topic">ที่มา: ${hit.title}</span>
           <div class="meta">KB ตรงชัด (score ${topScore}) → ใช้ template NLG ไม่ต้องเรียก AI · 0 token · ไม่มีโอกาสแต่งนอกคู่มือ</div>
           ${srcH0}
           ${fbUI(q, d.blake3_proof, hit.id)}`);
@@ -1291,7 +1299,7 @@ function _askCore(){
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔀 KB-grounded + AI ช่วยเรียบเรียง ${stageTag}</span>
         <div class="ans" id="${mid}"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงจากคู่มือ…<div class="skel" aria-hidden="true"><i></i><i></i><i style="width:55%"></i></div></div>
-        <span class="topic">อ้างอิง: ${hit.title}</span>
+        <span class="topic">ที่มา: ${hit.title}</span>
         <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
         ${srcH}
         ${fbUI(q, d.blake3_proof, hit.id)}`);
@@ -1317,7 +1325,7 @@ function _askCore(){
       <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${linkify(humanize(hit, q), LINKS)}</div>
       ${steps}
-      <span class="topic">หัวข้อ: ${hit.title}</span>
+      <span class="topic">ที่มา: ${hit.title}</span>
       <div class="meta">${verdict.reason}</div>
       ${src}
       ${fbUI(q, d.blake3_proof, hit.id)}`);
@@ -1475,6 +1483,8 @@ function fbUI(q, proof, entryId){
 const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
 // The LLM proxy is a SEPARATE worker from the kernel (the kernel has /route /gap /feedback ... but no /llm; calling it there
 // was a silent 404 on every AI request). ?llm=<url> overrides, e.g. for a local proxy.
+// ?ai=off = safe mode: answers come only from the knowledge base / official catalogue, the AI proxy is never called (demo fallback, or when the model is down)
+const AI_OFF = (new URLSearchParams(location.search)).get('ai') === 'off';
 const LLM_API = (new URLSearchParams(location.search)).get('llm') || 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
 // Fire-and-forget: record a question the KB could NOT answer, so it enters the
 // gap log (the self-improving-KB loop) and staff/curators see what to add. This
@@ -1525,7 +1535,7 @@ function addFollowUps(typed){
   const q=normChat(typed)||typed; let picks=[];
   if(PCTX) picks=_FU_PROG;                                  // a programme card is on screen: its fees / scholarships are the natural next questions
   else { const t=last.querySelector('.topic'); if(!t) return;  // only after a knowledge-base answer
-    const shown=t.textContent.replace(/^(?:หัวข้อ|อ้างอิง):\s*/,'').trim();
+    const shown=t.textContent.replace(/^(?:ที่มา|หัวข้อ|อ้างอิง):\s*/,'').trim();
     picks=search(q).filter(r=>r.s>=2 && r.e.title!==shown).slice(0,3).map(r=>r.e.title);
     const cur=KB.find(e=>e.title===shown);               // too few close matches: top up with other entries of the same topic area
     if(cur && cur.category) for(const e of KB){ if(picks.length>=3) break; if(e.category===cur.category && e.title!==shown && !picks.includes(e.title)) picks.push(e.title); } }
@@ -1557,6 +1567,7 @@ $('q').addEventListener('keydown', e=>{
 });
 // 'how it works' swimlane: tech toggle
 (function(){ const cb=$('swtech'), box=$('howto'); if(cb&&box) cb.addEventListener('change',()=>box.classList.toggle('showtech',cb.checked)); })();
+if(AI_OFF){ const t=document.querySelector('.top-inner'); if(t) t.insertAdjacentHTML('beforeend','<div class="ai-off-note">🔒 โหมดไม่ใช้ AI — ตอบจากคู่มือและประกาศทางการเท่านั้น</div>'); }
 // evidence panel: open by default on a wide screen (it is the demo's proof), closed on a phone; the choice is remembered
 (()=>{ const b=document.getElementById('ev-toggle'), c=document.querySelector('.cols'); if(!b||!c) return;
   let saved=null; try{ saved=localStorage.getItem('rw_ev'); }catch(e){}
