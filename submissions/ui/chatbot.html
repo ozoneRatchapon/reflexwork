@@ -473,6 +473,20 @@ function search(q){
 // Evidence selectors: these are the "เบื้องหลัง" bits that should NOT clutter the
 // user's chat bubble — they move to the right-hand evidence panel instead.
 const EV_SEL = '.route, .meta, .proof-full, .kernel-strip';
+// Words a student reads. Style: spoken polite Thai, short sentences, say what happened + what to do next, no engineering words.
+// (The bot speaks as "ผม … ครับ" throughout. Rules are enforced by tests/voice_lint.test.mjs.)
+const VOICE = {
+  notUnderstood: 'ขออภัยครับ ผมยังจับใจความคำถามนี้ไม่ได้ ลองกดตัวอย่างด้านล่าง หรือพิมพ์ใหม่อีกครั้งได้เลยครับ',
+  nearest:       'ใกล้เคียงที่สุดในคู่มือ — เลือกได้เลยครับ:',
+  notInManual:   'เรื่องนี้ยังไม่มีในคู่มือครับ — ผมจดคำถามไว้ให้ทีมเติมแล้ว',
+  staffHelp:     'ยังไม่ตรงกับที่ต้องการใช่ไหมครับ ติดต่อเจ้าหน้าที่ได้เลย',
+  unsureProgramme: 'ผมยังไม่แน่ใจว่าหมายถึงหลักสูตรไหนครับ (จดคำถามไว้ให้ทีมคู่มือแล้ว) ลองเลือกจากตัวช่วยด้านล่าง หรือพิมพ์ชื่อสาขาที่สนใจได้เลย',
+  askYearTerm:   'ขอถามเพิ่มนิดหนึ่งครับ — คำตอบเปลี่ยนตามปีและภาคการศึกษา',
+  frustrated:    '🙇 ขออภัยที่ยังหาคำตอบที่ตรงให้ไม่ได้ครับ เพื่อไม่ให้เสียเวลา ติดต่อเจ้าหน้าที่ได้เลยนะครับ (ปุ่มด้านล่าง)',
+  adviceAbstain: 'เรื่องนี้เป็นคำถามขอคำแนะนำที่คู่มือยังตอบได้ไม่ครบครับ ผมไม่อยากตอบพลาด เลยจดคำถามไว้ให้เจ้าหน้าที่/ทีมคู่มือแล้ว ระหว่างนี้ติดต่อเจ้าหน้าที่ได้จากปุ่มด้านล่าง',
+  feePremise:    'ผมบอกไม่ได้ว่าฟรีหรือเปล่าครับ เพราะค่าเทอมต่างกันตามหลักสูตร (บางหลักสูตรมีทุนตามประกาศ) เลือกหลักสูตรด้านล่างเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการได้เลย',
+  careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
+};
 let lastUserQ = '';   // the question the next bot bubble is answering
 let turnN = 0;        // evidence-card counter
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls;
@@ -484,7 +498,7 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
   if(cls==='b'){
     // Student-facing source badge (the technical route chips go to the evidence panel and are hidden with it).
     if(!d.classList.contains('greet')){
-      const raw=html, ai=/AI ช่วยเรียบเรียง/.test(raw), official=/class="route auto"[^>]*>[^<]*(ตอบจากคู่มือ|ตรงหลักสูตร|แคตตาล็อกทางการ|ถามต่อจากหลักสูตร)/.test(raw);
+      const raw=html, ai=/class="route[^"]*"[^>]*>[^<]*AI ช่วยเรียบเรียง/.test(raw), official=/class="route auto"[^>]*>[^<]*(ตอบจากคู่มือ|ตรงหลักสูตร|แคตตาล็อกทางการ|ถามต่อจากหลักสูตร)/.test(raw);
       if(ai||official){ const b=document.createElement('div'); b.className='src-badge '+(ai?'ai':'official'); b.textContent=ai?'🤖 AI ช่วยเรียบเรียง จากข้อมูลทางการ':'✅ ข้อมูลทางการ'; d.insertBefore(b,d.firstChild); }
     }
     const ev = d.querySelectorAll(EV_SEL);
@@ -877,7 +891,7 @@ function finderHtml(F, f, asOf, showAll){
   else { const fs=showAll?F.faculties:F.faculties.slice(0,12);
     out.push(`2) คณะ/สถาบันที่สนใจ<div class="dislist">${fs.map(x=>b('faculty',x.name,`${_pEsc(x.name.length>48?x.name.slice(0,46)+'…':x.name)} · ${x.n} (เปิด ${x.open})`)).join('')}${!showAll&&F.faculties.length>12?b('more','',`ดูทั้งหมด ${F.faculties.length} คณะ/สถาบัน`):''}</div>`); }
   out.push(`<div class="dislist">${b('open','',(f.open?'✅ ':'')+'เฉพาะที่เปิดรับ',f.open)}${b('intl','',(f.intl?'✅ ':'')+'นานาชาติ',f.intl)}${b('special','',(f.special?'✅ ':'')+'ภาคพิเศษ',f.special)}${(f.career||f.topic)&&!areaShown?_AREAS.map(a=>b('topic',a.k,(f.topic===a.k?'✅ ':'')+_pEsc(a.label),f.topic===a.k)).join(''):''}${f.level?b('level','','↩ เปลี่ยนระดับ'):''}${f.faculty?b('faculty','','↩ เปลี่ยนคณะ'):''}${b('reset','','เริ่มใหม่')}</div>`);
-  out.push('<small>ระบบไม่ได้ตัดสินว่าสาขาไหน "ดี" ที่สุด — ช่วยกรองจากข้อมูลทางการ หรือพิมพ์สิ่งที่สนใจ เช่น "สมัครเรียนวิทยาศาสตร์ข้อมูล" เพื่อหาชื่อหลักสูตรตรงๆ</small>');
+  out.push('<small>ผมไม่ได้จัดอันดับว่าสาขาไหนเด่นกว่ากันครับ ช่วยกรองจากข้อมูลทางการให้ หรือพิมพ์สิ่งที่สนใจ เช่น "สมัครเรียนวิทยาศาสตร์ข้อมูล" เพื่อหาชื่อหลักสูตรตรงๆ ได้เลย</small>');   // literal on purpose: this block is evaluated standalone by tests/programme_resolve.test.mjs (no VOICE there); tests/voice_lint.test.mjs lints it
   return out.join('\n\n');
 }
 // </programme-resolve>
@@ -992,7 +1006,7 @@ function renderMood(bump){
 // line appears ONLY when MOOD.frustrated() — a caring escalation, 0-token.
 function frustratedNote(){
   return MOOD.frustrated()
-    ? `<div class="ans" style="background:rgba(246,169,59,.12);border:1px solid rgba(246,169,59,.4);border-radius:10px;padding:9px 11px;margin-bottom:8px">🙇 ผมยังหาคำตอบที่ตรงให้ไม่ได้หลายครั้งแล้ว — เพื่อไม่ให้เสียเวลา แนะนำให้ติดต่อเจ้าหน้าที่โดยตรงเลยนะครับ (ปุ่มด้านล่าง)</div>`
+    ? `<div class="ans" style="background:rgba(246,169,59,.12);border:1px solid rgba(246,169,59,.4);border-radius:10px;padding:9px 11px;margin-bottom:8px">${VOICE.frustrated}</div>`
     : '';
 }
 
@@ -1176,7 +1190,7 @@ function _askCore(){
   // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
   if(PROG.length && isCareerQuestion(q)){
     PCTX=null; const area=careerArea(q);
-    const intro='คำถามแนวนี้ไม่มีคำตอบเดียว และผมไม่ได้ทำนายงานหรือรายได้ — ช่วยแคบรายการหลักสูตรจากแคตตาล็อกทางการของบัณฑิตวิทยาลัยตามด้านที่สนใจได้ครับ'+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่าง)':'');
+    const intro=VOICE.careerIntro+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่างครับ)':'ครับ');
     const ext='<a class="golink alt" href="https://suggest-program.mahidol.ac.th/" target="_blank" rel="noopener">🧭 อยากเริ่มจากอาชีพและทักษะ? เครื่องมือแนะนำหลักสูตรของมหาวิทยาลัยมหิดล (เว็บแยก ภาษาอังกฤษ ไม่ได้ทำโดยระบบนี้) →</a>';
     renderFinder(q, d, kstrip, intro, true, null, true, undefined, {career:true, topic:area}, ext); return;
   }
@@ -1201,7 +1215,7 @@ function _askCore(){
 
   // A yes/no question with a premise about fees ("...ฟรีใช่ไหม"): never confirm it. Fees differ per programme, so say that and open the fee finder.
   if(PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
-    renderFinder(q, d, kstrip, 'ผมยืนยันไม่ได้ว่าไม่มีค่าใช้จ่าย — ค่าธรรมเนียมต่างกันตามหลักสูตรและระบบการศึกษา และบางหลักสูตรมีทุนตามประกาศ เลือกหลักสูตรเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการได้ครับ', true, null, true, 'ค่าเทอม ');
+    renderFinder(q, d, kstrip, VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
   }
 
@@ -1232,7 +1246,7 @@ function _askCore(){
       const mid='scp'+(++fbN);
       const opts = scope.candidates.map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
       add('b', `${kstrip}
-        <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'Which one? (answer differs)':'ขอถามก่อน — คำตอบต่างกันตามปี/ภาค'} ${stageTag}</span>
+        <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'Which one? (answer differs)':VOICE.askYearTerm} ${stageTag}</span>
         <div class="ans">${en?`The answer depends on the ${what}. Which do you mean?`:`เรื่องนี้คำตอบไม่เหมือนกันในแต่ละ${what}ครับ — หมายถึงอันไหน?`}</div>
         <div class="dislist" id="${mid}">${opts}</div>
         <div class="meta">scope guard: พบหลายปี/ภาคที่คะแนนใกล้กัน → ถามแทนการเดา (0 token, ไม่เรียก AI)</div>`);
@@ -1266,7 +1280,7 @@ function _askCore(){
         add('b', `${kstrip}
           <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือยังไม่ครอบคลุมพอ — บันทึกส่งเจ้าหน้าที่/ทีมดูแลคู่มือแล้ว ${stageTag}</span>
           ${frustratedNote()}
-          <div class="ans">${MOOD.empathy()} — คำถามนี้เป็นการขอคำแนะนำที่คู่มือยังไม่ครอบคลุมพอ เพื่อไม่ให้ตอบคลาดเคลื่อน ผม<b>บันทึกคำถามนี้ไว้ให้เจ้าหน้าที่/ทีมดูแลคู่มือแล้ว</b>ครับ 🙇 ระหว่างนี้ติดต่อตรงได้จากด้านล่าง</div>
+          <div class="ans">${MOOD.empathy()} — ${VOICE.adviceAbstain}</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
             <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>
@@ -1398,7 +1412,7 @@ function _askCore(){
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
     if(PROG.length && (hasStudyIntent(q) || nearP)){
-      renderFinder(q, d, kstrip, 'ผมยังไม่แน่ใจว่าหมายถึงสาขาหรือหลักสูตรไหน (บันทึกคำถามนี้ไว้ให้ทีมดูแลคู่มือแล้ว) — ลองเลือกจากตัวช่วยนี้ได้เลย หรือพิมพ์ชื่อสาขาที่สนใจ', false, nearP && nearP.rows, hasStudyIntent(q));
+      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearP && nearP.rows, hasStudyIntent(q));
       return;
     }
     if(PROG.length && _P_TOPIC[0][1].test(q)){   // a fee question that names no programme: fees differ per programme, so help find it
@@ -1410,13 +1424,13 @@ function _askCore(){
     const picks = near.length ? near.map(e=>e.title) : ['เรียนไรดี','ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก','ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร'];
     const cid = 'sg'+(++fbN);
     add('b', `${kstrip}
-      <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ยังไม่พบคำตอบตรงในคู่มือ — บันทึกให้ทีมดูแลคู่มือแล้ว ${stageTag}</span>
+      <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ${VOICE.notInManual} ${stageTag}</span>
       ${frustratedNote()}
-      <div class="ans">${near.length?'ใกล้เคียงที่สุดในคู่มือ — เลือกได้เลยครับ:':'ผมยังไม่เข้าใจคำถามนี้ — ลองถามตัวอย่างเหล่านี้ หรือพิมพ์ใหม่อีกครั้งครับ:'}</div>
+      <div class="ans">${near.length?VOICE.nearest:VOICE.notUnderstood}</div>
       <div class="dislist" id="${cid}">${picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('')}</div>
       <div class="meta">${verdict.reason} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
       <div class="staffbox">
-        <div class="staff-h">ไม่พบคำตอบที่ต้องการ? ติดต่อเจ้าหน้าที่โดยตรงได้เลยครับ</div>
+        <div class="staff-h">${VOICE.staffHelp}</div>
         <div class="staff-btns">
           <a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a>
           <a class="golink alt" href="https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai" target="_blank" rel="noopener">📚 เปิดคู่มือ FAQ ทางการ</a>
