@@ -61,7 +61,7 @@
   .ev-ex-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
   .ev-ex-tag.ok{color:var(--fast,#22c58b);border-color:rgba(34,197,139,.4)}
   .ev-ex-line{font-size:11px;color:var(--muted);line-height:1.5;margin-top:3px}
-  .ev-ex-line code{color:var(--audit,#b07bff);font-family:ui-monospace,Menlo,monospace;font-size:10px}
+  .ev-ex-line code{color:#c9aaff;font-family:ui-monospace,Menlo,monospace;font-size:10px}
   .ev-card{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:10px 12px 11px;margin-bottom:10px;animation:msg-in .3s cubic-bezier(.22,.61,.36,1) both}
   .ev-card.active{border-color:var(--audit);box-shadow:0 0 0 1px rgba(176,123,255,.4),0 4px 18px -8px rgba(176,123,255,.4)}
   .ev-q{font-size:11.5px;color:var(--muted);margin-bottom:9px;padding-bottom:8px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
@@ -268,7 +268,7 @@
   </div>
 </div>
 
-<div class="wrap">
+<div class="wrap" role="main">
   <details class="howto" id="howto">
     <summary><span class="howto-t">🗺️ ระบบทำงานยังไง (จากคำถาม → คำตอบ)</span><span class="howto-hint">กดเพื่อดู · มีสวิตช์ดูเบื้องหลังเทคนิค</span></summary>
     <div class="howto-body">
@@ -1334,13 +1334,14 @@ function ask(){
       return;
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
-    const picks = near.length ? near : starterEntries();
+    // nothing close: offer the demo-safe starting questions (programme finder, fees, thesis) - not a random slice of the KB
+    const picks = near.length ? near.map(e=>e.title) : ['เรียนไรดี','ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก','ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร'];
     const cid = 'sg'+(++fbN);
     add('b', `${kstrip}
       <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ยังไม่พบคำตอบตรงในคู่มือ — บันทึกให้ทีมดูแลคู่มือแล้ว ${stageTag}</span>
       ${frustratedNote()}
-      <div class="ans">${near.length?'ใกล้เคียงที่สุดในคู่มือ — เลือกได้เลยครับ:':'ผมยังไม่เข้าใจคำถามนี้ ลองถามเรื่องเหล่านี้ หรือพิมพ์ใหม่อีกครั้งครับ:'}</div>
-      <div class="dislist" id="${cid}">${picks.map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('')}</div>
+      <div class="ans">${near.length?'ใกล้เคียงที่สุดในคู่มือ — เลือกได้เลยครับ:':'ผมยังไม่เข้าใจคำถามนี้ — ลองถามตัวอย่างเหล่านี้ หรือพิมพ์ใหม่อีกครั้งครับ:'}</div>
+      <div class="dislist" id="${cid}">${picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('')}</div>
       <div class="meta">${verdict.reason} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
       <div class="staffbox">
         <div class="staff-h">ไม่พบคำตอบที่ต้องการ? ติดต่อเจ้าหน้าที่โดยตรงได้เลยครับ</div>
