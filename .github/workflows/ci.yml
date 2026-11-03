@@ -29,7 +29,7 @@ jobs:
             integrations/llm-proxy/worker.mjs \
             integrations/llm-proxy/local-llm-proxy.mjs \
             integrations/line-worker/worker.mjs \
-            integrations/_shared/humanize.mjs \
+            integrations/_shared/answer_points.mjs \
             integrations/_shared/rethink.mjs \
             integrations/_shared/intake.mjs \
             integrations/_shared/team-adapter.mjs; do
