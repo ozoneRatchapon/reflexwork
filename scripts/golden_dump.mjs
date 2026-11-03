@@ -18,7 +18,7 @@ const outProg = inp => inp.map(p => { const s = F._pSchedule(p.schedule_lines), 
   return { ...p, schedule: { cols: s.cols, rows: s.rows, notes: s.notes, list: s.list }, fee: f }; });
 const pick = r => r ? { kind: r.kind, codes: r.row ? [r.row.code] : (r.rows || []).map(x => x.code), topic: r.topic || '', via: r.via || '', levelMissing: !!r.levelMissing, total: r.total ?? null } : null;
 const outResolve = ({ catalogue, questions }) => ({ catalogue, cases: questions.map(q => ({ q, out: pick(F.resolveProgramme(q, catalogue)), loose: pick(F.resolveProgramme(q, catalogue, true)) })) });
-const outTier = inp => inp.map(c => ({ ...c, out: (({ action, stage }) => ({ action, stage }))(F.decideTier({ gate: c.gate, ranked: c.scores.map((s, i) => ({ e: { id: `e${i}` }, s })) })) }));
+const outTier = inp => inp.map(c => ({ ...c, out: (({ action, stage, reason }) => ({ action, stage, reason }))(F.decideTier({ gate: c.gate, ranked: c.scores.map((s, i) => ({ e: { id: `e${i}` }, s })) })) }));
 
 const outIntake = inp => { const I = loadIntake(); return inp.map(c => { const r = I.classifyIssue(c.text);
   return { ...c, issue: r ? { kind: r.kind, category: r.category, label: r.label } : null, advice: I.isAdvice(c.text), english: I.isEnglish(c.text) }; }); };

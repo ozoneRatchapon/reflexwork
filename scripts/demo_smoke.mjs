@@ -62,6 +62,10 @@ await send('Runtime.enable'); await send('Network.enable'); await send('Page.nav
 for (let i = 0; i < 40 && await ev(`document.getElementById('q').disabled !== false`); i++) await wait(500);
 console.log(`\nDemo smoke test - ${BASE}\n`);
 
+// engine: ?engine=rust must really run the Rust engine (an old cached wasm silently falls back to JS)
+{ const eng = await ev(`document.documentElement.dataset.engine || ''`), asked = /[?&]engine=rust/.test(BASE) ? 'rust' : '';
+  asked && eng !== asked ? bad(`engine: asked ${asked} but the page runs ${eng || 'unknown'} (old wasm?)`) : ok(`engine: ${eng || 'js (page without the switch)'}`); }
+
 // 0) the page and its data
 const prog = await ev(`fetch('./programmes.json').then(r=>r.json()).then(d=>({count:d.count, at:d.fetched_at, year:d.year})).catch(()=>null)`);
 if (!prog) bad('programmes.json loads'); else {

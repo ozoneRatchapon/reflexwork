@@ -24,4 +24,6 @@ pub enum Stage {
 pub struct Verdict {
     pub action: Action,
     pub stage: Stage,
+    /// Why (Thai, shown in the evidence panel): which rule decided.
+    pub reason: &'static str,
 }
