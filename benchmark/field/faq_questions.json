@@ -1,0 +1,1198 @@
+{
+ "source": "https://graduate.mahidol.ac.th/engine/structure/faq/ (Thai page; English wording from ?lang=inter), fetched 2026-11-03",
+ "labeling": "gold_kb_ids = KB entries whose TITLE has trigram-Jaccard >= 0.30 with the FAQ question, minus 7 manually rejected pairs (same words, different topic) and 2 manual additions, plus a second manual pass after reading the system's answers (FAQ 14, 16, 18, 33, 34, 61, 84, 111 had a clearly relevant KB entry that the title similarity missed). Labeled by the assistant; the KB owner should confirm. Answers are not stored here.",
+ "items": [
+  {
+   "id": "1",
+   "audience": "staff",
+   "category": "planning",
+   "th": "การกำหนดงบประมาณในแต่ละปี ต้องส่งให้บัณฑิตวิทยาลัย ภายในเมื่อไหร่",
+   "en": "When must the annual budget proposal be submitted to the Faculty of Graduate Studies?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "2",
+   "audience": "staff",
+   "category": "planning",
+   "th": "เมื่อดำเนินการจัดทำตั้งงบประมาณของหลักสูตรฯ เสร็จสิ้นแล้ว ต้องส่งไปที่หน่วยงานใด",
+   "en": "After the program budget has been prepared, which unit should it be submitted to?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "3",
+   "audience": "staff",
+   "category": "planning",
+   "th": "แบบฟอร์มการจัดทำงบประมาณปัจจุบันสามารถดาวน์โหลดได้ที่ไหน",
+   "en": "Where can the current budget preparation form be downloaded?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "4",
+   "audience": "staff",
+   "category": "planning",
+   "th": "กรณีหากมีความจำเป็นต้องใช้งบประมาณในการเบิกจ่าย เกินกว่างบประมาณที่ตั้งไว้ หลักสูตรฯ ต้องดำเนินการอย่างไร",
+   "en": "What should a program do if actual expenses need to exceed the approved budget?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "5",
+   "audience": "staff",
+   "category": "planning",
+   "th": "กรณีหลักสูตรต้องการจ้างบุคลากรจากเงินรายได้หลักสูตรต้องทำอย่างไร",
+   "en": "What should a program do if it wants to hire personnel using program income?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "6",
+   "audience": "prospective current staff alumni general",
+   "category": "international",
+   "th": "ถ้าต้องการติดต่อหน่วยงานต่าง ๆ ของบัณฑิตวิทยาลัย สามารถติดต่อได้ช่องทางใด",
+   "en": "How can I contact the various units of the Faculty of Graduate Studies?",
+   "student": true,
+   "gold_kb_ids": [
+    "contact_line"
+   ]
+  },
+  {
+   "id": "7",
+   "audience": "current general",
+   "category": "registration",
+   "th": "การเปลี่ยน ชื่อ-สกุล, ตัวสะกดผิด, ยศ/ตำแหน่ง กรณีกำลังศึกษาอยู่ ต้องทำอย่างไร",
+   "en": "How do current students request a change of name, spelling, rank, or title?",
+   "student": true,
+   "gold_kb_ids": [
+    "change_name"
+   ]
+  },
+  {
+   "id": "8",
+   "audience": "current general",
+   "category": "registration",
+   "th": "ต้องการเปลี่ยนชื่อ/วันเกิด/ที่อยู่ สำหรับบุคคลทั่วไป",
+   "en": "How can a general user change their name, date of birth, or address?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "9",
+   "audience": "current general",
+   "category": "registration",
+   "th": "บุคคลทั่วไปที่เรียนผ่านโครงการ MAP-C ต้องการแก้ไขที่อยู่บนหนังสือรับรอง ต้องทำอย่างไร",
+   "en": "How can a MAP-C general learner change the address shown on a payment certificate?",
+   "student": true,
+   "gold_kb_ids": [
+    "suspend_general",
+    "transcript_general"
+   ]
+  },
+  {
+   "id": "10",
+   "audience": "current general",
+   "category": "registration",
+   "th": "ต้องการลาพักการศึกษาต้องทำอย่างไร",
+   "en": "How do I request a leave of absence?",
+   "student": true,
+   "gold_kb_ids": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "id": "11",
+   "audience": "current general",
+   "category": "registration",
+   "th": "นศ. รหัส 66 ลงไป ต้องการเปลี่ยนแปลงแผนการศึกษา ต้องทำอย่างไร",
+   "en": "How can students under the 2023-or-earlier admission criteria change their study plan?",
+   "student": true,
+   "gold_kb_ids": [
+    "change_study_plan",
+    "leave_of_absence"
+   ]
+  },
+  {
+   "id": "12",
+   "audience": "staff",
+   "category": "staff-services",
+   "th": "อบรมออนไลน์ประธาน อาจารย์หลักสูตรระดับบัณฑิตศึกษา ในระบบ Mux จะเข้าระบบอบรมอย่างไร",
+   "en": "How do graduate program chairs and lecturers access online training on MUx?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "13",
+   "audience": "staff",
+   "category": "staff-services",
+   "th": "มีวิธีตรวจสอบประวัติการอบรมออนไลน์ประธาน อาจารย์หลักสูตรระดับบัณฑิตศึกษา ได้อย่างไร",
+   "en": "How can graduate program chairs and lecturers check their online training history?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "14",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การดำเนินการเพื่อให้ได้มาซึ่งหัวข้อวิทยานิพนธ์ฯ ใครเป็นผู้ดำเนินการ และดำเนินการอย่างไร",
+   "en": "Who is responsible for the process of obtaining a thesis/independent-study topic, and how is it done?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "id": "15",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "ถ้าต้องการเบิกจ่ายเงินค่าตอบแทนเกี่ยวกับการสอบวิทยานิพนธ์ / สารนิพนธ์ จะดำเนินการอย่างไร",
+   "en": "How can a program claim remuneration related to a thesis or thematic-paper examination?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "id": "16",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "กรณีหลักสูตรดำเนินการผู้ทำหน้าที่เพื่อให้ได้มาซึ่งหัวข้อวิทยานิพนธ์/การค้นคว ้าอิสระ การสอบโครงร่างวิทยานิพนธ์/การค้นคว้าอิสระ และกิจกรรมอื่นๆ เพื่อให้ได้มาซึ่งหัวข้อวิทยานิพนธ์/การค้นคว้าอิสระ แล้ว คณะกรรมการชุดดังกล่าว จะเสนอให้ทำหน้าที่คณะกรรมการในชุดต่อไป ได้หรือไม่",
+   "en": "Can persons appointed to help obtain a thesis/independent-study topic later serve on another thesis committee?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "id": "17",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การได้มาซึ่งหัวข้อวิทยานิพนธ์/การค้นคว้าอิสระ ดำเนินการด้วยวิธีใดบ้าง",
+   "en": "What methods can be used to obtain a thesis/independent-study topic?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "id": "18",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "ใครจะเป็นผู้ดำเนินการอนุมัติ การรายงานผลและประเมินผลความก้าวหน้าการทำวิทยานิพนธ์/สารนิพนธ์ (บฑ.42) ในกรณีที่นักศึกษายังไม่ได้ยื่นคำร้อง อนุมัติหัวข้อวิทยานิพนธ์/สารนิพนธ์ และคณะกรรมการที่ปรึกษาวิทยานิพนธ์/สารนิพนธ์ (บฑ.1) (หากไม่มีการ แต่งตั้งอาจารย์ที่ปรึกษาโครงร่างวิทยานิพนธ์/สารนิพนธ์ (บฑ.44) และแต่งตั้งคณะกรรมการสอบโครงร่างวิทยานิพนธ์/สารนิพนธ์ (บฑ.39) แล้ว)",
+   "en": "Who approves GR.42 thesis/thematic-paper progress reports if the student has not yet submitted GR.1 and no GR.44/GR.39 appointment has been made?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "id": "19",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "กรณีนักศึกษาต่างชาติไม่ได้ทำวิจัยในไทย สามารถใช้เอกสารรับรองด้านจริยธรรมการวิจัยในคนจากประเทศในหน่วยงานที่นักศึกษาด ำเนินการเก็บข้อมูลงานวิจัยได้หรือไม่",
+   "en": "Can an international student conducting research outside Thailand use a human-research ethics approval issued by the institution where the data are collected?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "id": "20",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "ในกรณีที่ยกเลิก แต่งตั้งคณะกรรมการสอบโครงร่างวิทยานิพนธ์/สารนิพนธ์ (บฑ.39) จะมีผลต่อการยื่นขอเอกสารรับรองด้านจริยธรรมการวิจัยในคนหรือไม่",
+   "en": "Does cancellation of the thesis/thematic-paper proposal examination committee appointment (GR.39) affect an application for human-research ethics approval?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "21",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "จะหาแบบฟอร์มเกี่ยวกับการทำวิทยานิพนธ์ และสารนิพนธ์ ได้จากที่ใด",
+   "en": "Where can I find thesis and thematic-paper forms?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "id": "22",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "มีขั้นตอนและรายละเอียดในการส่งรูปเล่มวิทยานิพนธ์/สารนิพนธ์ อย่างไร",
+   "en": "What are the steps and details for submitting a thesis/thematic paper?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "id": "23",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "แบบฟอร์มเกี่ยวกับการทำวิทยานิพนธ์ และสารนิพนธ์ ดูได้จากที่ใด",
+   "en": "Where can thesis and thematic-paper forms be found?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "id": "24",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "บฑ.49 การขอเปลี่ยนแปลงหัวข้อวิทยานิพนธ์/สารนิพนธ์ ดำเนินการอย่างไร",
+   "en": "How do I submit GR.49 to change a thesis/thematic-paper title?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "id": "25",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "สำหรับอาจารย์ที่ไม่สามารถเข้าระบบ Thesis Online Advisor จะดำเนินการอย่างไร",
+   "en": "What should an advisor do if they cannot access the Thesis Online Advisor system?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "id": "26",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "คุณสมบัติของอาจารย์พิเศษมีอะไรบ้าง",
+   "en": "What are the qualifications for a special lecturer?",
+   "student": true,
+   "gold_kb_ids": [
+    "special_teacher"
+   ]
+  },
+  {
+   "id": "27",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "หากการทำวิจัยไม่เข้าข่ายการวิจัยในคนหรือสัตว์ ต้องทำอย่างไร",
+   "en": "What should I do if my research does not involve human or animal subjects?",
+   "student": true,
+   "gold_kb_ids": [
+    "research_ethics"
+   ]
+  },
+  {
+   "id": "28",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "ลำดับเกี่ยวกับการทำวิทยานิพนธ์/สารนิพนธ์/การค้นคว้าอิสระ คุณสมบัติของคณะกรรมการเกี่ยวกับวิทยานิพนธ์/สารนิพนธ์/การค้นคว้าอิสระ ต้องดำเนินการอย่างไร",
+   "en": "Where can I find the sequence of thesis/thematic-paper/independent-study procedures and committee qualification requirements?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "id": "29",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "ขั้นตอนและรายละเอียดเกี่ยวกับการส่งรูปเล่มวิทยานิพนธ์/สารนิพนธ์ ในรูปแบบดิจิทัล ผ่านระบบ e-Thesis Submission สามารถดูได้ที่ใด",
+   "en": "Where can I find the steps for submitting a digital thesis/thematic paper through e-Thesis Submission?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "id": "30",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การส่งไฟล์รูปเล่มวิทยานิพนธ์/สารนิพนธ์ ในระบบ e-Thesis Submission (รูปเล่มวิทยานิพนธ์/สารนิพนธ์) มีวิธีดำเนินการอย่างไร",
+   "en": "How do I submit thesis/thematic-paper files through the e-Thesis Submission system?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_ethesis_files",
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "id": "31",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การใช้งานระบบ Thesis Format (รูปเล่มวิทยานิพนธ์/สารนิพนธ์) ทำอย่างไร",
+   "en": "How can a program upload or submit thesis/thematic-paper files through Thesis Online?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "id": "33",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "Turnitin Originality Report ซึ่งตรวจสอบวิทยานิพนธ์/สารนิพนธ์ฉบับสมบูรณ์ (PDF) จะต้องส่งอะไรบ้าง",
+   "en": "What must be submitted from the Turnitin Originality Report for a completed thesis/thematic paper (PDF)?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_turnitin",
+    "gm_thesis_submission_12_upload_documents",
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "id": "34",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การดาวน์โหลด Format ตัวอย่าง รูปเล่มวิทยานิพนธ์/สารนิพนธ์ จะต้องดาว์นโหลดที่ใด",
+   "en": "Where can I download thesis/thematic-paper format samples?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_format_system",
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "id": "35",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "มีวิธีการตรวจสอบ upload หน้าเสนอและหน้าอนุมัติ (รูปเล่มวิทยานิพนธ์/สารนิพนธ์) อย่างไร",
+   "en": "How can I check whether the entitled and approval pages have been uploaded to e-Thesis?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "id": "36",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การส่งหน้าเสนอและหน้าอนุมัติ (รูปเล่มวิทยานิพนธ์/สารนิพนธ์) ดำเนินการอย่างไร",
+   "en": "How do I submit the entitled and approval pages for a thesis/thematic paper?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_signature",
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "id": "37",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การลงนามในหน้าลายเซ็น (หน้าเสนอ+หน้าอนุมัติ) ดำเนินการอย่างไร",
+   "en": "How should signatures be completed on the entitled and approval pages?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "id": "38",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "มีวิธีการคำนวณค่าปรับส่งเล่มล่าช้า (รูปเล่มวิทยานิพนธ์/สารนิพนธ์) อย่างไร",
+   "en": "How is the late thesis/thematic-paper submission fine calculated?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "id": "39",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "รูปแบบการเขียนอ้างอิง ในเล่มวิทยานิพนธ์/สารนิพนธ์ เป็นอย่างไร",
+   "en": "What reference style should be used in a thesis/thematic paper?",
+   "student": true,
+   "gold_kb_ids": [
+    "thesis_citation",
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "id": "40",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การขอใช้เครื่องมือวิจัย ดำเนินการอย่างไร",
+   "en": "How do I request permission to use a research instrument?",
+   "student": true,
+   "gold_kb_ids": [
+    "research_tool"
+   ]
+  },
+  {
+   "id": "41",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การขอขยายเวลาการลาศึกษาต่อ (สำหรับนักศึกษากลุ่มลาเรียนจากต้นสังกัด) ดำเนินการอย่างไร",
+   "en": "How do I request an extension of study leave from my employer?",
+   "student": true,
+   "gold_kb_ids": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "id": "42",
+   "audience": "current staff",
+   "category": "academic-services",
+   "th": "การขอหนังสือส่งตัวกลับไปปฏิบัติงาน ณ ต้นสังกัด",
+   "en": "How do I request an official letter to return to my employer?",
+   "student": true,
+   "gold_kb_ids": [
+    "return_to_work"
+   ]
+  },
+  {
+   "id": "43",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "การซื้อหรือจ้าง กระทำได้กี่วิธี",
+   "en": "How many procurement methods are available for purchasing or hiring?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "44",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "กรณีมีความจำเป็นต้องดำเนินการจัดซื้อจัดจ้างพัสดุจากต่างประเทศโดยตรงต้องดำเนินการอย่างไร",
+   "en": "What should be done when goods or services must be procured directly from overseas?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "45",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "หลักสูตรต้องการจัดซื้อครุภัณฑ์/ที่ดินสิ่งก่อสร้าง (นอกแผนงบประมาณ) มีขั้นตอนการดำเนินการอย่างไร",
+   "en": "What is the procedure for purchasing equipment/land/construction items outside the approved budget plan?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "46",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "การจัดซื้อโปรแกรมคอมพิวเตอร์ที่มีมูลค่ามากกว่า 20,000 บาท ต้องจัดซื้อในหมวดใด",
+   "en": "Which budget category applies to computer software costing more than THB 20,000?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "47",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "การจ้างออกแบบและควบคุมงาน จ้างที่ปรึกษา สามารถใช้เกณฑ์คุณภาพ 100% ได้หรือไม่",
+   "en": "Can design/construction supervision or consultancy procurement use 100% quality criteria?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "48",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "ค่าใช้จ่ายอื่นๆ ที่มาพร้อมกับการซื้อวัสดุหรือจ้าง เช่น ค่าขนส่ง ประกัน ภาษี สามารถเบิกผ่านงานพัสดุได้หรือไม่",
+   "en": "Can related expenses such as shipping, insurance, or tax be reimbursed through Procurement?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "49",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "การแจ้งผลการได้รับอนุมัติรายงานขอซื้อขอจ้างสามารถแจ้งผ่านช่องทางใด",
+   "en": "How will approval of a purchase/procurement request be communicated?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "50",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "วันครบกำหนดส่งมอบพัสดุของบริษัท ห้าง ร้าน สามารถตรวจสอบได้จากเอกสารใด",
+   "en": "Where can the supplier's delivery due date be checked?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "51",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "ใบเสร็จรับเงินของบริษัท/ห้าง/ร้าน ที่แสดงจำนวนเงินเป็นตัวเลข แต่ไม่มีจำนวนเงินตัวอักษร ถือว่าเป็นหลักฐานเบิกจ่ายที่ไม่สมบูรณ์ใช่หรือไม่ และจะต้องดำเนินการอย่างไร",
+   "en": "Is a receipt incomplete if it shows the amount only in figures and not in words? What should be done?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "52",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "หากซื้อวัสดุที่ทางร้านค้าทั่วไปหรือบุคคลธรรมดาที่ไม่สามารถออกใบเสร็จรับเงิน สามารถใช้ใบสำคัญเงินได้หรือไม่",
+   "en": "If a shop or individual cannot issue a receipt, can a payment voucher be used?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "53",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "คณะกรรมการตรวจรับพัสดุ จำเป็นต้องมีกี่ท่าน",
+   "en": "How many members are required on a procurement inspection committee?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "54",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "การโอนมอบครุภัณฑ์ของหลักสูตรให้กับส่วนงาน ครุภัณฑ์เป็นของใคร",
+   "en": "When program equipment is transferred to the parent faculty/organization, who owns it?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "55",
+   "audience": "staff",
+   "category": "procurement",
+   "th": "หากหลักสูตรฯ มีการเปลี่ยนแปลงเจ้าหน้าที่ผู้ประสานงานหลักสูตรและเจ้าหน้าที่พัสดุประจำหลักสูตร จะต้องดำเนินการอย่างไร",
+   "en": "What should a program do when its coordinator or procurement officer changes?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "56",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "อยากทราบรายละเอียดการเปิดจองรายวิชาภาษาอังกฤษGRID ค่ะ",
+   "en": "When are English GRID courses open for booking?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_booking"
+   ]
+  },
+  {
+   "id": "57",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "วิธีการจองรายวิชาภาษาอังกฤษ GRIDต้องทำอย่างไร",
+   "en": "How do I book an English GRID course?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_booking",
+    "grid_count",
+    "grid_system_down"
+   ]
+  },
+  {
+   "id": "58",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "จะทราบได้อย่างไรว่าต้องเรียนกี่รายวิชาคะ",
+   "en": "How can I find out how many English courses I need to take?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_count"
+   ]
+  },
+  {
+   "id": "59",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "รายวิชา GRID มีกี่หน่วยกิต ราคาเท่าไหร่และเรียนกี่ชั่วโมง",
+   "en": "How many credits are GRID courses, how much do they cost, and how many hours are taught?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "id": "60",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากระบบล่มและนักศึกษาต้องการจองรายวิชาภาษาอังกฤษ GRIDจะต้องทำอย่างไร",
+   "en": "What should I do if the system is unavailable while I need to book a GRID course?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_booking"
+   ]
+  },
+  {
+   "id": "61",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "จะต้องลงทะเบียนเรียนและชำระเงินรายวิชาภาษาอังกฤษ GRID เมื่อไหร่",
+   "en": "When do I need to register and pay for a GRID English course?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_booking"
+   ]
+  },
+  {
+   "id": "62",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "การเรียนการสอนเป็นแบบออนไลน์หรือไม่",
+   "en": "Are the classes taught online?",
+   "student": true,
+   "gold_kb_ids": [
+    "grid_online"
+   ]
+  },
+  {
+   "id": "63",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "จะทราบได้อย่างไรว่าต้องใช้โปรแกรมอะไรในการเข้าเรียนออนไลน์",
+   "en": "How will I know which software/program is required for the online class?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "64",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "Short Coursesของงานศูนย์ภาษาบัณฑิตวิทยาลัยเปิดอบรมเมื่อไหร่และจะทราบได้อย่างไรหากเปิดรับสมัคร",
+   "en": "When does the FGS Language Center offer Short Courses, and how will I know when applications open?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "65",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากต้องการยื่นผลคะแนน TOEFL iBTหรือIELTS หรือ MUELT ต้องทำอย่างไร",
+   "en": "How do I submit TOEFL iBT, IELTS, or MU ELT scores?",
+   "student": true,
+   "gold_kb_ids": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "id": "66",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ขั้นตอนการแก้ไขหัวข้อวิทยานิพนธ์/สารนิพนธ์ในระบบฯหลังจากได้รับe-mailแจ้งให้แก้ไขมีขั้นตอนอย่างไร",
+   "en": "What should I do after receiving an email asking me to revise my thesis/thematic-paper title in the system?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "67",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากต้องการติดตามสถานะการตรวจหัวข้อวิทยานิพนธ์ /สารนิพนธ์และการขอแก้ไขหัวข้อวิทยานิพนธ์ /สารนิพนธ์จะต้องดำเนินการอย่างไร",
+   "en": "How can I track the status of a thesis/thematic-paper title review or title-change request?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "68",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากนักศึกษาแนบไฟล์เอกสารในระบบไม่ถูกต้องจะต้องดำเนินการอย่างไร",
+   "en": "What should I do if I uploaded the wrong document or need to add another file?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "70",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "คู่มือการตรวจบทคัดย่อสามารถหาอ่านได้จากที่ไหนบ้างคะ",
+   "en": "Where can I find the Abstract Online user guide?",
+   "student": true,
+   "gold_kb_ids": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "id": "71",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ใช้ระยะเวลาในการตรวจบทคัดย่อกี่วันคะ",
+   "en": "How long does abstract review take?",
+   "student": true,
+   "gold_kb_ids": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "id": "72",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "นักศึกษาจะตรวจสอบสถานะการส่งตรวจบทคัดย่อได้อย่างไรบ้าง",
+   "en": "How can students check the status of an abstract review?",
+   "student": true,
+   "gold_kb_ids": [
+    "abstract_track"
+   ]
+  },
+  {
+   "id": "73",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ขอทราบอัตราค่าสมัครการสอบ TOEFL ITP ค่ะ",
+   "en": "What is the TOEFL ITP application fee?",
+   "student": true,
+   "gold_kb_ids": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "id": "74",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "การติดต่อขอรับผลคะแนนTOEFL ITPจะต้องทำอย่างไร",
+   "en": "How can I collect my TOEFL ITP score report?",
+   "student": true,
+   "gold_kb_ids": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "id": "75",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ต้องการทราบรายละเอียดเกี่ยวกับการสอบ เช่นตารางสอบ ค่าสมัครและการเตรียมตัวก่อนสอบจะต้องดำเนินการอย่างไร",
+   "en": "Where can I find exam schedules, application fees, and preparation information?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "76",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากผู้เข้าสอบต้องการหนังสือรับรองผลฉบับใหม่หลักจากที่เคยรับแล้วต้องดำเนินการอย่างไร",
+   "en": "How can I request a replacement official score certificate after receiving the original?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "77",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ขอทราบกำหนดการสอบ MUGRAD Plus",
+   "en": "Where can I find the MU GRAD Plus exam schedule?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "78",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ขอทราบอัตราค่าสมัครการสอบ MU GRAD Plus",
+   "en": "What are the MU GRAD Plus examination fees?",
+   "student": true,
+   "gold_kb_ids": [
+    "mugrad_payment_check",
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "id": "79",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "คะแนนเต็มของการสอบ MUGRAD Plus เท่าไหร่",
+   "en": "What are the maximum scores for the MU GRAD Plus examinations?",
+   "student": true,
+   "gold_kb_ids": [
+    "mugrad_plus_fee",
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "id": "80",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "การสมัครสอบมีขั้นตอนอย่างไร",
+   "en": "What is the exam application procedure?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "81",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากชำระค่าสมัครสอบแล้วสามารถเช็คสถานการชำระเงินได้อย่างไร",
+   "en": "How can I check whether my exam application fee has been paid?",
+   "student": true,
+   "gold_kb_ids": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "id": "82",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "จะดูที่นั่งสอบและสถานที่สอบได้อย่างไรและเมื่อไหร่",
+   "en": "How and when can I check my exam seat number and test venue?",
+   "student": true,
+   "gold_kb_ids": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "id": "83",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากสมัครและชำระค่าสมัครสอบไปแล้วแต่ต้องการย้ายรอบการสอบต้องดำเนินการอย่างไร",
+   "en": "What should I do if I have already applied and paid but want to change my exam session?",
+   "student": true,
+   "gold_kb_ids": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "id": "84",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "จะดูผลคะแนนได้อย่างไรและเมื่อไหร่",
+   "en": "How and when can I view my exam score?",
+   "student": true,
+   "gold_kb_ids": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "id": "85",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากต้องการผลคะแนนอย่างเป็นทางการต้องดำเนินการอย่างไร",
+   "en": "How do I request an official score report?",
+   "student": true,
+   "gold_kb_ids": [
+    "official_score"
+   ]
+  },
+  {
+   "id": "86",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากต้องการผลคะแนนอย่างเป็นทางการต้องดำเนินการอย่างไร",
+   "en": "How can I print an official score report from the system?",
+   "student": true,
+   "gold_kb_ids": [
+    "official_score"
+   ]
+  },
+  {
+   "id": "87",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "ขอทราบการรายละเอียดการใช้ผลคะแนนแบบ Best scores",
+   "en": "How does the Best Scores method work?",
+   "student": true,
+   "gold_kb_ids": [
+    "best_scores"
+   ]
+  },
+  {
+   "id": "88",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากต้องการผลคะแนนรูปแบบBest scoresต้องดำเนินการอย่างไร",
+   "en": "How can I obtain a Best Scores result?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "89",
+   "audience": "prospective current",
+   "category": "language",
+   "th": "หากต้องการทราบ Guidelines หรือรายละเอียดการสอบเกณฑ์คะแนนภาษาอังกฤษของนักศึกษาระดับบัณฑิตศึกษาอยู่ที่ระดับเท่าไหร่",
+   "en": "Where can I find MU GRAD TEST guidelines and English proficiency score requirements for graduate students?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "90",
+   "audience": "staff",
+   "category": "finance",
+   "th": "การจ่ายเงินค่าตอบแทนให้อาจารย์ผู้สอนหรือคณะกรรมการเกี่ยวกับการทำวิทยานิพนธ์ฯ บัณฑิตวิทยาลัยดำเนินการอย่างไร",
+   "en": "How does FGS pay remuneration to instructors or thesis-related committee members?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "91",
+   "audience": "staff",
+   "category": "finance",
+   "th": "กรณีอาจารย์ผู้สอนหรือคณะกรรมการเกี่ยวกับการทำวิทยานิพนธ์ฯ ไม่มีบัญชีธนาคารที่บัณฑิตวิทยาลัยกำหนด สามารถดำเนินการได้หรือไม่",
+   "en": "Can payment still be made if an instructor or thesis-related committee member does not have an account with the bank specified by FGS?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "92",
+   "audience": "staff",
+   "category": "finance",
+   "th": "ค่าธรรมเนียมการโอนเงินต่างธนาคาร และค่าธรรมเนียมการโอนเงินต่างประเทศ ผ่านระบบ Online Banking ของบัณฑิตวิทยาลัยในอัตราเท่าใด",
+   "en": "What are the interbank and international transfer fees through the FGS Online Banking system?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "93",
+   "audience": "staff",
+   "category": "finance",
+   "th": "หลักสูตรดำเนินการอย่างไรในการเบิกจ่ายค่าตอบแทนอาจารย์ผู้สอนหรือคณะกรรมการเกี ่ยวกับการทำวิทยานิพนธ์ฯ ผ่านระบบ Online Banking ของบัณฑิตวิทยาลัย",
+   "en": "How does a program request payment of remuneration to instructors or thesis-related committee members through FGS Online Banking?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "94",
+   "audience": "staff",
+   "category": "finance",
+   "th": "ค่าธรรมเนียมการโอนเงินต่างธนาคาร และค่าธรรมเนียมการโอนเงินต่างประเทศ มีแนวทางในการเบิกจ่ายอย่างไร",
+   "en": "How should interbank or international transfer fees be handled?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "95",
+   "audience": "staff",
+   "category": "finance",
+   "th": "กรณีการเบิกจ่ายล่าช้าเกิน 30 วัน ตามข้อบังคับมหาวิทยาลัยมหิดล ว่าด้วยการบริหารงบประมาณและการเงิน (ฉบับที่ 2) พ.ศ. 2556 ข้อ 32 ดำเนินการอย่างไร",
+   "en": "What should be done when reimbursement is submitted more than 30 days late?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "96",
+   "audience": "staff",
+   "category": "finance",
+   "th": "กรณีการเบิกจ่ายข้ามปีงบประมาณ ตามประกาศมหาวิทยาลัยมหิดล เรื่อง หลักเกณฑ์และวิธีการรับเงิน การเก็บรักษาเงิน การเบิกเงิน การจ่ายเงิน และการควบคุมดูแลการจ่ายเงิน พ.ศ. 2551 ข้อ 5.3 ดำเนินการอย่างไร",
+   "en": "What should be done when reimbursement is submitted across fiscal years?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "97",
+   "audience": "staff",
+   "category": "finance",
+   "th": "การดำเนินการสอนและการสอบผ่านระบบออนไลน์ หลักฐานการเบิกจ่ายต้องลงนามผู้รับเงิน ดำเนินการอย่างไร",
+   "en": "How should payment evidence be signed for online teaching or online examinations?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "98",
+   "audience": "staff",
+   "category": "finance",
+   "th": "แนวทางการแนบสำเนาสมุดบัญชีธนาคาร กรณีชาวต่างชาติที่ไม่มีบัญชีธนาคารประเทศไทย สำหรับการจ่ายเงินให้อาจารย์ผู้สอนหรือคณะกรรมการเกี่ยวกับการทำวิทยานิพนธ์ฯ ผ่านระบบ Online Banking ของบัณฑิตวิทยาลัย ดำเนินการอย่างไร",
+   "en": "For a foreign payee without a Thai bank account, what bank-document information is required for payment through FGS Online Banking?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "99",
+   "audience": "staff",
+   "category": "finance",
+   "th": "การจ่ายค่าตอบแทนวิทยากรที่มาสอนของโครงการให้กับหลักสูตร ดำเนินการจ่ายเงินผ่านระบบ Online Banking ของบัณฑิตวิทยาลัย ดำเนินการอย่างไร",
+   "en": "How is guest-speaker remuneration for a program paid through FGS Online Banking?",
+   "student": false,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "100",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "กำหนดการเปิด –ปิดเปิดรับสมัครเมื่อไรปิดรับสมัครเมื่อไร",
+   "en": "When do applications open and close?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "id": "101",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "มีสาขาวิชาอะไรเปิดรับสมัครบ้าง",
+   "en": "Which programs are currently open for admission?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_programs"
+   ]
+  },
+  {
+   "id": "102",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "ผู้สนใจเข้าศึกษาต้องมีคุณสมบัติอย่างไรบ้าง",
+   "en": "What qualifications are required for prospective students?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_how"
+   ]
+  },
+  {
+   "id": "103",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "สนใจเข้าศึกษาต้องสมัครอย่างไร",
+   "en": "How do I apply for graduate study?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_how",
+    "gm_application_overview",
+    "leave_of_absence"
+   ]
+  },
+  {
+   "id": "104",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "ผู้สนใจเข้าศึกษาต้องมีค่าใช้จ่ายในการสมัครเท่าไร",
+   "en": "How much is the application fee?",
+   "student": true,
+   "gold_kb_ids": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "id": "105",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "ผู้สนใจเข้าศึกษาต้องมีคะแนนภาษาอังกฤษก่อนการสมัครเรียนหรือไม่",
+   "en": "Do prospective students need an English proficiency score before applying?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_english"
+   ]
+  },
+  {
+   "id": "106",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "ผู้สนใจเข้าศึกษาต้องใช้เอกสารอะไรบ้างในการสมัครเรียน",
+   "en": "What documents are required for an application?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_fee",
+    "admission_how"
+   ]
+  },
+  {
+   "id": "107",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "กำลังศึกษาอยู่เทอมสุดท้ายสามารถสมัครเรียนได้หรือไม่",
+   "en": "Can I apply while I am in my final semester?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "id": "108",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "คุณสมบัติไม่ตรงตามที่หลักสูตรกำหนดหรือเกรดเฉลี่ยไม่ถึงตามที่หลักสูตรกำหนดสามารถดำเนินการอย่างไรได้บ้าง",
+   "en": "Can I apply if I do not fully meet the program requirements or the minimum GPA?",
+   "student": true,
+   "gold_kb_ids": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "id": "109",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "ผู้มีสิทธิ์สอบสัมภาษณ์สามารถดูประกาศรายชื่อได้จากที่ไหน",
+   "en": "Where can I check the list of applicants eligible for interview?",
+   "student": true,
+   "gold_kb_ids": [
+    "interview_list"
+   ]
+  },
+  {
+   "id": "110",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "ผู้มีสิทธิ์เข้าศึกษาสามารถดูประกาศรายชื่อได้จากที่ไหน",
+   "en": "Where can I check the list of applicants admitted to the program?",
+   "student": true,
+   "gold_kb_ids": []
+  },
+  {
+   "id": "111",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "สามารถดาวน์โหลดรหัสเข้าระบบลงทะเบียน(Student ServiceSystem) ได้จากที่ไหน",
+   "en": "Where can I obtain the login credentials for the Student Service System?",
+   "student": true,
+   "gold_kb_ids": [
+    "internet_account"
+   ]
+  },
+  {
+   "id": "112",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "สามารถดาวน์โหลดInternet Accountได้จากที่ไหน",
+   "en": "Where can I obtain my Mahidol Internet Account?",
+   "student": true,
+   "gold_kb_ids": [
+    "internet_account"
+   ]
+  },
+  {
+   "id": "113",
+   "audience": "prospective",
+   "category": "admissions",
+   "th": "สามารถใช้ InternetAccountได้เมื่อไร",
+   "en": "When can I activate my Internet Account?",
+   "student": true,
+   "gold_kb_ids": [
+    "internet_account"
+   ]
+  },
+  {
+   "id": "114",
+   "audience": "current",
+   "category": "scholarship",
+   "th": "บัณฑิตวิทยาลัยมีทุนการศึกษาอะไรบ้าง",
+   "en": "What types of scholarships does the Faculty of Graduate Studies offer?",
+   "student": true,
+   "gold_kb_ids": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "id": "115",
+   "audience": "current",
+   "category": "scholarship",
+   "th": "นักศึกษาที่ได้รับเงินเป็นค่าใช้จ่ายรายเดือนจะได้รับเงินเดือนเมื่อไหร่",
+   "en": "When will students who receive a monthly scholarship allowance be paid?",
+   "student": true,
+   "gold_kb_ids": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "id": "116",
+   "audience": "current",
+   "category": "scholarship",
+   "th": "อยากทราบช่องทางการสมัครทุนการศึกษา และรางวัลของบัณฑิตวิทยาลัยค่ะ",
+   "en": "How can I apply for FGS scholarships and awards?",
+   "student": true,
+   "gold_kb_ids": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "id": "117",
+   "audience": "current",
+   "category": "scholarship",
+   "th": "นักศึกษาต้องการส่งเอกสารทุนและรางวัลให้เจ้าหน้าที่สามารถส่งได้ทางใดบ้าง",
+   "en": "How can students submit scholarship and award documents to staff?",
+   "student": true,
+   "gold_kb_ids": [
+    "scholarship_docs"
+   ]
+  }
+ ]
+}
