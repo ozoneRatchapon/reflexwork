@@ -127,7 +127,7 @@
     <h2>"เรียก AI ทุกครั้ง" — แพง ช้า ตรวจสอบไม่ได้</h2>
     <div class="probs">
       <div class="prob"><div class="n">💸</div><div class="t">ต้นทุนบานปลาย</div>
-        <div class="d">ยิงทุกคำถามเข้า LLM ทั้งที่ ~80% เป็นคำถามซ้ำที่ตัดสินด้วยกฎได้ — จ่าย token ให้งานไม่จำเป็น</div></div>
+        <div class="d">ยิงทุกคำถามเข้า LLM ทั้งที่คำถามส่วนใหญ่เป็นคำถามซ้ำที่ตอบจากคู่มือได้ (ประมาณการ ~80% ยังไม่ได้วัดจากการใช้งานจริง) — จ่าย token ให้งานไม่จำเป็น</div></div>
       <div class="prob"><div class="n">🐌</div><div class="t">ช้า / คอขวด</div>
         <div class="d">รอเครือข่าย 350–800 ms ต่อครั้ง ช่วงเปิดเทอมคำถามพุ่ง ระบบกลายเป็นคอขวด</div></div>
       <div class="prob"><div class="n">🔍</div><div class="t">ตรวจสอบไม่ได้</div>
@@ -207,7 +207,7 @@
         <div class="t">✅ พร้อมแล้ววันนี้</div>
         <ul>
           <li>Rust → WebAssembly รันในเบราว์เซอร์ 100% · 0 backend</li>
-          <li><b style="color:var(--fast)">ข้อมูลไม่ออกนอกเครื่อง</b> — ตรงกับ PDPA โดยดีไซน์</li>
+          <li><b style="color:var(--fast)">ไม่ต้องล็อกอิน ไม่เก็บบัญชีผู้ใช้</b> — การค้นคู่มือทำในเบราว์เซอร์; เมื่อใช้ AI ช่วยเรียบเรียง ข้อความคำถามถูกส่งไปยังบริการโมเดล (ต้องทบทวน PDPA ก่อนขยาย)</li>
           <li>production-hardening: staff auth · D1 backup · tunnel token</li>
           <li>11 unit tests + CI · kernel live บน production</li>
           <li><b style="color:var(--fast)">วัดจริงบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล</b>: ค้นถูก <b>recall@1 94%</b> · in-top-3 <b>100%</b> · ปฏิเสธคำถามนอกคู่มือ 5/5</li>
