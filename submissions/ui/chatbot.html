@@ -145,6 +145,7 @@
   body:not(.judge) .bar, body:not(.judge) .ratio-wrap, body:not(.judge) .mood, body:not(.judge) .judge-only{display:none !important}
   body:not(.judge) .chip-fast, body:not(.judge) .chip-ai{background:var(--raised);border-color:var(--line);color:var(--accent)}
   .top-inner{position:relative}
+  html.agency-pending .top-inner,html.agency-pending .chips{visibility:hidden}   /* set by the pack builder only: no flash of another organisation's words */
   .ai-off-note{margin-top:8px;display:inline-block;font-size:12.5px;font-weight:700;color:var(--auto);border:1px solid rgba(34,197,139,.5);border-radius:999px;padding:3px 12px;background:rgba(34,197,139,.1)}
   .ev-toggle{position:absolute;right:0;bottom:0;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
   .ev-toggle:hover{color:var(--ink);border-color:var(--accent)}
@@ -362,14 +363,66 @@ let ready=false, KB=[], auto=0, ai=0, saved=0;
 let LINKS=[];   // system-links.json: named systems -> official URLs (optional)
 let PROGDOC=null, PROG=[], PCTX=null;   // PCTX: the one programme a follow-up question may refer to (last single-programme card)   // programme catalogue (programmes.json) — optional, page works without it
 const COST=2;
+// ---- Agency config. DEFAULT_AGENCY reproduces the Graduate School exactly. A deployment for another organisation ships ./agency.json (see
+// docs/adopt.md); its fields start from NEUTRAL_AGENCY (no URLs, generic words), NEVER from the Graduate School's, so nothing of ours leaks.
+const DEFAULT_AGENCY = {
+  id:'graduate-school',
+  name:'บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล',
+  orgLine:'บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)',
+  title:'ถามเรื่องเรียนต่อ ลงทะเบียน และวิทยานิพนธ์',
+  subtitle:'ถามเรื่องสมัครเรียน ค่าเทอม และการส่งวิทยานิพนธ์ — ตอบจากประกาศและคู่มือทางการ ไม่เดา ถ้าไม่แน่ใจจะบอกและพาไปหาเจ้าหน้าที่',
+  metaTitle:'ถาม-ตอบ บัณฑิตวิทยาลัย — ReflexWork',
+  metaDescription:'ถามเรื่องหลักสูตร ค่าเทอม สถานะรับสมัคร และการส่งวิทยานิพนธ์ของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล ตอบจากประกาศและคู่มือทางการ',
+  placeholder:'เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง',
+  greeting:'ถามเรื่องสมัครเรียน หลักสูตร ค่าเทอม หรือการส่งวิทยานิพนธ์ได้เลย',
+  examples:[{q:'เรียนไรดี'},{q:'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก'},{q:'ส่งรูปเล่มภายในกี่วัน'},{q:'Turnitin เกิน 25% ทำอย่างไร'},{q:'ค่าสอบ MU GRAD Plus เท่าไร'},{q:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์',ai:true}],
+  persona:{
+    hello:'ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน',
+    bye:'ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀',
+    whatCan:'ผมตอบคำถามเรื่องบัณฑิตวิทยาลัยได้ครับ — กำหนดส่งวิทยานิพนธ์ · Turnitin/การตรวจความซ้ำ · บทคัดย่อ · การลงทะเบียน · ค่าสอบ/ค่าธรรมเนียม และถ้าเป็นปัญหาบัญชี/ระบบ ผมจะช่วยเก็บข้อมูลส่งต่อเจ้าหน้าที่ให้ครับ ลองถามมาได้เลย',
+    howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?'
+  },
+  contact:{label:'☎️ ติดต่อบัณฑิตวิทยาลัย',url:'https://graduate.mahidol.ac.th/thai/contact-us/'},
+  faq:{label:'📚 เปิดคู่มือ FAQ ทางการ',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai'},
+  english:{home:{label:'🌐 Graduate School (English)',url:'https://graduate.mahidol.ac.th/eng/'},faq:{label:'📚 Official FAQ (English)',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng'},contact:{label:'☎️ Contact staff',url:'https://graduate.mahidol.ac.th/thai/contact-us/'}},
+  scopeLinks:{registration:'https://graduate.mahidol.ac.th/thai/current-students/?p=academic-calendar',admissions:'https://graduate.mahidol.ac.th/thai/prospective-students/?topic=schedule',other:'https://graduate.mahidol.ac.th/thai/contact-us/'},
+  catalogueUrl:'https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum',
+  builtinKb:true,
+  customised:false
+};
+const NEUTRAL_AGENCY = {
+  id:'custom', name:'', orgLine:'ผู้ช่วยตอบคำถาม (ต้นแบบ)', title:'ถามคำถามที่พบบ่อย',
+  subtitle:'ตอบจากข้อมูลทางการของหน่วยงาน ไม่เดา ถ้าไม่แน่ใจจะบอกและพาไปหาเจ้าหน้าที่',
+  metaTitle:'ถาม-ตอบ — ReflexWork', metaDescription:'ผู้ช่วยตอบคำถามจากข้อมูลทางการของหน่วยงาน',
+  placeholder:'พิมพ์คำถามของคุณ', greeting:'ถามได้เลยครับ', examples:[],
+  persona:{hello:'ผมเป็นผู้ช่วยตอบคำถามจากข้อมูลทางการครับ — มีเรื่องอะไรให้ช่วยไหมครับ?', bye:'ด้วยความยินดีครับ 🦀', whatCan:'ผมตอบคำถามจากข้อมูลทางการของหน่วยงานครับ ถ้าไม่มีในข้อมูล ผมจะบอกและพาไปหาเจ้าหน้าที่ ลองถามมาได้เลย', howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องอะไรให้ช่วยไหมครับ?'},
+  contact:null, faq:null, english:null, scopeLinks:{}, builtinKb:false, customised:true
+};
+let AGENCY = DEFAULT_AGENCY;
+async function loadAgency(){
+  try{ const r=await fetch('./agency.json'); if(!r.ok) return; const j=await r.json(); if(j && typeof j==='object') AGENCY = Object.assign({}, NEUTRAL_AGENCY, j, {customised:true, persona:Object.assign({}, NEUTRAL_AGENCY.persona, j.persona||{})}); }catch(e){}
+}
+// a button for a {label,url} pair, or nothing (an agency without that link simply has no such button)
+const _btn=(c,cls)=> c && c.url ? `<a class="golink${cls?' '+cls:''}" href="${_lEsc(c.url)}" target="_blank" rel="noopener">${_lEsc(c.label||c.url)}</a>` : '';
+function applyAgency(){
+  document.title=AGENCY.metaTitle; const md=document.querySelector('meta[name=description]'); if(md) md.setAttribute('content',AGENCY.metaDescription);
+  const set=(sel,t)=>{ const e=document.querySelector(sel); if(e) e.textContent=t; };
+  set('.top .org',AGENCY.orgLine); set('.top h1',AGENCY.title); set('.top p',AGENCY.subtitle);
+  $('q').setAttribute('placeholder',AGENCY.placeholder);
+  const first=(AGENCY.examples[0]||{}).q||''; const st=document.querySelector('#swlane .swrow.swu .swstep'); if(st) st.innerHTML='<b>1.</b> พิมพ์คำถาม'+(first?' เช่น "'+_lEsc(first)+'"':'');
+  if(AGENCY.customised){ const ex=document.querySelector('.ev-example'); if(ex) ex.remove(); }   // the sample card in the evidence panel is about our own entries
+  document.documentElement.classList.remove('agency-pending');
+}
+const EXAMPLE_QS=()=>AGENCY.examples.map(e=>e.q);
 
 async function load(){
+  await loadAgency(); pickBackends(); applyAgency();
   await init();
   // Prefer the full knowledge index if present (local dev); otherwise use a
   // small built-in fallback so the public demo still works without the other
   // team's private data.
-  KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>FALLBACK_KB);
-  if(!Array.isArray(KB) || !KB.length) KB = FALLBACK_KB;
+  KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>AGENCY.builtinKb?FALLBACK_KB:[]);
+  if(!Array.isArray(KB) || !KB.length) KB = AGENCY.builtinKb?FALLBACK_KB:[];
   // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
   fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes)){ PROGDOC=d; PROG=d.programmes; } }).catch(()=>{});
   fetch('./system-links.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.links)) LINKS=d.links; }).catch(()=>{});
@@ -378,18 +431,12 @@ async function load(){
   const boot=$('boot'); if(boot) boot.remove();
   $('chat').innerHTML = `<div class="msg b greet">
       <div class="g-h">สวัสดีครับ 🦀</div>
-      <div class="g-p">ถามเรื่องสมัครเรียน หลักสูตร ค่าเทอม หรือการส่งวิทยานิพนธ์ได้เลย</div>
+      <div class="g-p">${_lEsc(AGENCY.greeting)}</div>
       <div class="g-cta">👆 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
     </div>`;
   $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+KB.length+' หัวข้อ · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์</span>';
-  const seeds=[
-    {t:'เรียนไรดี', k:'f'},
-    {t:'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก', k:'f'},
-    {t:'ส่งรูปเล่มภายในกี่วัน', k:'f'},
-    {t:'Turnitin เกิน 25% ทำอย่างไร', k:'f'},
-    {t:'ค่าสอบ MU GRAD Plus เท่าไร', k:'f'},
-    {t:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์', k:'a'},
-  ];
+  const seeds=AGENCY.examples.map(e=>({t:e.q,k:e.ai?'a':'f'}));
+
   $('chips').innerHTML =
     `<div class="chip-hint">ลองถามเรื่องเหล่านี้ได้เลย<span class="judge-only"> — 🟢 ตอบเองทันที (0 token)${AI_OFF?'':' · 🟠 ส่งให้ AI'}</span></div>` +
     '<div class="chip-row">'+seeds.filter(s=>!AI_OFF||s.k!=='a').map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}" data-q="${_lEsc(s.t)}"><span class="judge-only">${s.k==='a'?'🟠':'🟢'} </span>${_lEsc(s.t)}</span>`).join('')+'</div>';
@@ -1070,15 +1117,15 @@ function smalltalkReply(kind){
   const op = MOOD.greetOpener();
   switch(kind){
     case 'greet':
-      return `${op} 🦀 ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน`;
+      return `${op} 🦀 ${AGENCY.persona.hello}`;
     case 'thanks':
       return `ยินดีครับ 🙂 ถ้ามีอะไรให้ช่วยอีกถามได้เลยนะครับ`;
     case 'bye':
-      return `ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀`;
+      return AGENCY.persona.bye;
     case 'whatcan':
-      return `ผมตอบคำถามเรื่องบัณฑิตวิทยาลัยได้ครับ — กำหนดส่งวิทยานิพนธ์ · Turnitin/การตรวจความซ้ำ · บทคัดย่อ · การลงทะเบียน · ค่าสอบ/ค่าธรรมเนียม และถ้าเป็นปัญหาบัญชี/ระบบ ผมจะช่วยเก็บข้อมูลส่งต่อเจ้าหน้าที่ให้ครับ ลองถามมาได้เลย`;
+      return AGENCY.persona.whatCan;
     case 'howareyou':
-      return `สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?`;
+      return AGENCY.persona.howAreYou;
     default:
       return `${op} มีอะไรให้ช่วยไหมครับ?`;
   }
@@ -1094,7 +1141,7 @@ function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx, finit, e
     ${intro?`<div class="ans">${_lEsc(intro)}</div>`:''}
     ${near&&near.length?`<div class="ans" id="${fid}n">หมายถึงหลักสูตรเหล่านี้หรือเปล่า?<div class="dislist">${near.map(p=>`<span class="dis" data-code="${_lEsc(p.code)}">${_lEsc(p.title)} · ${_lEsc(p.faculty)}</span>`).join('')}</div></div>`:''}
     <div class="ans" id="${fid}"${facets===false?' style="display:none"':''}></div>
-    <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมดบนเว็บ →</a>
+    ${_btn({label:'📋 ดูหลักสูตรทั้งหมดบนเว็บ →',url:AGENCY.catalogueUrl},'alt')}
     ${extra||''}
     ${fbUI(q, d.blake3_proof)}`);
   const el=document.getElementById(fid), nel=document.getElementById(fid+'n');
@@ -1182,7 +1229,7 @@ function _askCore(){
         <div class="ans">${prog.levelMissing?'ไม่พบหลักสูตรในระดับที่ระบุ — ':''}${prog.kind==='broad'?`คำนี้กว้างไปหน่อย พบ ${prog.total} หลักสูตร ช่วยระบุสาขาให้เจาะจงขึ้น (เช่น ชื่อสาขา หรือรหัสหลักสูตร) หรือเลือกจากตัวอย่างด้านล่างครับ`:`พบ ${prog.total} หลักสูตรที่ตรงกับที่ถาม — เลือกอันที่ต้องการได้เลยครับ`}</div>
         <div class="dislist" id="${mid}">${opts}</div>
         <div class="meta">programme resolver: ${prog.total} candidates</div>
-        <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมด →</a>`);
+        ${_btn({label:'📋 ดูหลักสูตรทั้งหมด →',url:AGENCY.catalogueUrl},'alt')}`);
       document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
     }
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
@@ -1255,14 +1302,13 @@ function _askCore(){
         <div class="meta">scope guard: พบหลายปี/ภาคที่คะแนนใกล้กัน → ถามแทนการเดา (0 token, ไม่เรียก AI)</div>`);
       document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
     } else {
-      const link = scope.category==='registration' ? 'https://graduate.mahidol.ac.th/thai/current-students/?p=academic-calendar'
-                 : scope.category==='admissions' ? 'https://graduate.mahidol.ac.th/thai/prospective-students/?topic=schedule'
-                 : 'https://graduate.mahidol.ac.th/thai/contact-us/';
+      const SL = AGENCY.scopeLinks || {};
+      const link = (scope.category==='registration' ? SL.registration : scope.category==='admissions' ? SL.admissions : SL.other) || SL.other || (AGENCY.contact||{}).url || '';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'No data for that year':'คู่มือยังไม่มีข้อมูลปีนั้น'} ${stageTag}</span>
         <div class="ans">${en?`The knowledge base has no verified data for academic year ${scope.year} (it covers ${scope.years.join(', ')}). I won't substitute another year — please check the official page below.`:`ตอนนี้คู่มือยังไม่มีข้อมูลที่ยืนยันแล้วของปีการศึกษา ${scope.year} ครับ (มีเฉพาะปี ${scope.years.join(', ')}) ผมจึงไม่เอาข้อมูลของปีอื่นมาตอบแทน ตรวจสอบจากหน้าทางการด้านล่างได้เลย`}</div>
         <div class="meta">scope guard: ไม่พบปี ${scope.year} ในหมวด ${scope.category} — ไม่แทนด้วยปีอื่น</div>
-        <a class="golink" href="${link}" target="_blank" rel="noopener">📄 ${en?'Open the official page':'เปิดหน้าทางการ'} →</a>`);
+        ${link?`<a class="golink" href="${_lEsc(link)}" target="_blank" rel="noopener">📄 ${en?'Open the official page':'เปิดหน้าทางการ'} →</a>`:''}`);
     }
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
     return;
@@ -1286,7 +1332,7 @@ function _askCore(){
           <div class="ans">${MOOD.empathy()} — ${VOICE.adviceAbstain}</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
-            <div class="staff-btns"><a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a></div></div>
+            <div class="staff-btns">${_btn(AGENCY.contact)}</div></div>
           ${fbUI(q, d.blake3_proof)}`);
         $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
         return;
@@ -1377,9 +1423,9 @@ function _askCore(){
         <div class="staffbox">
           <div class="staff-h">Get an accurate answer</div>
           <div class="staff-btns">
-            <a class="golink" href="https://graduate.mahidol.ac.th/eng/" target="_blank" rel="noopener">🌐 Graduate School (English)</a>
-            <a class="golink alt" href="https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng" target="_blank" rel="noopener">📚 Official FAQ (English)</a>
-            <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ Contact staff</a>
+            ${_btn((AGENCY.english||{}).home)}
+            ${_btn((AGENCY.english||{}).faq || (AGENCY.faq && {label:'📚 Official FAQ',url:AGENCY.faq.url}),'alt')}
+            ${_btn((AGENCY.english||{}).contact || (AGENCY.contact && {label:'☎️ Contact staff',url:AGENCY.contact.url}),'alt')}
           </div>
         </div>
         ${fbUI(q, d.blake3_proof)}`);
@@ -1424,7 +1470,7 @@ function _askCore(){
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
     // nothing close: offer the demo-safe starting questions (programme finder, fees, thesis) - not a random slice of the KB
-    const picks = near.length ? near.map(e=>e.title) : ['เรียนไรดี','ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก','ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร'];
+    const picks = near.length ? near.map(e=>e.title) : AGENCY.examples.filter(e=>!e.ai).slice(0,4).map(e=>e.q);
     const cid = 'sg'+(++fbN);
     add('b', `${kstrip}
       <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ${VOICE.notInManual} ${stageTag}</span>
@@ -1435,8 +1481,8 @@ function _askCore(){
       <div class="staffbox">
         <div class="staff-h">${VOICE.staffHelp}</div>
         <div class="staff-btns">
-          <a class="golink" href="https://graduate.mahidol.ac.th/thai/contact-us/" target="_blank" rel="noopener">☎️ ติดต่อบัณฑิตวิทยาลัย</a>
-          <a class="golink alt" href="https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai" target="_blank" rel="noopener">📚 เปิดคู่มือ FAQ ทางการ</a>
+          ${_btn(AGENCY.contact)}
+          ${_btn(AGENCY.faq,'alt')}
         </div>
       </div>
       ${fbUI(q, d.blake3_proof)}`);
@@ -1497,12 +1543,16 @@ function fbUI(q, proof, entryId){
 
 // kernel endpoint for feedback. Empty = static demo (no backend): record locally
 // and show that the gate WOULD learn. Set to a reflex-serve URL for the real loop.
-const KERNEL_API = (new URLSearchParams(location.search)).get('api') || 'https://reflexwork-kernel.solana-thailand.workers.dev';
+// For the Graduate School these default to OUR two workers; for any other organisation (agency.json present) they default to NOTHING, so that its
+// questions, votes and gap log never reach our servers unless its agency.json names its own kernelApi / llmApi (or ?api= / ?llm= is given).
+let KERNEL_API = '', LLM_API = '';
+function pickBackends(){ const qp=new URLSearchParams(location.search);
+  KERNEL_API = qp.get('api') || (AGENCY.customised ? (AGENCY.kernelApi||'') : 'https://reflexwork-kernel.solana-thailand.workers.dev');
+  LLM_API = qp.get('llm') || (AGENCY.customised ? (AGENCY.llmApi||'') : 'https://reflexwork-llm-proxy.solana-thailand.workers.dev'); }
 // The LLM proxy is a SEPARATE worker from the kernel (the kernel has /route /gap /feedback ... but no /llm; calling it there
 // was a silent 404 on every AI request). ?llm=<url> overrides, e.g. for a local proxy.
 // ?ai=off = safe mode: answers come only from the knowledge base / official catalogue, the AI proxy is never called (demo fallback, or when the model is down)
 const AI_OFF = (new URLSearchParams(location.search)).get('ai') === 'off';
-const LLM_API = (new URLSearchParams(location.search)).get('llm') || 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
 // Fire-and-forget: record a question the KB could NOT answer, so it enters the
 // gap log (the self-improving-KB loop) and staff/curators see what to add. This
 // is what makes "บันทึกคำถามไว้ให้เจ้าหน้าที่แล้ว" a TRUE statement on web, not an
@@ -1569,7 +1619,7 @@ function typeahead(){
   if(v.length<2){ closeTypeahead(); return; }
   const seen=new Set(), out=[];
   for(const r of search(normChat(v)||v)){ if(r.s>=2 && !seen.has(r.e.title)){ seen.add(r.e.title); out.push(r.e.title); if(out.length>=4) break; } }
-  for(const t of ['เรียนไรดี','ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก','ส่งรูปเล่มภายในกี่วัน','Turnitin เกิน 25% ทำอย่างไร','ค่าสอบ MU GRAD Plus เท่าไร']) if(out.length<5 && !seen.has(t) && t.toLowerCase().includes(v.toLowerCase())){ seen.add(t); out.push(t); }
+  for(const t of EXAMPLE_QS()) if(out.length<5 && !seen.has(t) && t.toLowerCase().includes(v.toLowerCase())){ seen.add(t); out.push(t); }
   if(!out.length){ closeTypeahead(); return; }
   b.innerHTML=out.map((t,i)=>`<div class="sg-i" role="option" data-t="${_lEsc(t)}" id="sg${i}">${_lEsc(t)}</div>`).join(''); b.hidden=false; _sgIdx=-1; $('q').setAttribute('aria-expanded','true');
   b.querySelectorAll('.sg-i').forEach(el=>el.addEventListener('mousedown',e=>{ e.preventDefault(); $('q').value=el.dataset.t; ask(); }));

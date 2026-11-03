@@ -102,6 +102,17 @@ def main() -> int:
     # other team's "pending_owner_approval" data never leaks into a public
     # deploy. Pass --all to include everything (local dev / internal demo).
     publish_all = "--all" in sys.argv
+    # Optional: build for ANOTHER organisation from its own folder (see docs/adopt.md). The default (no options) is unchanged.
+    #   --knowledge-dir DIR   (repeatable)  replaces the built-in source folders
+    #   --out FILE                          where to write the index
+    global KN_DIRS, OUT
+    args = sys.argv[1:]
+    custom = [Path(args[i + 1]) for i, x in enumerate(args) if x == "--knowledge-dir" and i + 1 < len(args)]
+    if custom:
+        KN_DIRS = custom
+    for i, x in enumerate(args):
+        if x == "--out" and i + 1 < len(args):
+            OUT = Path(args[i + 1])
 
     if not any(d.is_dir() for d in KN_DIRS):
         print(f"no knowledge dirs at {[str(d) for d in KN_DIRS]}", file=sys.stderr)
