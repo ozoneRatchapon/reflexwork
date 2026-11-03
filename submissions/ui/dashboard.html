@@ -36,7 +36,6 @@
   .pill.fast{background:rgba(34,197,139,.14);color:var(--fast)}
   .pill.llm{background:rgba(246,169,59,.14);color:var(--llm)}
   .pill.rej{background:rgba(255,107,122,.14);color:var(--warn)}
-  .proof{color:var(--audit)}
   .empty{color:var(--muted);text-align:center;padding:28px}
   input{background:#070b17;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px}
   code{background:#0f1730;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--accent)}
@@ -61,6 +60,7 @@
 </header>
 
 <div class="wrap">
+  <div class="cap" id="phase" style="margin:0 0 14px;padding:8px 12px;border:1px solid var(--line);border-radius:10px">🧪 ข้อมูลช่วงทดสอบ (ก่อนเปิดใช้จริง) · ตัวเลขมาจากการทดลองของทีมและผู้ทดสอบ ไม่ใช่การใช้งานจริงของนักศึกษา</div>
   <div class="kpis">
     <div class="kpi"><div class="n" id="k-total">—</div><div class="l">คำถามทั้งหมดที่เข้าระบบ</div></div>
     <div class="kpi fast"><div class="n" id="k-fastpct">—</div><div class="l">ตอบเองไม่ต้องเรียก AI (ยิ่งสูง = ยิ่งประหยัด)</div></div>
@@ -77,15 +77,16 @@
 
   <div class="card">
     <h2>Audit Trail — การตัดสินใจล่าสุด</h2>
-    <div class="cap">ทุกแถวมี <b>ลายเซ็นดิจิทัล (BLAKE3)</b> ที่รันคำถามเดิมซ้ำแล้วได้ผลเดิมเป๊ะ — ตรวจสอบย้อนหลังได้ (ตอบโจทย์ PDPA)</div>
+    <div class="cap">ทุกการตัดสินใจถูกบันทึกไว้ให้ตรวจย้อนหลังได้ว่า ตอบเอง ส่ง AI หรือปฏิเสธ · ตารางนี้แสดงแค่เวลา ประเภท และเส้นทาง ไม่แสดงข้อความคำถาม</div>
     <table>
-      <thead><tr><th>เวลา</th><th>ประเภทงาน</th><th>เส้นทาง</th><th>ใช้เวลา</th><th>ลายเซ็นตรวจย้อนหลัง (BLAKE3)</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="5" class="empty">ยังไม่มีข้อมูล — ส่งงานผ่าน <code>POST /route</code> หรือหน้า demo UI</td></tr></tbody>
+      <thead><tr><th>เวลา</th><th>ประเภทงาน</th><th>เส้นทาง</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="3" class="empty">ยังไม่มีข้อมูล — ส่งงานผ่าน <code>POST /route</code> หรือหน้า demo UI</td></tr></tbody>
     </table>
   </div>
 
   <div class="card">
     <h2>📝 คำถามที่คู่มือยังตอบไม่ได้ (KB Gap Backlog)</h2>
+    <div class="cap" id="gapnote" hidden></div>
     <div class="cap">คำถามที่ระบบ "ไม่พบในคู่มือ" → เก็บไว้เป็นรายการให้เจ้าหน้าที่เพิ่มความรู้ · ยิ่งถามบ่อย = ยิ่งควรเพิ่มก่อน (ระบบรู้ว่าตัวเองไม่รู้อะไร)</div>
     <table>
       <thead><tr><th>คำถาม</th><th>ถูกถาม (ครั้ง)</th><th>ล่าสุด</th><th>ช่องทาง</th></tr></thead>
@@ -137,6 +138,17 @@ function routePill(route, fast){
 }
 function fmtTime(ms){ const d=new Date(ms); return d.toLocaleTimeString('th-TH',{hour12:false}); }
 
+// Gap backlog shown to staff: only real user channels, and never a row whose
+// text was mangled in transit (U+FFFD). Test/probe rows (source test, review,
+// verdict, …) stay in the store but are not presented as student demand.
+const REAL_GAP_SOURCES = new Set(['web','line']);
+function clean_gaps(entries){
+  const kept = entries.filter(e => REAL_GAP_SOURCES.has(e.source) && !String(e.question||'').includes('\uFFFD'));
+  const note = $('gapnote');
+  if(note){ const hidden = entries.length - kept.length; note.hidden = !hidden;
+    note.textContent = hidden ? `ซ่อน ${hidden} รายการที่มาจากการทดสอบระบบหรือข้อความเสีย` : ''; }
+  return kept;
+}
 async function tick(){
   try{
     const [s,a,g,kd,ec] = await Promise.all([
@@ -158,16 +170,13 @@ async function tick(){
     $('legend').innerHTML = `🟢 ตอบเอง ${s.fast_path} &nbsp; 🟠 ส่ง AI ${s.llm_path} &nbsp; 🔴 ปฏิเสธ ${s.rejected}`;
     const rows = a.entries||[];
     const shown = rows.slice(0,12);
-    const fmtUs = us => (us==null||us<1) ? '&lt; 1 µs' : us.toFixed(2)+' µs';
     $('rows').innerHTML = rows.length ? shown.map(e=>`<tr>
       <td class="mono">${fmtTime(e.at_unix_ms)}</td>
       <td>${esc(e.category)}</td>
-      <td>${routePill(e.route,e.fast_path)}</td>
-      <td class="mono">${fmtUs(e.kernel_us)}</td>
-      <td class="mono proof">${esc(String(e.blake3_proof).slice(0,16))}…</td></tr>`).join('')
-      + (rows.length>shown.length ? `<tr><td colspan="5" class="empty">+ อีก ${rows.length-shown.length} การตัดสินใจ (ทุกแถวมี fingerprint ตรวจย้อนหลังได้)</td></tr>` : '')
-      : '<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>';
-    const gaprows = (g&&g.entries)||[];
+      <td>${routePill(esc(e.route),e.fast_path)}</td></tr>`).join('')
+      + (rows.length>shown.length ? `<tr><td colspan="3" class="empty">+ อีก ${rows.length-shown.length} การตัดสินใจ</td></tr>` : '')
+      : '<tr><td colspan="3" class="empty">ยังไม่มีข้อมูล</td></tr>';
+    const gaprows = clean_gaps((g&&g.entries)||[]);
     $('gaprows').innerHTML = gaprows.length ? gaprows.map(e=>`<tr>
       <td>${esc(e.question)}</td>
       <td class="mono">${Number(e.hits)||0}</td>
@@ -304,6 +313,7 @@ window.autoDraft = async function(){
 function renderDemo(){
   $('dot').classList.remove('up');
   $('livetxt').textContent = 'โหมดสาธิต · ข้อมูลตัวอย่าง (ต่อ reflex-serve เพื่อดูข้อมูลจริง)';
+  $('phase').textContent = '🧪 โหมดสาธิต · ตัวเลขทุกตัวในหน้านี้เป็นข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง';
   const cats = ['ComplianceCheck','DataQuery','DocumentParse','Research','DataQuery','ComplianceCheck'];
   const total = 50, fast = 41, llm = 7, rej = 2;
   $('k-total').textContent = total;
@@ -318,13 +328,10 @@ function renderDemo(){
   const demoRows = cats.map((c,i)=>{
     const fastRow = !(c==='Research' || c==='DocumentParse');
     const route = fastRow ? 'FastPath' : (c==='Research'?'McpSynthesize':'McpAnalyze');
-    const proof = Array.from({length:16},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
     return `<tr>
       <td class="mono">${fmtTime(now - i*73000)}</td>
       <td>${c}</td>
-      <td>${routePill(route, fastRow)}</td>
-      <td class="mono">${(2.9+Math.random()*2).toFixed(2)} µs</td>
-      <td class="mono proof">${proof}…</td></tr>`;
+      <td>${routePill(route, fastRow)}</td></tr>`;
   }).join('');
   $('rows').innerHTML = demoRows;
   // Demo gap backlog — shows judges the self-improving loop even with no live API.
