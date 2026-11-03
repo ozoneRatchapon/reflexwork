@@ -3,318 +3,195 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReflexWork — Pitch (9)</title>
+<meta name="description" content="ReflexWork: ผู้ช่วยตอบคำถามจากแหล่งทางการของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล — ไม่เดา วัดได้ บอกข้อจำกัดของตัวเอง">
+<title>ReflexWork — Pitch</title>
+<link rel="stylesheet" href="./theme.css">
 <style>
-  :root{
-    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
-    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
-    --line:#2a3660;
-  }
+  /* 8 slides for a 5-minute talk. One idea per slide, big type, few words. Numbers on slide 5 all have a command in docs/pitching/100-evidence-and-score.md.
+     Keys: → ↓ PgDn Space = next · ← ↑ PgUp = back · Home / End · F = full screen. */
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--bg);color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif}
-  .deck{scroll-snap-type:y mandatory;height:100vh;overflow-y:auto}
-  .slide{scroll-snap-align:start;min-height:100vh;display:flex;flex-direction:column;
-    justify-content:center;padding:6vh 8vw;position:relative;border-bottom:1px solid var(--line)}
-  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    font-size:clamp(11px,1.1vw,14px);margin-bottom:16px}
-  h1{font-size:clamp(34px,6vw,76px);line-height:1.02;letter-spacing:-.02em}
-  h1 .sub{display:block;font-size:clamp(16px,2.1vw,26px);color:var(--muted);font-weight:500;margin-top:22px;line-height:1.5}
-  h2{font-size:clamp(24px,3.6vw,44px);margin-bottom:26px;letter-spacing:-.01em}
-  .pageno{position:absolute;top:5vh;right:8vw;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
-  .foot{position:absolute;bottom:4vh;left:8vw;color:var(--muted);font-size:clamp(12px,1.3vw,15px)}
-  .tag{display:inline-flex;gap:8px;align-items:center;background:var(--panel);
-    border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:14px;color:var(--muted)}
-
-  /* problem list */
-  .probs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1080px}
-  .prob{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--warn);
-    border-radius:14px;padding:26px 24px}
-  .prob .n{color:var(--warn);font-weight:800;font-size:clamp(22px,2.6vw,30px)}
-  .prob .t{font-weight:700;margin:10px 0 8px;font-size:clamp(16px,1.7vw,20px)}
-  .prob .d{color:var(--muted);font-size:clamp(13px,1.3vw,15px);line-height:1.55}
-
-  /* architecture / kiro split */
-  .split2{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1100px}
-  .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 26px}
-  .box .t{font-weight:800;font-size:clamp(17px,1.9vw,23px);margin-bottom:14px}
-  .box.k .t{color:var(--accent)} .box.a .t{color:var(--fast)}
-  .box ul{list-style:none;display:flex;flex-direction:column;gap:11px}
-  .box li{color:var(--muted);font-size:clamp(13px,1.4vw,16px);line-height:1.5;padding-left:24px;position:relative}
+  html,body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif;-webkit-font-smoothing:antialiased}
+  .deck{scroll-snap-type:y mandatory;height:100vh;overflow-y:auto;scroll-behavior:smooth}
+  .slide{scroll-snap-align:start;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:7vh 9vw;position:relative;border-bottom:1px solid var(--line)}
+  .pageno{position:absolute;top:5vh;right:9vw;color:var(--muted);font-size:clamp(13px,1.1vw,16px);font-variant-numeric:tabular-nums}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:clamp(13px,1.2vw,17px);margin-bottom:18px}
+  h1{font-size:clamp(44px,8vw,104px);line-height:1.02;letter-spacing:-.025em}
+  h2{font-size:clamp(30px,4.6vw,60px);line-height:1.18;letter-spacing:-.015em;margin-bottom:34px;max-width:20em}
+  .lead{font-size:clamp(20px,2.6vw,34px);line-height:1.45;color:var(--muted);max-width:26em;margin-top:26px}
+  .lead b,h2 b{color:var(--ink)}
+  .em{color:var(--fast)} .warn{color:var(--warn)} .acc{color:var(--accent)} .llm{color:var(--llm)}
+  .foot{position:absolute;bottom:5vh;left:9vw;right:9vw;color:var(--muted);font-size:clamp(13px,1.3vw,18px);line-height:1.5}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1200px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px 28px}
+  .card .ic{font-size:clamp(30px,3.6vw,46px);margin-bottom:12px}
+  .card .t{font-size:clamp(20px,2.3vw,30px);font-weight:800;line-height:1.3}
+  .card .d{margin-top:10px;color:var(--muted);font-size:clamp(15px,1.6vw,21px);line-height:1.5}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:18px;align-items:stretch;max-width:1200px}
+  .flow .arrow{align-self:center;color:var(--muted);font-size:clamp(22px,3vw,40px)}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 24px}
+  .step .n{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(91,140,255,.18);color:var(--accent);font-size:20px;margin-bottom:12px}
+  .step .t{font-size:clamp(19px,2.2vw,28px);font-weight:800;line-height:1.3}
+  .step .d{margin-top:8px;color:var(--muted);font-size:clamp(14px,1.5vw,20px);line-height:1.5}
+  .step.ok{border-top:4px solid var(--fast)} .step.hand{border-top:4px solid var(--llm)} .step.src{border-top:4px solid var(--accent)}
+  .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1240px}
+  .num{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 22px}
+  .num .v{font-size:clamp(40px,5.8vw,84px);font-weight:800;line-height:1;letter-spacing:-.02em}
+  .num .l{margin-top:12px;color:var(--muted);font-size:clamp(14px,1.5vw,20px);line-height:1.45}
+  .limits{margin-top:26px;max-width:1240px;border:1px dashed var(--llm);border-radius:16px;padding:18px 22px;background:rgba(246,169,59,.07)}
+  .limits .h{color:var(--llm);font-weight:800;font-size:clamp(15px,1.6vw,21px);margin-bottom:6px}
+  .limits .b{color:var(--ink);font-size:clamp(14px,1.55vw,20px);line-height:1.6}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1200px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px 28px}
+  .box .t{font-weight:800;font-size:clamp(20px,2.3vw,30px);margin-bottom:14px}
+  .box ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+  .box li{color:var(--muted);font-size:clamp(15px,1.7vw,22px);line-height:1.45;padding-left:30px;position:relative}
   .box li::before{content:"✓";position:absolute;left:0;color:var(--fast);font-weight:800}
-  .lead{margin-top:22px;max-width:1100px;color:var(--ink);font-size:clamp(15px,1.7vw,20px);
-    border-left:3px solid var(--accent);padding-left:16px;line-height:1.5}
-
-  /* swimlane */
-  .swlane{border:1px solid var(--line);border-radius:16px;overflow:hidden;max-width:980px}
-  .swrow{display:grid;grid-template-columns:190px 1fr;border-bottom:1px solid var(--line)}
-  .swrow:last-child{border-bottom:none}
-  .swact{padding:18px 16px;font-weight:800;font-size:clamp(14px,1.5vw,18px);display:flex;align-items:center}
-  .swbody{padding:16px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:9px;justify-content:center}
-  .swu{background:rgba(59,99,232,.14)} .swu .swbody{background:rgba(59,99,232,.05)}
-  .swk{background:rgba(34,197,139,.12)} .swk .swbody{background:rgba(34,197,139,.04)}
-  .swa{background:rgba(246,169,59,.12)} .swa .swbody{background:rgba(246,169,59,.04)}
-  .swstep{font-size:clamp(13px,1.35vw,16px);line-height:1.45;color:var(--ink)}
-  .swstep b{color:var(--accent)} .swstep.ok b{color:var(--fast)} .swstep.esc b{color:var(--llm)}
-
-  /* readiness (wasm) */
-  .wasm{display:grid;grid-template-columns:1.1fr .9fr;gap:26px;max-width:1120px;align-items:center}
-  .wasm .url{display:inline-flex;align-items:center;gap:8px;background:#0f1730;border:1px solid var(--line);
-    border-radius:10px;padding:12px 16px;font-family:ui-monospace,Menlo,monospace;color:var(--accent);
-    font-size:clamp(13px,1.3vw,15px);margin-top:16px}
-
-  /* federated scale */
-  .fed{display:grid;grid-template-columns:1fr auto 1fr;gap:22px;align-items:center;max-width:1100px}
-  .fedcol{display:flex;flex-direction:column;gap:12px}
-  .fnode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;font-size:clamp(13px,1.4vw,16px)}
-  .fnode b{color:var(--fast)}
-  .fcentral{background:var(--panel);border:1px solid var(--audit);border-radius:14px;padding:22px 20px;text-align:center}
-  .fcentral .t{color:var(--audit);font-weight:800;font-size:clamp(15px,1.7vw,19px);margin-bottom:8px}
-  .fcentral .d{color:var(--muted);font-size:clamp(12px,1.3vw,14px);line-height:1.5}
-  .farrow{color:var(--muted);font-size:24px;text-align:center}
-
-  /* impact cards */
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;max-width:1120px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px 26px}
-  .card .big{font-size:clamp(26px,4vw,46px);font-weight:800;letter-spacing:-.02em}
-  .card.c1 .big{color:var(--fast)} .card.c2 .big{color:var(--accent)} .card.c3 .big{color:var(--audit)}
-  .card .lab{font-weight:700;margin:12px 0 8px;font-size:clamp(16px,1.7vw,20px)}
-  .card .sub{color:var(--muted);font-size:clamp(13px,1.35vw,15px);line-height:1.55}
-  .vision{margin-top:28px;max-width:1120px;color:var(--ink);font-size:clamp(16px,1.9vw,22px);
-    border-left:3px solid var(--fast);padding-left:18px;line-height:1.5}
-
-  /* radar */
-  .radar{display:flex;flex-direction:column;gap:clamp(6px,1vh,11px);margin-top:clamp(12px,3vh,26px);max-width:900px}
-  .rr{display:grid;grid-template-columns:clamp(150px,22vw,260px) 1fr clamp(44px,5vw,64px);gap:clamp(10px,1.4vw,18px);align-items:center}
-  .rl{color:var(--ink);font-weight:600;font-size:clamp(13px,1.5vw,19px)}
-  .rt{background:var(--panel);border:1px solid var(--line);border-radius:7px;height:clamp(16px,2.2vh,22px);overflow:hidden}
-  .rt i{display:block;height:100%;border-radius:6px 0 0 6px}
-  .rr b{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:clamp(13px,1.5vw,19px)}
-
-  /* close + QR */
-  .close{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;max-width:1100px}
-  .qrbox{text-align:center;background:#fff;border-radius:16px;padding:18px;width:clamp(180px,22vw,240px)}
-  .qrbox img{width:100%;display:block;border-radius:6px}
-  .qrbox .cap{color:#0b1020;font-size:13px;font-weight:700;margin-top:10px}
-
-  @media (max-width:760px){.split2,.cards,.probs,.wasm,.fed,.close{grid-template-columns:1fr}}
-  @media print{.slide{page-break-after:always;min-height:auto}}
+  .box.soon li::before{content:"○";color:var(--muted)}
+  .box.soon{border-style:dashed}
+  .ask{margin-top:24px;max-width:1200px;font-size:clamp(18px,2.2vw,30px);font-weight:700;border-left:4px solid var(--accent);padding-left:18px;line-height:1.45}
+  .demo{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;align-items:baseline;max-width:1100px;font-size:clamp(18px,2.3vw,30px)}
+  .demo .k{color:var(--accent);font-weight:800;font-variant-numeric:tabular-nums}
+  .demo .q{color:var(--ink);font-weight:600}
+  .qrwrap{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;max-width:1200px}
+  .qr{background:#fff;padding:16px;border-radius:18px;width:clamp(200px,24vw,320px)}
+  .qr img{display:block;width:100%;height:auto}
+  .qr .cap{color:#222;text-align:center;font-size:clamp(13px,1.3vw,17px);margin-top:8px;font-weight:700}
+  .url{font-size:clamp(22px,3.2vw,44px);font-weight:800;color:var(--accent);margin-top:18px}
+  @media (max-width:900px){.cards,.nums,.two,.flow,.qrwrap{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
+  @media print{.deck{height:auto;overflow:visible}.slide{min-height:auto;page-break-after:always}}
 </style>
 </head>
 <body>
-<div class="deck">
+<div class="deck" id="deck" tabindex="0">
 
   <!-- 1 — Title -->
   <section class="slide">
-    <div class="pageno">01 / 09</div>
+    <div class="pageno">1 / 8</div>
     <div class="kicker">Mahidol AI Community 2026 · Pitching Day · Track A</div>
-    <h1>ReflexWork
-      <span class="sub">ชั้นคัดกรองอัจฉริยะ <b>หน้า</b> LLM<br/>
-      คัดก่อนเรียก AI · ฟรี · ไมโครวินาที · ตรวจสอบย้อนหลังได้</span>
-    </h1>
-    <div style="margin-top:38px;display:flex;gap:12px;flex-wrap:wrap">
-      <span class="tag">🦀 Reflex Kernel (Rust → WASM)</span>
-      <span class="tag">🧠 Built with Kiro + Amazon Bedrock</span>
-      <span class="tag">🔐 BLAKE3 ลายเซ็นตรวจย้อนหลัง</span>
-    </div>
-    <div class="foot">🌐 ลองสด: reflexwork.pages.dev &nbsp;·&nbsp; Ratchapon (Ozone) · Napatsakorn</div>
+    <h1>ReflexWork</h1>
+    <p class="lead"><b>ผู้ช่วยตอบคำถามจากแหล่งทางการ</b><br/>ไม่เดา · ตรวจสอบได้ · บอกข้อจำกัดของตัวเอง</p>
+    <div class="foot">ลองสด: <b class="acc">reflexwork.pages.dev</b> &nbsp;·&nbsp; Ratchapon (Ozone) · Napatsakorn</div>
   </section>
 
   <!-- 2 — Problem -->
   <section class="slide">
-    <div class="pageno">02 / 09</div>
+    <div class="pageno">2 / 8</div>
     <div class="kicker">ปัญหา</div>
-    <h2>"เรียก AI ทุกครั้ง" — แพง ช้า ตรวจสอบไม่ได้</h2>
-    <div class="probs">
-      <div class="prob"><div class="n">💸</div><div class="t">ต้นทุนบานปลาย</div>
-        <div class="d">ยิงทุกคำถามเข้า LLM ทั้งที่คำถามส่วนใหญ่เป็นคำถามซ้ำที่ตอบจากคู่มือได้ (ประมาณการ ~80% ยังไม่ได้วัดจากการใช้งานจริง) — จ่าย token ให้งานไม่จำเป็น</div></div>
-      <div class="prob"><div class="n">🐌</div><div class="t">ช้า / คอขวด</div>
-        <div class="d">รอเครือข่าย 350–800 ms ต่อครั้ง ช่วงเปิดเทอมคำถามพุ่ง ระบบกลายเป็นคอขวด</div></div>
-      <div class="prob"><div class="n">🔍</div><div class="t">ตรวจสอบไม่ได้</div>
-        <div class="d">AI มั่วตัวเลขได้ + ย้อนดูไม่ได้ว่าตอบอะไรไป — ขัด PDPA และธรรมาภิบาลข้อมูล</div></div>
-    </div>
-    <div class="foot" style="border-left:3px solid var(--acc,#f6a93b);padding-left:12px;text-align:left">
-      <b>ไม่ใช่ปัญหาสมมติ</b> — ทีมผู้ช่วย AI อีกทีมในมหิดลเอง (LLM-first) รายงานเองว่าช่วงทดสอบ
-      <b>"token พุ่งก้าวกระโดด"</b> และ dashboard สรุปค่าใช้จ่ายได้ไม่แม่น เพราะทุกคำถามยิง LLM ตรง
-    </div>
-  </section>
-
-  <!-- 3 — Swimlane (ภาษาคน) -->
-  <section class="slide">
-    <div class="pageno">03 / 09</div>
-    <div class="kicker">ทางออก · เล่าแบบไม่มีศัพท์เทคนิค</div>
-    <h2>คัดด้วย reflex ก่อน แล้วค่อยเรียก AI</h2>
-    <div class="swlane">
-      <div class="swrow swu">
-        <div class="swact">👤 ผู้ใช้</div>
-        <div class="swbody">
-          <div class="swstep"><b>1.</b> พิมพ์คำถาม เช่น "ส่ง Turnitin เกิน 25% ทำยังไง"</div>
-          <div class="swstep ok"><b>✓</b> เห็นคำตอบทันที (+ ปุ่มติดต่อเจ้าหน้าที่ถ้าต้องส่งต่อ)</div>
-        </div>
-      </div>
-      <div class="swrow swk">
-        <div class="swact">🦀 ตัวคัดกรอง</div>
-        <div class="swbody">
-          <div class="swstep"><b>2.</b> รับคำถาม → ถามตัวเองว่า "เคยตอบเรื่องนี้ได้ไหม?"</div>
-          <div class="swstep ok"><b>→</b> เคย (เจอในคู่มือ) → ตอบเลย <b style="color:var(--fast)">ฟรี · เร็วมาก</b></div>
-          <div class="swstep esc"><b>→</b> ไม่แน่ใจ → ส่งต่อ + บันทึกไว้ปรับปรุงคู่มือ</div>
-        </div>
-      </div>
-      <div class="swrow swa">
-        <div class="swact">🤖 AI / เจ้าหน้าที่</div>
-        <div class="swbody">
-          <div class="swstep"><b>3.</b> เฉพาะคำถาม <b>ใหม่จริง ~20%</b> เท่านั้นที่มาถึงชั้นนี้</div>
-          <div class="swstep"><b>·</b> AI ช่วยร่างจากคู่มือ (ห้ามแต่งเอง) หรือเจ้าหน้าที่ดูแลต่อ</div>
-        </div>
-      </div>
-    </div>
-    <div class="foot">💡 คำถามซ้ำ ๆ ส่วนใหญ่จบที่ชั้น 🦀 <b>โดยไม่แตะ AI</b> — ถูก เร็ว ตรวจสอบย้อนหลังได้ &nbsp;·&nbsp; 🖥️ <b>ต่อไป: demo สด</b></div>
-  </section>
-
-  <!-- 4 — AI + Kiro -->
-  <section class="slide">
-    <div class="pageno">04 / 09</div>
-    <div class="kicker">การประยุกต์ใช้ AI + Kiro</div>
-    <h2>สร้างด้วย Kiro · ใช้ AI อย่างคุ้มค่า</h2>
-    <div class="split2">
-      <div class="box k">
-        <div class="t">🧠 Kiro spec-driven เต็มรูปแบบ</div>
-        <ul>
-          <li>3 specs: requirements → design → tasks (learning-loop · distributable-kernel · voice)</li>
-          <li>steering files คุมทุก session (product · tech · structure)</li>
-          <li>hooks + CI ตรวจทุก commit · <code style="color:var(--accent)">.kiro/</code> อยู่ในรีโป public</li>
-        </ul>
-      </div>
-      <div class="box a">
-        <div class="t">💡 AI เฉพาะที่จำเป็น</div>
-        <ul>
-          <li>เรียก AI เฉพาะคำถามที่ตัวคัดกรองตัดสินว่าคลุมเครือจริง (~20%)</li>
-          <li>บังคับ system prompt "ห้ามแต่งนอกคู่มือ" (grounded)</li>
-          <li>รองรับหลาย provider: Gemini · Amazon Bedrock · local Typhoon</li>
-        </ul>
-      </div>
-    </div>
-    <div class="lead"><b>AI ไม่เคยเป็นแหล่งข้อเท็จจริง</b> — ตัวเลข เบอร์ วันที่ มาจากคู่มือเสมอ AI แค่เรียบเรียง</div>
-  </section>
-
-  <!-- 5 — Readiness -->
-  <section class="slide">
-    <div class="pageno">05 / 09</div>
-    <div class="kicker">ความพร้อมใช้งานจริง (Implementation Readiness)</div>
-    <h2>ไม่ใช่ prototype — live บน production วันนี้</h2>
-    <div class="wasm">
-      <div class="box a">
-        <div class="t">✅ พร้อมแล้ววันนี้</div>
-        <ul>
-          <li>Rust → WebAssembly รันในเบราว์เซอร์ 100% · 0 backend</li>
-          <li><b style="color:var(--fast)">ไม่ต้องล็อกอิน ไม่เก็บบัญชีผู้ใช้</b> — การค้นคู่มือทำในเบราว์เซอร์; เมื่อใช้ AI ช่วยเรียบเรียง ข้อความคำถามถูกส่งไปยังบริการโมเดล (ต้องทบทวน PDPA ก่อนขยาย)</li>
-          <li>production-hardening: staff auth · D1 backup · tunnel token</li>
-          <li>11 unit tests + CI · kernel live บน production</li>
-          <li><b style="color:var(--fast)">วัดจริงบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล</b>: ค้นถูก <b>recall@1 94%</b> · in-top-3 <b>100%</b> · ปฏิเสธคำถามนอกคู่มือ 5/5</li>
-        </ul>
-        <div class="url">🌐 reflexwork.pages.dev</div>
-      </div>
-      <div class="box k">
-        <div class="t" style="color:var(--accent)">🔁 ยิ่งใช้ยิ่งฉลาด (ไม่ retrain)</div>
-        <ul>
-          <li>ตอบไม่ได้ → บันทึก gap (ปิดบัง PII)</li>
-          <li>👎 → ลด confidence หัวข้อนั้นเอง</li>
-          <li>AI ร่างคำตอบ → <b style="color:var(--fast)">คนอนุมัติ</b> → คู่มือใหม่</li>
-          <li>ปรับคู่มือ ไม่ปรับ weights = คง 0-token</li>
-        </ul>
-      </div>
-    </div>
-    <div class="foot"><b>ตัวเลขวัดจริง ไม่ใช่ประมาณการ</b> — รันบนคู่มืออิสระที่ระบบไม่เคยเห็น · kernel เดียวรันทั้ง server (native) และเบราว์เซอร์ (WASM) ตรงกัน bit-for-bit</div>
-  </section>
-
-  <!-- 6 — Scale (federated) -->
-  <section class="slide">
-    <div class="pageno">06 / 09</div>
-    <div class="kicker">ขยายทั้งมหาวิทยาลัย (Impact / Scale)</div>
-    <h2>Federated Corpus — เรียนรู้ร่วมกัน ข้อมูลไม่ไหลข้าม</h2>
-    <div class="fed">
-      <div class="fedcol">
-        <div class="fnode">🎓 บัณฑิตวิทยาลัย<br/><b>คู่มือ + ตัวคัดกรองของตัวเอง</b></div>
-        <div class="fnode">💰 การเงิน<br/><b>คู่มือ + ตัวคัดกรองของตัวเอง</b></div>
-        <div class="fnode">🖥️ IT Help desk<br/><b>คู่มือ + ตัวคัดกรองของตัวเอง</b></div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-        <div class="farrow">→</div>
-        <div style="color:var(--muted);font-size:12px;text-align:center;max-width:120px">สัญญาณ masked<br/>(topic + count)<br/>ไม่ใช่ข้อความดิบ</div>
-        <div class="farrow">←</div>
-      </div>
-      <div class="fcentral">
-        <div class="t">🗂️ Central Corpus</div>
-        <div class="d">รวมคำถามที่หลายหน่วยตอบไม่ได้ → ร่างคำตอบ → <b style="color:var(--audit)">คนอนุมัติ</b> → ปล่อยคู่มือกลางที่ลงนามดิจิทัล → ทุกหน่วยดึงไปใช้</div>
-      </div>
-    </div>
-    <div class="foot">ออกแบบครบแล้วใน Kiro spec <code style="color:var(--accent)">.kiro/specs/distributable-kernel/</code> (requirements → design → tasks) · คณะ A เติมแล้ว คณะ B ได้ด้วย</div>
-    <div class="foot" style="border-left:3px solid var(--fast,#22c58b);padding-left:12px;text-align:left;margin-top:8px">
-      <b>วัดแล้วว่าการแยก corpus ต่อหน่วยงานได้ผลจริง:</b> เมื่อรวมทุกหมวดเป็น index เดียว
-      ค้นถูกอันดับ 1 = 81% · เมื่อแยก namespace ต่อหน่วยงานตาม design นี้ → <b style="color:var(--fast)">ขึ้นเป็น 87%</b>
-      (วัดบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล)
-    </div>
-  </section>
-
-  <!-- 7 — Impact -->
-  <section class="slide">
-    <div class="pageno">07 / 09</div>
-    <div class="kicker">คุณค่าที่เกิดกับมหาวิทยาลัย (Impact)</div>
-    <h2>ถูกลง · เร็วขึ้น · ตรวจสอบได้</h2>
+    <h2>คำถามเดิมซ้ำทุกเทอม<br/>และ AI ทั่วไป <span class="warn">ตอบผิดได้อย่างมั่นใจ</span></h2>
     <div class="cards">
-      <div class="card c1"><div class="big">84%</div>
-        <div class="lab">💰 ตอบเองไม่เรียก AI (วัดจริง)</div>
-        <div class="sub">วัดบนคู่มือ 440 หัวข้อของอีกทีมในมหิดล: <b>84% ของคำถาม FAQ จริง = 0 token</b> (ไม่ใช่ประมาณการ). local Typhoon = $0 ค่า API</div></div>
-      <div class="card c2"><div class="big">~12 ชม.</div>
-        <div class="lab">⚡ คืนเวลาเจ้าหน้าที่/วัน/คณะ</div>
-        <div class="sub">ช่วง peak: 240 คำถามซ้ำ/วัน × 3 นาที = ~12 ชม.คน ไปทำงานที่ต้องใช้คนจริง</div></div>
-      <div class="card c3"><div class="big">100%</div>
-        <div class="lab">🔒 คำตอบตรวจสอบได้</div>
-        <div class="sub">ทุกคำตอบมี BLAKE3 fingerprint รันซ้ำได้ — ตอบโจทย์ PDPA และ internal audit</div></div>
+      <div class="card"><div class="ic">🗂️</div><div class="t">เจ้าหน้าที่ตอบซ้ำ</div><div class="d">ค่าเทอม กำหนดส่ง การสมัคร</div></div>
+      <div class="card"><div class="ic">⚠️</div><div class="t">AI เดาตัวเลข</div><div class="d">วัน เงิน เงื่อนไข ผิดได้</div></div>
+      <div class="card"><div class="ic">🔍</div><div class="t">ตรวจย้อนหลังไม่ได้</div><div class="d">ไม่รู้ว่าตอบจากอะไร</div></div>
     </div>
-    <div class="vision"><b>วัดความสำเร็จจากการที่คำถามซ้ำลดลง</b> — เพราะชี้ให้ IT แก้ที่ต้นเหตุ · เป้าหมายสูงสุด: ทำให้ตัวเองไม่จำเป็น</div>
+    <div class="foot">ความเสี่ยงนี้เกิดจริง: ศาลแคนาดาให้บริษัทรับผิดต่อ chatbot ที่ตอบผิด (<i>Moffatt v. Air Canada</i>, 2024)</div>
   </section>
 
-  <!-- 8 — Radar (honest coverage) -->
+  <!-- 3 — Solution -->
   <section class="slide">
-    <div class="pageno">08 / 09</div>
-    <div class="kicker">เราทำครบแค่ไหน · โชว์ตรง ๆ (ชั้นคัดกรอง ไม่ใช่ตัว LLM)</div>
-    <h2>Feature Coverage — ซื่อสัตย์ว่าอะไรเสร็จ อะไรยัง</h2>
-    <div class="radar">
-      <div class="rr"><span class="rl">คัดกรองเส้นทาง <small style="color:var(--muted)">FastPath routing</small></span><span class="rt"><i style="width:95%;background:var(--fast)"></i></span><b>95%</b></div>
-      <div class="rr"><span class="rl">ตรวจสอบย้อนหลัง <small style="color:var(--muted)">Audit · BLAKE3</small></span><span class="rt"><i style="width:95%;background:var(--fast)"></i></span><b>95%</b></div>
-      <div class="rr"><span class="rl">ตอบจากคู่มือที่ยืนยัน <small style="color:var(--muted)">KB grounding</small></span><span class="rt"><i style="width:90%;background:var(--fast)"></i></span><b>90%</b></div>
-      <div class="rr"><span class="rl">ไม่รู้ก็บอกไม่รู้ <small style="color:var(--muted)">Abstain · safety</small></span><span class="rt"><i style="width:90%;background:var(--fast)"></i></span><b>90%</b></div>
-      <div class="rr"><span class="rl">ใช้ได้หลายช่อง <small style="color:var(--muted)">web + LINE</small></span><span class="rt"><i style="width:90%;background:var(--accent)"></i></span><b>90%</b></div>
-      <div class="rr"><span class="rl">ปกป้องข้อมูลส่วนตัว <small style="color:var(--muted)">PDPA · PII</small></span><span class="rt"><i style="width:75%;background:var(--accent)"></i></span><b>75%</b></div>
-      <div class="rr"><span class="rl">คู่มือพัฒนาตัวเอง <small style="color:var(--muted)">Self-improving</small></span><span class="rt"><i style="width:70%;background:var(--llm)"></i></span><b>70%</b></div>
-      <div class="rr"><span class="rl">คู่มือกลางหลายหน่วยงาน <small style="color:var(--muted)">Federated</small></span><span class="rt"><i style="width:65%;background:var(--llm)"></i></span><b>65%</b></div>
+    <div class="pageno">3 / 8</div>
+    <div class="kicker">ทางออก</div>
+    <h2>ตอบจากประกาศและคู่มือทางการ<br/><span class="em">ไม่แน่ใจ = บอก แล้วพาไปหาเจ้าหน้าที่</span></h2>
+    <div class="flow">
+      <div class="step src"><div class="n">1</div><div class="t">ค้นจากข้อมูลทางการ</div><div class="d">379 หลักสูตร + คู่มือที่อนุมัติแล้ว</div></div>
+      <div class="arrow">→</div>
+      <div class="step ok"><div class="n">2</div><div class="t">ตอบ + ลิงก์ต้นทาง</div><div class="d">AI ช่วยเรียบเรียงเท่านั้น</div></div>
+      <div class="arrow">→</div>
+      <div class="step hand"><div class="n">3</div><div class="t">ไม่แน่ใจ → ส่งต่อคน</div><div class="d">และจดคำถามให้ทีมเติมคู่มือ</div></div>
     </div>
-    <div class="foot">โชว์ coverage จริง 60–70% บางส่วน — <b>น่าเชื่อถือกว่าเคลม 100%</b></div>
+    <div class="foot">ข้อเท็จจริงมาจากแหล่งทางการเสมอ — ไม่ได้มาจากโมเดล</div>
   </section>
 
-  <!-- 9 — Close + QR -->
+  <!-- 4 — Live demo cue -->
   <section class="slide">
-    <div class="pageno">09 / 09</div>
-    <div class="kicker">ขอบคุณครับ</div>
-    <div class="close">
+    <div class="pageno">4 / 8</div>
+    <div class="kicker">เดโมสด · 2 นาที</div>
+    <h2>สลับไปหน้าเว็บ</h2>
+    <div class="demo">
+      <div class="k">1</div><div class="q">อยากสมัครเรียนจิตวิทยาคลินิก</div>
+      <div class="k">2</div><div class="q">แล้วค่าเทอมล่ะ</div>
+      <div class="k">3</div><div class="q">ทำงานอะไรดี → คอมพิวเตอร์ · ข้อมูล</div>
+      <div class="k">4</div><div class="q">เมืองหลวงของฝรั่งเศสคืออะไร</div>
+      <div class="k">5</div><div class="q">กด “ดูหลักฐานเบื้องหลัง”</div>
+    </div>
+    <div class="foot">สำรอง: <b class="acc">reflexwork.pages.dev/chatbot?ai=off</b> (ตอบจากคู่มือเท่านั้น ไม่เรียก AI)</div>
+  </section>
+
+  <!-- 5 — Proof -->
+  <section class="slide">
+    <div class="pageno">5 / 8</div>
+    <div class="kicker">หลักฐาน — วัดบน FAQ จริงของบัณฑิตวิทยาลัย</div>
+    <h2>วัดจริง เปิดวิธีวัด <span class="em">และบอกจุดอ่อนเอง</span></h2>
+    <div class="nums">
+      <div class="num"><div class="v em">71<span style="font-size:.5em;color:var(--muted)">/85</span></div><div class="l">FAQ นักศึกษา/ผู้สมัครที่คู่มือครอบคลุม</div></div>
+      <div class="num"><div class="v em">94%</div><div class="l">ตอบถูก (ไทย) บนคำถามเหล่านั้น</div></div>
+      <div class="num"><div class="v em">0</div><div class="l">การ์ดหลักสูตรผิด จากชื่อพิมพ์ผิด 1,915 แบบ</div></div>
+      <div class="num"><div class="v acc">379</div><div class="l">หลักสูตรจากประกาศทางการ</div></div>
+    </div>
+    <div class="limits"><div class="h">ข้อจำกัดที่เรารู้</div>
+      <div class="b">ภาษาอังกฤษตอบถูกราว 50% · คำถามใกล้เคียงที่คู่มือยังไม่มีบางข้อตอบผิดหัวข้อ · ยังไม่มีข้อมูลผู้ใช้จริง</div></div>
+    <div class="foot">สคริปต์วัดทั้งหมดอยู่ใน repo — วัดซ้ำได้ (เฉลยติดป้ายโดยทีม รอเจ้าของคู่มือยืนยัน)</div>
+  </section>
+
+  <!-- 6 — AI and Kiro -->
+  <section class="slide">
+    <div class="pageno">6 / 8</div>
+    <div class="kicker">AI และ Kiro</div>
+    <h2>ใช้ AI <span class="llm">เฉพาะจุดที่ช่วยได้</span></h2>
+    <div class="two">
+      <div class="box"><div class="t llm">🤖 AI</div><ul>
+        <li>เรียบเรียงข้อความจากคู่มือที่ให้ไป</li>
+        <li>ตัวเลขที่ AI พิมพ์ถูกตรวจกับต้นฉบับ</li>
+        <li>ไม่ตรง → แสดงข้อความคู่มือแทน</li></ul></div>
+      <div class="box"><div class="t acc">🛠️ Kiro</div><ul>
+        <li>พัฒนาแบบ spec-driven: requirements → design → tasks</li>
+        <li>specs 3 ชุด · steering · hooks ใน <code>.kiro/</code></li>
+        <li>ตรวจได้ใน repo</li></ul></div>
+    </div>
+    <div class="foot">ทำไมไม่ใช้ AI ทุกที่: เพราะคำตอบต้องตรวจสอบได้</div>
+  </section>
+
+  <!-- 7 — Readiness and next -->
+  <section class="slide">
+    <div class="pageno">7 / 8</div>
+    <div class="kicker">ความพร้อมใช้จริง</div>
+    <h2>ใช้งานได้วันนี้ <span class="acc">และรู้ว่าขั้นต่อไปคืออะไร</span></h2>
+    <div class="two">
+      <div class="box"><div class="t em">วันนี้</div><ul>
+        <li>เว็บใช้งานได้จริง ไม่ต้องล็อกอิน</li>
+        <li>405 ข้อทดสอบใน CI ทุกครั้งที่แก้</li>
+        <li>มือถือ: Lighthouse 99 · 100 · 100</li>
+        <li>ข้อมูลหลักสูตรรีเฟรชรายสัปดาห์</li></ul></div>
+      <div class="box soon"><div class="t" style="color:var(--muted)">ต่อไป (แนวคิด ยังไม่ได้พัฒนา)</div><ul>
+        <li>หน่วยงานที่สอง — ใช้ชุดข้อมูลของเขา</li>
+        <li>เข้าสู่ระบบ เมื่อเจ้าของระบบอนุญาต + ผ่าน PDPA</li></ul></div>
+    </div>
+    <div class="ask">ที่เราขอ: เจ้าของคู่มือมาเติมช่องว่าง + หน่วยงานนำร่อง</div>
+  </section>
+
+  <!-- 8 — Close -->
+  <section class="slide">
+    <div class="pageno">8 / 8</div>
+    <div class="qrwrap">
       <div>
-        <h2 style="margin-bottom:18px">คัดด้วย reflex ก่อน · เรียก AI เฉพาะที่จำเป็น · พิสูจน์ได้ทุกการตัดสินใจ</h2>
-        <div style="color:var(--muted);font-size:clamp(14px,1.6vw,19px);line-height:1.8">
-          🌐 ลองสดเลย: <b style="color:var(--accent)">reflexwork.pages.dev</b><br/>
-          💻 open-source: github.com/ozoneRatchapon/reflexwork<br/>
-          👥 Ratchapon (Ozone) · Napatsakorn
-        </div>
+        <div class="kicker">ขอบคุณครับ</div>
+        <h2 style="margin-bottom:10px">ตอบจากแหล่งทางการ<br/><span class="em">ไม่เดา วัดได้</span></h2>
+        <div class="url">reflexwork.pages.dev</div>
+        <div class="lead" style="margin-top:14px;font-size:clamp(16px,1.8vw,24px)">github.com/ozoneRatchapon/reflexwork<br/>Ratchapon (Ozone) · Napatsakorn</div>
       </div>
-      <div class="qrbox">
-        <img alt="QR ไป live demo reflexwork.pages.dev"
-             src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=0&data=https%3A%2F%2Freflexwork.pages.dev" />
-        <div class="cap">สแกนลองเองได้เลย</div>
-      </div>
+      <div class="qr"><img alt="QR code ไปที่ reflexwork.pages.dev" src="./pitch-qr.svg" /><div class="cap">สแกนลองเองได้เลย</div></div>
     </div>
-    <div class="foot">🦀 Built with Kiro + Amazon Bedrock · Mahidol AI Community 2026 · Track A</div>
   </section>
 
 </div>
+<script>
+// keyboard navigation for the stage (the deck scrolls inside .deck with scroll-snap)
+(()=>{ const d=document.getElementById('deck'); const s=[...d.querySelectorAll('.slide')]; d.focus();
+  const idx=()=>Math.round(d.scrollTop/d.clientHeight); const go=i=>d.scrollTo({top:Math.max(0,Math.min(s.length-1,i))*d.clientHeight,behavior:'smooth'});
+  addEventListener('keydown',e=>{ const k=e.key;
+    if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)){ e.preventDefault(); go(idx()+1); }
+    else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)){ e.preventDefault(); go(idx()-1); }
+    else if(k==='Home'){ e.preventDefault(); go(0); } else if(k==='End'){ e.preventDefault(); go(s.length-1); }
+    else if(k==='f'||k==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{}); } }); })();
+</script>
 </body>
 </html>
