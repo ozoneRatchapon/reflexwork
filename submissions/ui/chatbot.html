@@ -483,7 +483,7 @@ async function load(){
 // ?engine=rust|js picks one (default: ENGINE_DEFAULT). Every function below keeps its JS twin as the fallback: if the wasm lacks an
 // export (an old cached build) or a Rust call throws, that call runs the JS version and ENG.errors counts it. Both engines are timed
 // per function (ENG.t / ENG.n, read by benchmark/engine_ab.mjs). Contract that both must meet: benchmark/golden (6 files, ~5,700 cases).
-const ENGINE_DEFAULT = 'js';   // flip to 'rust' only after benchmark/engine_ab.mjs shows identical answers and no regression
+const ENGINE_DEFAULT = 'rust';   // Rust since 2026-11-04 (A/B 319/319 and session 150/150 identical: benchmark/engine/results). Back to JS: ?engine=js, or set this to 'js'
 const _ENGINE_NEEDS = ['answer_points','slot_lead','decide_tier','schedule_table','fee_table','understand','classify_issue','is_advice','is_english','Resolver'];
 const _ENGINE_ASKED = new URLSearchParams(location.search).get('engine') || ENGINE_DEFAULT;
 const ENGINE = (_ENGINE_ASKED==='rust' && _ENGINE_NEEDS.every(n=>typeof WASM[n]==='function')) ? 'rust' : 'js';
