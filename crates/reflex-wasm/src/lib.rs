@@ -9,6 +9,8 @@
 //! Build:  wasm-pack build --release --target web
 
 pub mod answer;
+pub mod catalogue;
+pub mod decide;
 
 use blake3::Hasher;
 use serde::{Deserialize, Serialize};
@@ -537,4 +539,24 @@ pub fn answer_points(body: &str) -> JsValue {
 #[wasm_bindgen]
 pub fn slot_lead(answer: &str, question: &str) -> String {
     answer::slot_lead(answer, question)
+}
+
+/// What to do after the search: `{action: "act"|"disambiguate"|"escalate", stage: "reflex"|"rethink"}` (port of `decideTier`).
+/// `gate` may be NaN when the kernel gave no gate score.
+#[wasm_bindgen]
+pub fn decide_tier(gate: f64, scores: Vec<f64>) -> JsValue {
+    let g = (!gate.is_nan()).then_some(gate);
+    serde_wasm_bindgen::to_value(&decide::decide_tier(g, &scores)).unwrap_or(JsValue::NULL)
+}
+
+/// Admission schedule of one programme as `{cols, rows, notes, list}` (port of `_pSchedule`, data part).
+#[wasm_bindgen]
+pub fn schedule_table(lines: Vec<String>) -> JsValue {
+    serde_wasm_bindgen::to_value(&catalogue::schedule_table(&lines)).unwrap_or(JsValue::NULL)
+}
+
+/// Fee table of one programme as `{rows, notes}` (port of `_pFee`).
+#[wasm_bindgen]
+pub fn fee_table(lines: Vec<String>) -> JsValue {
+    serde_wasm_bindgen::to_value(&catalogue::fee_table(&lines)).unwrap_or(JsValue::NULL)
 }
