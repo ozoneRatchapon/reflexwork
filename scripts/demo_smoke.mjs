@@ -103,6 +103,13 @@ const m0 = await ev(`document.getElementById('ratio-pct').innerText`);
 await ev(`(()=>{ const b=[...document.querySelectorAll('.fb-b')].filter(x=>/ไม่/.test(x.innerText)).pop(); if(b) b.click(); return !!b; })()`); await wait(1200);
 const m1 = await ev(`({pct:document.getElementById('ratio-pct').innerText, note:document.getElementById('ratio-note').innerText})`);
 /^\d+% \(\d+\/\d+\)$/.test(m0) && m1.pct === m0 && /ความพอใจ/.test(m1.note) ? ok(`9. meter is a count (${m0}) and a 👎 vote does not move it`) : bad('9. meter / thumbs', `${m0} -> ${m1.pct} | ${m1.note.slice(0, 60)}`);
+// 9b) suggestions while typing, and "ask next" after an answer
+const sg = await ev(`(()=>{ const i=document.getElementById('q'); i.value='ลาพัก'; i.dispatchEvent(new Event('input')); const b=document.getElementById('sg'); return b && !b.hidden ? b.querySelectorAll('.sg-i').length : 0; })()`);
+sg >= 1 ? ok(`9b. typing "ลาพัก" shows ${sg} suggestion(s) above the input`) : bad('9b. typeahead', 'no suggestions shown');
+await ev(`(()=>{ const i=document.getElementById('q'); i.value=''; i.dispatchEvent(new Event('input')); return 1; })()`);
+r = await ask('ลาพักการเรียนทำยังไง');
+const fu = await ev(`document.querySelectorAll('#chat .msg.b:last-child .followups .dis').length`);
+fu >= 1 ? ok(`9c. after a knowledge-base answer the page offers ${fu} "ask next" question(s)`) : soft('9c. no "ask next" chips after a KB answer (the answer may have been a clarification)');
 // 10) the page itself
 errs.length ? bad('10. no script errors on the page', errs.slice(0, 3).join(' | ')) : ok('10. no script errors on the page');
 
