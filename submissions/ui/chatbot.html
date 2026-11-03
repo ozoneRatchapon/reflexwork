@@ -79,6 +79,9 @@
   .msg.b .src{display:block;margin-top:8px;font-size:12px;color:var(--muted)}
   .msg.b .src a{color:var(--accent)}
   .msg.b .ans{font-size:15px;line-height:1.6;margin:2px 0 6px;white-space:pre-line}
+  .dis-filter{width:100%;max-width:420px;margin:6px 0 4px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+  .dis-none{font-size:13px;color:var(--muted);margin:2px 0 4px}
+  .dis[hidden]{display:none}
   .sched-wrap{overflow-x:auto;margin:4px 0 2px;-webkit-overflow-scrolling:touch}
   .sched{border-collapse:collapse;font-size:13px;line-height:1.35;white-space:normal}
   .sched th,.sched td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
@@ -577,6 +580,7 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
       list.insertBefore(card, list.firstChild);
       const pf=card.querySelector('.proof-full'); if(pf){ pf.classList.add('flash'); setTimeout(()=>pf.classList.remove('flash'),1400); }
     }
+    attachChoiceFilter(d);
     requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'}); });
   }
 }
@@ -1235,6 +1239,27 @@ function smalltalkReply(kind){
 
 // Programme finder message. `explicit`: the user asked "what should I study" (counts as answered); otherwise it is the
 // rescue for a study-ish question we could not resolve (the caller already counted it).
+// A choice list longer than _FILTER_MIN gets a type-to-filter box (request 2026-11-03: "too many choices -> search inside").
+// Client-side only: it hides chips whose text does not contain what was typed (case, spaces and Thai tone marks ignored);
+// Enter opens the only match left. Short lists get no box - it would be one more thing to read.
+const _FILTER_MIN=10;
+const _fNorm=s=>String(s||'').toLowerCase().replace(/[\u0E47-\u0E4C\s]/g,'');
+function attachChoiceFilter(root){
+  if(!root) return;
+  root.querySelectorAll('.dislist').forEach(list=>{
+    const chips=[...list.querySelectorAll(':scope > .dis:not([data-fk=more])')];   // "ดูทั้งหมด" stays visible: the rest of the list is behind it
+    if(chips.length<=_FILTER_MIN || (list.previousElementSibling&&list.previousElementSibling.classList.contains('dis-filter-wrap'))) return;
+    const wrap=document.createElement('div'); wrap.className='dis-filter-wrap';
+    const inp=document.createElement('input'); inp.type='search'; inp.className='dis-filter'; inp.autocomplete='off';
+    inp.placeholder=`พิมพ์เพื่อค้นหาใน ${chips.length} รายการ`; inp.setAttribute('aria-label', inp.placeholder);
+    const none=document.createElement('div'); none.className='dis-none'; none.hidden=true; none.textContent='ไม่พบในรายการนี้ — ลองคำอื่น หรือพิมพ์คำถามในช่องด้านล่าง';
+    wrap.append(inp, none); list.before(wrap);
+    inp.addEventListener('input',()=>{ const t=_fNorm(inp.value); let n=0;
+      for(const c of chips){ const ok=!t || _fNorm(c.textContent).includes(t); c.hidden=!ok; if(ok) n++; }
+      none.hidden=n>0; });
+    inp.addEventListener('keydown',e=>{ if(e.key!=='Enter') return; e.preventDefault(); const vis=chips.filter(c=>!c.hidden); if(vis.length===1) vis[0].click(); });
+  });
+}
 function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx, finit, extra){   // pfx: what to ask when a programme is picked (default: apply card)
   if(explicit){ auto++; saved+=COST; MOOD.felt('hit'); renderMood(true); }
   let f=Object.assign(finderInit(q), finit||{}), all=false; const fid='fd'+(++fbN);
@@ -1255,7 +1280,8 @@ function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx, finit, e
       else if(k==='open'||k==='intl'||k==='special') f[k]=!f[k];
       else { f[k]=v; if(k==='level'){ f.faculty=''; all=false; } }
       draw(); }));
-    el.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value=(pfx||'สมัคร ')+x.dataset.code; ask(); })); };
+    el.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value=(pfx||'สมัคร ')+x.dataset.code; ask(); }));
+    attachChoiceFilter(el); };
   draw();
   $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
 }
