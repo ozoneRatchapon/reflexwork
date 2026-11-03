@@ -750,6 +750,13 @@ const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(
 // scholarship note from its announcement. Without a programme in the question the KB answers as before.
 const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย(?:ตลอดหลักสูตร)?|ค่าเรียน|เหมาจ่าย|tuition(?: fees?)?|\bfees?\b/i],
   ['scholarship',/ทุนการศึกษา|ทุนเรียน|ทุน|scholarships?/i]];
+// What a question naming a programme ASKS about, so the card can lead with that answer ("จิตวิทยาคลินิกสอบสัมภาษณ์วันไหน").
+// Narrower than the follow-up list below (_P_ASPECT): these words are also removed before matching the programme name.
+const _P_ASK=[['schedule',/สอบสัมภาษณ์|สัมภาษณ์|สอบข้อเขียน|สอบวันไหน|สอบเมื่อ(?:ไหร่|ไร)|ประกาศผล|ประกาศรายชื่อ|รายงานตัว|กำหนดการ|สมัครได้ถึง|หมดเขต|ตัดรอบ|ปิดรับ(?:สมัคร)?(?:วันไหน|เมื่อ(?:ไหร่|ไร))|deadline|interview/i],
+  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับสมัครอยู่|ยังรับ/i],
+  ['docs',/เอกสาร(?:การ)?สมัคร|ใช้เอกสาร|หลักฐานการสมัคร|ต้องใช้อะไรบ้าง/i],
+  ['elig',/คุณสมบัติ(?:ผู้สมัคร)?/i],
+  ['english',/เกณฑ์(?:ภาษา)?อังกฤษ|คะแนน(?:ภาษา)?อังกฤษ|toefl|ielts|ยื่นผล(?:ภาษา)?อังกฤษ/i]];
 const _P_INTENT=/สมัคร|เรียน|สาขา|อยากเข้า|เรียนต่อ|ศึกษาต่อ|ต่อโท|ต่อเอก|สนใจ|เปิดรับ|ปิดรับ|รับสมัคร|ข้อมูล|รายละเอียด|หลักสูตร|apply|admission|enrol|programme|program\b|study/i;
 const _P_LEVEL=[['N',/ประกาศนียบัตรบัณฑิตชั้นสูง|ป\.?\s?บ\.?\s?ช\.?\s?สูง/i],['C',/ประกาศนียบัตร|certificate|diploma/i],['D',/ปริญญาเอก|ป\.\s?เอก|ระดับเอก|ดุษฎี|ด็อกเตอร์|ดอกเตอร์|ต่อเอก|doctor|ph\.?\s?d/i],['M',/ปริญญาโท|ป\.\s?โท|ระดับโท|มหาบัณฑิต|ต่อโท|master|m\.\s?sc|\bmsc\b/i]];
 // Abbreviations people really type. Each expansion is checked against the catalogue by the test
@@ -776,10 +783,10 @@ function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; retu
 function resolveProgramme(q, P, loose){
   const raw=String(q||''); if(!Array.isArray(P)||!P.length) return null;
   if(_P_OTHER.test(raw)) return null;
-  const topic=(_P_TOPIC.find(([,re])=>re.test(raw))||[''])[0];
+  const feeTopic=(_P_TOPIC.find(([,re])=>re.test(raw))||[''])[0], topic=feeTopic || (_P_ASK.find(([,re])=>re.test(raw))||[''])[0];
   const code=raw.toUpperCase().match(/\b(\d{4}[MDNC]\d{2}[GS])\b/);
   if(code){ const r=P.find(p=>p.code===code[1]); return r ? {kind:'one', row:r, via:'code', topic} : null; }
-  const text=_P_TOPIC.reduce((s,[,re])=>s.replace(new RegExp('(?:มี)?(?:'+re.source+')','gi'),' '), raw);
+  const text=[..._P_TOPIC,..._P_ASK].reduce((s,[,re])=>s.replace(new RegExp('(?:มี)?(?:'+re.source+')','gi'),' '), raw);
   const alias=Object.keys(_P_ALIAS).find(a=>new RegExp('(?:^|[^a-z])'+a+'(?:[^a-z]|$)','i').test(raw));
   const level=_pLevel(raw), intl=/นานาชาติ|international/i.test(raw), special=/ภาคพิเศษ|special program/i.test(raw);
   const needles = (alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : [_pClean(text)]).filter(n=>!_P_FUNC.test(n)).map(_pTone);   // function-word test BEFORE tone marks go ("เพื่อ" must still read as เพื่อ)
@@ -816,7 +823,7 @@ function resolveProgramme(q, P, loose){
   if(intl) keep(p=>p.kind==='international');
   if(special) keep(p=>p.code.endsWith('S'));
   if(pool.length===1) return {kind:'one', row:pool[0], via:alias?'alias':'name', levelMissing, topic};
-  if(pool.length>12) return topic ? null   // "ค่าเทอมพยาบาล": the KB's general fee answer beats a 30-programme picker
+  if(pool.length>12) return feeTopic ? null   // "ค่าเทอมพยาบาล": the KB's general fee answer beats a 30-programme picker
     : {kind:'broad', total:pool.length, rows:pool.slice(0,6), levelMissing};   // a field word, not a programme: ask for more, don't list 30
   return {kind:'many', rows:pool.slice(0,6), total:pool.length, levelMissing, topic};
 }
@@ -876,7 +883,7 @@ function _pSchHtml(a){
 function _pSchedule(lines){
   const L=(lines||[]).filter(l=>!/^รายละเอียดกิจกรรม/.test(l));
   const hi=L.findIndex(l=>/^รอบการรับสมัคร/.test(l) && l.includes(' | '));
-  const list=()=>({table:'', notes:[], list:L.map(l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; })});
+  const list=()=>({table:'', notes:[], rows:[], cols:[], list:L.map(l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; })});
   if(hi<0) return list();
   const cols=L[hi].split(' | ').slice(1), rows=[], notes=[];
   for(const l of L.slice(hi+1)){
@@ -887,14 +894,23 @@ function _pSchedule(lines){
   if(!rows.length) return list();
   const th=`<tr><th scope="col">กิจกรรม</th>${cols.map(c=>`<th scope="col">${_pEsc(c)}</th>`).join('')}</tr>`;
   const tr=rows.map(r=>`<tr><th scope="row">${_pEsc(r[0])}</th>${r.slice(1).map(x=>`<td>${_pEsc(x)}</td>`).join('')}</tr>`).join('');
-  return {table:(cols.length>1?`<span class="sched-hint">เลื่อนตารางไปทางขวาเพื่อดูรอบอื่น →</span>`:'')+`<div class="sched-wrap" role="region" aria-label="กำหนดการรับสมัคร" tabindex="0"><table class="sched">${th}${tr}</table></div>`, notes, list:[]};
+  return {rows, cols, table:(cols.length>1?`<span class="sched-hint">เลื่อนตารางไปทางขวาเพื่อดูรอบอื่น →</span>`:'')+`<div class="sched-wrap" role="region" aria-label="กำหนดการรับสมัคร" tabindex="0"><table class="sched">${th}${tr}</table></div>`, notes, list:[]};
 }
-function programmeCard(p, asOf, year, topic){
+// The schedule row(s) a question asks about ("สอบสัมภาษณ์วันไหน" -> the สอบสัมภาษณ์ row), as one line per activity.
+const _P_SCHED_PICK=[[/สัมภาษณ์|interview/i,/สัมภาษณ์/],[/ข้อเขียน/,/ข้อเขียน/],[/^(?![\s\S]*(?:สัมภาษณ์|ข้อเขียน))[\s\S]*สอบ(?:วันไหน|เมื่อ)/,/^สอบ/],
+  [/มีสิทธิ์สอบ|สถานที่สอบ/,/ผู้มีสิทธิ์สอบ/],[/ประกาศผล|ประกาศรายชื่อ|ผลสอบ|ติดไหม/,/ผู้มีสิทธิ์เข้าศึกษา/],[/รายงานตัว|ขึ้นทะเบียน/,/^รายงานตัว/],
+  [/ปิดรับ|สมัครได้ถึง|หมดเขต|ตัดรอบ|deadline|ถึงวันไหน/i,/ตัดรอบ/]];
+function _pSchedRows(SC, q){
+  const s=String(q||''), want=_P_SCHED_PICK.filter(([ask])=>ask.test(s)).map(([,row])=>row);
+  if(!want.length || !SC.rows.length) return [];
+  return SC.rows.filter(r=>want.some(re=>re.test(r[0]))).map(r=>`🗓️ <b>${_pEsc(r[0])}</b>: ${r.slice(1).map((d,i)=>`${_pEsc(SC.cols[i])} <b>${_pEsc(d)}</b>`).join(' · ')}`);
+}
+function programmeCard(p, asOf, year, topic, q){
   const a=p.announcement, date=_pDate(asOf), tag=p.kind==='international'?'นานาชาติ':'หลักสูตรไทย';
   const head=`<b>${_pEsc(p.title)}</b>${(a&&a.title_en)||p.title_en?`<br><small>${_pEsc((a&&a.title_en)||p.title_en)}</small>`:''}\n${_pEsc(p.level)} · ${_pEsc(p.faculty)} · ${tag}`;
   const detail=_pBtn(p.detail_url,'📄 หน้ารายละเอียดหลักสูตร →');
   const topicBtn = topic==='fee' ? _pBtn(_P_FEE_URL,'💰 ค่าธรรมเนียมการศึกษา',1) : topic==='scholarship' ? _pBtn(_P_SCH_URL,'🎓 ทุนการศึกษา',1) : '';
-  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากหน้าด้านล่าง)${topic?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}`,
+  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากหน้าด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}`,
     links:detail+_pBtn('https://graduate.mahidol.ac.th/Admission/announce/cur_open_list.php','📋 หลักสูตรที่เปิดรับสมัคร',1)+topicBtn};
   const S=a.sections||{};
   // 3 states as the site shows them; an info-only page (no status line) is NOT "closed"
@@ -906,19 +922,34 @@ function programmeCard(p, asOf, year, topic){
   const eng=(S['เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้']||[])[0];
   const docs=(S['หลักฐานการสมัคร']||[]).map(l=>linkify(l,[])).join('<br>');
   const fee=_pFeeHtml(a, year), sch=_pSchHtml(a), fold=h=>{ const [s1,...r]=h.split('\n'); return `<details><summary>${s1}</summary>${r.join('\n')}</details>`; };
-  // a fee / scholarship question leads with that block; the apply card keeps them folded
-  const html=[head,
-    topic==='fee' ? fee : topic==='scholarship' ? sch : topic==='docs' ? (docs?`📎 หลักฐานการสมัคร (ตามประกาศ)\n${docs.replace(/<br>/g,'\n')}`:'📎 ประกาศนี้ไม่ได้ระบุหลักฐานการสมัคร — ดูประกาศฉบับเต็ม') : topic==='elig' ? (elig?`📝 คุณสมบัติผู้สมัคร (ตามประกาศ)\n${elig.replace(/<br>/g,'\n')}`:'📝 ประกาศนี้ไม่ได้ระบุคุณสมบัติผู้สมัคร — ดูประกาศฉบับเต็ม') : '',
-    `${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})`,
-    (a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(l=>linkify(l,[])).join('\n')}` : '',
-    (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? `📚 แผนที่เปิดรับ: ${(S['แผนการศึกษาที่เปิดรับสมัคร']).map(_pEsc).join(' · ')}` : '',
-    sched ? `🗓️ กำหนดการ\n${sched}` : (S['แผนการศึกษาที่เปิดรับสมัคร']||[]).length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '',
-    eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '',
+  const statusLine=`${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})`;
+  const plans=S['แผนการศึกษาที่เปิดรับสมัคร']||[];
+  const schedBlock = sched ? `🗓️ กำหนดการ\n${sched}` : plans.length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '';
+  const engLine = eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '';
+  // Answer first (staff feedback 2026-11-03: people should not have to scan the card). A question about one aspect gets that
+  // answer as the first lines, the status line under it, and everything else folded. A plain "I want to apply" keeps the full card.
+  const picked = topic==='schedule' ? _pSchedRows(SC, q) : [];
+  const deadline = a.status==='กำลังเปิดรับสมัคร' ? _pSchedRows(SC, 'ตัดรอบ') : [];
+  const answer = topic==='fee' ? fee : topic==='scholarship' ? sch
+    : topic==='docs' ? (docs?`📎 หลักฐานการสมัคร (ตามประกาศ)\n${docs.replace(/<br>/g,'\n')}`:'📎 ประกาศนี้ไม่ได้ระบุหลักฐานการสมัคร — ดูประกาศฉบับเต็ม')
+    : topic==='elig' ? (elig?`📝 คุณสมบัติผู้สมัคร (ตามประกาศ)\n${elig.replace(/<br>/g,'\n')}`:'📝 ประกาศนี้ไม่ได้ระบุคุณสมบัติผู้สมัคร — ดูประกาศฉบับเต็ม')
+    : topic==='english' ? (engLine || '🔤 ประกาศนี้ไม่ได้ระบุเกณฑ์ภาษาอังกฤษเฉพาะหลักสูตร — ดูประกาศฉบับเต็ม')
+    : topic==='status' ? [statusLine, ...deadline].join('\n')
+    : topic==='schedule' ? (picked.length ? picked.join('\n') : schedBlock || '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการ — ดูประกาศฉบับเต็ม')
+    : '';
+  const folds=[
     elig && topic!=='elig' ? `<details><summary>📝 คุณสมบัติผู้สมัคร (ตามประกาศ)</summary>${elig}</details>` : '',
     docs && topic!=='docs' ? `<details><summary>📎 หลักฐานการสมัคร (ตามประกาศ)</summary>${docs}</details>` : '',
     topic!=='fee' && _pFee(S['ค่าธรรมเนียมการศึกษา']).rows.length ? fold(fee) : '',
-    topic!=='scholarship' && sch.startsWith('🎓 ทุนของ') ? fold(sch) : '',
-    `<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`].filter(Boolean).join('\n\n');
+    topic!=='scholarship' && sch.startsWith('🎓 ทุนของ') ? fold(sch) : ''];
+  const notice=(a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(l=>linkify(l,[])).join('\n')}` : '';
+  const plansLine=plans.length ? `📚 แผนที่เปิดรับ: ${plans.map(_pEsc).join(' · ')}` : '';
+  const asOfLine=`<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`;
+  const html = !answer
+    ? [head, statusLine, notice, plansLine, schedBlock, engLine, ...folds, asOfLine].filter(Boolean).join('\n\n')
+    : [answer, head, topic!=='status' ? statusLine : '',
+       `<details class="more"><summary>ข้อมูลอื่นของหลักสูตรนี้</summary>${[notice, plansLine, topic!=='schedule'||picked.length ? schedBlock : '', topic!=='english' ? engLine : '', ...folds].filter(Boolean).join('\n\n')}</details>`,
+       asOfLine].filter(Boolean).join('\n\n');
   return {html, links: detail+_pBtn(a.url,'📢 ประกาศรับสมัครฉบับเต็ม →',1)+(a.status==='กำลังเปิดรับสมัคร'?_pBtn(a.apply_url,'🖊️ ระบบสมัครออนไลน์ →',1):'')+topicBtn};   // no apply button on a closed programme
 }
 // Programme finder ("เรียนไรดี"): there is no single right answer, so the bot does not pick one. It narrows the
@@ -1285,7 +1316,7 @@ function _askCore(){
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
     if(prog.kind==='one'){
       PCTX = prog.row;
-      const c = programmeCard(prog.row, asOf, yr, prog.topic);
+      const c = programmeCard(prog.row, asOf, yr, prog.topic, q);
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🎯 ตรงหลักสูตร — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
         <div class="ans">${prog.levelMissing?'ไม่พบหลักสูตรในระดับที่ระบุ — แสดงหลักสูตรที่ใกล้เคียงที่สุดแทนครับ\n\n':''}${c.html}</div>
@@ -1321,7 +1352,7 @@ function _askCore(){
   const aspect = PCTX ? followUpAspect(q) : '';
   if(aspect){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
-    const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect), uid='fu'+(++fbN);
+    const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect, q), uid='fu'+(++fbN);
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🔗 ถามต่อจากหลักสูตรก่อนหน้า — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
       <div class="ans">ตีความว่าถามเรื่อง<b>${_P_ASPECT_TH[aspect]}</b>ของ <b>${_pEsc(p.title)}</b> <span class="dis" id="${uid}">ไม่ใช่ — ถามแบบทั่วไป</span>\n\n${c.html}</div>
