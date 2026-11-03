@@ -104,6 +104,10 @@ const m0 = await ev(`document.getElementById('ratio-pct').innerText`);
 await ev(`(()=>{ const b=[...document.querySelectorAll('.fb-b')].filter(x=>/ไม่/.test(x.innerText)).pop(); if(b) b.click(); return !!b; })()`); await wait(1200);
 const m1 = await ev(`({pct:document.getElementById('ratio-pct').innerText, note:document.getElementById('ratio-note').innerText})`);
 /^\d+% \(\d+\/\d+\)$/.test(m0) && m1.pct === m0 && /ความพอใจ/.test(m1.note) ? ok(`9. meter is a count (${m0}) and a 👎 vote does not move it`) : bad('9. meter / thumbs', `${m0} -> ${m1.pct} | ${m1.note.slice(0, 60)}`);
+// 9a) career-first question: narrows the official list by an area of interest, never predicts jobs/pay, points to the university's own tool
+r = await ask('อยากทำเกี่ยวกับคอม');
+const carHtml = await ev(`document.querySelector('#chat .msg.b:last-child').innerHTML`);
+has(r, 'ไม่ได้ทำนายงานหรือรายได้', 'คอมพิวเตอร์') && /suggest-program\.mahidol\.ac\.th/.test(carHtml) ? ok('9a. "อยากทำเกี่ยวกับคอม" -> programmes narrowed by area + link to the university\'s career-based tool', `${r.ms} ms`) : bad('9a. career-first question', r.text.slice(0, 100));
 // 9b) suggestions while typing, and "ask next" after an answer
 const sg = await ev(`(()=>{ const i=document.getElementById('q'); i.value='ลาพัก'; i.dispatchEvent(new Event('input')); const b=document.getElementById('sg'); return b && !b.hidden ? b.querySelectorAll('.sg-i').length : 0; })()`);
 sg >= 1 ? ok(`9b. typing "ลาพัก" shows ${sg} suggestion(s) above the input`) : bad('9b. typeahead', 'no suggestions shown');

@@ -826,11 +826,27 @@ const _P_LV=[['M','ปริญญาโท'],['D','ปริญญาเอก'
 // A question that is ABOUT studying but names no programme we can find (typo, slang, "เรียนรายยย"): the finder is the
 // graceful way out - better than a staff hand-off. Fee / registration / thesis topics are excluded (the KB owns them).
 function hasStudyIntent(q){ const s=String(q||''); return !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)) && /เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร(?!สอบ)|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply/i.test(s); }   // bare "ศึกษา" is not a signal (ลาพักการศึกษา, วุฒิการศึกษา); "สมัครสอบ" is an exam, not a programme
+// Career-first questions ("ทำงานอะไรดี", "อยากทำเกี่ยวกับคอม", "อยากพัฒนา skill อะไร"): there is no single right answer and this
+// system does NOT predict jobs or pay. It narrows the OFFICIAL list by an area of interest (matched on the programme title) and
+// points to the university's own career-based tool. Areas overlap on purpose; they are search aids, not a taxonomy.
+const _AREAS=[
+  {k:'computer',   label:'คอมพิวเตอร์ · ข้อมูล · ดิจิทัล', say:/คอม|ไอที|\bit\b|โปรแกรม|โค้ด|ซอฟต์แวร์|ข้อมูล|\bdata\b|\bai\b|เอไอ|ปัญญาประดิษฐ์|ดิจิทัล|ไซเบอร์|เทคโนโลยีสารสนเทศ|computer|software|digital/i, title:/คอมพิวเตอร์|สารสนเทศ|ข้อมูล|ปัญญาประดิษฐ์|ดิจิทัล|ซอฟต์แวร์|ไซเบอร์|เครือข่าย/},
+  {k:'health',     label:'สุขภาพ · การแพทย์', say:/สุขภาพ|หมอ|แพทย์|พยาบาล|การแพทย์|เภสัช|ทันต|กายภาพ|โภชนา|สาธารณสุข|health|medic|nurs/i, title:/แพทย|สุขภาพ|สาธารณสุข|พยาบาล|เภสัช|ทันต|กายภาพ|กิจกรรมบำบัด|โภชนา|รังสี|สัตวแพทย|ระบาดวิทยา|อนามัย|เวชศาสตร์|ชีวเวช/},
+  {k:'engineering',label:'วิศวกรรม · เทคโนโลยี', say:/วิศวะ|วิศวกร|ช่าง|เครื่องกล|ไฟฟ้า|นวัตกรรม|engineer|technolog/i, title:/วิศวกรรม|เทคโนโลยี|นวัตกรรม/},
+  {k:'science',    label:'วิทยาศาสตร์ · วิจัย', say:/วิทยาศาสตร์|วิจัย|แล็บ|ห้องแล็บ|ชีวะ|ชีววิทยา|เคมี|ฟิสิกส์|คณิต|สถิติ|science|research/i, title:/วิทยาศาสตร์|ชีว|เคมี|ฟิสิกส์|คณิตศาสตร์|สถิติ|พันธุศาสตร์|จุลชีว|สิ่งแวดล้อม/},
+  {k:'social',     label:'สังคม · จิตวิทยา · ภาษา · ศิลปะ', say:/สังคม|จิตวิทยา|ภาษา|ศิลป|ดนตรี|วัฒนธรรม|สื่อสาร|มนุษย|psycholog/i, title:/สังคม|มนุษย|จิตวิทยา|ภาษา|ประชากร|วัฒนธรรม|ดนตรี|ศิลป|สื่อสาร|พัฒนา/},
+  {k:'management', label:'บริหาร · จัดการ · เศรษฐศาสตร์', say:/บริหาร|ธุรกิจ|การเงิน|การตลาด|จัดการ|ผู้ประกอบการ|เศรษฐ|business|manage|finance/i, title:/บริหาร|การจัดการ|ธุรกิจ|เศรษฐศาสตร์|การเงิน|การตลาด|โลจิสติกส์/},
+  {k:'education',  label:'การศึกษา · การสอน', say:/ครู|สอน|การศึกษา|อาจารย์|teach|educat/i, title:/การศึกษา|การสอน|ครุ/},
+];
+const _P_CAREER=/ทำงานอะไร|งานอะไรดี|งานไหนดี|อาชีพ|สายงาน|ตำแหน่งงาน|อยากทำงาน|หางาน|เปลี่ยนสายงาน|(?:พัฒนา|เพิ่ม|เรียนรู้).{0,12}(?:skill|ทักษะ|สกิล)|(?:skill|ทักษะ|สกิล).{0,6}(?:อะไร|ไหนดี)|อยากทำ(?:งาน)?เกี่ยวกับ|อยากทำงานสาย|career/i;
+function isCareerQuestion(q){ const s=String(q||''); return _P_CAREER.test(s) && !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)); }
+function careerArea(q){ const s=String(q||''); const hit=_AREAS.find(a=>a.say.test(s)); return hit?hit.k:''; }
 function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && !_P_OTHER.test(s); }
-function finderInit(q){ const s=String(q||''); return {level:_pLevel(s), faculty:'', open:/เปิดรับ/.test(s), intl:/นานาชาติ|international/i.test(s), special:/ภาคพิเศษ|special program/i.test(s)}; }
+function finderInit(q){ const s=String(q||''); return {topic:'', level:_pLevel(s), faculty:'', open:/เปิดรับ/.test(s), intl:/นานาชาติ|international/i.test(s), special:/ภาคพิเศษ|special program/i.test(s)}; }
 function finderFacets(P, f){
   const isOpen=p=>!!(p.announcement&&p.announcement.status==='กำลังเปิดรับสมัคร');
-  const base=P.filter(p=>(!f.open||isOpen(p))&&(!f.intl||p.kind==='international')&&(!f.special||p.code.endsWith('S')));
+  const areaRe=f.topic?(_AREAS.find(a=>a.k===f.topic)||{}).title:null;
+  const base=P.filter(p=>(!areaRe||areaRe.test(p.title))&&(!f.open||isOpen(p))&&(!f.intl||p.kind==='international')&&(!f.special||p.code.endsWith('S')));
   const byLv=base.filter(p=>!f.level||p.code[4]===f.level), rows=byLv.filter(p=>!f.faculty||p.faculty===f.faculty);
   const count=(arr,key)=>{ const m=new Map(); for(const p of arr){ const k=key(p), c=m.get(k)||[0,0]; c[0]++; if(isOpen(p)) c[1]++; m.set(k,c); } return m; };
   const lv=count(base,p=>p.code[4]), fac=count(byLv,p=>p.faculty);
@@ -842,14 +858,16 @@ function finderFacets(P, f){
 function finderHtml(F, f, asOf, showAll){
   const b=(k,v,label,on)=>`<span class="dis${on?' on':''}" data-fk="${k}" data-fv="${_pEsc(v)}">${label}</span>`;
   const lvName=(_P_LV.find(([k])=>k===f.level)||[])[1];
-  const picked=[lvName, f.faculty, f.open&&'เปิดรับอยู่', f.intl&&'นานาชาติ', f.special&&'ภาคพิเศษ'].filter(Boolean).map(_pEsc).join(' · ');
+  const areaLabel=(_AREAS.find(a=>a.k===f.topic)||{}).label;
+  const picked=[areaLabel, lvName, f.faculty, f.open&&'เปิดรับอยู่', f.intl&&'นานาชาติ', f.special&&'ภาคพิเศษ'].filter(Boolean).map(_pEsc).join(' · ');
+  let areaShown=false;   // the interest chips are asked once: at step 0, else in the filter row
   const out=[`พบ <b>${F.total}</b> หลักสูตร (กำลังเปิดรับ ${F.open})${picked?` — ${picked}`:''} <small>ข้อมูล ณ ${_pEsc(_pDate(asOf))}</small>`];
   if(!F.total) out.push('ไม่พบหลักสูตรตามเงื่อนไขนี้ — ลองเอาตัวกรองบางอันออก');
   else if(F.rows.length) out.push(`เลือกหลักสูตรเพื่อดูรายละเอียด สถานะ ค่าธรรมเนียม:<div class="dislist">${F.rows.map(p=>`<span class="dis" data-code="${_pEsc(p.code)}">${_pEsc(p.title)} · ${_pEsc(p.faculty)}${p.announcement&&p.announcement.status?` · ${_pEsc(p.announcement.status)}`:''}</span>`).join('')}</div>`);
-  else if(!f.level) out.push(`1) อยากเรียนระดับไหน<div class="dislist">${F.levels.map(l=>b('level',l.k,`${_pEsc(l.label)} · ${l.n} (เปิด ${l.open})`)).join('')}</div>`);
+  else if(!f.level) out.push((f.career&&!f.topic?(areaShown=true,`0) สนใจด้านไหน (เลือกได้ ไม่บังคับ)<div class="dislist">${_AREAS.map(a=>b('topic',a.k,_pEsc(a.label))).join('')}</div>\n\n`):'')+`1) อยากเรียนระดับไหน<div class="dislist">${F.levels.map(l=>b('level',l.k,`${_pEsc(l.label)} · ${l.n} (เปิด ${l.open})`)).join('')}</div>`);
   else { const fs=showAll?F.faculties:F.faculties.slice(0,12);
     out.push(`2) คณะ/สถาบันที่สนใจ<div class="dislist">${fs.map(x=>b('faculty',x.name,`${_pEsc(x.name.length>48?x.name.slice(0,46)+'…':x.name)} · ${x.n} (เปิด ${x.open})`)).join('')}${!showAll&&F.faculties.length>12?b('more','',`ดูทั้งหมด ${F.faculties.length} คณะ/สถาบัน`):''}</div>`); }
-  out.push(`<div class="dislist">${b('open','',(f.open?'✅ ':'')+'เฉพาะที่เปิดรับ',f.open)}${b('intl','',(f.intl?'✅ ':'')+'นานาชาติ',f.intl)}${b('special','',(f.special?'✅ ':'')+'ภาคพิเศษ',f.special)}${f.level?b('level','','↩ เปลี่ยนระดับ'):''}${f.faculty?b('faculty','','↩ เปลี่ยนคณะ'):''}${b('reset','','เริ่มใหม่')}</div>`);
+  out.push(`<div class="dislist">${b('open','',(f.open?'✅ ':'')+'เฉพาะที่เปิดรับ',f.open)}${b('intl','',(f.intl?'✅ ':'')+'นานาชาติ',f.intl)}${b('special','',(f.special?'✅ ':'')+'ภาคพิเศษ',f.special)}${(f.career||f.topic)&&!areaShown?_AREAS.map(a=>b('topic',a.k,(f.topic===a.k?'✅ ':'')+_pEsc(a.label),f.topic===a.k)).join(''):''}${f.level?b('level','','↩ เปลี่ยนระดับ'):''}${f.faculty?b('faculty','','↩ เปลี่ยนคณะ'):''}${b('reset','','เริ่มใหม่')}</div>`);
   out.push('<small>ระบบไม่ได้ตัดสินว่าสาขาไหน "ดี" ที่สุด — ช่วยกรองจากข้อมูลทางการ หรือพิมพ์สิ่งที่สนใจ เช่น "สมัครเรียนวิทยาศาสตร์ข้อมูล" เพื่อหาชื่อหลักสูตรตรงๆ</small>');
   return out.join('\n\n');
 }
@@ -1040,21 +1058,23 @@ function smalltalkReply(kind){
 
 // Programme finder message. `explicit`: the user asked "what should I study" (counts as answered); otherwise it is the
 // rescue for a study-ish question we could not resolve (the caller already counted it).
-function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx){   // pfx: what to ask when a programme is picked (default: apply card)
+function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx, finit, extra){   // pfx: what to ask when a programme is picked (default: apply card)
   if(explicit){ auto++; saved+=COST; MOOD.felt('hit'); renderMood(true); }
-  let f=finderInit(q), all=false; const fid='fd'+(++fbN);
+  let f=Object.assign(finderInit(q), finit||{}), all=false; const fid='fd'+(++fbN);
   add('b', `${kstrip}
     <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ช่วยเลือกหลักสูตร — จากแคตตาล็อกทางการ · ไม่เรียก AI</span>
     ${intro?`<div class="ans">${_lEsc(intro)}</div>`:''}
     ${near&&near.length?`<div class="ans" id="${fid}n">หมายถึงหลักสูตรเหล่านี้หรือเปล่า?<div class="dislist">${near.map(p=>`<span class="dis" data-code="${_lEsc(p.code)}">${_lEsc(p.title)} · ${_lEsc(p.faculty)}</span>`).join('')}</div></div>`:''}
     <div class="ans" id="${fid}"${facets===false?' style="display:none"':''}></div>
     <a class="golink alt" href="https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum" target="_blank" rel="noopener">📋 ดูหลักสูตรทั้งหมดบนเว็บ →</a>
+    ${extra||''}
     ${fbUI(q, d.blake3_proof)}`);
   const el=document.getElementById(fid), nel=document.getElementById(fid+'n');
   if(nel) nel.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value=(pfx||'สมัคร ')+x.dataset.code; ask(); }));
   const draw=()=>{ el.innerHTML=finderHtml(finderFacets(PROG,f), f, PROGDOC.fetched_at, all);
     el.querySelectorAll('[data-fk]').forEach(x=>x.addEventListener('click',()=>{ const k=x.dataset.fk, v=x.dataset.fv||'';
-      if(k==='reset'){ f=finderInit(''); all=false; } else if(k==='more') all=true;
+      if(k==='reset'){ f=Object.assign(finderInit(''), finit||{}); all=false; } else if(k==='more') all=true;
+      else if(k==='topic'){ f.topic = f.topic===v ? '' : v; all=false; }
       else if(k==='open'||k==='intl'||k==='special') f[k]=!f[k];
       else { f[k]=v; if(k==='level'){ f.faculty=''; all=false; } }
       draw(); }));
@@ -1141,6 +1161,13 @@ function _askCore(){
   }
 
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
+  // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
+  if(PROG.length && isCareerQuestion(q)){
+    PCTX=null; const area=careerArea(q);
+    const intro='คำถามแนวนี้ไม่มีคำตอบเดียว และผมไม่ได้ทำนายงานหรือรายได้ — ช่วยแคบรายการหลักสูตรจากแคตตาล็อกทางการของบัณฑิตวิทยาลัยตามด้านที่สนใจได้ครับ'+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่าง)':'');
+    const ext='<a class="golink alt" href="https://suggest-program.mahidol.ac.th/" target="_blank" rel="noopener">🧭 อยากเริ่มจากอาชีพและทักษะ? เครื่องมือแนะนำหลักสูตรของมหาวิทยาลัยมหิดล (เว็บแยก ภาษาอังกฤษ ไม่ได้ทำโดยระบบนี้) →</a>';
+    renderFinder(q, d, kstrip, intro, true, null, true, undefined, {career:true, topic:area}, ext); return;
+  }
   if(PROG.length && isFinderQuestion(q)){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.

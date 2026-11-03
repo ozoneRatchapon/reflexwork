@@ -22,6 +22,7 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 | 2 | `แล้วค่าเทอมล่ะ` | "ตีความว่าถามเรื่องค่าธรรมเนียมของ …" + that programme's fee table, with an *undo* button | "It tells you how it read the question, and lets you say no." |
 | 3 | `ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก` | Thai / international rates per plan | "Straight from the announcement. It adds nothing up and invents nothing." |
 | 4 | `เรียนไรดี` | level → faculty → open now buttons with live counts (379 → 240 → 133 → 12) | "There is no right answer to 'what should I study', so it narrows the official list instead of picking one." |
+| 4b | `อยากทำเกี่ยวกับคอม` (or `ทำงานอะไรดี`) | "no single right answer, I do not predict jobs or pay" + the official list narrowed by area (17 programmes for computer/data) + interest chips + a link to the university's own career-based tool | "If you start from a career, it narrows the official list by your interest and sends you to the university's own recommender. It does not invent career advice." |
 | 5 | `เรียนรายยย` then `กายอุปกณ์` | never a dead end; a picker of the nearest names | "Sloppy typing still lands somewhere useful." |
 | 6 | `ลืมรหัสผ่านเข้า e-Thesis` | `e-Thesis` and `account.mahidol.ac.th` are links | "Wherever the answer sends you, you can click." |
 | 7 | `ช่วยแนะนำเรื่องส่ง Turnitin Originality Report` | the "KB-grounded + rephrased" badge (≈ 3–6 s) | "The LLM only rephrases entries the knowledge base already gave it; figures it prints are checked against them." |
