@@ -36,7 +36,7 @@ for (const it of FAQ.filter(x => x.student)) {
       if (b.length > n0 && l && !l.querySelector('.typing')) { const T = l.innerText.replace(/\\s+/g, ' ');
         done({ ms: Math.round(performance.now() - t0), topic: ((l.querySelector('.topic') || {}).textContent || '').replace(/^(?:ที่มา|หัวข้อ|อ้างอิง):\\s*/, '').trim(), text: T.slice(0, 120),
           notUnderstood: /จับใจความคำถามนี้ไม่ได้|I couldn't find this|ผมยังไม่เข้าใจ/.test(T), finder: /ช่วยเลือกหลักสูตร/.test(l.textContent + (document.getElementById('ev-list') ? document.getElementById('ev-list').firstElementChild?.textContent : '')),
-          asks: /ไม่แน่ใจว่าหมายถึงข้อไหน|คุณอาจหมายถึง|ขอถามเพิ่ม|Which one/.test(T) }); return; }
+          asks: /ไม่แน่ใจว่าหมายถึงข้อไหน|คุณอาจหมายถึง|ในคู่มือมีหลายหัวข้อ|ในคู่มือมีหัวข้อนี้|ขอถามเพิ่ม|Which one/.test(T) }); return; }
       if (performance.now() - t0 > 20000) { done({ ms: 20000, text: '(timeout)', timeout: true }); return; } setTimeout(tick, 25); }; tick(); })`);
   const gold = it.gold_kb_ids.map(g => TITLE[g]);
   const kind = r.timeout ? 'timeout' : r.topic ? (gold.length ? (gold.includes(r.topic) ? 'right entry' : 'wrong entry') : 'entry shown (not in gold)') : r.notUnderstood ? 'declined / not understood' : r.asks ? 'asked which one' : r.finder ? 'programme finder' : 'other';

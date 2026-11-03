@@ -571,9 +571,20 @@ const VOICE = {
   understanding: 'ขอเวลาสักครู่ครับ ผมกำลังลองทำความเข้าใจคำถามนี้',
   understoodLead: 'ผมเข้าใจว่าถามเรื่อง',
   notThis:       'ไม่ใช่เรื่องนี้',
+  topicPick:     'เรื่อง "{w}" ในคู่มือมีหลายหัวข้อครับ เลือกหัวข้อที่ต้องการได้เลย',
+  topicPickOne:  'เรื่อง "{w}" ในคู่มือมีหัวข้อนี้ครับ กดเพื่อดูคำตอบได้เลย',
   careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
 };
-let lastUserQ = '';   // the question the next bot bubble is answering
+let lastUserQ = '';
+let PIN = null;       // an entry chosen from a topic list: the next question (its title) answers exactly this entry
+// Topic word of a short question: strip polite/question fillers at both ends; the rest must be in 1-12 entry titles.
+const _TOPIC_HEAD=/^(?:อยากได้|อยากรู้|อยาก|ขอ|มี|สอบถาม|ถามเรื่อง|เรื่อง|รบกวน)+/, _TOPIC_TAIL=/(?:ทำยังไง|ทำไง|ยังไง|อย่างไร|ไหม|มั้ย|มั๊ย|บ้าง|อะไร|หน่อย|ครับ|ค่ะ|คะ|นะ|ได้|ที่ไหน|ไหน|เมื่อไหร่|ด้วย|เรียน)+$/;
+function topicCore(q){ let s=String(q||'').replace(/\s+/g,''), p; do{ p=s; s=s.replace(_TOPIC_HEAD,'').replace(_TOPIC_TAIL,''); }while(s!==p && s); return s; }
+function topicPicks(q){
+  const core=topicCore(q); if(core.length<3) return null;
+  const hits=KB.filter(e=>String(e.title||'').replace(/\s+/g,'').toLowerCase().includes(core.toLowerCase()));
+  return hits.length>=1 && hits.length<=12 ? {core, hits} : null;
+}   // the question the next bot bubble is answering
 let turnN = 0;        // evidence-card counter
 function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls;
   // The user's own bubble is TEXT, never HTML: typing <img onerror=...> must show those characters, not run them.
@@ -1323,6 +1334,7 @@ function _askCore(){
   const typed=$('q').value.trim(); if(!typed) return;
   add('u', typed); $('q').value='';
   const q=normChat(typed) || typed;   // everything below reads the normalised text; the bubble above shows what was typed
+  const pinned = !!(PIN && PIN.title===typed); if(!pinned) PIN = null;   // a picked topic skips the programme/finder paths
 
   // Smalltalk first — a greeting/thanks is NOT a knowledge question and NOT a
   // staff case. Greet back and INVITE the user to say what they need (let them
@@ -1359,7 +1371,7 @@ function _askCore(){
 
   // Programme path: "I want to apply to <programme>" → that programme's own page + status, not a
   // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
-  const prog = resolveProgramme(q, PROG);
+  const prog = pinned ? null : resolveProgramme(q, PROG);
   if(prog){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
@@ -1389,16 +1401,16 @@ function _askCore(){
 
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
   // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
-  if(PROG.length && isCareerQuestion(q)){
+  if(!pinned && PROG.length && isCareerQuestion(q)){
     PCTX=null; const area=careerArea(q);
     const intro=VOICE.careerIntro+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่างครับ)':'ครับ');
     const ext='<a class="golink alt" href="https://suggest-program.mahidol.ac.th/" target="_blank" rel="noopener">🧭 อยากเริ่มจากอาชีพและทักษะ? เครื่องมือแนะนำหลักสูตรของมหาวิทยาลัยมหิดล (เว็บแยก ภาษาอังกฤษ ไม่ได้ทำโดยระบบนี้) →</a>';
     renderFinder(q, d, kstrip, intro, true, null, true, undefined, {career:true, topic:area}, ext); return;
   }
-  if(PROG.length && isFinderQuestion(q)){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
+  if(!pinned && PROG.length && isFinderQuestion(q)){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
-  const aspect = PCTX ? followUpAspect(q) : '';
+  const aspect = (PCTX && !pinned) ? followUpAspect(q) : '';
   if(aspect){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect, q), uid='fu'+(++fbN);
@@ -1415,12 +1427,13 @@ function _askCore(){
   PCTX = null;   // the conversation moved on: never pin a later question to an old programme
 
   // A yes/no question with a premise about fees ("...ฟรีใช่ไหม"): never confirm it. Fees differ per programme, so say that and open the fee finder.
-  if(PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
+  if(!pinned && PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
     renderFinder(q, d, kstrip, VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
   }
 
-  const ranked = search(q);
+  // A topic chip picked from a list answers THAT entry; re-searching its title would not always land on it (35/132 titles).
+  const ranked = pinned ? [{e:PIN, s:9, cos:1, overlap:99}] : search(q); PIN = null;
   // The WASM kernel now exposes the raw sigmoid gate score g — use it directly
   // (falls back to a proxy only on an older build that lacks the field).
   const gateProxy = (typeof d.gate_score === 'number')
@@ -1610,6 +1623,22 @@ function _askCore(){
     }
     if(PROG.length && _P_TOPIC[0][1].test(q)){   // a fee question that names no programme: fees differ per programme, so help find it
       renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, nearP && nearP.rows, true, 'ค่าเทอม ');   // picking a programme here answers with ITS fee table
+      return;
+    }
+    // Short question around one topic word ("มีทุนไหม", "ทุน", "ขอทุนยังไง", "มีหอพักไหม"): one 3-letter word is a single
+    // tri-gram, so the search scores ~1 everywhere. If the word is in the TITLE of 1-12 entries, offer those (no AI, no guess).
+    const tp = topicPicks(q);
+    if(tp){
+      const cid='tp'+(++fbN);
+      add('b', `${kstrip}
+      <span class="route auto">📚 เจอหัวข้อในคู่มือที่มีคำว่า "${_lEsc(tp.core)}" · ไม่เรียก AI ${stageTag}</span>
+      <div class="ans">${(tp.hits.length>1?VOICE.topicPick:VOICE.topicPickOne).replace('{w}', _lEsc(tp.core))}</div>
+      <div class="dislist" id="${cid}">${tp.hits.map(e=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}</span>`).join('')}</div>
+      <div class="meta">คำถามสั้น: แก่นคำ "${_lEsc(tp.core)}" อยู่ในชื่อ ${tp.hits.length} หัวข้อ → ให้เลือก (deterministic, 0 token)</div>
+      ${fbUI(q, d.blake3_proof)}`);
+      document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
+        const e = KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN = e; $('q').value = e.title; ask(); }));
+      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
       return;
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
