@@ -72,3 +72,4 @@ backups/
 # GradMahidol corpus is their private work — benchmark locally from $KIROCREW_SCRATCH, never commit it
 benchmark/gradmahidol/corpus/
 benchmark/**/*-corpus/
+*.pid
