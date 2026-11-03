@@ -1,0 +1,682 @@
+[
+ {
+  "id": "6",
+  "q": "How can I contact the various units of the Faculty of Graduate Studies?",
+  "kind": "wrong entry",
+  "shown": "บัณฑิตวิทยาลัยมีทุนการศึกษาอะไรบ้าง",
+  "ms": 31,
+  "covered": true
+ },
+ {
+  "id": "7",
+  "q": "How do current students request a change of name, spelling, rank, or title?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 20,
+  "covered": true
+ },
+ {
+  "id": "8",
+  "q": "How can a general user change their name, date of birth, or address?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 19,
+  "covered": false
+ },
+ {
+  "id": "9",
+  "q": "How can a MAP-C general learner change the address shown on a payment certificate?",
+  "kind": "right entry",
+  "shown": "บุคคลทั่วไปแก้ไขที่อยู่ในหนังสือรับรอง MAP-C ทำอย่างไร",
+  "ms": 38,
+  "covered": true
+ },
+ {
+  "id": "10",
+  "q": "How do I request a leave of absence?",
+  "kind": "right entry",
+  "shown": "ลาพักการศึกษาต้องทำอย่างไร",
+  "ms": 28,
+  "covered": true
+ },
+ {
+  "id": "11",
+  "q": "How can students under the 2023-or-earlier admission criteria change their study plan?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 26,
+  "covered": true
+ },
+ {
+  "id": "14",
+  "q": "Who is responsible for the process of obtaining a thesis/independent-study topic, and how is it done?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 9,
+  "covered": true
+ },
+ {
+  "id": "15",
+  "q": "How can a program claim remuneration related to a thesis or thematic-paper examination?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 15,
+  "covered": true
+ },
+ {
+  "id": "16",
+  "q": "Can persons appointed to help obtain a thesis/independent-study topic later serve on another thesis committee?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 19,
+  "covered": true
+ },
+ {
+  "id": "17",
+  "q": "What methods can be used to obtain a thesis/independent-study topic?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 16,
+  "covered": true
+ },
+ {
+  "id": "18",
+  "q": "Who approves GR.42 thesis/thematic-paper progress reports if the student has not yet submitted GR.1 and no GR.44/GR.39 appointment has been made?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 22,
+  "covered": true
+ },
+ {
+  "id": "19",
+  "q": "Can an international student conducting research outside Thailand use a human-research ethics approval issued by the institution where the data are collected?",
+  "kind": "wrong entry",
+  "shown": "ถ้างานวิจัยไม่เข้าข่ายการวิจัยในคนหรือสัตว์ ต้องทำอย่างไร",
+  "ms": 38,
+  "covered": true
+ },
+ {
+  "id": "20",
+  "q": "Does cancellation of the thesis/thematic-paper proposal examination committee appointment (GR.39) affect an application for human-research ethics approval?",
+  "kind": "entry shown (not in gold)",
+  "shown": "ถ้างานวิจัยไม่เข้าข่ายการวิจัยในคนหรือสัตว์ ต้องทำอย่างไร",
+  "ms": 38,
+  "covered": false
+ },
+ {
+  "id": "21",
+  "q": "Where can I find thesis and thematic-paper forms?",
+  "kind": "wrong entry",
+  "shown": "หาข้อกำหนดและ Template รูปเล่มอิเล็กทรอนิกส์ได้ที่ไหน",
+  "ms": 24,
+  "covered": true
+ },
+ {
+  "id": "22",
+  "q": "What are the steps and details for submitting a thesis/thematic paper?",
+  "kind": "wrong entry",
+  "shown": "หาข้อกำหนดและ Template รูปเล่มอิเล็กทรอนิกส์ได้ที่ไหน",
+  "ms": 24,
+  "covered": true
+ },
+ {
+  "id": "23",
+  "q": "Where can thesis and thematic-paper forms be found?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 7,
+  "covered": true
+ },
+ {
+  "id": "24",
+  "q": "How do I submit GR.49 to change a thesis/thematic-paper title?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 10,
+  "covered": true
+ },
+ {
+  "id": "25",
+  "q": "What should an advisor do if they cannot access the Thesis Online Advisor system?",
+  "kind": "right entry",
+  "shown": "อาจารย์เข้าระบบ Thesis Online Advisor ไม่ได้ทำอย่างไร",
+  "ms": 18,
+  "covered": true
+ },
+ {
+  "id": "26",
+  "q": "What are the qualifications for a special lecturer?",
+  "kind": "right entry",
+  "shown": "คุณสมบัติของอาจารย์พิเศษมีอะไรบ้าง",
+  "ms": 20,
+  "covered": true
+ },
+ {
+  "id": "27",
+  "q": "What should I do if my research does not involve human or animal subjects?",
+  "kind": "right entry",
+  "shown": "ถ้างานวิจัยไม่เข้าข่ายการวิจัยในคนหรือสัตว์ ต้องทำอย่างไร",
+  "ms": 24,
+  "covered": true
+ },
+ {
+  "id": "28",
+  "q": "Where can I find the sequence of thesis/thematic-paper/independent-study procedures and committee qualification requirements?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 13,
+  "covered": true
+ },
+ {
+  "id": "29",
+  "q": "Where can I find the steps for submitting a digital thesis/thematic paper through e-Thesis Submission?",
+  "kind": "right entry",
+  "shown": "ขั้นตอนการส่งรูปเล่มวิทยานิพนธ์/สารนิพนธ์ในรูปแบบดิจิทัล",
+  "ms": 26,
+  "covered": true
+ },
+ {
+  "id": "30",
+  "q": "How do I submit thesis/thematic-paper files through the e-Thesis Submission system?",
+  "kind": "right entry",
+  "shown": "ส่งไฟล์รูปเล่มในระบบ e-Thesis Submission ต้องเตรียมอะไร",
+  "ms": 28,
+  "covered": true
+ },
+ {
+  "id": "31",
+  "q": "How can a program upload or submit thesis/thematic-paper files through Thesis Online?",
+  "kind": "wrong entry",
+  "shown": "ส่งไฟล์รูปเล่มในระบบ e-Thesis Submission ต้องเตรียมอะไร",
+  "ms": 27,
+  "covered": true
+ },
+ {
+  "id": "33",
+  "q": "What must be submitted from the Turnitin Originality Report for a completed thesis/thematic paper (PDF)?",
+  "kind": "right entry",
+  "shown": "ต้องอัปโหลดเอกสารอะไรในการส่ง e-Thesis",
+  "ms": 33,
+  "covered": true
+ },
+ {
+  "id": "34",
+  "q": "Where can I download thesis/thematic-paper format samples?",
+  "kind": "wrong entry",
+  "shown": "หาแบบฟอร์มเกี่ยวกับวิทยานิพนธ์/สารนิพนธ์ได้ที่ไหน",
+  "ms": 25,
+  "covered": true
+ },
+ {
+  "id": "35",
+  "q": "How can I check whether the entitled and approval pages have been uploaded to e-Thesis?",
+  "kind": "right entry",
+  "shown": "ตรวจสอบการ upload หน้าเสนอและหน้าอนุมัติอย่างไร",
+  "ms": 18,
+  "covered": true
+ },
+ {
+  "id": "36",
+  "q": "How do I submit the entitled and approval pages for a thesis/thematic paper?",
+  "kind": "wrong entry",
+  "shown": "ต้องส่งรูปเล่มภายในกี่วัน และเริ่มส่งอย่างไร",
+  "ms": 17,
+  "covered": true
+ },
+ {
+  "id": "37",
+  "q": "How should signatures be completed on the entitled and approval pages?",
+  "kind": "wrong entry",
+  "shown": "ตรวจสอบการ upload หน้าเสนอและหน้าอนุมัติอย่างไร",
+  "ms": 20,
+  "covered": true
+ },
+ {
+  "id": "38",
+  "q": "How is the late thesis/thematic-paper submission fine calculated?",
+  "kind": "right entry",
+  "shown": "คำนวณค่าปรับส่งเล่มล่าช้าอย่างไร",
+  "ms": 17,
+  "covered": true
+ },
+ {
+  "id": "39",
+  "q": "What reference style should be used in a thesis/thematic paper?",
+  "kind": "wrong entry",
+  "shown": "การอ้างอิงในเล่มต้องใช้ APA หรือ Vancouver",
+  "ms": 21,
+  "covered": true
+ },
+ {
+  "id": "40",
+  "q": "How do I request permission to use a research instrument?",
+  "kind": "right entry",
+  "shown": "การขอใช้เครื่องมือวิจัย ทำอย่างไร",
+  "ms": 23,
+  "covered": true
+ },
+ {
+  "id": "41",
+  "q": "How do I request an extension of study leave from my employer?",
+  "kind": "right entry",
+  "shown": "ขอขยายเวลาการลาศึกษาต่อ (สำหรับข้าราชการ) ทำอย่างไร",
+  "ms": 32,
+  "covered": true
+ },
+ {
+  "id": "42",
+  "q": "How do I request an official letter to return to my employer?",
+  "kind": "wrong entry",
+  "shown": "ขอผลคะแนนภาษาอังกฤษอย่างเป็นทางการทำอย่างไร",
+  "ms": 31,
+  "covered": true
+ },
+ {
+  "id": "56",
+  "q": "When are English GRID courses open for booking?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 22,
+  "covered": true
+ },
+ {
+  "id": "57",
+  "q": "How do I book an English GRID course?",
+  "kind": "wrong entry",
+  "shown": "รายวิชา GRID มีกี่หน่วยกิต ราคาเท่าไร เรียนกี่ชั่วโมง",
+  "ms": 26,
+  "covered": true
+ },
+ {
+  "id": "58",
+  "q": "How can I find out how many English courses I need to take?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 23,
+  "covered": true
+ },
+ {
+  "id": "59",
+  "q": "How many credits are GRID courses, how much do they cost, and how many hours are taught?",
+  "kind": "right entry",
+  "shown": "รายวิชา GRID มีกี่หน่วยกิต ราคาเท่าไร เรียนกี่ชั่วโมง",
+  "ms": 21,
+  "covered": true
+ },
+ {
+  "id": "60",
+  "q": "What should I do if the system is unavailable while I need to book a GRID course?",
+  "kind": "right entry",
+  "shown": "วิธีจองรายวิชาภาษาอังกฤษ GRID ทำอย่างไร",
+  "ms": 25,
+  "covered": true
+ },
+ {
+  "id": "61",
+  "q": "When do I need to register and pay for a GRID English course?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 13,
+  "covered": true
+ },
+ {
+  "id": "62",
+  "q": "Are the classes taught online?",
+  "kind": "right entry",
+  "shown": "การเรียน GRID เป็นแบบออนไลน์หรือไม่",
+  "ms": 14,
+  "covered": true
+ },
+ {
+  "id": "63",
+  "q": "How will I know which software/program is required for the online class?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 21,
+  "covered": false
+ },
+ {
+  "id": "64",
+  "q": "When does the FGS Language Center offer Short Courses, and how will I know when applications open?",
+  "kind": "entry shown (not in gold)",
+  "shown": "ตรวจบทคัดย่อ (Abstract) ใช้เวลากี่วัน",
+  "ms": 24,
+  "covered": false
+ },
+ {
+  "id": "65",
+  "q": "How do I submit TOEFL iBT, IELTS, or MU ELT scores?",
+  "kind": "right entry",
+  "shown": "ยื่นผลคะแนน TOEFL iBT / IELTS / MU ELT อย่างไร",
+  "ms": 23,
+  "covered": true
+ },
+ {
+  "id": "66",
+  "q": "What should I do after receiving an email asking me to revise my thesis/thematic-paper title in the system?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 20,
+  "covered": false
+ },
+ {
+  "id": "67",
+  "q": "How can I track the status of a thesis/thematic-paper title review or title-change request?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 17,
+  "covered": false
+ },
+ {
+  "id": "68",
+  "q": "What should I do if I uploaded the wrong document or need to add another file?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 26,
+  "covered": false
+ },
+ {
+  "id": "70",
+  "q": "Where can I find the Abstract Online user guide?",
+  "kind": "right entry",
+  "shown": "หาคู่มือการตรวจบทคัดย่อได้ที่ไหน",
+  "ms": 27,
+  "covered": true
+ },
+ {
+  "id": "71",
+  "q": "How long does abstract review take?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 19,
+  "covered": true
+ },
+ {
+  "id": "72",
+  "q": "How can students check the status of an abstract review?",
+  "kind": "right entry",
+  "shown": "ตรวจสอบสถานะการส่งตรวจบทคัดย่อได้อย่างไร",
+  "ms": 30,
+  "covered": true
+ },
+ {
+  "id": "73",
+  "q": "What is the TOEFL ITP application fee?",
+  "kind": "right entry",
+  "shown": "ค่าสมัครสอบ TOEFL ITP เท่าไร",
+  "ms": 23,
+  "covered": true
+ },
+ {
+  "id": "74",
+  "q": "How can I collect my TOEFL ITP score report?",
+  "kind": "wrong entry",
+  "shown": "ยื่นผลคะแนน TOEFL iBT / IELTS / MU ELT อย่างไร",
+  "ms": 27,
+  "covered": true
+ },
+ {
+  "id": "75",
+  "q": "Where can I find exam schedules, application fees, and preparation information?",
+  "kind": "entry shown (not in gold)",
+  "shown": "ย้ายรอบการสอบ MU GRAD Plus ทำอย่างไร",
+  "ms": 22,
+  "covered": false
+ },
+ {
+  "id": "76",
+  "q": "How can I request a replacement official score certificate after receiving the original?",
+  "kind": "entry shown (not in gold)",
+  "shown": "ขอผลคะแนนภาษาอังกฤษอย่างเป็นทางการทำอย่างไร",
+  "ms": 24,
+  "covered": false
+ },
+ {
+  "id": "77",
+  "q": "Where can I find the MU GRAD Plus exam schedule?",
+  "kind": "entry shown (not in gold)",
+  "shown": "ย้ายรอบการสอบ MU GRAD Plus ทำอย่างไร",
+  "ms": 20,
+  "covered": false
+ },
+ {
+  "id": "78",
+  "q": "What are the MU GRAD Plus examination fees?",
+  "kind": "right entry",
+  "shown": "ค่าสมัครสอบ MU GRAD Plus เท่าไร",
+  "ms": 19,
+  "covered": true
+ },
+ {
+  "id": "79",
+  "q": "What are the maximum scores for the MU GRAD Plus examinations?",
+  "kind": "right entry",
+  "shown": "คะแนนเต็มของการสอบ MU GRAD Plus เท่าไร",
+  "ms": 20,
+  "covered": true
+ },
+ {
+  "id": "80",
+  "q": "What is the exam application procedure?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 21,
+  "covered": false
+ },
+ {
+  "id": "81",
+  "q": "How can I check whether my exam application fee has been paid?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 12,
+  "covered": true
+ },
+ {
+  "id": "82",
+  "q": "How and when can I check my exam seat number and test venue?",
+  "kind": "right entry",
+  "shown": "ดูที่นั่งสอบและสถานที่สอบ MU GRAD Plus ได้อย่างไร",
+  "ms": 23,
+  "covered": true
+ },
+ {
+  "id": "83",
+  "q": "What should I do if I have already applied and paid but want to change my exam session?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 26,
+  "covered": true
+ },
+ {
+  "id": "84",
+  "q": "How and when can I view my exam score?",
+  "kind": "declined / not understood",
+  "shown": "",
+  "ms": 22,
+  "covered": true
+ },
+ {
+  "id": "85",
+  "q": "How do I request an official score report?",
+  "kind": "right entry",
+  "shown": "ขอผลคะแนนภาษาอังกฤษอย่างเป็นทางการทำอย่างไร",
+  "ms": 30,
+  "covered": true
+ },
+ {
+  "id": "86",
+  "q": "How can I print an official score report from the system?",
+  "kind": "right entry",
+  "shown": "ขอผลคะแนนภาษาอังกฤษอย่างเป็นทางการทำอย่างไร",
+  "ms": 25,
+  "covered": true
+ },
+ {
+  "id": "87",
+  "q": "How does the Best Scores method work?",
+  "kind": "right entry",
+  "shown": "การใช้ผลคะแนนแบบ Best Scores คืออะไร",
+  "ms": 26,
+  "covered": true
+ },
+ {
+  "id": "88",
+  "q": "How can I obtain a Best Scores result?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 20,
+  "covered": false
+ },
+ {
+  "id": "89",
+  "q": "Where can I find MU GRAD TEST guidelines and English proficiency score requirements for graduate students?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 25,
+  "covered": false
+ },
+ {
+  "id": "100",
+  "q": "When do applications open and close?",
+  "kind": "asked which one",
+  "shown": "",
+  "ms": 21,
+  "covered": true
+ },
+ {
+  "id": "101",
+  "q": "Which programs are currently open for admission?",
+  "kind": "programme finder",
+  "shown": "",
+  "ms": 29,
+  "covered": true
+ },
+ {
+  "id": "102",
+  "q": "What qualifications are required for prospective students?",
+  "kind": "wrong entry",
+  "shown": "คุณสมบัติหรือเกรดไม่ถึงที่หลักสูตรกำหนด ทำอย่างไร",
+  "ms": 31,
+  "covered": true
+ },
+ {
+  "id": "103",
+  "q": "How do I apply for graduate study?",
+  "kind": "wrong entry",
+  "shown": "บัณฑิตวิทยาลัยมีทุนการศึกษาอะไรบ้าง",
+  "ms": 17,
+  "covered": true
+ },
+ {
+  "id": "104",
+  "q": "How much is the application fee?",
+  "kind": "wrong entry",
+  "shown": "ค่าสมัครเข้าศึกษาเท่าไร และใช้เอกสารอะไรบ้าง",
+  "ms": 21,
+  "covered": true
+ },
+ {
+  "id": "105",
+  "q": "Do prospective students need an English proficiency score before applying?",
+  "kind": "right entry",
+  "shown": "ต้องมีคะแนนภาษาอังกฤษก่อนสมัครหรือไม่",
+  "ms": 33,
+  "covered": true
+ },
+ {
+  "id": "106",
+  "q": "What documents are required for an application?",
+  "kind": "right entry",
+  "shown": "ค่าสมัครเข้าศึกษาเท่าไร และใช้เอกสารอะไรบ้าง",
+  "ms": 29,
+  "covered": true
+ },
+ {
+  "id": "107",
+  "q": "Can I apply while I am in my final semester?",
+  "kind": "right entry",
+  "shown": "กำลังศึกษาเทอมสุดท้ายสมัครเรียนได้ไหม",
+  "ms": 27,
+  "covered": true
+ },
+ {
+  "id": "108",
+  "q": "Can I apply if I do not fully meet the program requirements or the minimum GPA?",
+  "kind": "right entry",
+  "shown": "คุณสมบัติหรือเกรดไม่ถึงที่หลักสูตรกำหนด ทำอย่างไร",
+  "ms": 34,
+  "covered": true
+ },
+ {
+  "id": "109",
+  "q": "Where can I check the list of applicants eligible for interview?",
+  "kind": "right entry",
+  "shown": "ดูประกาศรายชื่อผู้มีสิทธิ์สอบสัมภาษณ์ได้ที่ไหน",
+  "ms": 21,
+  "covered": true
+ },
+ {
+  "id": "110",
+  "q": "Where can I check the list of applicants admitted to the program?",
+  "kind": "entry shown (not in gold)",
+  "shown": "มีสาขาวิชาอะไรเปิดรับสมัครบ้าง",
+  "ms": 32,
+  "covered": false
+ },
+ {
+  "id": "111",
+  "q": "Where can I obtain the login credentials for the Student Service System?",
+  "kind": "wrong entry",
+  "shown": "วิธีจองรายวิชาภาษาอังกฤษ GRID ทำอย่างไร",
+  "ms": 33,
+  "covered": true
+ },
+ {
+  "id": "112",
+  "q": "Where can I obtain my Mahidol Internet Account?",
+  "kind": "right entry",
+  "shown": "ดาวน์โหลด Internet Account ได้ที่ไหน และใช้ได้เมื่อไร",
+  "ms": 30,
+  "covered": true
+ },
+ {
+  "id": "113",
+  "q": "When can I activate my Internet Account?",
+  "kind": "right entry",
+  "shown": "ดาวน์โหลด Internet Account ได้ที่ไหน และใช้ได้เมื่อไร",
+  "ms": 26,
+  "covered": true
+ },
+ {
+  "id": "114",
+  "q": "What types of scholarships does the Faculty of Graduate Studies offer?",
+  "kind": "right entry",
+  "shown": "บัณฑิตวิทยาลัยมีทุนการศึกษาอะไรบ้าง",
+  "ms": 32,
+  "covered": true
+ },
+ {
+  "id": "115",
+  "q": "When will students who receive a monthly scholarship allowance be paid?",
+  "kind": "right entry",
+  "shown": "ทุนที่ได้รับค่าใช้จ่ายรายเดือน จะได้รับเงินเมื่อไร",
+  "ms": 32,
+  "covered": true
+ },
+ {
+  "id": "116",
+  "q": "How can I apply for FGS scholarships and awards?",
+  "kind": "wrong entry",
+  "shown": "บัณฑิตวิทยาลัยมีทุนการศึกษาอะไรบ้าง",
+  "ms": 22,
+  "covered": true
+ },
+ {
+  "id": "117",
+  "q": "How can students submit scholarship and award documents to staff?",
+  "kind": "right entry",
+  "shown": "ส่งเอกสารทุนและรางวัลได้ทางใดบ้าง",
+  "ms": 32,
+  "covered": true
+ }
+]
