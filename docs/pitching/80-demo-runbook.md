@@ -49,6 +49,7 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 
 ## Web only, and protect the AI quota (added 2026-11-03)
 - The stage demo is the **web page only**. LINE uses the same manual, but its search declines off-topic questions less well than the web's. If asked: "there is a LINE channel on the same manual"; do not demo it.
+- **Test proxy:** benchmarks go through `node scripts/llm_forward.mjs`. It forwards to `reflexwork-llm-proxy-dev`, which has its own key, and needs `--prod` to touch production. Until the second key is set (`echo KEY | npx wrangler secret put GEMINI_API_KEY --env dev` in `integrations/llm-proxy`), the test proxy returns no AI. Benchmarks then show the AI-off numbers, and the live quota is safe.
 - **Gemini quota:** on 2026-11-03, after a day of AI-heavy benchmark runs, every model returned `429 RESOURCE_EXHAUSTED`. The page still worked (KB text shown, smoke step 8 = warning).
   - **Do not run** `odd_e2e`, `coverage_probe` with AI, or `finish31.sh` on 11-06/11-07.
   - Run `demo_smoke.mjs` once on the morning of the pitch. If step 8 warns, skip demo step 7 (AI rephrase) and keep the `?ai=off` tab ready.
