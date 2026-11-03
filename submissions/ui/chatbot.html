@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="ถามเรื่องหลักสูตร ค่าเทอม สถานะรับสมัคร และการส่งวิทยานิพนธ์ของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล ตอบจากประกาศและคู่มือทางการ">
 <title>ถาม-ตอบ บัณฑิตวิทยาลัย — ReflexWork</title>
 <link rel="stylesheet" href="./theme.css">
 <style>
@@ -93,6 +94,10 @@
   .meta{font-size:11px;color:var(--muted);margin-top:6px}
   /* technical lines (score, rule, kernel timings) are for judges: they follow the 'show evidence' switch, a student sees the answer */
   .cols.ev-off .msg.b .meta,.cols.ev-off .kernel-strip{display:none}
+  .src-badge{display:none;align-self:flex-start;font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:8px;border:1px solid}
+  .cols.ev-off .src-badge{display:inline-block}
+  .src-badge.official{color:var(--auto);border-color:rgba(34,197,139,.5);background:rgba(34,197,139,.1)}
+  .src-badge.ai{color:var(--ai);border-color:rgba(246,169,59,.5);background:rgba(246,169,59,.1)}
   .kernel-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:11px;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(34,197,139,.12),rgba(91,140,255,.1));border:1px solid rgba(34,197,139,.3)}
   .kbadge{font-size:12px;font-weight:800;padding:3px 11px;border-radius:999px;color:#07122e}
   .kbadge.kf{background:#22c58b} .kbadge.kl{background:#f6a93b}
@@ -469,6 +474,11 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
   if(cls==='u'){ lastUserQ = d.textContent.trim(); $('chat').scrollTop=1e9; return; }
   // bot bubble → split evidence out into the right panel, keep the clean answer left
   if(cls==='b'){
+    // Student-facing source badge (the technical route chips go to the evidence panel and are hidden with it).
+    if(!d.classList.contains('greet')){
+      const raw=html, ai=/เรียบเรียงโดย local AI/.test(raw), official=/class="route auto"[^>]*>[^<]*(ตอบจากคู่มือ|ตรงหลักสูตร|แคตตาล็อกทางการ|ถามต่อจากหลักสูตร)/.test(raw);
+      if(ai||official){ const b=document.createElement('div'); b.className='src-badge '+(ai?'ai':'official'); b.textContent=ai?'🤖 AI ช่วยเรียบเรียง จากข้อมูลทางการ':'✅ ข้อมูลทางการ'; d.insertBefore(b,d.firstChild); }
+    }
     const ev = d.querySelectorAll(EV_SEL);
     if(ev.length && !d.classList.contains('greet')){
       turnN++;
