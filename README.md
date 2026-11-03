@@ -32,8 +32,7 @@ machine), with releases anchored on Solana.
 LLM chatbots answer every question with a paid, non-reproducible model call.
 ~80% of real questions are repeat/FAQ. ReflexWork routes those to a free,
 auditable FastPath and sends only the hard ~20% to an LLM — cutting token cost
-60–80% while staying verifiable (BLAKE3) and PDPA-friendly (local AI option,
-no PII leaves the box).
+(estimated 60–80%, not yet measured in production) while staying replayable (BLAKE3 fingerprint, not a proof of correctness) and PDPA-conscious (local-model option; the public web chat calls Gemini only when it needs the AI).
 
 ## The 4-way decision
 | question | route | result |

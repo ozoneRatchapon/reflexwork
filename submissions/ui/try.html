@@ -202,7 +202,7 @@ $('compare').addEventListener('click', () => {
       <div class="metric"><span class="lab">token</span><span class="val">0</span></div>
       <div class="metric"><span class="lab">ต้นทุน</span><span class="val">฿0.00</span></div>
       <div class="metric"><span class="lab">network</span><span class="val">ไม่มี</span></div>
-      <div class="metric"><span class="lab">proof</span><span class="val proof">${a.d.blake3_proof.slice(0,12)}…</span></div>
+      <div class="metric"><span class="lab">fingerprint</span><span class="val proof">${a.d.blake3_proof.slice(0,12)}…</span></div>
     </div>
     <div class="side l">
       <div class="hd">🤖 LLM path — งานซับซ้อน</div>
@@ -212,13 +212,13 @@ $('compare').addEventListener('click', () => {
       <div class="metric"><span class="lab">token</span><span class="val">~${LLM_TOKENS}</span></div>
       <div class="metric"><span class="lab">ต้นทุน</span><span class="val">~฿${(LLM_TOKENS/1000*THB_PER_1K).toFixed(2)}</span></div>
       <div class="metric"><span class="lab">network</span><span class="val">เรียก LLM</span></div>
-      <div class="metric"><span class="lab">proof</span><span class="val proof">${b.d.blake3_proof.slice(0,12)}…</span></div>
+      <div class="metric"><span class="lab">fingerprint</span><span class="val proof">${b.d.blake3_proof.slice(0,12)}…</span></div>
     </div>`;
   const faster = Math.round(LLM_MS*1000 / parseFloat(a.us));
   const tk = $('takeaway');
   tk.style.display = 'block';
   tk.innerHTML = `kernel คัดงานง่ายออกจาก LLM → <b>เร็วกว่า ~${faster.toLocaleString()} เท่า · 0 token · ฿0</b><br>
-    <span style="color:var(--muted);font-size:14px;font-weight:400">เรียก AI เฉพาะงานที่ซับซ้อนจริง — นี่คือที่มาของ "ลดต้นทุน ~80%"</span>`;
+    <span style="color:var(--muted);font-size:14px;font-weight:400">เรียก AI เฉพาะงานที่ซับซ้อนจริง — นี่คือที่มาของ "ลดต้นทุน ~80%" (ประมาณการ ยังไม่ได้วัดจากการใช้งานจริง)</span>`;
 });
 </script>
 </body>
