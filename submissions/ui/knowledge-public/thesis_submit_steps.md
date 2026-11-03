@@ -9,6 +9,6 @@ approval_status: "approved"
 ---
 ## ขั้นตอนการส่งรูปเล่มวิทยานิพนธ์/สารนิพนธ์ในรูปแบบดิจิทัล
 
-คำค้นภาษาอังกฤษ: e-thesis submission steps digital process
+คำค้นภาษาอังกฤษ: e-thesis submission steps digital process วิธีใช้ e-thesis
 
 ส่งรูปเล่มในรูปแบบดิจิทัลผ่านระบบ e-Thesis Submission โดยดูขั้นตอนและรายละเอียดได้ที่เว็บไซต์บัณฑิตวิทยาลัย ระบบจะให้อัปโหลดไฟล์ e-Thesis ฉบับสมบูรณ์พร้อมผล Turnitin แล้วติดตามสถานะผ่านหน้า Status
