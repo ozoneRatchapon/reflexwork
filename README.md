@@ -6,6 +6,10 @@ Kernel" decides, per message, whether a question can be answered in
 escalate. Every decision carries a reproducible **BLAKE3 fingerprint**. Built for a
 graduate-school help chatbot (Mahidol), but the kernel is domain-agnostic.
 
+**Use it for another organisation:** put its approved FAQ in a folder, add an `agency.json`, run
+`node scripts/new_agency.mjs <pack> <site>` and host the result anywhere static. Tested end to end on a fictional
+second organisation (it calls none of our servers by default); not yet on a real second one. See [docs/adopt.md](docs/adopt.md).
+
 **Three things make it different:** (1) **free + microsecond + auditable** — most
 questions never touch a paid model; (2) **human language without AI** — template
 NLG + grounded hybrid, so answers read naturally yet can't invent facts;

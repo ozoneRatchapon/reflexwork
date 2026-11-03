@@ -70,6 +70,11 @@ jobs:
           node tests/feedback_votes.test.mjs
           node tests/wasm_lockstep.test.mjs
 
+      - name: Every test file (a glob, so a new test can never be left out of CI)
+        run: |
+          set -e
+          for t in tests/*.test.mjs; do echo "== $t"; node "$t"; done
+
       - name: Benchmarks still run (baseline comparison, programme names) - smoke, no thresholds
         run: |
           set -e
