@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ReflexWork — คัดงานด้วย reflex ก่อนเรียก AI</title>
+<title>ReflexWork — ผู้ช่วยตอบคำถามจากข้อมูลทางการของหน่วยงาน</title>
 <link rel="stylesheet" href="./theme.css">
 <style>
   /* palette: see theme.css */
@@ -51,6 +51,10 @@
   .login{background:transparent;border:1px dashed #2a3660;color:var(--muted);border-radius:999px;padding:9px 18px;font-size:14px;cursor:not-allowed}
   .login-row .note{font-size:12.5px;color:var(--muted);flex:1 1 280px}
   @media (max-width:640px){.cgrid{grid-template-columns:1fr}}
+  .go{color:var(--accent);font-weight:700;font-size:14px;margin-left:8px}
+  .case{max-width:780px;margin:34px auto 0;padding:0 16px}
+  .case h2{font-size:18px;margin-bottom:4px}.case h2 .soon{font-size:13px;font-weight:400;color:var(--muted);margin-left:8px}
+  .case .stats{margin-top:12px;justify-content:flex-start}
 </style>
 </head>
 <body>
@@ -63,10 +67,34 @@
 </nav>
 
 <div class="hero">
-  <div class="kicker">บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล · ผู้ช่วยตอบคำถาม (ต้นแบบ)</div>
-  <h1>ถามเรื่องเรียนต่อบัณฑิตมหิดล<br/>ได้คำตอบจากแหล่งทางการ</h1>
-  <div class="sub">ตอบจากประกาศและคู่มือของบัณฑิตวิทยาลัยโดยตรง ไม่เดาเอง · ถ้าไม่แน่ใจจะบอกและพาไปหาเจ้าหน้าที่</div>
-  <a class="cta" href="./chatbot.html">💬 เริ่มถามเลย →</a>
+  <div class="kicker">ReflexWork · ผู้ช่วยตอบคำถามจากข้อมูลทางการของหน่วยงาน</div>
+  <h1>ตอบจากแหล่งทางการของหน่วยงาน<br/>ไม่เดา ไม่แต่งเอง</h1>
+  <div class="sub">เชื่อมข้อมูลที่อนุมัติแล้วของหน่วยงาน (คู่มือ ประกาศ ลิงก์ทางการ) เข้ากับตัวคัดกรองเดียวกัน · ตอบได้ก็ตอบทันที ไม่แน่ใจก็บอก แล้วพาไปหาเจ้าหน้าที่</div>
+  <a class="cta" href="#connect">เลือกหน่วยงาน ↓</a>
+</div>
+
+<div class="connect" id="connect">
+  <h2>หน่วยงานที่เชื่อมต่อ <span class="soon">เริ่มจากหน่วยงานแรก · การเข้าสู่ระบบ "เร็วๆ นี้" ยังไม่เปิดใช้</span></h2>
+  <div class="cgrid">
+    <a class="cc on" href="./chatbot.html">
+      <div class="t">🎓 บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล</div>
+      <div class="d">เชื่อมแล้วด้วยข้อมูลสาธารณะ: ประกาศรับสมัครและค่าธรรมเนียมของ 379 หลักสูตร + คู่มือ FAQ ที่อนุมัติแล้ว ใช้ได้เลยโดยไม่ต้องเข้าสู่ระบบ</div>
+      <span class="badge ok">เชื่อมแล้ว · ข้อมูลสาธารณะ</span> <span class="go">เริ่มถาม →</span>
+    </a>
+    <div class="cc off" aria-disabled="true">
+      <div class="t">➕ หน่วยงานถัดไป</div>
+      <div class="d">เพิ่มหน่วยงานได้โดยเพิ่มชุดข้อมูล (คู่มือ, ประกาศ, ลิงก์ทางการ) โดยไม่ต้องแก้โค้ดตัวคัดกรอง — ยังไม่ได้ทดสอบกับหน่วยงานที่สอง</div>
+      <span class="badge">เร็วๆ นี้</span>
+    </div>
+  </div>
+  <div class="login-row">
+    <button type="button" class="login" disabled aria-disabled="true" title="ยังไม่เปิดใช้ — ต้องได้รับอนุญาตจากเจ้าของระบบและเป็นไปตาม PDPA ก่อน">🔐 เข้าสู่ระบบเพื่อคำตอบเฉพาะตัว · เร็วๆ นี้</button>
+    <span class="note">แนวคิด: เมื่อเข้าสู่ระบบและยินยอม ผู้ช่วยจะจำคณะ/หลักสูตรของคุณ จึงไม่ต้องถามซ้ำ (เช่น "แล้วค่าเทอมล่ะ") — ตอนนี้ยังไม่เก็บข้อมูลส่วนตัวใดๆ</span>
+  </div>
+</div>
+
+<div class="case" id="case">
+  <h2>กรณีแรก: บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล <span class="soon">ตัวเลขด้านล่างวัดกับหน่วยงานนี้เท่านั้น</span></h2>
   <div class="stats">
     <div class="stat a"><div class="n">379</div><div class="l">หลักสูตรจากประกาศทางการ</div></div>
     <div class="stat b"><div class="n">85%</div><div class="l">ตอบจากคู่มือ ไม่ใช้ AI (ชุดทดสอบ 44/52 ข้อ)</div></div>
@@ -74,7 +102,7 @@
   </div>
 </div>
 
-<div class="grid">
+<div class="grid" id="tiles">
   <a class="tile chat" href="./chatbot.html">
     <div class="ic">💬</div>
     <div class="t">ถามคำถาม</div>
@@ -87,26 +115,6 @@
     <div class="d">ฟอร์มยื่นคำร้อง + มุมมองเจ้าหน้าที่ว่าวันนี้มีคำร้องอะไรเข้ามา ระบบคัดให้ว่าเรื่องไหนตอบเองได้ เรื่องไหนส่งต่อ</div>
     <span class="who">สำหรับนักศึกษา + เจ้าหน้าที่</span>
   </a>
-</div>
-
-<div class="connect" id="connect">
-  <h2>หน่วยงานที่เชื่อมต่อ <span class="soon">ตัวอย่างโครง · การเข้าสู่ระบบ "เร็วๆ นี้" ยังไม่เปิดใช้</span></h2>
-  <div class="cgrid">
-    <a class="cc on" href="./chatbot.html">
-      <div class="t">🎓 บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล</div>
-      <div class="d">เชื่อมแล้วด้วยข้อมูลสาธารณะ: ประกาศรับสมัครและค่าธรรมเนียมของ 379 หลักสูตร + คู่มือ FAQ ที่อนุมัติแล้ว ใช้ได้เลยโดยไม่ต้องเข้าสู่ระบบ</div>
-      <span class="badge ok">เชื่อมแล้ว · ข้อมูลสาธารณะ</span>
-    </a>
-    <div class="cc off" aria-disabled="true">
-      <div class="t">➕ หน่วยงานถัดไป</div>
-      <div class="d">เพิ่มหน่วยงานได้โดยเพิ่มชุดข้อมูล (คู่มือ, ประกาศ, ลิงก์ทางการ) โดยไม่ต้องแก้โค้ดตัวคัดกรอง — ยังไม่ได้ทดสอบกับหน่วยงานที่สอง</div>
-      <span class="badge">เร็วๆ นี้</span>
-    </div>
-  </div>
-  <div class="login-row">
-    <button type="button" class="login" disabled aria-disabled="true" title="ยังไม่เปิดใช้ — ต้องได้รับอนุญาตจากเจ้าของระบบและเป็นไปตาม PDPA ก่อน">🔐 เข้าสู่ระบบเพื่อคำตอบเฉพาะตัว · เร็วๆ นี้</button>
-    <span class="note">แนวคิด: เมื่อเข้าสู่ระบบและยินยอม ผู้ช่วยจะจำคณะ/หลักสูตรของคุณ จึงไม่ต้องถามซ้ำ (เช่น "แล้วค่าเทอมล่ะ") — ตอนนี้ยังไม่เก็บข้อมูลส่วนตัวใดๆ</span>
-  </div>
 </div>
 
 <div class="behind" id="behind">
