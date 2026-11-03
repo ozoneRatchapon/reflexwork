@@ -8,6 +8,8 @@
 //!
 //! Build:  wasm-pack build --release --target web
 
+pub mod answer;
+
 use blake3::Hasher;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
@@ -521,4 +523,18 @@ mod tests {
         assert_eq!(cos_to_score(0.25, 0.0, 2, 1), 4); // clears gate
         assert_eq!(cos_to_score(0.10, 0.0, 1, 0), 1); // weak
     }
+}
+
+// ─── Answer formatting (.plans/002 step 1; contract: benchmark/golden/answer_points.json) ─────────────────────
+
+/// The manual's own words cut into short points (port of chatbot.html `answerPoints`).
+#[wasm_bindgen]
+pub fn answer_points(body: &str) -> JsValue {
+    serde_wasm_bindgen::to_value(&answer::answer_points(body)).unwrap_or(JsValue::NULL)
+}
+
+/// The number a question asks for, taken from the answer (port of chatbot.html `slotLead`); "" when none.
+#[wasm_bindgen]
+pub fn slot_lead(answer: &str, question: &str) -> String {
+    answer::slot_lead(answer, question)
 }

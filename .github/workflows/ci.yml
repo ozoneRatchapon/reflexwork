@@ -7,6 +7,16 @@ on:
     branches: ["main"]
 
 jobs:
+  # Rust port of the answer logic must match the frozen JS outputs (benchmark/golden, .plans/002).
+  rust-golden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: reflex-wasm tests (golden contract)
+        run: cargo test -p reflex-wasm   # Cargo.lock is not committed (.gitignore), so --locked is not possible
+
   test:
     runs-on: ubuntu-latest
     steps:
