@@ -13,3 +13,17 @@ export function loadChatbotFns(html = readFileSync(join(root, 'submissions/ui/ch
   const tier = need(/const _BAND=[\s\S]*?\nfunction decideTier[\s\S]*?\n}\n/, 'decideTier');
   return new Function(`${linkify}\n${prog}\n${slots}\n${points}\n${tier}\nreturn { answerPoints, slotLead, _pSchedule, _pFee, resolveProgramme, decideTier };`)();
 }
+
+// The deterministic JS search of the page (what search() falls back to without wasm), over a given KB array.
+export function loadSearch(KB, html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
+  const a = html.indexOf('function _jsGramSet'), b = html.indexOf('function search(q)');
+  if (a < 0 || b < a) throw new Error('chatbot.html: search helpers not found');
+  return new Function('KB', html.slice(a, b) + 'return _jsSearch;')(KB);
+}
+
+// understand() of the page, with `search` supplied by the caller (a stub in the golden contract).
+export function loadUnderstand(search, html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
+  const m = html.match(/function understand\(phrases\)\{[\s\S]*?\n\}\n/);
+  if (!m) throw new Error('chatbot.html: understand() not found');
+  return new Function('search', m[0] + 'return understand;')(search);
+}
