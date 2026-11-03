@@ -8,3 +8,11 @@ compatibility_date = "2026-01-01"
 
 # GEMINI_API_KEY is a SECRET — never put it here. Set it with:
 #   echo "YOUR_KEY" | npx wrangler secret put GEMINI_API_KEY
+
+# Test/benchmark proxy (added 2026-11-03): same code, its OWN worker and its OWN Gemini key, so benchmark runs never use up the
+# production quota (on 2026-11-03 a benchmark day made every model return 429 for the live site). Deploy and set its key with:
+#   npx wrangler deploy --env dev
+#   echo "SECOND_KEY" | npx wrangler secret put GEMINI_API_KEY --env dev
+# Benchmarks reach it through scripts/llm_forward.mjs (that script refuses the production proxy unless --prod is given).
+[env.dev]
+name = "reflexwork-llm-proxy-dev"
