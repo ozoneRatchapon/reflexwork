@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Pre-show check: drives the LIVE chatbot in headless Chrome through the demo, step by step, and says what works.
-//   node scripts/demo_smoke.mjs [--url https://reflexwork.pages.dev/chatbot] [--require-llm]
+//   node scripts/demo_smoke.mjs [--url https://reflexwork.pages.dev/chatbot] [--require-llm] [--mobile]
 // Needs: Node >= 22 (global WebSocket) and Google Chrome (set CHROME=/path/to/chrome if it is not the macOS default).
 // Safe to run against production: the kernel API is pointed at a dead port (?api=...), so no gap-log entry, vote or policy update is
 // written. The only live call that leaves a trace is the LLM step (a Gemini request through the proxy; no state is stored).
@@ -57,6 +57,7 @@ async function ask(q, maxMs = 40000) {
 }
 const has = (r, ...subs) => subs.every(s => r.text.includes(s));
 
+if (process.argv.includes('--mobile')) await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });   // rehearse as a phone
 await send('Runtime.enable'); await send('Network.enable'); await send('Page.navigate', { url: URL_ }); await wait(1500);
 for (let i = 0; i < 40 && await ev(`document.getElementById('q').disabled !== false`); i++) await wait(500);
 console.log(`\nDemo smoke test - ${BASE}\n`);

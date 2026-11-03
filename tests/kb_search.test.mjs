@@ -119,6 +119,11 @@ ge('off-corpus correctly abstained', offOK, offN);
 // common-path regression + determinism
 const ex = search('ส่งรูปเล่มภายในกี่วัน');
 truthy('exact match ranks thesis-submit top', ex[0] && ex[0].e.id === 'thesis_submit_days');
+// core questions that found nothing on a fresh page until 2026-11-03 (the right entry ranked first but scored 1): keep them answerable
+const dl = search('ส่งวิทยานิพนธ์เมื่อไหร่');
+truthy('"ส่งวิทยานิพนธ์เมื่อไหร่" reaches the deadline entry with an answerable score', dl[0] && dl[0].e.id === 'thesis_submit_days' && dl[0].s >= 4);
+const et = search('วิธีใช้ e-Thesis');
+truthy('"วิธีใช้ e-Thesis" reaches the e-Thesis steps entry with an answerable score', et[0] && et[0].e.id === 'thesis_submit_steps' && et[0].s >= 4);
 const a = search('ค่าสอบเท่าไร')[0], b = search('ค่าสอบเท่าไร')[0];
 truthy('deterministic (same query → same top)', a && b && a.e.id === b.e.id);
 
