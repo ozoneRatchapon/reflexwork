@@ -80,7 +80,7 @@ function cors() {
   return {
     'Access-Control-Allow-Origin': ORIGIN,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Staff-Token',   // the dashboard sends X-Staff-Token: without it the browser blocked every staff call (found 2026-11-03)
   };
 }
 const json = (obj, status = 200) =>
@@ -115,6 +115,8 @@ export default {
       if (url.pathname === '/gap' && request.method === 'POST') return logGap(request, env);
       if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env);
       if (url.pathname === '/entry-conf' && request.method === 'GET') return entryConf(env);
+      // Public, read-only: staff answers that are LIVE in the chat (approved through the dashboard, not yet in the main manual).
+      if (url.pathname === '/live-kb' && request.method === 'GET') return liveKb(env);
       // Dry-run preview of what the opt-in federation layer WOULD send — reads
       // the masked/aggregate tables, builds the payload, returns it WITHOUT
       // sending anything (spec R3: inspect before the first real send).
@@ -129,6 +131,7 @@ export default {
       if (url.pathname === '/kb-draft' && request.method === 'POST') return kbDraft(request, env);
       if (url.pathname === '/kb-drafts' && request.method === 'GET') return kbDrafts(env);
       if (url.pathname === '/kb-approve' && request.method === 'POST') return kbApprove(request, env);
+      if (url.pathname === '/kb-retract' && request.method === 'POST') return kbRetract(request, env);
       if (url.pathname === '/kb-autodraft' && request.method === 'POST') return kbAutodraft(request, env);
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -173,6 +176,13 @@ async function ensureSchema(env) {
   await env.DB.exec(
     "CREATE TABLE IF NOT EXISTS kb_draft (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, question TEXT, answer TEXT, keywords TEXT, category TEXT, status TEXT NOT NULL DEFAULT 'pending', source TEXT, at INTEGER);"
   );
+  // Live staff answers (2026-11-03): who approved and when. Older databases lack the columns; add them once per isolate.
+  if (!schemaMigrated) {
+    for (const col of ['approved_at INTEGER', 'approved_by TEXT']) {
+      try { await env.DB.exec(`ALTER TABLE kb_draft ADD COLUMN ${col};`); } catch (_) { /* already there */ }
+    }
+    schemaMigrated = true;
+  }
   // entry_conf: per-KB-entry confidence driven by 👍/👎 feedback (EMA). A low
   // conf flags an entry that keeps disappointing users — the "which entries to
   // fix" backlog, learned automatically.
@@ -181,6 +191,7 @@ async function ensureSchema(env) {
   );
 }
 
+let schemaMigrated = false;
 async function bump(env, key, by = 1) {
   await env.DB.prepare(
     "INSERT INTO metrics (k,v) VALUES (?1,?2) ON CONFLICT(k) DO UPDATE SET v=v+?2"
@@ -431,7 +442,10 @@ async function kbApprove(request, env) {
   if (!id) return json({ ok: false, error: 'id required' }, 400);
   const d = await env.DB.prepare("SELECT * FROM kb_draft WHERE id=?1").bind(id).first();
   if (!d) return json({ ok: false, error: 'not found' }, 404);
-  await env.DB.prepare("UPDATE kb_draft SET status='approved' WHERE id=?1").bind(id).run();
+  // Approving makes the answer LIVE in the web chat within seconds (GET /live-kb), labelled as added by staff, retractable
+  // (POST /kb-retract). Rows approved before this existed keep status 'approved' and are NOT published.
+  const by = String(b.by || '').trim().slice(0, 40);
+  await env.DB.prepare("UPDATE kb_draft SET status='live', approved_at=?2, approved_by=?3 WHERE id=?1").bind(id, Date.now(), by).run();
   // Filename slug: prefer ASCII (latin/digits) from the title; Thai-only titles
   // have no ASCII, so fall back to a stable kb_<id> name the maintainer renames.
   const ascii = String(d.title).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
@@ -446,6 +460,24 @@ async function kbApprove(request, env) {
     `---\n## ${d.title}\n\n` +
     `คำค้นภาษาอังกฤษ: ${d.keywords}\n\n${d.answer}\n`;
   return json({ ok: true, id, filename: `${slug}.md`, markdown: md });
+}
+
+// POST /kb-retract { id } — take a live staff answer out of the chat again (it stays in the table, status 'retracted').
+async function kbRetract(request, env) {
+  const b = await request.json().catch(() => ({}));
+  const id = Number(b.id) || 0;
+  if (!id) return json({ ok: false, error: 'id required' }, 400);
+  const r = await env.DB.prepare("UPDATE kb_draft SET status='retracted' WHERE id=?1 AND status='live'").bind(id).run();
+  return json({ ok: true, id, changed: r.meta?.changes || 0 });
+}
+
+// GET /live-kb — the live staff answers, newest first. Public: this is published content (the chat merges it at load).
+async function liveKb(env) {
+  const rows = await env.DB.prepare(
+    "SELECT id, title, question, answer, keywords, category, approved_at FROM kb_draft WHERE status='live' ORDER BY approved_at DESC LIMIT 100"
+  ).all();
+  return new Response(JSON.stringify({ entries: rows.results || [] }),
+    { headers: { ...cors(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 }
 
 // POST /kb-autodraft { limit? } — for the most-asked unanswered gaps, draft a
@@ -488,8 +520,9 @@ async function autodraftCore(env, limit) {
       // Prefer the service binding (supported worker→worker path); fall back to public URL.
       const r = env.LLM_PROXY_SVC ? await env.LLM_PROXY_SVC.fetch(req) : await fetch(req);
       const j = await r.json().catch(() => ({}));
-      answer = String(j.answer || '').trim();
-      if (!answer) errs.push('empty:' + r.status);
+      // the proxy's own "AI unavailable" apology is not a draft (found 2026-11-03: one was stored as a candidate answer)
+      answer = j.source === 'fallback' ? '' : String(j.answer || '').trim();
+      if (!answer) errs.push((j.source === 'fallback' ? 'fallback:' : 'empty:') + r.status);
     } catch (e) { errs.push('throw:' + String(e && e.message || e).slice(0, 40)); }
     if (!answer) continue;
     const title = question.slice(0, 200);

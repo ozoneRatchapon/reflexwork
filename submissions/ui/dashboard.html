@@ -105,7 +105,26 @@
     <h2>✅ KB Drafts รออนุมัติ (ปิด learning loop)</h2>
     <div class="cap">คำตอบที่เจ้าหน้าที่บันทึก (หรือระบบ<b>ร่างอัตโนมัติจากคำถามที่ตอบไม่ได้</b>) → รอกด <b>อนุมัติ</b> เพื่อแปลงเป็นหัวข้อในคู่มือ · ยิ่งใช้ คู่มือยิ่งโตจากงานประจำ ไม่ต้องมานั่งเขียนเอง</div>
     <div style="margin:4px 0 12px"><button onclick="autoDraft()" style="background:#5b8cff;color:#041024;border:0;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">🤖 Auto-draft จาก gap ยอดฮิต (AI ร่างให้ คนแค่ตรวจ)</button> <button onclick="setStaffToken()" style="background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer">🔑 ตั้ง Staff Token</button> <span id="autodraft-note" style="color:var(--muted);font-size:13px"></span></div>
+    <div id="answerform" style="border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-weight:700;margin-bottom:4px">✍️ ตอบคำถามที่คู่มือยังไม่มี</div>
+      <div class="cap" style="margin-bottom:6px">กด "ตอบ" ที่รายการคำถามด้านบนเพื่อเติมคำถามให้ · เมื่ออนุมัติ คำตอบจะขึ้นในแชทภายใน ~15 วินาที พร้อมป้าย "📝 เจ้าหน้าที่ตอบ" และถอนได้ · ใส่เฉพาะข้อเท็จจริงที่ตรวจแล้ว</div>
+      <input id="af-q" placeholder="คำถาม" maxlength="500" style="width:100%;box-sizing:border-box;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;margin:4px 0">
+      <textarea id="af-a" placeholder="คำตอบ (ข้อเท็จจริงที่ตรวจแล้วเท่านั้น ใส่ลิงก์ทางการได้)" maxlength="2000" rows="3" style="width:100%;box-sizing:border-box;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;margin:4px 0"></textarea>
+      <input id="af-by" placeholder="ชื่อผู้ตรวจ (ไม่บังคับ บันทึกไว้คู่กับการอนุมัติ)" maxlength="40" style="width:100%;box-sizing:border-box;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;margin:4px 0">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+        <button onclick="saveAnswer(true)" style="background:#b07bff;color:#120a24;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer">✅ บันทึกและอนุมัติ (ขึ้นแชท)</button>
+        <button onclick="saveAnswer(false)" style="background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer">บันทึกเป็นร่างก่อน</button>
+        <span id="af-note" style="color:var(--muted);font-size:13px"></span>
+      </div>
+      <pre id="approve-out" style="display:none;white-space:pre-wrap;background:#0b1020;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;overflow:auto"></pre>
+    </div>
     <div id="draftrows"><div class="empty">ยังไม่มี draft — เมื่อเจ้าหน้าที่บันทึกคำตอบ จะมาโผล่ที่นี่</div></div>
+  </div>
+
+  <div class="card">
+    <h2>📝 คำตอบจากเจ้าหน้าที่ที่อยู่ในแชทตอนนี้</h2>
+    <div class="cap">อนุมัติแล้ว ยังไม่ได้รวมเข้าคู่มือหลัก · นักศึกษาเห็นพร้อมป้าย "📝 เจ้าหน้าที่ตอบ" · กด "ถอน" แล้วจะหายจากแชทภายใน ~15 วินาที</div>
+    <div id="liverows"><div class="empty">ยังไม่มีคำตอบจากเจ้าหน้าที่ในแชท</div></div>
   </div>
 
   <div class="card">
@@ -151,12 +170,13 @@ function clean_gaps(entries){
 }
 async function tick(){
   try{
-    const [s,a,g,kd,ec] = await Promise.all([
+    const [s,a,g,kd,ec,lk] = await Promise.all([
       fetch(base()+'/status',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/audit',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
       fetch(base()+'/gaps',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
       fetch(base()+'/kb-drafts',{headers:staffHeaders(),signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({drafts:[]})),
       fetch(base()+'/entry-conf',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
+      fetch(base()+'/live-kb',{cache:'no-store',signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
     ]);
     $('dot').classList.add('up'); $('livetxt').textContent='เชื่อมต่อแล้ว · รีเฟรชทุก 2 วิ';
     $('k-total').textContent = s.total_routed;
@@ -178,7 +198,7 @@ async function tick(){
       : '<tr><td colspan="3" class="empty">ยังไม่มีข้อมูล</td></tr>';
     const gaprows = clean_gaps((g&&g.entries)||[]);
     $('gaprows').innerHTML = gaprows.length ? gaprows.map(e=>`<tr>
-      <td>${esc(e.question)}</td>
+      <td>${esc(e.question)} <button class="ans-btn" data-q="${esc(e.question)}" style="margin-left:6px;background:transparent;color:#b07bff;border:1px solid rgba(176,123,255,.5);border-radius:6px;padding:1px 8px;cursor:pointer;font-size:12px">ตอบ</button></td>
       <td class="mono">${Number(e.hits)||0}</td>
       <td class="mono">${e.last_at_unix_ms?fmtTime(e.last_at_unix_ms):'—'}</td>
       <td>${esc(e.source||'—')}</td></tr>`).join('')
@@ -186,6 +206,7 @@ async function tick(){
     renderSystems(gaprows);
     renderDrafts((kd&&kd.drafts)||[]);
     renderConf((ec&&ec.entries)||[]);
+    renderLive((lk&&lk.entries)||[]);
     return;   // live data rendered — do not overwrite with demo
   }catch(e){
     // No local API (the usual case on the public demo) → representative demo data.
@@ -280,7 +301,7 @@ function renderDrafts(drafts){
       <div style="color:var(--muted);font-size:13px;margin:6px 0">${esc(d.answer)}</div>
       <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)">
         <span>หมวด: ${esc(d.category||'—')} · จาก: ${esc(d.source||'—')}</span>
-        <button onclick="approveDraft(${Number(d.id)||0})" style="margin-left:auto;background:#22c58b;color:#042a1c;border:0;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer">✅ อนุมัติ → ได้ไฟล์ KB</button>
+        <button onclick="approveDraft(${Number(d.id)||0})" style="margin-left:auto;background:#22c58b;color:#042a1c;border:0;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer">✅ อนุมัติ → ขึ้นแชท</button>
       </div>
       <pre id="md-${Number(d.id)||0}" style="display:none;white-space:pre-wrap;background:#0b1020;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;overflow:auto"></pre>
     </div>`).join('');
@@ -290,12 +311,51 @@ function renderDrafts(drafts){
 // maintainer can drop it into submissions/ui/knowledge-public/ and rebuild.
 window.approveDraft = async function(id){
   try{
-    const r = await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({id})});
+    const r = await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({id, by:($('af-by').value||'').trim()})});
     const j = await r.json();
+    if(j.ok){ showApproved(j); tick(); return; }   // the draft leaves this list (it is live now); the file text stays in the form box
     const pre = $('md-'+id);
     if(j.ok && pre){ pre.style.display='block'; pre.textContent = `# บันทึกเป็นไฟล์: submissions/ui/knowledge-public/${j.filename}\n\n${j.markdown}`; }
     else if(pre){ pre.style.display='block'; pre.textContent = 'อนุมัติไม่สำเร็จ: '+(j.error||'unknown'); }
   }catch(e){ alert('เชื่อมต่อ API ไม่ได้'); }
+};
+
+// "ตอบ" on a gap row fills the answer form (event delegation: the table is re-rendered every 2 s).
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.ans-btn'); if(!b) return;
+  $('af-q').value = b.dataset.q || ''; $('af-a').focus(); $('answerform').scrollIntoView({block:'center', behavior:'smooth'}); });
+$('af-by').value = localStorage.getItem('reflexwork_staff_name') || '';
+function showApproved(j){ const out=$('approve-out'); if(!out||!j||!j.ok) return; out.style.display='block';
+  out.textContent = `✅ ขึ้นในแชทแล้ว (หน้าแชทดึงใหม่ทุก ~15 วินาที หรือทันทีที่สลับกลับไปที่แท็บแชท)\n\nรอบถัดไปรวมเข้าคู่มือหลัก: บันทึกเป็น submissions/ui/knowledge-public/${j.filename}\n\n${j.markdown}`; }
+// Write an answer: save it as a draft, and (approve=true) approve it at once so it goes live.
+window.saveAnswer = async function(approve){
+  const q=$('af-q').value.trim(), a=$('af-a').value.trim(), by=$('af-by').value.trim(), note=$('af-note');
+  if(!q||!a){ note.textContent='ใส่ทั้งคำถามและคำตอบ'; return; }
+  localStorage.setItem('reflexwork_staff_name', by);
+  note.textContent='⏳ กำลังบันทึก…';
+  try{
+    const r=await fetch(base()+'/kb-draft',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({question:q,answer:a,source:'dashboard'})});
+    const j=await r.json(); if(!j.ok){ note.textContent='บันทึกไม่สำเร็จ: '+(j.error||r.status)+(r.status===401?' — ตั้ง Staff Token ก่อน':''); return; }
+    if(!approve){ note.textContent='✅ บันทึกเป็นร่างแล้ว — ตรวจแล้วกดอนุมัติในรายการด้านล่าง'; tick(); return; }
+    const r2=await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({id:j.id,by})});
+    const j2=await r2.json(); note.textContent = j2.ok ? '✅ อนุมัติแล้ว — ขึ้นในแชทภายใน ~15 วินาที' : 'อนุมัติไม่สำเร็จ: '+(j2.error||r2.status);
+    if(j2.ok){ $('af-q').value=''; $('af-a').value=''; showApproved(j2); } tick();
+  }catch(e){ note.textContent='⚠ เชื่อมต่อ API ไม่ได้'; }
+};
+function renderLive(entries){
+  const el=$('liverows'); if(!el) return;
+  if(!entries.length){ el.innerHTML='<div class="empty">ยังไม่มีคำตอบจากเจ้าหน้าที่ในแชท</div>'; return; }
+  el.innerHTML = entries.map(d=>`<div style="border:1px solid rgba(176,123,255,.4);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+      <div style="font-weight:700">${esc(d.title)}</div>
+      <div style="color:var(--muted);font-size:13px;margin:6px 0">${esc(d.answer)}</div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)">
+        <span>อนุมัติ ${d.approved_at?esc(new Date(Number(d.approved_at)).toLocaleString('th-TH')):'—'}</span>
+        <button onclick="retractLive(${Number(d.id)||0})" style="margin-left:auto;background:transparent;color:#ff7b7b;border:1px solid rgba(255,123,123,.5);border-radius:8px;padding:5px 12px;cursor:pointer">ถอนออกจากแชท</button>
+      </div></div>`).join('');
+}
+window.retractLive = async function(id){
+  if(!confirm('ถอนคำตอบนี้ออกจากแชท?')) return;
+  try{ const r=await fetch(base()+'/kb-retract',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({id})});
+    const j=await r.json(); if(!j.ok) alert('ถอนไม่สำเร็จ: '+(j.error||r.status)); tick(); }catch(e){ alert('เชื่อมต่อ API ไม่ได้'); }
 };
 
 // Trigger auto-draft: AI drafts candidate answers for the top gaps → pending.
