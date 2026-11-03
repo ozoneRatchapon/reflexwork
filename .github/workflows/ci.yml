@@ -15,7 +15,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: reflex-wasm tests (golden contract)
-        run: cargo test --locked -p reflex-wasm
+        run: cargo test -p reflex-wasm   # Cargo.lock is not committed (.gitignore), so --locked is not possible
 
   test:
     runs-on: ubuntu-latest
