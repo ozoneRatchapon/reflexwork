@@ -9,7 +9,7 @@ const doc = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json')
 const P = doc.programmes || doc;
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
-const src = page.match(/function _pSchedule\(lines\)\{[\s\S]*?\n\}\n/);
+const src = page.match(/function _pScheduleData\(lines\)\{[\s\S]*?\nfunction _pSchedule\(lines\)\{[^\n]*\}\n/);   // data + view + the composition
 check('_pSchedule source found', !!src);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const _pSchedule = new Function('_pEsc', src[0] + 'return _pSchedule;')(esc);

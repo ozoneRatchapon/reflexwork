@@ -1,6 +1,80 @@
 /* @ts-self-types="./reflex_wasm.d.ts" */
 
 /**
+ * The programme catalogue, indexed once, so each question only pays for matching (port of `resolveProgramme`).
+ */
+export class Resolver {
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        ResolverFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_resolver_free(ptr, 0);
+    }
+    /**
+     * `programmes`: the `programmes` array of programmes.json.
+     * @param {any} programmes
+     */
+    constructor(programmes) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.resolver_new(retptr, addHeapObject(programmes));
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            this.__wbg_ptr = r0 >>> 0;
+            ResolverFinalization.register(this, this.__wbg_ptr, this);
+            return this;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * `{kind: "one"|"many"|"broad", codes, topic, via, levelMissing, total}` or `null`. `loose` = nearest names only.
+     * @param {string} q
+     * @param {boolean} loose
+     * @returns {any}
+     */
+    resolve(q, loose) {
+        const ptr0 = passStringToWasm0(q, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.resolver_resolve(this.__wbg_ptr, ptr0, len0, loose);
+        return takeObject(ret);
+    }
+}
+if (Symbol.dispose) Resolver.prototype[Symbol.dispose] = Resolver.prototype.free;
+
+/**
+ * The manual's own words cut into short points (port of chatbot.html `answerPoints`).
+ * @param {string} body
+ * @returns {any}
+ */
+export function answer_points(body) {
+    const ptr0 = passStringToWasm0(body, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.answer_points(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+ * `{kind: "personal", category, label}` for a personal/technical issue that needs staff, else `null` (port of `classifyIssue`).
+ * @param {string} text
+ * @returns {any}
+ */
+export function classify_issue(text) {
+    const ptr0 = passStringToWasm0(text, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.classify_issue(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
  * Classify a message as smalltalk. Returns the intent kind ("greet"/"thanks"/
  * "bye"/"whatcan"/"howareyou") or an empty string when it is NOT smalltalk
  * (a real question / complaint → kernel path). Sigmoid gate, argmax over gate.
@@ -24,6 +98,56 @@ export function classify_smalltalk(text) {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_export4(deferred2_0, deferred2_1, 1);
     }
+}
+
+/**
+ * What to do after the search: `{action: "act"|"disambiguate"|"escalate", stage: "reflex"|"rethink"}` (port of `decideTier`).
+ * `gate` may be NaN when the kernel gave no gate score.
+ * @param {number} gate
+ * @param {Float64Array} scores
+ * @returns {any}
+ */
+export function decide_tier(gate, scores) {
+    const ptr0 = passArrayF64ToWasm0(scores, wasm.__wbindgen_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.decide_tier(gate, ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+ * Fee table of one programme as `{rows, notes}` (port of `_pFee`).
+ * @param {string[]} lines
+ * @returns {any}
+ */
+export function fee_table(lines) {
+    const ptr0 = passArrayJsValueToWasm0(lines, wasm.__wbindgen_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.fee_table(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+ * Open-ended advice question (rephrase-worthy), not a factual lookup (port of `isAdvice`).
+ * @param {string} q
+ * @returns {boolean}
+ */
+export function is_advice(q) {
+    const ptr0 = passStringToWasm0(q, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.is_advice(ptr0, len0);
+    return ret !== 0;
+}
+
+/**
+ * Latin letters and no Thai letters (port of `isEnglish`).
+ * @param {string} q
+ * @returns {boolean}
+ */
+export function is_english(q) {
+    const ptr0 = passStringToWasm0(q, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.is_english(ptr0, len0);
+    return ret !== 0;
 }
 
 /**
@@ -57,6 +181,59 @@ export function route_task(category, input, token_budget, priority) {
     const ptr1 = passStringToWasm0(input, wasm.__wbindgen_export, wasm.__wbindgen_export2);
     const len1 = WASM_VECTOR_LEN;
     const ret = wasm.route_task(ptr0, len0, ptr1, len1, token_budget, priority);
+    return takeObject(ret);
+}
+
+/**
+ * Admission schedule of one programme as `{cols, rows, notes, list}` (port of `_pSchedule`, data part).
+ * @param {string[]} lines
+ * @returns {any}
+ */
+export function schedule_table(lines) {
+    const ptr0 = passArrayJsValueToWasm0(lines, wasm.__wbindgen_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.schedule_table(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+ * The number a question asks for, taken from the answer (port of chatbot.html `slotLead`); "" when none.
+ * @param {string} answer
+ * @param {string} question
+ * @returns {string}
+ */
+export function slot_lead(answer, question) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(answer, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(question, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len1 = WASM_VECTOR_LEN;
+        wasm.slot_lead(retptr, ptr0, len0, ptr1, len1);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred3_0 = r0;
+        deferred3_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export4(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Verify the phrases an AI wrote: `results[i]` = the search result of `phrases[i]` as `[{id, s}]` (best first, 3 are enough).
+ * Returns `{kind: "one", id, score, via, others}`, `{kind: "many", ids}` or `{kind: "none"}` (port of `understand`).
+ * @param {string[]} phrases
+ * @param {any} results
+ * @returns {any}
+ */
+export function understand(phrases, results) {
+    const ptr0 = passArrayJsValueToWasm0(phrases, wasm.__wbindgen_export);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.understand(ptr0, len0, addHeapObject(results));
     return takeObject(ret);
 }
 function __wbg_get_imports() {
@@ -215,6 +392,11 @@ function __wbg_get_imports() {
             const ret = getStringFromWasm0(arg0, arg1);
             return addHeapObject(ret);
         },
+        __wbindgen_cast_0000000000000003: function(arg0) {
+            // Cast intrinsic for `U64 -> Externref`.
+            const ret = BigInt.asUintN(64, arg0);
+            return addHeapObject(ret);
+        },
         __wbindgen_object_clone_ref: function(arg0) {
             const ret = getObject(arg0);
             return addHeapObject(ret);
@@ -228,6 +410,10 @@ function __wbg_get_imports() {
         "./reflex_wasm_bg.js": import0,
     };
 }
+
+const ResolverFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_resolver_free(ptr >>> 0, 1));
 
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);
@@ -322,6 +508,14 @@ function getDataViewMemory0() {
     return cachedDataViewMemory0;
 }
 
+let cachedFloat64ArrayMemory0 = null;
+function getFloat64ArrayMemory0() {
+    if (cachedFloat64ArrayMemory0 === null || cachedFloat64ArrayMemory0.byteLength === 0) {
+        cachedFloat64ArrayMemory0 = new Float64Array(wasm.memory.buffer);
+    }
+    return cachedFloat64ArrayMemory0;
+}
+
 function getStringFromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return decodeText(ptr, len);
@@ -352,6 +546,23 @@ let heap_next = heap.length;
 
 function isLikeNone(x) {
     return x === undefined || x === null;
+}
+
+function passArrayF64ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 8, 8) >>> 0;
+    getFloat64ArrayMemory0().set(arg, ptr / 8);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    const mem = getDataViewMemory0();
+    for (let i = 0; i < array.length; i++) {
+        mem.setUint32(ptr + 4 * i, addHeapObject(array[i]), true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
 }
 
 function passStringToWasm0(arg, malloc, realloc) {
@@ -431,6 +642,7 @@ function __wbg_finalize_init(instance, module) {
     wasm = instance.exports;
     wasmModule = module;
     cachedDataViewMemory0 = null;
+    cachedFloat64ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
     return wasm;
 }

@@ -372,6 +372,7 @@
 
 <script type="module">
 import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
+import * as WASM from './wasm/reflex_wasm.js';   // the rest of the Rust exports (engine switch below)
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
 let LINKS=[];   // system-links.json: named systems -> official URLs (optional)
@@ -433,7 +434,7 @@ const EXAMPLE_QS=()=>AGENCY.examples.map(e=>e.q);
 // label, until it is merged into the main manual (or retracted). Read from the kernel's public GET /live-kb and merged into KB;
 // the search reads KB on every question, so nothing else changes. No kernel (other agencies by default) = no live answers.
 let LIVE_N=0;
-function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์</span>'; }
+function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์ · engine: '+ENGINE+'</span>'; }
 async function refreshLiveKb(){
   if(!KERNEL_API) return;
   try{
@@ -448,7 +449,7 @@ async function refreshLiveKb(){
 }
 async function load(){
   await loadAgency(); pickBackends(); applyAgency();
-  await init();
+  const _w0 = performance.now(); await init(); ENG.wasmInitMs = performance.now() - _w0;
   // Prefer the full knowledge index if present (local dev); otherwise use a
   // small built-in fallback so the public demo still works without the other
   // team's private data.
@@ -478,6 +479,52 @@ async function load(){
   }));
   renderMood(false);
 }
+// ===== Engine switch (2026-11-04): the same pure answer logic runs in Rust (wasm) or in the JS functions above =====
+// ?engine=rust|js picks one (default: ENGINE_DEFAULT). Every function below keeps its JS twin as the fallback: if the wasm lacks an
+// export (an old cached build) or a Rust call throws, that call runs the JS version and ENG.errors counts it. Both engines are timed
+// per function (ENG.t / ENG.n, read by benchmark/engine_ab.mjs). Contract that both must meet: benchmark/golden (6 files, ~5,700 cases).
+const ENGINE_DEFAULT = 'js';   // flip to 'rust' only after benchmark/engine_ab.mjs shows identical answers and no regression
+const _ENGINE_NEEDS = ['answer_points','slot_lead','decide_tier','schedule_table','fee_table','understand','classify_issue','is_advice','is_english','Resolver'];
+const _ENGINE_ASKED = new URLSearchParams(location.search).get('engine') || ENGINE_DEFAULT;
+const ENGINE = (_ENGINE_ASKED==='rust' && _ENGINE_NEEDS.every(n=>typeof WASM[n]==='function')) ? 'rust' : 'js';
+const ENG = { name:ENGINE, asked:_ENGINE_ASKED, t:{}, n:{}, errors:0, wasmInitMs:0, impl:{} };   // impl: both implementations of each function, for benchmark/engine/engine_micro.mjs
+ENG.data = () => ({ KB, PROG, search });   // the page's data, for the micro-benchmark (module variables are not reachable from outside)
+window.__eng = ENG; document.documentElement.dataset.engine = ENGINE;
+function _engine(name, js, rust){
+  ENG.impl[name] = { js, rust };
+  const run = ENGINE==='rust'
+    ? (...a)=>{ try{ return rust(...a); }catch(e){ ENG.errors++; console.warn(`rust engine failed in ${name}, using JS`, e); return js(...a); } }
+    : js;
+  return (...a)=>{ const t0=performance.now(); try{ return run(...a); } finally { ENG.t[name]=(ENG.t[name]||0)+(performance.now()-t0); ENG.n[name]=(ENG.n[name]||0)+1; } };
+}
+{
+  const byId = id => KB.find(e=>e.id===id);
+  let res = null;   // the Rust resolver, built once per catalogue (the page's PROG array)
+  const jsResolve = resolveProgramme;
+  answerPoints   = _engine('answerPoints', answerPoints,   body => WASM.answer_points(String(body==null?'':body)));
+  slotLead       = _engine('slotLead',     slotLead,       (hit,q) => WASM.slot_lead(String((hit&&hit.answer)||''), String(q||'')));
+  classifyIssue  = _engine('classifyIssue',classifyIssue,  text => WASM.classify_issue(String(text==null?'':text)));
+  isAdvice       = _engine('isAdvice',     isAdvice,       q => WASM.is_advice(String(q==null?'':q)));
+  isEnglish      = _engine('isEnglish',    isEnglish,      q => WASM.is_english(String(q==null?'':q)));
+  _pFee          = _engine('fee',          _pFee,          lines => WASM.fee_table(lines||[]));
+  _pScheduleData = _engine('schedule',     _pScheduleData, lines => WASM.schedule_table(lines||[]));
+  decideTier     = _engine('decideTier',   decideTier,     ({gate, ranked}) => {
+    const v = WASM.decide_tier(typeof gate==='number' ? gate : NaN, ranked.map(r=>r.s));
+    return v.action==='act' ? {...v, entry:ranked[0].e} : v.action==='disambiguate' ? {...v, candidates:ranked.slice(0,3).map(r=>r.e)} : v; });
+  understand     = _engine('understand',   understand,     phrases => {
+    const o = WASM.understand(phrases, phrases.map(p=>search(p).slice(0,3).map(r=>({id:r.e.id, s:r.s}))));
+    return o.kind==='one' ? {kind:'one', entry:byId(o.id), score:o.score, via:o.via, others:o.others.map(byId)} : o.kind==='many' ? {kind:'many', entries:o.ids.map(byId)} : {kind:'none'}; });
+  resolveProgramme = _engine('resolveProgramme', jsResolve, (q, P, loose) => {
+    if(P!==PROG || !Array.isArray(P) || !P.length) return jsResolve(q, P, loose);   // only the page's own catalogue is indexed
+    if(!res || res.src!==P){ const t0=performance.now(); res={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))}; ENG.resolverBuildMs=performance.now()-t0; }
+    const r = res.r.resolve(String(q==null?'':q), !!loose);
+    if(r===null) return null;
+    const rows = r.codes.map(c=>res.by.get(c));
+    return r.kind==='one' ? {kind:'one', row:rows[0], via:r.via, topic:r.topic, levelMissing:r.levelMissing}
+      : r.kind==='broad' ? {kind:'broad', total:r.total, rows, levelMissing:r.levelMissing}
+      : {kind:'many', rows, total:r.total, levelMissing:r.levelMissing, topic:r.topic, ...(loose ? {near:true} : {})}; });
+}
+
 load().catch(()=>{
   const boot=$('boot');
   if(boot){ boot.classList.add('err');
@@ -918,10 +965,10 @@ function _pSchHtml(a){
 // The source lines are "activity | รอบ 1 <date> | รอบ 2 <date> ..." under a header "รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 ...".
 // The round name repeated in every cell is dropped; lines without "|" (opening dates, หมายเหตุ) become notes under the table.
 // Anything that does not fit that shape falls back to the plain list - all lines, nothing cut (the old list stopped at 8 lines).
-function _pSchedule(lines){
+function _pScheduleData(lines){
   const L=(lines||[]).filter(l=>!/^รายละเอียดกิจกรรม/.test(l));
   const hi=L.findIndex(l=>/^รอบการรับสมัคร/.test(l) && l.includes(' | '));
-  const list=()=>({table:'', notes:[], rows:[], cols:[], list:L.map(l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; })});
+  const list=()=>({cols:[], rows:[], notes:[], list:L.map(l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; })});
   if(hi<0) return list();
   const cols=L[hi].split(' | ').slice(1), rows=[], notes=[];
   for(const l of L.slice(hi+1)){
@@ -930,10 +977,17 @@ function _pSchedule(lines){
     rows.push([c[0], ...c.slice(1).map((x,i)=>x.startsWith(cols[i]+' ') ? x.slice(cols[i].length+1) : x)]);
   }
   if(!rows.length) return list();
+  return {cols, rows, notes, list:[]};
+}
+// The table HTML from the data above (the data comes from the JS or the Rust engine; the HTML is always built here).
+function _pScheduleView(d){
+  if(!d.rows.length) return {table:'', notes:[], rows:[], cols:[], list:d.list};
+  const {cols, rows, notes}=d;
   const th=`<tr><th scope="col">กิจกรรม</th>${cols.map(c=>`<th scope="col">${_pEsc(c)}</th>`).join('')}</tr>`;
   const tr=rows.map(r=>`<tr><th scope="row">${_pEsc(r[0])}</th>${r.slice(1).map(x=>`<td>${_pEsc(x)}</td>`).join('')}</tr>`).join('');
   return {rows, cols, table:(cols.length>1?`<span class="sched-hint">เลื่อนตารางไปทางขวาเพื่อดูรอบอื่น →</span>`:'')+`<div class="sched-wrap" role="region" aria-label="กำหนดการรับสมัคร" tabindex="0"><table class="sched">${th}${tr}</table></div>`, notes, list:[]};
 }
+function _pSchedule(lines){ return _pScheduleView(_pScheduleData(lines)); }
 // The schedule row(s) a question asks about ("สอบสัมภาษณ์วันไหน" -> the สอบสัมภาษณ์ row), as one line per activity.
 const _P_SCHED_PICK=[[/สัมภาษณ์|interview/i,/สัมภาษณ์/],[/ข้อเขียน/,/ข้อเขียน/],[/^(?![\s\S]*(?:สัมภาษณ์|ข้อเขียน))[\s\S]*สอบ(?:วันไหน|เมื่อ)/,/^สอบ/],
   [/มีสิทธิ์สอบ|สถานที่สอบ/,/ผู้มีสิทธิ์สอบ/],[/ประกาศผล|ประกาศรายชื่อ|ผลสอบ|ติดไหม/,/ผู้มีสิทธิ์เข้าศึกษา/],[/รายงานตัว|ขึ้นทะเบียน/,/^รายงานตัว/],

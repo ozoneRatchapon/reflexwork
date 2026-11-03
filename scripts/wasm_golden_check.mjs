@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 // Checks a BUILT wasm package against the golden contract (benchmark/golden): every exported function must return exactly what the
 // page's JS returned (strictly: null is not undefined). Run this on the artefact that would be deployed, before switching the page to it.
-//   cd crates/reflex-wasm && cargo build --release --target wasm32-unknown-unknown
-//   wasm-bindgen --target nodejs --out-dir /tmp/rw_wasm ~/.cargo/target/wasm32-unknown-unknown/release/reflex_wasm.wasm
-//   (optional) wasm-opt -Oz --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext --enable-mutable-globals --enable-reference-types ...
-//   node scripts/wasm_golden_check.mjs /tmp/rw_wasm
-import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+//   node scripts/wasm_golden_check.mjs submissions/ui/wasm      the artefact the page loads (web target; build it with crates/reflex-wasm/build.sh)
+//   node scripts/wasm_golden_check.mjs /tmp/rw_wasm             or a `wasm-bindgen --target nodejs` output directory
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { root } from './lib/chatbot_fns.mjs';
 const pkg = process.argv[2];
 if (!pkg) { console.error('usage: node scripts/wasm_golden_check.mjs <wasm-bindgen --target nodejs output dir>'); process.exit(2); }
-const w = createRequire(import.meta.url)(resolve(pkg, 'reflex_wasm.js'));
+const mod = await import(pathToFileURL(resolve(pkg, 'reflex_wasm.js')).href);
+const w = mod.route_task ? mod : (mod.default || mod);
+if (typeof w.initSync === 'function') w.initSync({ module: readFileSync(resolve(pkg, 'reflex_wasm_bg.wasm')) });   // web target: instantiate synchronously
+for (const n of ['answer_points', 'slot_lead', 'decide_tier', 'schedule_table', 'fee_table', 'understand', 'classify_issue', 'is_advice', 'is_english', 'Resolver']) {
+  if (!w[n]) { console.error(`missing export: ${n} (is this an old build?)`); process.exit(1); } }
 const fs = { readFileSync };
 const load = f => fs.readFileSync(`${root}/benchmark/golden/${f}.json`, 'utf8').trim().split('\n').map(l => l.replace(/,$/, '')).filter(l => l.startsWith('{')).map(l => JSON.parse(l));
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
