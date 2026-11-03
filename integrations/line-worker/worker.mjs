@@ -15,7 +15,7 @@
 
 import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
-import { humanize } from '../_shared/humanize.mjs';
+import { readableText } from '../_shared/answer_points.mjs';
 import { decide } from '../_shared/rethink.mjs';
 import { classifyIssue, intakePrompt, isAdvice, groundedPrompt } from '../_shared/intake.mjs';
 import { createMood, classifySmalltalk, smalltalkReply } from '../_shared/smalltalk.mjs';
@@ -242,7 +242,7 @@ async function processEvents(raw, env) {
             footer = `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`;
           } else {
             // AI unavailable → fall back to the raw KB answer (still correct)
-            answer = `${humanize(pick.entry, text)}${src}`;
+            answer = `${readableText(pick.entry, text)}${src}`;
             footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
           }
         } else {
@@ -250,7 +250,7 @@ async function processEvents(raw, env) {
           const steps = Array.isArray(pick.entry.steps) && pick.entry.steps.length
             ? `\n\nทำตามขั้นตอน:\n${pick.entry.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
             : '';
-          answer = `${humanize(pick.entry, text)}${steps}${src}`;
+          answer = `${readableText(pick.entry, text)}${steps}${src}`;
           footer = `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`;
         }
       } else if (pick.tier === 'ambiguous') {
