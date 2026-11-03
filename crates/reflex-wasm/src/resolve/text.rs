@@ -4,10 +4,7 @@ use std::collections::HashSet;
 
 pub type Tri = HashSet<[u16; 3]>;
 
-/// ECMAScript `\s` (also what `String.prototype.trim` strips).
-pub fn is_js_space(c: char) -> bool {
-    matches!(c, '\t'..='\r' | ' ' | '\u{a0}' | '\u{1680}' | '\u{2000}'..='\u{200a}' | '\u{2028}' | '\u{2029}' | '\u{202f}' | '\u{205f}' | '\u{3000}' | '\u{feff}')
-}
+pub use crate::re::is_js_space;
 
 pub fn trim(s: &str) -> &str {
     s.trim_matches(is_js_space)

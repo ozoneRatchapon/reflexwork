@@ -7,7 +7,7 @@
 //   node scripts/golden_dump.mjs --check    re-run the JS on the FROZEN inputs and fail on any difference (used by the test)
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { loadChatbotFns, loadSearch, loadUnderstand, root } from './lib/chatbot_fns.mjs';
+import { loadChatbotFns, loadSearch, loadUnderstand, loadIntake, root } from './lib/chatbot_fns.mjs';
 const F = loadChatbotFns(), DIR = join(root, 'benchmark/golden'), CHECK = process.argv.includes('--check');
 const SLOT_QS = ['ส่งเล่มภายในกี่วัน', 'ค่าธรรมเนียมเท่าไหร่', 'turnitin เกินกี่ %', 'ทำยังไง'];
 const lines = f => readFileSync(join(root, f), 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
@@ -20,6 +20,9 @@ const pick = r => r ? { kind: r.kind, codes: r.row ? [r.row.code] : (r.rows || [
 const outResolve = ({ catalogue, questions }) => ({ catalogue, cases: questions.map(q => ({ q, out: pick(F.resolveProgramme(q, catalogue)), loose: pick(F.resolveProgramme(q, catalogue, true)) })) });
 const outTier = inp => inp.map(c => ({ ...c, out: (({ action, stage }) => ({ action, stage }))(F.decideTier({ gate: c.gate, ranked: c.scores.map((s, i) => ({ e: { id: `e${i}` }, s })) })) }));
 
+const outIntake = inp => { const I = loadIntake(); return inp.map(c => { const r = I.classifyIssue(c.text);
+  return { ...c, issue: r ? { kind: r.kind, category: r.category, label: r.label } : null, advice: I.isAdvice(c.text), english: I.isEnglish(c.text) }; }); };
+
 // understand(): the search results of each phrase are FROZEN in the case (top 3: id + score), so the contract does not depend on the KB.
 const outUnderstand = inp => inp.map(c => {
   const stub = p => { const i = c.phrases.indexOf(p); return (c.results[i] || []).map(h => ({ e: { id: h.id }, s: h.s })); };
@@ -27,6 +30,22 @@ const outUnderstand = inp => inp.map(c => {
   const out = r.kind === 'one' ? { kind: 'one', id: r.entry.id, score: r.score, via: r.via, others: r.others.map(e => e.id) } : r.kind === 'many' ? { kind: 'many', ids: r.entries.map(e => e.id) } : { kind: 'none' };
   return { ...c, out };
 });
+
+function intakeInputs(KB, faq, odd) {
+  const faqEn = JSON.parse(readFileSync(join(root, 'benchmark/field/faq_questions.json'), 'utf8')).items.map(i => i.en).filter(Boolean);
+  const personal = ['ล็อกอินไม่ได้', 'เข้าระบบไม่ได้', 'ลืมรหัสผ่าน', 'รีเซ็ตรหัส', 'บัญชีถูกล็อก', 'ยืนยันตัวตนไม่ผ่าน', 'LOGIN ไม่ได้', 'Password reset', 'Forgot Password', 'WE MAHIDOL เข้าไม่ได้', 'student card app', 'server error',
+    'ข้อมูลค้างในระบบ', 'สถานะไม่อัปเดต', 'ชื่อไม่ตรง', 'ยังมีรายชื่อ', 'ติดอยู่ในระบบ', 'data stuck', 'not updating', 'pending ในระบบ', 'ระบบล่ม', 'ระบบ error', 'กดไม่ได้', 'บันทึกไม่ได้', 'อัปโหลดไม่ได้', 'กรอกชื่อไม่ได้', 'เลือกวิชาไม่ได้', 'System Error', 'system down'];
+  const wrap = ['', 'ช่วยด้วย ', ' ค่ะ', ' กี่วัน', ' เท่าไร', ' ค่าสอบ', 'turnitin ', ' เงื่อนไข', ' คุณสมบัติ', ' 25%', ' กี่ %', ' ค่าธรรมเนียม', '\n', ' \u3000'];
+  const advice = ['แนะนำ', 'วางแผน', 'ช่วยเขียนยังไง', 'ช่วยอธิบายอย่างไร', 'ช่วยหน่อย', 'วิธีวางแผน', 'จัดการเวลา', 'เตรียมตัว', 'ควรทำ', 'ทำยังไงดี', 'แนวทาง'];
+  const factual = ['', ' กี่วัน', ' กี่บาท', ' เท่าไร', ' เท่าไหร่', ' กี่%', ' กี่ %', ' กี่คน', ' วันไหน', ' เมื่อไหร่'];
+  const texts = [...KB.map(e => e.title), ...faq, ...faqEn, ...odd, ...lines('benchmark/coverage/beginner_questions.txt'),
+    ...personal.flatMap(b => wrap.map(w => w.startsWith(' ') || w === '' || w === '\n' ? b + w : w + b)),
+    ...advice.flatMap(a => factual.map(f => a + f)),
+    'ช่วย\nยังไง', 'ช่วย\u2028ยังไง', 'ระบบ\u2028ล่ม', 'ระบบ\r\nล่ม', 'ข้อมูล\rค้าง', 'ข้อมูล\nค้าง',
+    '', '   ', '\u00a0', 'hello', 'Hello world', 'สวัสดี', 'hello สวัสดี', 'GPA 3.5', '12345', 'ABC', 'ก', 'a', 'turnitin คืออะไร', 'e-Thesis login', 'How do I reset my password?', 'What is the fee?', 'ลืมpassword',
+    'abc\u0dff', 'abc\u0e00', 'abc\u0e7e', 'abc\u0e7f', 'abc\u0e80', 'é', 'Ünï', 'abc 123'];   // edges of the Thai block
+  return [...new Set(texts)].map(text => ({ text }));
+}
 
 function understandInputs(KB) {
   const search = loadSearch(KB), titles = KB.map(e => e.title), frag = (t, n = 12) => t.slice(0, n).trim();
@@ -76,9 +95,10 @@ function inputs() {
     resolve: { catalogue, questions: [...new Set([...lines('benchmark/coverage/beginner_questions.txt'), ...faq, ...odd, ...progQs, ...edges])] },
     decide_tier: gates.flatMap(gate => scores.map(s => ({ gate, scores: s }))),
     understand: understandInputs(KB),
+    intake: intakeInputs(KB, faq, odd),
   };
 }
-const OUT = { answer_points: outPoints, schedule_fee: outProg, resolve: outResolve, decide_tier: outTier, understand: outUnderstand };
+const OUT = { answer_points: outPoints, schedule_fee: outProg, resolve: outResolve, decide_tier: outTier, understand: outUnderstand, intake: outIntake };
 let bad = 0;
 if (CHECK) {
   for (const [name, fn] of Object.entries(OUT)) {

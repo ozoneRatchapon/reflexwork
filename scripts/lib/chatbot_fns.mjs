@@ -27,3 +27,12 @@ export function loadUnderstand(search, html = readFileSync(join(root, 'submissio
   if (!m) throw new Error('chatbot.html: understand() not found');
   return new Function('search', m[0] + 'return understand;')(search);
 }
+
+// classifyIssue / isAdvice / isEnglish of the page (the web's own copies; LINE has a second one in integrations/_shared/intake.mjs).
+export function loadIntake(html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
+  const need = (re, name) => { const m = html.match(re); if (!m) throw new Error(`chatbot.html: ${name} not found`); return m[0]; };
+  const issue = need(/const _ISSUE_CATS=[\s\S]*?return null; \}\n/, 'classifyIssue');
+  const advice = need(/const _ADVICE=[\s\S]*?function isAdvice\(q\)\{[^\n]*\}\n/, 'isAdvice');
+  const english = need(/function isEnglish\(q\)\{[^\n]*\}\n/, 'isEnglish');
+  return new Function(`${issue}\n${advice}\n${english}\nreturn { classifyIssue, isAdvice, isEnglish };`)();
+}

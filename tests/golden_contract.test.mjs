@@ -8,4 +8,4 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const r = spawnSync(process.execPath, [join(root, 'scripts/golden_dump.mjs'), '--check'], { encoding: 'utf8' });
 process.stdout.write(r.stdout + r.stderr);
 const n = (r.stdout.match(/^✓/gm) || []).length;
-console.log(`\n${n}/5 contracts match`); process.exit(r.status === 0 && n === 5 ? 0 : 1);
+console.log(`\n${n}/6 contracts match`); process.exit(r.status === 0 && n === 6 ? 0 : 1);
