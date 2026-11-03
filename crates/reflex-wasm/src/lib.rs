@@ -11,6 +11,8 @@
 pub mod answer;
 pub mod catalogue;
 pub mod decide;
+pub mod resolve;
+pub mod understand;
 
 use blake3::Hasher;
 use serde::{Deserialize, Serialize};
@@ -559,4 +561,33 @@ pub fn schedule_table(lines: Vec<String>) -> JsValue {
 #[wasm_bindgen]
 pub fn fee_table(lines: Vec<String>) -> JsValue {
     serde_wasm_bindgen::to_value(&catalogue::fee_table(&lines)).unwrap_or(JsValue::NULL)
+}
+
+/// The programme catalogue, indexed once, so each question only pays for matching (port of `resolveProgramme`).
+#[wasm_bindgen]
+pub struct Resolver {
+    inner: resolve::Catalogue,
+}
+
+#[wasm_bindgen]
+impl Resolver {
+    /// `programmes`: the `programmes` array of programmes.json.
+    #[wasm_bindgen(constructor)]
+    pub fn new(programmes: JsValue) -> Result<Resolver, JsValue> {
+        let rows: Vec<resolve::Programme> = serde_wasm_bindgen::from_value(programmes)?;
+        Ok(Resolver { inner: resolve::Catalogue::new(&rows) })
+    }
+
+    /// `{kind: "one"|"many"|"broad", codes, topic, via, levelMissing, total}` or `null`. `loose` = nearest names only.
+    pub fn resolve(&self, q: &str, loose: bool) -> JsValue {
+        serde_wasm_bindgen::to_value(&self.inner.resolve(q, loose)).unwrap_or(JsValue::NULL)
+    }
+}
+
+/// Verify the phrases an AI wrote: `results[i]` = the search result of `phrases[i]` as `[{id, s}]` (best first, 3 are enough).
+/// Returns `{kind: "one", id, score, via, others}`, `{kind: "many", ids}` or `{kind: "none"}` (port of `understand`).
+#[wasm_bindgen]
+pub fn understand(phrases: Vec<String>, results: JsValue) -> JsValue {
+    let rows: Vec<Vec<understand::Hit>> = serde_wasm_bindgen::from_value(results).unwrap_or_default();
+    serde_wasm_bindgen::to_value(&understand::understand(&phrases, &rows)).unwrap_or(JsValue::NULL)
 }
