@@ -121,13 +121,14 @@
   .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:middle}
 
   /* roadmap tiers */
-  .tiers{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1080px}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1180px}
   .tier{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 24px}
-  .tier.t1{border-top:3px solid var(--fast)} .tier.t2{border-top:3px solid var(--audit)}
+  .tier.t1{border-top:3px solid var(--fast)} .tier.t2{border-top:3px solid var(--audit)} .tier.t3{border-top:3px dashed var(--muted)}
   .tier .badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     border-radius:999px;padding:4px 12px;margin-bottom:14px}
   .tier.t1 .badge{background:rgba(34,197,139,.14);color:var(--fast)}
   .tier.t2 .badge{background:rgba(176,123,255,.14);color:var(--audit)}
+  .tier.t3 .badge{background:rgba(159,176,216,.12);color:var(--muted)}
   .tier .h{font-weight:800;font-size:clamp(17px,1.9vw,22px);margin-bottom:8px}
   .tier .d{color:var(--muted);font-size:clamp(13px,1.35vw,15px);line-height:1.6}
   .tier .d b{color:var(--ink)}
@@ -604,17 +605,17 @@
     <h2>ลดต้นทุน · เร็วขึ้น · ตรวจสอบได้</h2>
     <div class="cards">
       <div class="card c1"><div class="big">~80%</div>
-        <div class="lab">ลดต้นทุน</div>
-        <div class="sub">คัดงาน deterministic ออกจาก LLM ก่อน — ยิ่งงานเยอะยิ่งประหยัดเป็นสัดส่วน</div></div>
+        <div class="lab">ลดต้นทุน (ประมาณการ)</div>
+        <div class="sub">คัดงาน deterministic ออกจาก LLM ก่อน — ตัวเลขนี้เป็นประมาณการจากสัดส่วนคำถามซ้ำ ยังไม่ได้วัดจากการใช้งานจริง (ที่วัดแล้ว: ตอบจากคู่มือโดยไม่ใช้ AI 44/52 ข้อของชุดทดสอบ)</div></div>
       <div class="card c2"><div class="big">µs</div>
         <div class="lab">เร็วขึ้น</div>
         <div class="sub">งานทั่วไปตอบสนองระดับไมโครวินาที ไม่ติดคอขวดช่วงเปิดเทอม/ลงทะเบียน</div></div>
       <div class="card c3"><div class="big">BLAKE3</div>
-        <div class="lab">ตรวจสอบได้</div>
-        <div class="sub">audit trail ที่ reproduce ได้ ตอบโจทย์ PDPA และการตรวจสอบธรรมาภิบาล</div></div>
+        <div class="lab">ตรวจย้อนหลังได้</div>
+        <div class="sub">บันทึกการตัดสินใจที่รันซ้ำได้ผลเดิม · ลายนิ้วมือ BLAKE3 ใช้เทียบว่าอินพุตเดียวกัน (ไม่ใช่การพิสูจน์ว่าคำตอบถูก)</div></div>
     </div>
 
-    <h2 style="margin-top:40px;font-size:clamp(20px,2.6vw,30px)">Roadmap: จาก public knowledge สู่บริการเฉพาะบุคคล</h2>
+    <h2 style="margin-top:40px;font-size:clamp(20px,2.6vw,30px)">Roadmap: จาก public knowledge สู่หลายหน่วยงานและบริการเฉพาะบุคคล</h2>
     <div class="tiers">
       <div class="tier t1">
         <div class="badge">Tier 1 · วันนี้</div>
@@ -623,10 +624,16 @@
           ตอบใน<b>เบราว์เซอร์ (WASM)</b> ฟรี ไม่มี PII cache ได้</div>
       </div>
       <div class="tier t2">
-        <div class="badge">Tier 2 · ถัดไป</div>
+        <div class="badge">Tier 2 · แนวคิด ยังไม่ได้พัฒนา</div>
         <div class="h">Personalized — ต้อง login + database</div>
         <div class="d">คำถามเฉพาะตัว ("คำร้องของฉันถึงขั้นไหน") ต่อ <b>REST API ที่ auth แล้ว</b> + database
           (row-level isolation, encrypt at rest) — <b>PII ไม่มีวันอยู่ใน static/WASM</b> ตาม PDPA</div>
+      </div>
+      <div class="tier t3">
+        <div class="badge">Tier 3 · แนวคิด ยังไม่ได้พัฒนา</div>
+        <div class="h">เชื่อมหลายหน่วยงาน (connectors)</div>
+        <div class="d">หน่วยงานหนึ่งแห่ง = ชุดข้อมูลหนึ่งชุด (คู่มือ ประกาศ ลิงก์ทางการ) — <b>วันนี้เชื่อมแล้วหนึ่งแห่ง: บัณฑิตวิทยาลัย (ข้อมูลสาธารณะ)</b>
+          ยังไม่ได้ทดสอบกับหน่วยงานที่สอง · เข้าสู่ระบบ + ข้อมูลเฉพาะตัวต้องได้รับอนุญาตจากเจ้าของระบบและความยินยอมตาม PDPA ก่อน</div>
       </div>
     </div>
     <div class="foot">Ratchapon (Ozone) · Napatsakorn &nbsp;·&nbsp; Built with Kiro + Amazon Bedrock</div>
