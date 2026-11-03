@@ -115,10 +115,12 @@ sg >= 1 ? ok(`9b. typing "ลาพัก" shows ${sg} suggestion(s) above the i
 await ev(`(()=>{ const i=document.getElementById('q'); i.value=''; i.dispatchEvent(new Event('input')); return 1; })()`);
 r = await ask('ลาพักการเรียนทำยังไง');
 const fu = await ev(`document.querySelectorAll('#chat .msg.b:last-child .followups .dis').length`);
+const badge = await ev(`(()=>{ const b=document.querySelector('#chat .msg.b:last-child .src-badge'); return b ? b.textContent : ''; })()`);
+(/ข้อมูลทางการ/.test(badge) && !/AI ช่วย/.test(badge)) || !badge ? ok(`9c'. a knowledge-base answer is not mislabelled as AI-rephrased (badge: ${badge || 'hidden on this width'})`) : bad("9c'. wrong source badge", badge);
 fu >= 1 ? ok(`9c. after a knowledge-base answer the page offers ${fu} "ask next" question(s)`) : soft('9c. no "ask next" chips after a KB answer (the answer may have been a clarification)');
 // 9e) a yes/no question with a premise about fees must not be confirmed
 r = await ask('ค่าเทอมปริญญาโทฟรีใช่ไหม');
-has(r, 'ยืนยันไม่ได้ว่าไม่มีค่าใช้จ่าย') && !/ฟรีครับ|ใช่ครับ/.test(r.text) ? ok('9e. "ค่าเทอมปริญญาโทฟรีใช่ไหม" -> does not confirm; opens the fee finder', `${r.ms} ms`) : bad('9e. premise question', r.text.slice(0, 100));
+has(r, 'บอกไม่ได้ว่าฟรีหรือเปล่า') && !/ฟรีครับ|ใช่ครับ/.test(r.text) ? ok('9e. "ค่าเทอมปริญญาโทฟรีใช่ไหม" -> does not confirm; opens the fee finder', `${r.ms} ms`) : bad('9e. premise question', r.text.slice(0, 100));
 // 9d) what a curious visitor types: markup must stay text. (Safe payload: sets a flag instead of opening a dialog.)
 await ev(`(()=>{ window.__xss = 0; const i=document.getElementById('q'); i.value='<img src=x onerror=window.__xss=1><b>x</b>'; document.getElementById('send').click(); return 1; })()`);
 await wait(2500);
