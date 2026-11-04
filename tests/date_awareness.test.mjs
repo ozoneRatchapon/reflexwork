@@ -38,7 +38,7 @@ const card = (p, d, topic, q) => at(d, () => F.programmeCard(p, DOC.fetched_at, 
   check('a year later: not green, says every listed cut-off has passed', !/🟢/.test(c.html) && /⚪ สถานะ.*ทุกรอบที่ระบุตัดรอบไปแล้ว/.test(txt(c.html)), txt(c.html).slice(0, 300));
   check('…the apply button is gone', !/ระบบสมัครออนไลน์/.test(c.links));
   check('…passed dates are tagged in the schedule table', /<td>[^<]*<small class="when when-passed">\(ผ่านไปแล้ว\)<\/small><\/td>/.test(c.html));
-  check('…and the as-of line becomes a stale warning with the age', /⚠️ ข้อมูลนี้เก็บจากเว็บบัณฑิตวิทยาลัยเมื่อ 2 พ\.ย\. 2569 \(367 วันก่อน\)/.test(txt(c.html)), txt(c.html).slice(-200)); }
+  check('…and the as-of line becomes a stale warning with the age', new RegExp(`⚠️ ข้อมูลนี้เก็บจากเว็บบัณฑิตวิทยาลัยเมื่อ \\d+ \\S+ 25\\d\\d \\(${F.daysSince(DOC.fetched_at, '2027-11-04')} วันก่อน\\)`).test(txt(c.html)), txt(c.html).slice(-200)); }
 { const c = card(open, '2027-11-04', 'status', 'เปิดรับไหม');
   check('status answer a year later lists cut-offs tagged as passed', /ตัดรอบ[\s\S]*\(ผ่านไปแล้ว\)/.test(c.html.split('\n').slice(0, 3).join('\n'))); }
 // G22: closed + empty notice + future rounds -> say so

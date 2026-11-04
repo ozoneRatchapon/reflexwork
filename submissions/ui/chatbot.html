@@ -1285,7 +1285,7 @@ function programmeCard(p, asOf, year, topic, q){
   const head=`<b>${_pEsc(p.title)}</b>${(a&&a.title_en)||p.title_en?`<br><small>${_pEsc((a&&a.title_en)||p.title_en)}</small>`:''}\n${_pEsc(p.level)} · ${_pEsc(p.faculty)} · ${tag}`;
   const detail=_pBtn(p.detail_url,'📄 หน้ารายละเอียดหลักสูตร →');
   const topicBtn = topic==='fee' ? _pBtn(_P_FEE_URL,'💰 ค่าธรรมเนียมการศึกษา',1) : topic==='scholarship' ? _pBtn(_P_SCH_URL,'🎓 ทุนการศึกษา',1) : '';
-  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — บางสาขาวิชาเอกมีประกาศแยกของตัวเองซึ่งยังไม่อยู่ในข้อมูลชุดนี้ ตรวจสถานะล่าสุดจากรายการหลักสูตรที่เปิดรับสมัครด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}${(x=>x?'\n\n'+x:'')(staleLine(asOf))}`,
+  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากรายการหลักสูตรที่เปิดรับสมัครด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}${(x=>x?'\n\n'+x:'')(staleLine(asOf))}`,
     links:detail+_pBtn('https://graduate.mahidol.ac.th/Admission/announce/cur_open_list.php','📋 หลักสูตรที่เปิดรับสมัคร',1)+topicBtn};
   const S=a.sections||{};
   const SC=_pSchedule(S['กำหนดการสอบคัดเลือก']), today=todayIso();
@@ -1306,7 +1306,12 @@ function programmeCard(p, asOf, year, topic, q){
   const fee=_pFeeHtml(a, year), sch=_pSchHtml(a), fold=h=>{ const [s1,...r]=h.split('\n'); return `<details><summary>${s1}</summary>${r.join('\n')}</details>`; };
   const closedNote = a.status && a.status!=='กำลังเปิดรับสมัคร' && !(a.notice||[]).length && cutAhead
     ? `<small>ℹ️ ประกาศนี้แสดงทั้งสถานะ "${_pEsc(a.status)}" และกำหนดการรอบที่ยังไม่ถึง — สอบถามหลักสูตรก่อนว่ายังรับสมัครรอบใดอยู่</small>` : '';
-  const statusLine=`${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})${closedNote?'\n'+closedNote:''}`;
+  // QA G19: a programme with no general announcement may announce per major; the card shows the open (else first) one - say whose
+  // it is and list every major's announcement with its own status and link
+  const subs=Array.isArray(p.sub_announcements)?p.sub_announcements:[];
+  const majorLine = subs.length ? `📌 หลักสูตรนี้ประกาศรับสมัครแยกตามวิชาเอก (${subs.length} ฉบับ)${a.major?` — ข้อมูลในการ์ดนี้เป็นของ${_pEsc(a.major)}`:''}\n`
+    + subs.map(x=>{ const u=_pUrl(x.url); const t=`${_pEsc(x.major||x.id)} · ${_pEsc(x.status||'ไม่ระบุสถานะ')}`; return '• '+(u?`<a class="inl" href="${u}" target="_blank" rel="noopener">${t}</a>`:t); }).join('\n') : '';
+  const statusLine=`${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})${closedNote?'\n'+closedNote:''}${majorLine?'\n'+majorLine:''}`;
   const plans=(S['แผนการศึกษาที่เปิดรับสมัคร']||[]).filter(p=>!/^ไม่พบแผนการศึกษา/.test(String(p).trim()));   // QA F41: the scraper's placeholder is not a plan
   const schedBlock = sched ? `🗓️ กำหนดการ\n${sched}` : plans.length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '';
   const engLine = eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '';
