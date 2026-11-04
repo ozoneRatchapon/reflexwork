@@ -673,8 +673,11 @@ function topicPicks(q){
   const hits=KB.filter(e=>String(e.title||'').replace(/\s+/g,'').toLowerCase().includes(core.toLowerCase()));
   return hits.length>=1 && hits.length<=12 ? {core, hits} : null;
 }   // the question the next bot bubble is answering
-let turnN = 0;        // evidence-card counter
-function add(cls, html){ const d=document.createElement('div'); d.className='msg '+cls;
+let turnN = 0, askSeq = 0;   // evidence-card counter; one number per question asked
+// QA G35: a slow understand / AI reply used to label its evidence card with whatever was asked last. _askCore shadows add()
+// with one bound to its own question and number, so every bubble it adds (also from .then callbacks) carries them.
+function add(cls, html){ return _add(cls, html); }
+function _add(cls, html, askedQ, askedN){ const d=document.createElement('div'); d.className='msg '+cls;
   // The user's own bubble is TEXT, never HTML: typing <img onerror=...> must show those characters, not run them.
   if(cls==='u') d.textContent=html; else d.innerHTML=html;
   $('chat').appendChild(d);
@@ -691,8 +694,10 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
     if(ev.length && !d.classList.contains('greet')){
       turnN++;
       const card = document.createElement('div'); card.className='ev-card active';
-      const qlabel = lastUserQ ? _lEsc(lastUserQ.length>46?lastUserQ.slice(0,46)+'…':lastUserQ) : '(ทักทาย/ระบบ)';   // escaped: this goes through innerHTML
-      card.innerHTML = `<div class="ev-q"><b>${qlabel}</b><span class="ev-n">#${turnN}</span></div>`;
+      const qsrc = askedQ !== undefined ? askedQ : lastUserQ, num = askedN !== undefined ? askedN : turnN;
+      if(askedN !== undefined){ card.dataset.turn = String(askedN); d.dataset.turn = String(askedN); }
+      const qlabel = qsrc ? _lEsc(qsrc.length>46?qsrc.slice(0,46)+'…':qsrc) : '(ทักทาย/ระบบ)';   // escaped: this goes through innerHTML
+      card.innerHTML = `<div class="ev-q"><b>${qlabel}</b><span class="ev-n">#${num}</span></div>`;
       // move each evidence node from the bubble into the card (order preserved)
       ev.forEach(n=>{ card.appendChild(n); });
       const list=$('ev-list'); const empty=list.querySelector('.ev-empty'); if(empty) empty.remove();
@@ -764,10 +769,22 @@ function _leadIndex(pts, q){
   const last=/วันสุดท้าย|หมดเขต|deadline/i.test(q) ? dated.find(i=>/วันสุดท้าย|หมดเขต|ภายในวันที่/.test(pts[i])) : undefined;
   return last ?? dated[0] ?? region[0] ?? body[0];
 }
+// QA G14: a staff answer is free text typed in the dashboard, not manual prose: keep the author's lines as written (numbered
+// steps keep their numbers, paragraphs stay paragraphs) instead of re-splitting it into bullets. Plain text only: list
+// markers become "• ", markdown heading hashes and ** are dropped. Up to _SHOW_STAFF lines show before the fold.
+const _SHOW_STAFF=8;
+function staffBody(hit, q){
+  const lines=String(hit.answer||'').split(/\r?\n/).map(x=>x.trim().replace(/^#{1,6}\s+/,'').replace(/\*\*(.+?)\*\*/g,'$1').replace(/^[-*•]\s+/,'• ')).filter(Boolean);
+  if(!lines.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
+  const L=x=>linkify(x, LINKS), lead=slotLead(hit,q), head = lead ? `<b>${L(lead)}</b>\n` : '';
+  const shown=lines.slice(0,_SHOW_STAFF).map(L), more=lines.slice(_SHOW_STAFF).map(L);
+  return head + shown.join('\n') + (more.length ? `<details class="more"><summary>อ่านเพิ่มอีก ${more.length} บรรทัด</summary>${more.join('\n')}</details>` : '');
+}
 // Returns HTML (every piece goes through linkify, which escapes).
 function kbBody(hit, q){
-  const pts=answerPoints(hit.answer); if(!pts.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(_bkkIso(hit.approved_at)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
+  if(hit.staff) return staffTag + staffBody(hit, q);
+  const pts=answerPoints(hit.answer); if(!pts.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   // A dated schedule entry (academic_year + "กำหนดการ" title) tags each point against today (QA G16); the snapshot line
   // ("ที่เก็บวันที่ …") is about the data, not an event, so it is never tagged.
   const dated=isDatedSchedule(hit), today=dated ? todayIso() : '';
@@ -1669,6 +1686,7 @@ function stripLeadIn(q){ const rest=String(q||'').replace(_LEADIN,'').trim(); re
 function _askCore(){
   if(!ready) return;
   const typed=$('q').value.trim(); if(!typed) return;
+  const myTurn=++askSeq, add=(cls, html)=>_add(cls, html, typed, myTurn);   // QA G35: see _add
   add('u', typed); $('q').value='';
   const q=normTermYear(stripLeadIn(normChat(typed) || typed));   // everything below reads the normalised text; the bubble above shows what was typed
   const pinned = !!(PIN && PIN.title===typed); if(!pinned) PIN = null;   // a picked topic skips the programme/finder paths

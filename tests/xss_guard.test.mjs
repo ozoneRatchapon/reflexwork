@@ -10,7 +10,7 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 
 const chat = read('submissions/ui/chatbot.html');
 check('the user bubble is set with textContent', /if\(cls==='u'\)\s*d\.textContent=html;\s*else d\.innerHTML=html;/.test(chat));
-check('the evidence-card question label is escaped', /const qlabel = lastUserQ \? _lEsc\(/.test(chat));
+check('the evidence-card question label is escaped', /const qlabel = qsrc \? _lEsc\(/.test(chat));
 
 const dash = read('submissions/ui/dashboard.html');
 check('dashboard defines esc()', /const esc = v => /.test(dash));
