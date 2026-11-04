@@ -14,7 +14,7 @@ const P = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 
 // the page's gate, same expression as the not-found branch of _askCore
 const opensFinder = q => { const n = F.resolveProgramme(q, P, true); return F.hasStudyIntent(q) || !!(n && n.rows.some(p => F.nearSpelling(q, p.title) >= 0.8)); };
 check('the page uses the same gate', /const nearOk = nearP && nearP\.rows\.some\(p=>nearSpelling\(q, p\.title\)>=0\.8\);\n    if\(PROG\.length && \(hasStudyIntent\(q\) \|\| nearOk\)\)\{/.test(html));
-for (const q of ['เบอร์โทรฝ่ายรับสมัครอะไรคะ', 'ขอจบการศึกษายื่นยังไงคะ', 'ขอใบแสดงผลการเรียน', 'ขอต่อเวลาลาศึกษาต่อ', 'ปฏิทินการศึกษา', 'ภาพรวมการสมัคร',
+for (const q of ['เบอร์โทรฝ่ายรับสมัครอะไรคะ', 'ขอจบการศึกษายื่นยังไงคะ', 'ขอใบแสดงผลการเรียน', 'ขอต่อเวลาลาศึกษาต่อ', 'ปฏิทินการศึกษา', 'ภาพรวมการสมัคร', 'ชื่อบนใบปริญญาผิด', 'ระบบทวิภาคเรียนไม่ได้เหรอ', 'ผมเรียนระบบนี้ไม่ได้ต้องทำยังไง',
   'มีเรียนเสาร์อาทิตย์ไหม', 'ฝึกงาน', 'โรงอาหาร', 'ตารางเรียน', 'ขอพักเรียนปีนึงได้ไหม', 'อยากพักเรียนไปทำงานก่อนสักเทอม'])
   check(`"${q}" does not open the programme finder`, !opensFinder(q));
 for (const q of ['กายอุปกณ์', 'จิตวิทยาคลินิค', 'กายภาพบำบัดด', 'พยาบาลศาตร์', 'อยากเรียนต่อโท', 'อยากเรียนกายอุปกณ์'])

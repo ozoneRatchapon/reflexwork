@@ -35,7 +35,7 @@ const CATEGORIES = [
     category: 'login',
     label: 'เข้าระบบ/ล็อกอินไม่ได้',
     // login / password / account verification problems (TH + EN, incl. app names)
-    re: /ล็อก ?อิน|เข้าระบบ(?:ไม่ได้)?|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset|account|server ?error|we ?mahidol|student ?card/i,
+    re: /ล็อก ?อิน|เข้าระบบ(?:ไม่ได้)?|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset.{0,8}(?:password|รหัส)|account.{0,12}(?:locked|ล็อก|ไม่ได้)|server ?error|we ?mahidol|student ?card/i,
   },
   {
     category: 'data_stuck',
@@ -53,7 +53,7 @@ const CATEGORIES = [
 
 // Negative guard: a few phrasings LOOK personal but are really FAQ knowledge
 // questions the KB should answer. Keep them on the FastPath, not intake.
-const NOT_PERSONAL = /กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ/i;
+const NOT_PERSONAL = /กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ|ทวิภาค|ไตรภาค|ระบบการศึกษา|ระบบภาค|เรียนระบบ|เพราะเต็ม|ที่นั่งเต็ม|รอบเต็ม|เต็มแล้ว|ใบปริญญา|ปริญญาบัตร|ใบรับรอง|ใบแสดงผล|transcript/i;
 
 /**
  * Classify a message as a personal/technical issue (needs a human + intake),
