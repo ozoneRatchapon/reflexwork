@@ -114,6 +114,7 @@
   .cols.ev-off .src-badge{display:inline-block}
   .src-badge.official{color:var(--auto);border-color:rgba(34,197,139,.5);background:rgba(34,197,139,.1)}
   .src-badge.staff{color:#b07bff;border-color:rgba(176,123,255,.5);background:rgba(176,123,255,.1)}
+  .when{font-size:12px;white-space:nowrap}.when-passed{opacity:.7}.when-now,.when-today{color:#3fb950;font-weight:600}.stale{color:#e3b341}
   .staff-tag{display:inline-block;font-size:12.5px;color:#b07bff;margin-bottom:2px}
   .src-badge.ai{color:var(--ai);border-color:rgba(246,169,59,.5);background:rgba(246,169,59,.1)}
   .kernel-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:11px;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(34,197,139,.12),rgba(91,140,255,.1));border:1px solid rgba(34,197,139,.3)}
@@ -708,7 +709,11 @@ const _SHOW_POINTS=4;
 function kbBody(hit, q){
   const pts=answerPoints(hit.answer); if(!pts.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
   const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(new Date(hit.approved_at).toISOString().slice(0,10)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
-  const L=x=>linkify(x, LINKS), lead=slotLead(hit,q);
+  // A dated schedule entry (academic_year + "กำหนดการ" title) tags each point against today (QA G16); the snapshot line
+  // ("ที่เก็บวันที่ …") is about the data, not an event, so it is never tagged.
+  const dated=!!(hit.academic_year && /กำหนดการ/.test(hit.title||'')), today=dated ? todayIso() : '';
+  const T=x=>dated && !/เก็บวันที่|ข้อมูล ณ|ประกาศ ณ/.test(x) ? dateTag(x, today) : '';
+  const L=x=>linkify(x, LINKS)+T(x), lead=slotLead(hit,q);
   const head = lead ? `<b>${L(lead)}</b>\n` : '';
   const [first, ...rest] = pts, bullets = rest.map(x=>'• '+L(x));
   const shown = bullets.slice(0,_SHOW_POINTS-1), more = bullets.slice(_SHOW_POINTS-1);
@@ -798,6 +803,43 @@ function normChat(q){
   return String(q==null?'':q).normalize('NFC').replace(/[​-‍﻿]/g,'').replace(/([ก-๎])\1{2,}/g,'$1').replace(/\s+/g,' ').trim();
 }
 // </chat-normalize>
+
+// <today>
+// Dates against the clock (QA G16): the page showed passed deadlines and windows as if upcoming. These helpers only TAG
+// dates the data already prints ("ผ่านไปแล้ว" / "อยู่ในช่วงนี้" / "วันนี้"); they never add or move a date.
+// Today is the Asia/Bangkok calendar day; tests set globalThis.__today = 'YYYY-MM-DD'.
+const _TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const _TH_MON_FULL=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const _TH_MON_ALT=[..._TH_MON_FULL, ..._TH_MON].map(m=>m.replace(/\./g,'\\.')).join('|');
+// "[d1 –] d2 <month> [25xx]" not inside a longer number (no lookbehind: older Safari): an optional same-month range start, then a day and a Thai month, then an optional BE year.
+const _TH_DATE_RE=new RegExp(`(?:^|[^\\d])(?:(\\d{1,2})\\s*[–-]\\s*)?(\\d{1,2})\\s*(${_TH_MON_ALT})(?:\\s*(25\\d\\d))?`,'g');
+function todayIso(){
+  const o=globalThis.__today; if(typeof o==='string' && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
+  try{ return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); }
+  catch{ return new Date(Date.now()+7*36e5).toISOString().slice(0,10); }
+}
+const _iso=(y,m,d)=>`${y-543}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+// Earliest and latest date written in a text, as CE ISO strings, or null. A date without a year takes the next written year
+// ("16 มกราคม–26 เมษายน 2570"); a text with no year at all gives null (nothing is guessed).
+function dateSpan(text){
+  const hits=[]; let m; _TH_DATE_RE.lastIndex=0;
+  while((m=_TH_DATE_RE.exec(String(text||'')))){
+    const mi=_TH_MON_FULL.indexOf(m[3])>=0 ? _TH_MON_FULL.indexOf(m[3]) : _TH_MON.indexOf(m[3]);
+    if(m[1]) hits.push({d:+m[1], m:mi, y:m[4]?+m[4]:0});
+    hits.push({d:+m[2], m:mi, y:m[4]?+m[4]:0});
+  }
+  for(let i=hits.length-1, y=0; i>=0; i--){ if(hits[i].y) y=hits[i].y; else hits[i].y=y; }
+  const isos=hits.filter(h=>h.y && h.d>=1 && h.d<=31).map(h=>_iso(h.y,h.m,h.d)).sort();
+  return isos.length ? {start:isos[0], end:isos[isos.length-1]} : null;
+}
+function dateState(text, today){
+  const sp=dateSpan(text); if(!sp) return ''; const t=today||todayIso();
+  return sp.end<t ? 'passed' : sp.start===sp.end && sp.end===t ? 'today' : sp.start<=t ? 'now' : '';
+}
+const _WHEN={passed:'ผ่านไปแล้ว', now:'อยู่ในช่วงนี้', today:'วันนี้'};
+function dateTag(text, today){ const k=dateState(text, today); return k ? ` <small class="when when-${k}">(${_WHEN[k]})</small>` : ''; }
+function daysSince(iso, today){ const a=Date.parse(iso), b=Date.parse(today||todayIso()); return isNaN(a)||isNaN(b) ? 0 : Math.round((b-a)/864e5); }
+// </today>
 
 // <linkify>
 // Turns the places an answer SENDS the reader ("สมัครผ่านระบบ Online Admission", "LINE @160ohrzm", a bare https:// URL)
@@ -953,8 +995,13 @@ function followUpAspect(q){
   if(_P_OTHER.test(raw) || _pLevel(raw) || /\d{4}[MDNC]\d{2}[GS]/i.test(raw) || /มหิดล|บัณฑิตวิทยาลัย|ทั่วไป|ทุกหลักสูตร|mahidol/i.test(raw)) return '';
   const hit=_P_ASPECT.find(([,re])=>re.test(raw)); return hit ? hit[0] : '';
 }
-const _P_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-function _pDate(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? `${+m[3]} ${_P_MON[+m[2]-1]} ${+m[1]+543}` : ''; }
+function _pDate(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? `${+m[3]} ${_TH_MON[+m[2]-1]} ${+m[1]+543}` : ''; }
+// The snapshot age warning (QA G16): quiet while the data is fresh, loud once it is over a month old.
+const _STALE_DAYS=30;
+function staleLine(asOf, today){
+  const n=daysSince(asOf, today); if(n<=_STALE_DAYS) return '';
+  return `<small class="stale">⚠️ ข้อมูลนี้เก็บจากเว็บบัณฑิตวิทยาลัยเมื่อ ${_pEsc(_pDate(asOf))} (${n} วันก่อน) — สถานะและกำหนดการอาจเปลี่ยนแล้ว ตรวจล่าสุดที่ปุ่มด้านล่างก่อนตัดสินใจ</small>`;
+}
 function _pEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function _pUrl(u){ return /^https:\/\/graduate\.mahidol\.ac\.th\//.test(u||'') ? _pEsc(u) : ''; }   // only the official site
 function _pBtn(u,label,alt){ const h=_pUrl(u); return h ? `<a class="golink${alt?' alt':''}" href="${h}" target="_blank" rel="noopener">${label}</a>` : ''; }
@@ -1010,7 +1057,7 @@ function _pScheduleView(d){
   if(!d.rows.length) return {table:'', notes:[], rows:[], cols:[], list:d.list};
   const {cols, rows, notes}=d;
   const th=`<tr><th scope="col">กิจกรรม</th>${cols.map(c=>`<th scope="col">${_pEsc(c)}</th>`).join('')}</tr>`;
-  const tr=rows.map(r=>`<tr><th scope="row">${_pEsc(r[0])}</th>${r.slice(1).map(x=>`<td>${_pEsc(x)}</td>`).join('')}</tr>`).join('');
+  const tr=rows.map(r=>`<tr><th scope="row">${_pEsc(r[0])}</th>${r.slice(1).map(x=>`<td>${_pEsc(x)}${dateTag(x)}</td>`).join('')}</tr>`).join('');
   return {rows, cols, table:(cols.length>1?`<span class="sched-hint">เลื่อนตารางไปทางขวาเพื่อดูรอบอื่น →</span>`:'')+`<div class="sched-wrap" role="region" aria-label="กำหนดการรับสมัคร" tabindex="0"><table class="sched">${th}${tr}</table></div>`, notes, list:[]};
 }
 function _pSchedule(lines){ return _pScheduleView(_pScheduleData(lines)); }
@@ -1021,26 +1068,35 @@ const _P_SCHED_PICK=[[/สัมภาษณ์|interview/i,/สัมภาษ�
 function _pSchedRows(SC, q){
   const s=String(q||''), want=_P_SCHED_PICK.filter(([ask])=>ask.test(s)).map(([,row])=>row);
   if(!want.length || !SC.rows.length) return [];
-  return SC.rows.filter(r=>want.some(re=>re.test(r[0]))).map(r=>`🗓️ <b>${_pEsc(r[0])}</b>: ${r.slice(1).map((d,i)=>`${_pEsc(SC.cols[i])} <b>${_pEsc(d)}</b>`).join(' · ')}`);
+  return SC.rows.filter(r=>want.some(re=>re.test(r[0]))).map(r=>`🗓️ <b>${_pEsc(r[0])}</b>: ${r.slice(1).map((d,i)=>`${_pEsc(SC.cols[i])} <b>${_pEsc(d)}</b>${dateTag(d)}`).join(' · ')}`);
 }
 function programmeCard(p, asOf, year, topic, q){
   const a=p.announcement, date=_pDate(asOf), tag=p.kind==='international'?'นานาชาติ':'หลักสูตรไทย';
   const head=`<b>${_pEsc(p.title)}</b>${(a&&a.title_en)||p.title_en?`<br><small>${_pEsc((a&&a.title_en)||p.title_en)}</small>`:''}\n${_pEsc(p.level)} · ${_pEsc(p.faculty)} · ${tag}`;
   const detail=_pBtn(p.detail_url,'📄 หน้ารายละเอียดหลักสูตร →');
   const topicBtn = topic==='fee' ? _pBtn(_P_FEE_URL,'💰 ค่าธรรมเนียมการศึกษา',1) : topic==='scholarship' ? _pBtn(_P_SCH_URL,'🎓 ทุนการศึกษา',1) : '';
-  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากหน้าด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}`,
+  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากหน้าด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}${(x=>x?'\n\n'+x:'')(staleLine(asOf))}`,
     links:detail+_pBtn('https://graduate.mahidol.ac.th/Admission/announce/cur_open_list.php','📋 หลักสูตรที่เปิดรับสมัคร',1)+topicBtn};
   const S=a.sections||{};
+  const SC=_pSchedule(S['กำหนดการสอบคัดเลือก']), today=todayIso();
+  // Cut-off dates against today (QA G16/G22): an "open" announcement whose every listed cut-off has passed is not shown green,
+  // and a "closed" one that still lists future rounds says so instead of leaving the student to guess.
+  const cuts=SC.rows.filter(r=>/ตัดรอบ/.test(r[0])).flatMap(r=>r.slice(1)).map(dateSpan).filter(Boolean);
+  const allCutPassed = cuts.length>0 && cuts.every(c=>c.end<today), cutAhead = cuts.some(c=>c.end>=today);
+  const isOpen = a.status==='กำลังเปิดรับสมัคร' && !allCutPassed;
   // 3 states as the site shows them; an info-only page (no status line) is NOT "closed"
-  const light = a.status==='กำลังเปิดรับสมัคร' ? '🟢' : a.status ? '🔴' : '⚪';
-  const status = a.status ? `<b>${_pEsc(a.status)}</b>` : `ยังไม่มีรายละเอียดการรับสมัคร ณ วันที่ ${_pEsc(date)}`;
-  const SC=_pSchedule(S['กำหนดการสอบคัดเลือก']);
+  const light = isOpen ? '🟢' : a.status==='กำลังเปิดรับสมัคร' ? '⚪' : a.status ? '🔴' : '⚪';
+  const status = !a.status ? `ยังไม่มีรายละเอียดการรับสมัคร ณ วันที่ ${_pEsc(date)}`
+    : isOpen || a.status!=='กำลังเปิดรับสมัคร' ? `<b>${_pEsc(a.status)}</b>`
+    : `<b>${_pEsc(a.status)}</b> ตามประกาศ ณ ${_pEsc(date)} — แต่ทุกรอบที่ระบุตัดรอบไปแล้ว ตรวจว่ามีรอบใหม่หรือไม่ที่ประกาศฉบับเต็ม`;
   const sched = SC.table ? SC.table+(SC.notes.length?`<small>${SC.notes.map(_pEsc).join('<br>')}</small>`:'') : SC.list.join('\n');
   const elig=(S['คุณสมบัติของผู้มีสิทธิ์สมัคร']||[]).map(l=>linkify(l,[])).join('<br>');   // folded, so all of it (a cut list hides whole plans' requirements)
   const eng=(S['เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้']||[])[0];
   const docs=(S['หลักฐานการสมัคร']||[]).map(l=>linkify(l,[])).join('<br>');
   const fee=_pFeeHtml(a, year), sch=_pSchHtml(a), fold=h=>{ const [s1,...r]=h.split('\n'); return `<details><summary>${s1}</summary>${r.join('\n')}</details>`; };
-  const statusLine=`${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})`;
+  const closedNote = a.status && a.status!=='กำลังเปิดรับสมัคร' && !(a.notice||[]).length && cutAhead
+    ? `<small>ℹ️ ประกาศนี้แสดงทั้งสถานะ "${_pEsc(a.status)}" และกำหนดการรอบที่ยังไม่ถึง — สอบถามหลักสูตรก่อนว่ายังรับสมัครรอบใดอยู่</small>` : '';
+  const statusLine=`${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})${closedNote?'\n'+closedNote:''}`;
   const plans=S['แผนการศึกษาที่เปิดรับสมัคร']||[];
   const schedBlock = sched ? `🗓️ กำหนดการ\n${sched}` : plans.length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '';
   const engLine = eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '';
@@ -1062,13 +1118,13 @@ function programmeCard(p, asOf, year, topic, q){
     topic!=='scholarship' && sch.startsWith('🎓 ทุนของ') ? fold(sch) : ''];
   const notice=(a.notice||[]).length ? `📢 ประกาศจากหลักสูตร\n${a.notice.map(l=>linkify(l,[])).join('\n')}` : '';
   const plansLine=plans.length ? `📚 แผนที่เปิดรับ: ${plans.map(_pEsc).join(' · ')}` : '';
-  const asOfLine=`<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`;
+  const asOfLine=staleLine(asOf, today) || `<small>ข้อมูลจากเว็บบัณฑิตวิทยาลัย ณ ${_pEsc(date)} — สถานะอาจเปลี่ยน ตรวจล่าสุดที่ปุ่มด้านล่าง</small>`;
   const html = !answer
     ? [head, statusLine, notice, plansLine, schedBlock, engLine, ...folds, asOfLine].filter(Boolean).join('\n\n')
     : [answer, head, topic!=='status' ? statusLine : '',
        `<details class="more"><summary>ข้อมูลอื่นของหลักสูตรนี้</summary>${[notice, plansLine, topic!=='schedule'||picked.length ? schedBlock : '', topic!=='english' ? engLine : '', ...folds].filter(Boolean).join('\n\n')}</details>`,
        asOfLine].filter(Boolean).join('\n\n');
-  return {html, links: detail+_pBtn(a.url,'📢 ประกาศรับสมัครฉบับเต็ม →',1)+(a.status==='กำลังเปิดรับสมัคร'?_pBtn(a.apply_url,'🖊️ ระบบสมัครออนไลน์ →',1):'')+topicBtn};   // no apply button on a closed programme
+  return {html, links: detail+_pBtn(a.url,'📢 ประกาศรับสมัครฉบับเต็ม →',1)+(isOpen?_pBtn(a.apply_url,'🖊️ ระบบสมัครออนไลน์ →',1):'')+topicBtn};   // no apply button on a closed programme or once every cut-off passed
 }
 // Programme finder ("เรียนไรดี"): there is no single right answer, so the bot does not pick one. It narrows the
 // official catalogue by facets the site itself publishes (level, faculty, open now, international, special
@@ -1114,7 +1170,7 @@ function finderHtml(F, f, asOf, showAll){
   const areaLabel=(_AREAS.find(a=>a.k===f.topic)||{}).label;
   const picked=[areaLabel, lvName, f.faculty, f.open&&'เปิดรับอยู่', f.intl&&'นานาชาติ', f.special&&'ภาคพิเศษ'].filter(Boolean).map(_pEsc).join(' · ');
   let areaShown=false;   // the interest chips are asked once: at step 0, else in the filter row
-  const out=[`พบ <b>${F.total}</b> หลักสูตร (กำลังเปิดรับ ${F.open})${picked?` — ${picked}`:''} <small>ข้อมูล ณ ${_pEsc(_pDate(asOf))}</small>`];
+  const out=[`พบ <b>${F.total}</b> หลักสูตร (กำลังเปิดรับ ${F.open})${picked?` — ${picked}`:''} <small>ข้อมูล ณ ${_pEsc(_pDate(asOf))}</small>${(x=>x?'<br>'+x:'')(staleLine(asOf))}`];
   if(!F.total) out.push('ไม่พบหลักสูตรตามเงื่อนไขนี้ — ลองเอาตัวกรองบางอันออก');
   else if(F.rows.length) out.push(`เลือกหลักสูตรเพื่อดูรายละเอียด สถานะ ค่าธรรมเนียม:<div class="dislist">${F.rows.map(p=>`<span class="dis" data-code="${_pEsc(p.code)}">${_pEsc(p.title)} · ${_pEsc(p.faculty)}${p.announcement&&p.announcement.status?` · ${_pEsc(p.announcement.status)}`:''}</span>`).join('')}</div>`);
   else if(!f.level) out.push((f.career&&!f.topic?(areaShown=true,`0) สนใจด้านไหน (เลือกได้ ไม่บังคับ)<div class="dislist">${_AREAS.map(a=>b('topic',a.k,_pEsc(a.label))).join('')}</div>\n\n`):'')+`1) อยากเรียนระดับไหน<div class="dislist">${F.levels.map(l=>b('level',l.k,`${_pEsc(l.label)} · ${l.n} (เปิด ${l.open})`)).join('')}</div>`);

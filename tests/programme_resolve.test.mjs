@@ -25,7 +25,7 @@ check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
 if (!existsSync(progPath)) process.exit(1);
-const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
+const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
 const DOC = JSON.parse(readFileSync(progPath, 'utf8')), P = DOC.programmes;
 const by = Object.fromEntries(P.map(p => [p.code, p]));
 

@@ -12,7 +12,7 @@ const src = page.match(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=\/\/ --- Slot-filling
 const slot = page.match(/const _SLOTS=[\s\S]*?\n  return ''; }\n/);
 check('formatter and slot-filling source found', !!src && !!slot);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const { answerPoints, kbBody } = new Function('linkify', 'LINKS', slot[0] + src[0] + 'return { answerPoints, kbBody };')(t => esc(t), null);
+const { answerPoints, kbBody } = new Function('linkify', 'LINKS', page.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + slot[0] + src[0] + 'return { answerPoints, kbBody };')(t => esc(t), null);
 const norm = t => String(t).replace(/^\s*(?:[-•*]|\d+[.)])\s+/gm, '').replace(/[\s.。]/g, '');
 const lost = KB.filter(e => norm(e.answer) !== norm(answerPoints(e.answer).join(' ')));
 check('every entry keeps all of its words (only spaces, full stops and list markers change)', lost.length === 0, lost.map(e => e.id).join(','));
