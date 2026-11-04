@@ -1390,6 +1390,15 @@ function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && 
 // QA F26: a question that is ONLY a level (+ international / special / open, 'หลักสูตร', polite fillers): 'ปริญญาโท', 'ป.เอก',
 // 'ประกาศนียบัตร', 'ปริญญาโท นานาชาติ ที่เปิดรับ' -> the finder at that level. 'สมัคร…' is left out: 'สมัครปริญญาโท' is how-to-apply.
 const _P_LEVEL_FILL=/นานาชาติ|international|ภาคพิเศษ|special\s*program(?:me)?s?|ที่?เปิด(?:รับ)?(?:สมัคร)?|หลักสูตร|ระดับ|มี|อะไร|บ้าง|ไหน|ทั้งหมด|ครับ|ค่ะ|คะ|หน่อย|programs?|programmes?|courses?/gi;
+// QA F54: an English question about a named programme ('interview date for clinical psychology', 'is clinical psychology open for
+// application') did not resolve because of the English question words. Page-side pre-pass: strip them, keep the level words
+// (MSc / PhD resolve), and map the ask to the card's topic. The resolver itself (and its Rust twin) is unchanged.
+const _P_EN_ASK=[['schedule',/\binterviews?\b|\bexams?\b|\bexamination\b|\bschedule\b|\bdeadline\b|\bresults?\b/i],['status',/\bopen\b|\bapply\b|\bapplications?\b|\baccepting\b/i]];
+const _P_EN_FILL=/\b(?:is|are|it|the|a|an|for|of|to|in|on|when|what|which|date|dates|day|time|does|do|still|now|currently|open|apply|applications?|admission|accepting|interviews?|exams?|examination|schedule|deadline|results?)\b/gi;
+function englishProgrammeAsk(q){ const s=String(q||''); if(!isEnglish(s)) return null;
+  const topic=(_P_EN_ASK.find(([,re])=>re.test(s))||[''])[0]; if(!topic) return null;
+  const name=s.replace(_P_EN_FILL,' ').replace(/[?!.,]/g,' ').replace(/\s+/g,' ').trim();
+  return name.length>=4 ? {name, topic} : null; }
 function isLevelOnlyQuestion(q){ let s=String(q||''); if(!_pLevel(s)) return false;
   for(const [,re] of _P_LEVEL) s=s.replace(new RegExp(re.source,'gi'),' ');
   return !s.replace(_P_LEVEL_FILL,' ').replace(/[\s.,?!()\-]+/g,''); }
@@ -1856,7 +1865,9 @@ function _askCore(){
   const _pre = pinned ? null : search(q), staffFirst = !!(_pre && _pre[0] && _pre[0].e.staff && _pre[0].s>=6);
   // QA F54: 'list of programs' reached the resolver first and listed 8 programmes with PROGRAM in their English title; a finder
   // question (no programme named - 0 of 1,137 programme-name questions match it) goes straight to the finder below
-  const prog = (pinned || staffFirst || (PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q)))) ? null : resolveProgramme(q, PROG);
+  let prog = (pinned || staffFirst || (PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q)))) ? null : resolveProgramme(q, PROG);
+  if(!prog && !pinned && !staffFirst && PROG.length){ const ea=englishProgrammeAsk(q);   // QA F54: only a single, clear programme
+    if(ea){ const r=resolveProgramme(ea.name, PROG); if(r && r.kind==='one') prog={...r, topic:r.topic||ea.topic}; } }
   if(prog){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;

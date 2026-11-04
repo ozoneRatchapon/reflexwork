@@ -13,5 +13,5 @@ const yes = ['มีอะไรน่าสนใจ', 'มีอะไรน�
 const no = ['ต้องรู้อะไรบ้างเกี่ยวกับการสมัครเรียนปริญญาโท วิศวกรรมชีวการแพทย์ ภาคปลาย ปี 2570', 'ค่าเทอมเท่าไร', 'ส่งวิทยานิพนธ์ต้องรู้อะไรบ้าง', 'ทุนอะไรน่าสนใจ', 'สวัสดี', ''];
 check('broad questions detected', yes.every(q => f(q)), yes.filter(q => !f(q)).join(','));
 check('topic questions are left to search', no.every(q => !f(q)), no.filter(q => f(q)).join(','));
-check('branch runs after kstrip/d exist (it uses them) and before the programme path', html.indexOf('isOverviewQuestion(q)') > 0 && html.indexOf('isOverviewQuestion(q)') > html.indexOf('const kstrip =') && html.indexOf('isOverviewQuestion(q)') < html.indexOf('const prog = (pinned'));
+check('branch runs after kstrip/d exist (it uses them) and before the programme path', html.indexOf('isOverviewQuestion(q)') > 0 && html.indexOf('isOverviewQuestion(q)') > html.indexOf('const kstrip =') && html.indexOf('isOverviewQuestion(q)') < html.search(/(?:const|let) prog = \(pinned/));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);
