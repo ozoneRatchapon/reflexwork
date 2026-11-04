@@ -1429,7 +1429,7 @@ function finderHtml(F, f, asOf, showAll){
     out.push(`2) คณะ/สถาบันที่สนใจ<div class="dislist">${fs.map(x=>b('faculty',x.name,`${_pEsc(x.name.length>48?x.name.slice(0,46)+'…':x.name)} · ${x.n} (เปิด ${x.open})`)).join('')}${!showAll&&F.faculties.length>12?b('more','',`ดูทั้งหมด ${F.faculties.length} คณะ/สถาบัน`):''}</div>`); }
   out.push(`<div class="dislist">${b('open','',(f.open?'✅ ':'')+'เฉพาะที่เปิดรับ',f.open)}${b('intl','',(f.intl?'✅ ':'')+'นานาชาติ',f.intl)}${b('special','',(f.special?'✅ ':'')+'ภาคพิเศษ',f.special)}${(f.career||f.topic)&&!areaShown?_AREAS.map(a=>b('topic',a.k,(f.topic===a.k?'✅ ':'')+_pEsc(a.label),f.topic===a.k)).join(''):''}${f.level?b('level','','↩ เปลี่ยนระดับ'):''}${f.faculty?b('faculty','','↩ เปลี่ยนคณะ'):''}${b('reset','','เริ่มใหม่')}</div>`);
   out.push('<small>ผมไม่ได้จัดอันดับว่าสาขาไหนเด่นกว่ากันครับ ช่วยกรองจากข้อมูลทางการให้ หรือพิมพ์สิ่งที่สนใจ เช่น "สมัครเรียนวิทยาศาสตร์ข้อมูล" เพื่อหาชื่อหลักสูตรตรงๆ ได้เลย</small>');   // literal on purpose: this block is evaluated standalone by tests/programme_resolve.test.mjs (no VOICE there); tests/voice_lint.test.mjs lints it
-  return out.join('\n\n');
+  return out.join('\n\n').replace(/<\/div>\n\n/g,'</div>\n');   // .ans is white-space:pre-line: two newlines after a block list drew an empty band; one keeps a small gap
 }
 // </programme-resolve>
 
