@@ -6,6 +6,7 @@
 <meta name="description" content="ถามเรื่องหลักสูตร ค่าเทอม สถานะรับสมัคร และการส่งวิทยานิพนธ์ของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล ตอบจากประกาศและคู่มือทางการ">
 <title>ถาม-ตอบ บัณฑิตวิทยาลัย — ReflexWork</title>
 <link rel="stylesheet" href="./theme.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E">
 <style>
   :root{--userbg:#3b63e8; --botbg:#182446; --raised:#0e1630;}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -26,7 +27,10 @@
   .howto[open] summary{border-bottom:1px solid var(--line)}
   .howto-body{padding:16px 18px}
   .sw-toggle{display:inline-flex;align-items:center;gap:8px;font-size:.78125rem;color:var(--muted);cursor:pointer;user-select:none;background:var(--raised);border:1px solid var(--line);border-radius:999px;padding:6px 13px;margin-bottom:14px}
-  .sw-toggle input{display:none}
+  .sw-toggle input{position:absolute;opacity:0;width:1px;height:1px}   /* QA F51: hidden but still focusable */
+  .sw-toggle input:focus-visible + .pip{outline:2px solid var(--accent);outline-offset:2px}
+  .skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#07122e;padding:8px 12px;border-radius:0 0 8px 0;font-weight:700}
+  .skip:focus{left:0}
   .sw-toggle .pip{width:30px;height:17px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
   .sw-toggle .pip::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--ink);transition:transform .2s}
   .sw-toggle input:checked + .pip{background:var(--accent)}
@@ -263,6 +267,7 @@
     .typing i{animation:none;opacity:.6}
     .chip:hover,.msg.b .golink:hover{transform:none}
     .mood-face{animation:none}
+    .mood.bump .mood-face,.proof-full.flash{animation:none !important}   /* QA F51: these rules come later in the sheet */
   }
 
   /* --- mood indicator: a small, honest window into the affect kernel ------
@@ -306,7 +311,8 @@
 </head>
 <body>
 <!-- ReflexWork-nav -->
-<nav class="rw-nav">
+<a class="skip" href="#q">ข้ามไปที่ช่องพิมพ์คำถาม</a>
+<nav class="rw-nav" aria-label="เมนูหลัก">
   <a href="./index.html" class="brand">🦀 ReflexWork</a>
   <a href="./chatbot.html" class="on">ถามคำถาม</a>
   <a href="./student-desk.html">ตัวอย่างระบบคัดแยกคำร้อง</a>
@@ -698,6 +704,7 @@ function topicPicks(q){
   const hits=KB.filter(e=>String(e.title||'').replace(/\s+/g,'').toLowerCase().includes(core.toLowerCase()));
   return hits.length>=1 && hits.length<=12 ? {core, hits} : null;
 }   // the question the next bot bubble is answering
+const _REDUCED_MOTION = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);   // QA F51
 let turnN = 0, askSeq = 0;   // evidence-card counter; one number per question asked
 // QA G35: a slow understand / AI reply used to label its evidence card with whatever was asked last. _askCore shadows add()
 // with one bound to its own question and number, so every bubble it adds (also from .then callbacks) carries them.
@@ -732,7 +739,7 @@ function _add(cls, html, askedQ, askedN){ const d=document.createElement('div');
       const pf=card.querySelector('.proof-full'); if(pf){ pf.classList.add('flash'); setTimeout(()=>pf.classList.remove('flash'),1400); }
     }
     attachChoiceFilter(d);
-    requestAnimationFrame(()=>{ d.scrollIntoView({behavior:'smooth',block:'start'}); });
+    requestAnimationFrame(()=>{ d.scrollIntoView({behavior:_REDUCED_MOTION?'auto':'smooth',block:'start'}); });
   }
 }
 
@@ -1720,7 +1727,7 @@ function _askCore(){
   const myTurn=++askSeq, add=(cls, html)=>_add(cls, html, typed, myTurn);   // QA G35: see _add
   $('chat').querySelectorAll('.msg.pending').forEach(e=>e.remove());   // QA F60: an older question's understand spinner ends here (its late reply is dropped)
   add('u', typed); $('q').value='';
-  const q=normTermYear(stripLeadIn(normChat(typed) || typed));   // everything below reads the normalised text; the bubble above shows what was typed
+  const q=normTermYear(stripLeadIn(normChat(typed.slice(0,500)) || typed.slice(0,500)));   // QA F53: cap what the logic reads   // everything below reads the normalised text; the bubble above shows what was typed
   const pinned = !!(PIN && PIN.title===typed); if(!pinned) PIN = null;   // a picked topic skips the programme/finder paths
 
   // Smalltalk first — a greeting/thanks is NOT a knowledge question and NOT a
@@ -2337,15 +2344,15 @@ let _printOpened=[];
 addEventListener('beforeprint',()=>{ _printOpened=[...document.querySelectorAll('#chat details:not([open])')]; _printOpened.forEach(d=>{ d.open=true; }); });
 addEventListener('afterprint',()=>{ _printOpened.forEach(d=>{ d.open=false; }); _printOpened=[]; });
 let _sgIdx=-1;
-function closeTypeahead(){ const b=document.getElementById('sg'); if(b){ b.hidden=true; b.innerHTML=''; } _sgIdx=-1; $('q').setAttribute('aria-expanded','false'); }
+function closeTypeahead(){ const b=document.getElementById('sg'); if(b){ b.hidden=true; b.innerHTML=''; } _sgIdx=-1; $('q').setAttribute('aria-expanded','false'); $('q').removeAttribute('aria-activedescendant'); }
 function typeahead(){
-  if(!ready) return; const v=$('q').value.trim(); const b=document.getElementById('sg');
+  if(!ready) return; const v=$('q').value.trim().slice(0,200); const b=document.getElementById('sg');   // QA F53: no full search per keystroke on a huge paste
   if(v.length<2){ closeTypeahead(); return; }
   const seen=new Set(), out=[];
   for(const r of search(normChat(v)||v)){ if(r.s>=2 && !seen.has(r.e.title)){ seen.add(r.e.title); out.push(r.e.title); if(out.length>=4) break; } }
   for(const t of EXAMPLE_QS()) if(out.length<5 && !seen.has(t) && t.toLowerCase().includes(v.toLowerCase())){ seen.add(t); out.push(t); }
   if(!out.length){ closeTypeahead(); return; }
-  b.innerHTML=out.map((t,i)=>`<div class="sg-i" role="option" data-t="${_lEsc(t)}" id="sg${i}">${_lEsc(t)}</div>`).join(''); b.hidden=false; _sgIdx=-1; $('q').setAttribute('aria-expanded','true');
+  b.innerHTML=out.map((t,i)=>`<div class="sg-i" role="option" data-t="${_lEsc(t)}" id="sg${i}" aria-selected="false">${_lEsc(t)}</div>`).join(''); b.hidden=false; _sgIdx=-1; $('q').setAttribute('aria-expanded','true'); $('q').removeAttribute('aria-activedescendant');
   b.querySelectorAll('.sg-i').forEach(el=>el.addEventListener('mousedown',e=>{ e.preventDefault(); $('q').value=el.dataset.t; ask(); }));
 }
 $('q').addEventListener('input', typeahead);
@@ -2357,7 +2364,10 @@ const _ime = e => e.isComposing || e.keyCode===229 || _imeOn;
 $('q').addEventListener('keydown', e=>{
   if(_ime(e)) return;
   const b=document.getElementById('sg'), items=b&&!b.hidden?[...b.querySelectorAll('.sg-i')]:[];
-  if(items.length && (e.key==='ArrowDown'||e.key==='ArrowUp')){ e.preventDefault(); _sgIdx=(_sgIdx+(e.key==='ArrowDown'?1:-1)+items.length)%items.length; items.forEach((x,i)=>x.classList.toggle('on',i===_sgIdx)); return; }
+  if(items.length && (e.key==='ArrowDown'||e.key==='ArrowUp')){ e.preventDefault(); const n=items.length;
+    _sgIdx = e.key==='ArrowDown' ? (_sgIdx+1)%n : (_sgIdx<0 ? n-1 : (_sgIdx-1+n)%n);   // QA F49: ArrowUp from nothing = the last item (was the 2nd-last)
+    items.forEach((x,i)=>{ const on=i===_sgIdx; x.classList.toggle('on',on); x.setAttribute('aria-selected',on?'true':'false'); });
+    $('q').setAttribute('aria-activedescendant', items[_sgIdx].id); return; }
   if(e.key==='Escape'){ closeTypeahead(); return; }
   if(e.key==='Enter'){ if(items.length && _sgIdx>=0) $('q').value=items[_sgIdx].dataset.t; ask(); }
 });
