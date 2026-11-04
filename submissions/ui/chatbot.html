@@ -108,6 +108,10 @@
   .msg.b .staff-btns{display:flex;gap:8px;flex-wrap:wrap}
   .msg.b .golink.alt{background:var(--raised);color:var(--accent);border:1px solid var(--line)}
   .hyb-wait{font-size:.75rem;color:var(--muted);margin-top:6px}   /* QA F61: student-visible, so not .meta (that moves to the evidence panel) */
+  .clear-chat{background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:2px 10px;font:inherit;font-size:.75rem;cursor:pointer;margin:0 2px}
+  .clear-chat:hover,.clear-chat:focus-visible{color:var(--ink);border-color:var(--accent)}
+  .chat-divider{align-self:center;font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;width:100%;text-align:center}
+  .msg[data-restored] .dis:not([data-t]):not([data-code]):not([data-id]){opacity:.5;pointer-events:none}   /* restored chips without a question to ask */
   .meta{font-size:.6875rem;color:var(--muted);margin-top:6px}
   /* technical lines (score, rule, kernel timings) are for judges: they follow the 'show evidence' switch, a student sees the answer */
   .cols.ev-off .msg.b .meta,.cols.ev-off .kernel-strip{display:none}
@@ -298,7 +302,7 @@
   @media (max-width:560px){ .mood{margin-top:10px;font-size:.75rem} }
   /* QA G25: a printed answer is the conversation only, in black on white, every fold open (see beforeprint), links spelled out */
   @media print{
-    .rw-nav,.top .ev-toggle,.mood,.howto,.chips,.ask,.sg,.privacy-note,.bar,.ratio-wrap,.evidence,.followups,.fb,.boot,.msg.pending,.dis-filter{display:none !important}
+    .rw-nav,.top .ev-toggle,.mood,.howto,.chips,.ask,.sg,.privacy-note,.chat-divider,.bar,.ratio-wrap,.evidence,.followups,.fb,.boot,.msg.pending,.dis-filter{display:none !important}
     body,.top,.wrap,.chat,.msg,.msg.u,.msg.b,.msg.b .staffbox,.steps{background:#fff !important;color:#000 !important;box-shadow:none !important}
     .top{padding:0 0 8px;border:none} .top h1,.top p,.top .org{color:#000 !important}
     .wrap{max-width:none;padding:0} .cols{display:block} .chat{border:none;padding:0;gap:10px}
@@ -374,7 +378,7 @@
         <div class="sg" id="sg" role="listbox" hidden></div>
         <button id="send" disabled>ถาม</button>
       </div>
-      <div class="privacy-note" style="font-size:.75rem;color:var(--muted);margin:4px 2px 0">คำถามที่ตอบไม่ได้จะถูกบันทึกให้ทีมคู่มือ (ซ่อนอีเมลและเลขรหัสก่อนส่ง) · อย่าพิมพ์ข้อมูลส่วนตัวในแชต · เติม <code>?ai=off</code> ท้าย URL เพื่อไม่ส่งให้ AI</div>
+      <div class="privacy-note" style="font-size:.75rem;color:var(--muted);margin:4px 2px 0">คำถามที่ตอบไม่ได้จะถูกบันทึกให้ทีมคู่มือ (ซ่อนอีเมลและเลขรหัสก่อนส่ง) · อย่าพิมพ์ข้อมูลส่วนตัวในแชต · ประวัติแชตเก็บในแท็บนี้เท่านั้น (ปิดแท็บแล้วหาย ไม่ส่งขึ้นเซิร์ฟเวอร์) <button type="button" id="clear-chat" class="clear-chat">🗑️ ล้างประวัติแชต</button> · เติม <code>?ai=off</code> ท้าย URL เพื่อไม่ส่งให้ AI</div>
       <div class="bar"><span>ตอบจากคู่มือ/ข้อมูลทางการ: <b id="b-auto">0</b></span><span>ไม่พบในคู่มือ (ส่งต่อเจ้าหน้าที่): <b id="b-ai">0</b></span><span title="ประมาณการ ไม่ใช่ค่าที่วัดจากบิลจริง: สมมติว่าถ้าให้ LLM ตอบ แต่ละคำถามจะมีต้นทุนราว ฿2">ประหยัดโดยประมาณ (฿2/คำถาม): <b id="b-saved">฿0</b></span></div>
       <div class="ratio-wrap" id="ratio-wrap" style="display:none">
         <div class="ratio-head"><span>สัดส่วนที่ตอบจากข้อมูลทางการได้ (นับจริงในเซสชันนี้)</span><b id="ratio-pct">—</b></div>
@@ -501,7 +505,7 @@ async function load(){
   KB = Array.isArray(KB) ? KB.filter(_okKb) : [];
   if(!KB.length) KB = AGENCY.builtinKb?FALLBACK_KB:[];
   // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
-  fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes) && (d.programmes=d.programmes.filter(_okProg)).length){ PROGDOC=d; PROG=d.programmes; PROG_STATE='ok'; } else PROG_STATE='failed'; }).catch(()=>{ PROG_STATE='failed'; });
+  fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes) && (d.programmes=d.programmes.filter(_okProg)).length){ PROGDOC=d; PROG=d.programmes; PROG_STATE='ok'; if(_PCTX_RESTORE && !PCTX) PCTX=PROG.find(p=>p.code===_PCTX_RESTORE)||null; _PCTX_RESTORE=''; } else PROG_STATE='failed'; }).catch(()=>{ PROG_STATE='failed'; });
   fetch('./system-links.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.links)) LINKS=d.links; }).catch(()=>{});
   ready=true; $('q').disabled=false; $('send').disabled=false;
   // kernel ready → replace the boot spinner with an inviting greeting
@@ -511,6 +515,7 @@ async function load(){
       <div class="g-p">${_lEsc(AGENCY.greeting)}</div>
       <div class="g-cta">👆 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
     </div>`;
+  restoreChat(); watchChat();
   renderNote();
   // QA G12: a question typed before the first /live-kb lands waits for it (at most 1.5 s), so a staff answer is not missed
   // and the question is not logged as a gap. The input still enables at once.
@@ -1855,7 +1860,8 @@ function _askCore(){
 
   // A generic fee question ("ค่าเทอมเท่าไร", "ค่าเทอมปริญญาโท", "ค่าเทอมทั่วไป"): fees differ per programme, so open the fee finder instead of
   // a wrong-topic entry or a random programme's fee. Only when NOTHING but topic / level / filler words is left (a programme name keeps its own card).
-  if(!pinned && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q) && isGenericFeeQuestion(q)){
+  // ...but not a follow-up about the programme just shown ('แล้วค่าเทอมล่ะ' after a programme card): that is answered below for it
+  if(!pinned && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q) && isGenericFeeQuestion(q) && !(PCTX && followUpAspect(q))){
     PCTX=null;
     renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, null, true, 'ค่าเทอม ');
     return;
@@ -2304,6 +2310,53 @@ function notFoundWhy(reason, aiAsked, aiPicks){
   const base = String(reason||'').replace(/ — (?:จึงส่งให้ AI|ส่ง LLM)$/, '');
   return base + (aiPicks && aiPicks.length ? ' · AI ช่วยตีความแล้วแต่ยังไม่ตรงข้อเดียวชัด' : aiAsked ? ' · ให้ AI ช่วยตีความคำถามแล้ว ยังไม่ตรงข้อใด' : ' · ไม่ได้เรียก AI');
 }
+// --- Conversation kept per TAB (sessionStorage) -----------------------------------------------------------------------------------
+// A reload or a back-navigation used to drop the whole chat and the follow-up context (QA G28). The chat is kept in THIS tab only:
+// sessionStorage belongs to one tab of one browser and is gone when the tab closes, so two people never see each other's chat and a
+// shared computer does not show the last person's questions once their tab is closed (localStorage would). Nothing goes to a server.
+// It is a snapshot of the rendered bubbles (re-asking would call the AI and log gaps again); spinners, votes and element ids are not
+// kept (ids would collide with new bubbles). Restored chips work through one delegated listener; the 🗑️ button wipes it all.
+const CHAT_KEY='rw_chat_v1', CHAT_MAX=30, CHAT_MAX_CHARS=300000;
+let _PCTX_RESTORE='', _chatSaveT=0;
+function chatSnapshot(){
+  const items=[];
+  for(const m of $('chat').children){
+    if(!m.classList.contains('msg') || m.classList.contains('greet') || m.classList.contains('pending')) continue;
+    const c=m.cloneNode(true);
+    c.querySelectorAll('.fb,.dis-filter-wrap,.hyb-wait,.typing,.skel').forEach(x=>x.remove());
+    c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
+    c.setAttribute('data-restored','1'); items.push(c.outerHTML);
+  }
+  let out=items.slice(-CHAT_MAX); while(out.length && out.join('').length>CHAT_MAX_CHARS) out=out.slice(1);
+  return {v:1, items:out, pctx:(PCTX&&PCTX.code)||''};
+}
+function saveChatNow(){ clearTimeout(_chatSaveT); try{ const s=chatSnapshot();
+  if(s.items.length) sessionStorage.setItem(CHAT_KEY, JSON.stringify(s)); else sessionStorage.removeItem(CHAT_KEY); }catch(e){} }
+function saveChat(){ clearTimeout(_chatSaveT); _chatSaveT=setTimeout(saveChatNow, 300); }
+addEventListener('pagehide', ()=>{ if(ready) saveChatNow(); });   // a reload right after an answer must not lose it to the debounce
+function watchChat(){ try{ new MutationObserver(saveChat).observe($('chat'),{childList:true, subtree:true, characterData:true}); }catch(e){} }
+function restoreChat(){
+  let s=null; try{ s=JSON.parse(sessionStorage.getItem(CHAT_KEY)||'null'); }catch(e){}
+  if(!s || s.v!==1 || !Array.isArray(s.items) || !s.items.length) return;
+  $('chat').insertAdjacentHTML('beforeend', '<div class="chat-divider" role="note">บทสนทนาก่อนหน้าในแท็บนี้</div>'+s.items.filter(x=>typeof x==='string').join(''));
+  _PCTX_RESTORE = typeof s.pctx==='string' ? s.pctx : '';
+  if(_PCTX_RESTORE && PROG.length){ PCTX=PROG.find(p=>p.code===_PCTX_RESTORE)||null; _PCTX_RESTORE=''; }
+}
+function clearChat(){
+  try{ sessionStorage.removeItem(CHAT_KEY); }catch(e){}
+  [...$('chat').children].forEach(m=>{ if(!m.classList.contains('greet')) m.remove(); });
+  const ev=$('ev-list'); if(ev) ev.innerHTML='';
+  PCTX=null; PIN=null; _PCTX_RESTORE=''; lastUserQ='';
+  clearTimeout(_chatSaveT); try{ sessionStorage.removeItem(CHAT_KEY); }catch(e){}   // the observer fires on the removals above
+  $('q').focus();
+}
+$('chat').addEventListener('click', e=>{
+  const el=e.target.closest('.msg[data-restored] .dis'); if(!el || !ready) return;
+  if(el.dataset.t){ $('q').value=el.dataset.t; ask(); }
+  else if(el.dataset.id){ const k=KB.find(x=>x.id===el.dataset.id); if(k){ PIN=k; $('q').value=k.title; ask(); } }
+  else if(el.dataset.code){ $('q').value='สมัคร '+el.dataset.code; ask(); }
+});
+$('clear-chat').addEventListener('click', clearChat);
 function paintBar(){ $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio(); }
 function updateRatio(){
   const st = ratioStats(auto, ai);
