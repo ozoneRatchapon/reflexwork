@@ -288,6 +288,19 @@
   .mood[data-hue="miss"]{border-color:rgba(255,107,122,.5);background:rgba(255,107,122,.1)}
   .mood[data-hue="miss"] .mood-meter i{background:var(--warn)}
   @media (max-width:560px){ .mood{margin-top:10px;font-size:12px} }
+  /* QA G25: a printed answer is the conversation only, in black on white, every fold open (see beforeprint), links spelled out */
+  @media print{
+    .rw-nav,.top .ev-toggle,.mood,.howto,.chips,.ask,.sg,.privacy-note,.bar,.ratio-wrap,.evidence,.followups,.fb,.boot,.msg.pending,.dis-filter{display:none !important}
+    body,.top,.wrap,.chat,.msg,.msg.u,.msg.b,.msg.b .staffbox,.steps{background:#fff !important;color:#000 !important;box-shadow:none !important}
+    .top{padding:0 0 8px;border:none} .top h1,.top p,.top .org{color:#000 !important}
+    .wrap{max-width:none;padding:0} .cols{display:block} .chat{border:none;padding:0;gap:10px}
+    .msg{max-width:100%;border:1px solid #999 !important;break-inside:avoid-page}
+    .msg.u{font-weight:700}
+    .msg.b .ans details.more>summary{display:none}
+    .msg a,.msg .golink{color:#000 !important;background:none !important;padding:0;text-decoration:underline}
+    .msg a[href^="http"]::after{content:" (" attr(href) ")";font-size:.85em;word-break:break-all}
+    .dis{border-color:#999 !important;color:#000 !important;background:none !important}
+  }
 </style>
 </head>
 <body>
@@ -2283,6 +2296,10 @@ function addFollowUps(typed){
     $('q').value=t; ask(); }));
   last.appendChild(box);
 }
+// QA G25: a closed <details> is not printed, so a schedule printed as 4 lines + 'อ่านเพิ่มอีก 30 ข้อ'. Open every fold for printing.
+let _printOpened=[];
+addEventListener('beforeprint',()=>{ _printOpened=[...document.querySelectorAll('#chat details:not([open])')]; _printOpened.forEach(d=>{ d.open=true; }); });
+addEventListener('afterprint',()=>{ _printOpened.forEach(d=>{ d.open=false; }); _printOpened=[]; });
 let _sgIdx=-1;
 function closeTypeahead(){ const b=document.getElementById('sg'); if(b){ b.hidden=true; b.innerHTML=''; } _sgIdx=-1; $('q').setAttribute('aria-expanded','false'); }
 function typeahead(){
