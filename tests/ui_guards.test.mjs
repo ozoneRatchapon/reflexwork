@@ -12,4 +12,10 @@ check('one vote per answer, restored for retry on failure', /if\(rec\.sent\) ret
 check('a vote counts only after the server accepted it', html.indexOf('BANDIT.reward(reward > 0') > html.indexOf('if(!resp.ok) throw'));
 check('AI text must be a string of sane length', /typeof j\.answer==='string'/.test(html) && /a\.length<=4000/.test(html));
 check('IME composition does not send or move the typeahead', /compositionstart/.test(html) && /e\.keyCode===229/.test(html) && /if\(_ime\(e\)\) return;/.test(html));
+const sd = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'submissions/ui/student-desk.html'), 'utf8');
+check('student-desk says it is a simulation and sends nothing', /ไม่ได้ส่งคำร้องจริง/.test(sd) && !/Bedrock/.test(sd) && !/>ส่งคำร้อง</.test(sd));
+check('a greeting in front of a question does not swallow it', /function stripLeadIn/.test(html) && /stripLeadIn\(normChat\(typed\)/.test(html));
+check('restart phrases are whole-utterance only', /function isRestartPhrase[\s\S]*\^\(\?:ยกเลิก\|/.test(html));
+check('staff answers are not rephrased by the AI path', /topScore >= 6 \|\| ranked\.slice\(0,3\)\.some\(r=>r\.e\.staff\)/.test(html));
+check('programme questions get an honest notice while the catalogue is loading or failed', /PROG_STATE!=='ok'/.test(html) && /PROG_STATE='failed'/.test(html));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

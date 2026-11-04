@@ -71,7 +71,7 @@
 <nav class="rw-nav">
   <a href="./index.html" class="brand">🦀 ReflexWork</a>
   <a href="./chatbot.html">ถามคำถาม</a>
-  <a href="./student-desk.html" class="on">ยื่นคำร้อง</a>
+  <a href="./student-desk.html" class="on">ตัวอย่างระบบคัดแยกคำร้อง</a>
   <a href="./index.html#behind">เบื้องหลังระบบ</a>
 </nav>
 <div class="top">
@@ -82,8 +82,9 @@
 
 <div class="wrap">
   <div class="card">
-    <h2>📝 ยื่นคำร้อง</h2>
-    <div class="cap">ลองพิมพ์คำร้องแบบที่นักศึกษาเขียนจริง แล้วกดส่ง — ดูว่าระบบจัดการให้ยังไง</div>
+    <h2>📝 ตัวอย่างระบบคัดแยกคำร้อง</h2>
+    <div class="cap" style="border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px"><b>หน้านี้เป็นตัวอย่างจำลอง ไม่ได้ส่งคำร้องจริง และไม่มีเจ้าหน้าที่ได้รับเรื่อง</b> — ใช้ดูว่าระบบจะคัดแยกคำร้องอย่างไร ถ้าต้องการยื่นคำร้องจริง ให้ติดต่อหน่วยงานผ่านช่องทางทางการ</div>
+    <div class="cap">ลองพิมพ์คำร้องแบบที่นักศึกษาเขียนจริง แล้วกดลองคัดแยก — ดูว่าระบบจะจัดการให้ยังไง</div>
     <label for="type">ประเภทคำร้อง</label>
     <select id="type">
       <option value="status">ตรวจสอบสถานะคำร้อง / นับเรื่องค้าง</option>
@@ -100,14 +101,14 @@
       <span class="q" data-t="leave">ขอลาป่วยและเลื่อนสอบกลางภาค</span>
       <span class="q" data-t="appeal">อุทธรณ์ผลการพิจารณา (เรื่องยาว)</span>
     </div>
-    <button class="go" id="go" disabled>ส่งคำร้อง</button>
+    <button class="go" id="go" disabled>ลองจำลองการคัดแยก</button>
   </div>
 
   <div class="card out" id="out">
     <div id="outcome"></div>
     <div class="stats">
       <div class="stat"><div class="n" id="s-time">—</div><div class="l">เวลาที่ระบบใช้ตัดสิน</div></div>
-      <div class="stat"><div class="n" id="s-cost">—</div><div class="l">ค่า AI ที่ประหยัด</div></div>
+      <div class="stat"><div class="n" id="s-cost">—</div><div class="l">ค่า AI ที่ประหยัด (ประมาณการสมมติ)</div></div>
       <div class="stat"><div class="n" id="s-wait">—</div><div class="l">เวลารอของนักศึกษา</div></div>
     </div>
     <div class="trust">🔒 เรื่องนี้มีหลักฐานตรวจสอบย้อนหลังได้ (reference <code id="t-proof">—</code>) — ผู้บริหาร/ผู้ตรวจสอบดูได้ว่าตัดสินด้วยอะไร</div>
@@ -118,7 +119,7 @@
     <div class="stats" style="margin-bottom:16px">
       <div class="stat"><div class="n" id="k-total" style="color:var(--accent)">0</div><div class="l">คำร้องทั้งหมด</div></div>
       <div class="stat"><div class="n" id="k-auto" style="color:var(--auto)">0</div><div class="l">ระบบจัดการเอง</div></div>
-      <div class="stat"><div class="n" id="k-saved" style="color:var(--auto)">฿0</div><div class="l">ประหยัดค่า AI รวม</div></div>
+      <div class="stat"><div class="n" id="k-saved" style="color:var(--auto)">฿0</div><div class="l">ประหยัดค่า AI รวม (ประมาณการสมมติ)</div></div>
     </div>
     <table>
       <thead><tr><th>เวลา</th><th>คำร้อง</th><th>ผลการจัดการ</th><th>ตรวจสอบ</th></tr></thead>
@@ -149,9 +150,9 @@ function humanize(route){
   if(route==='FastPath') return {cls:'auto', ic:'✅', ti:'ระบบจัดการให้อัตโนมัติทันที',
     de:'คำร้องนี้ตัดสินด้วยกฎได้เลย ไม่ต้องรอเจ้าหน้าที่ ไม่เสียค่า AI', kind:'auto', wait:'ทันที'};
   if(route==='Rejected') return {cls:'staff', ic:'📨', ti:'ส่งต่อเจ้าหน้าที่พิจารณา',
-    de:'เรื่องนี้ต้องใช้ดุลยพินิจคน ระบบส่งต่อให้เจ้าหน้าที่พร้อมข้อมูลครบ', kind:'staff', wait:'ในวันทำการ'};
+    de:'เรื่องนี้ต้องใช้ดุลยพินิจคน ในระบบจริงจะส่งต่อให้เจ้าหน้าที่ (ตัวอย่างนี้ไม่ได้ส่งอะไรไปที่ไหน)', kind:'staff', wait:'ในวันทำการ'};
   return {cls:'ai', ic:'🤖', ti:'ให้ AI ช่วยร่าง/วิเคราะห์',
-    de:'เรื่องนี้ซับซ้อน ระบบใช้ AI (Kiro + Amazon Bedrock) ช่วยสรุปก่อนเสนอเจ้าหน้าที่', kind:'ai', wait:'ไม่กี่วินาที'};
+    de:'เรื่องนี้ซับซ้อน ในระบบจริงจะใช้ AI ช่วยสรุปก่อนเสนอเจ้าหน้าที่ (ตัวอย่างนี้ไม่ได้เรียก AI)', kind:'ai', wait:'ไม่กี่วินาที'};
 }
 
 (async()=>{ try{ await init(); ready=true; $('go').disabled=false;
