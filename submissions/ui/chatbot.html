@@ -315,7 +315,7 @@
         <div class="swrow swu"><div class="swact">👤 ผู้ใช้</div><div class="swbody">
           <div class="swstep"><b>1.</b> พิมพ์คำถาม เช่น "ส่ง Turnitin เกิน 25% ทำยังไง"</div>
           <div class="swstep ok"><b>✓</b> เห็นคำตอบทันที (+ ปุ่มติดต่อเจ้าหน้าที่ถ้าต้องส่งต่อ)</div>
-          <div class="swtech">หน้าเว็บเรียก kernel ที่คอมไพล์เป็น <code>WebAssembly</code> รันในเบราว์เซอร์ 100% — ไม่มีข้อมูลออกนอกเครื่อง</div>
+          <div class="swtech">หน้าเว็บเรียก kernel ที่คอมไพล์เป็น <code>WebAssembly</code> ค้นคู่มือในเบราว์เซอร์ · คำถามที่ตอบไม่ได้ถูกบันทึก (ซ่อนข้อมูลส่วนตัว) และบางคำถามส่งให้ AI เรียบเรียง</div>
         </div></div>
         <div class="swrow swk"><div class="swact">🦀 ตัวคัดกรอง</div><div class="swbody">
           <div class="swstep"><b>2.</b> รับคำถาม → ถามตัวเองว่า "เคยตอบเรื่องนี้ได้ไหม?"</div>
@@ -346,6 +346,7 @@
         <div class="sg" id="sg" role="listbox" hidden></div>
         <button id="send" disabled>ถาม</button>
       </div>
+      <div class="privacy-note" style="font-size:12px;color:var(--muted);margin:4px 2px 0">คำถามที่ตอบไม่ได้จะถูกบันทึกให้ทีมคู่มือ (ซ่อนอีเมลและเลขรหัสก่อนส่ง) · อย่าพิมพ์ข้อมูลส่วนตัวในแชต · เติม <code>?ai=off</code> ท้าย URL เพื่อไม่ส่งให้ AI</div>
       <div class="bar"><span>ตอบจากคู่มือ/ข้อมูลทางการ: <b id="b-auto">0</b></span><span>ไม่พบในคู่มือ (ส่งต่อเจ้าหน้าที่): <b id="b-ai">0</b></span><span title="ประมาณการ ไม่ใช่ค่าที่วัดจากบิลจริง: สมมติว่าถ้าให้ LLM ตอบ แต่ละคำถามจะมีต้นทุนราว ฿2">ประหยัดโดยประมาณ (฿2/คำถาม): <b id="b-saved">฿0</b></span></div>
       <div class="ratio-wrap" id="ratio-wrap" style="display:none">
         <div class="ratio-head"><span>สัดส่วนที่ตอบจากข้อมูลทางการได้ (นับจริงในเซสชันนี้)</span><b id="ratio-pct">—</b></div>
@@ -441,7 +442,7 @@ async function refreshLiveKb(){
   try{
     const j = await fetch(KERNEL_API.replace(/\/$/,'')+'/live-kb',{cache:'no-store', signal:AbortSignal.timeout(2500)}).then(r=>r.ok?r.json():null);
     if(!j || !Array.isArray(j.entries)) return;
-    const live = j.entries.filter(e=>e && e.id && e.answer).map(e=>({ id:'staff_'+Number(e.id), staff:true, approved_at:Number(e.approved_at)||0,
+    const live = j.entries.filter(e=>e && e.id && e.answer).map(e=>({ id:'staff_'+Number(e.id), staff:true, approved_at:(Number.isFinite(Number(e.approved_at))&&Number(e.approved_at)>0&&Number(e.approved_at)<8.64e15)?Number(e.approved_at):0,
       // titles are interpolated as-is in several bubbles (they used to come only from our own manual): strip markup characters
       title:String(e.title||e.question||'').replace(/[<>"'&`]/g,'').slice(0,200), answer:String(e.answer).slice(0,2000), category:'staff',
       keywords:[e.title,e.question,e.keywords].filter(Boolean).join(' ').toLowerCase().slice(0,600) }));
@@ -1627,7 +1628,7 @@ function _askCore(){
       if(topScore < 4){
         // weak KB match on an advice question → abstain, hand to staff + gap log
         ai++;
-        if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
+        logGap(q);
         add('b', `${kstrip}
           <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือยังไม่ครอบคลุมพอ — บันทึกส่งเจ้าหน้าที่/ทีมดูแลคู่มือแล้ว ${stageTag}</span>
           ${frustratedNote()}
@@ -1704,13 +1705,14 @@ function _askCore(){
     ai++;
     // Gap log: this question had no manual answer. Record it (fire-and-forget)
     // so staff get a backlog of what the KB is missing — the self-improving loop.
-    if(KERNEL_API){ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q,source:'web'})}).catch(()=>{}); }
+    // (logged ONCE, via logGap: English below, other not-found at the end of the else branch; intake messages are never logged - they carry names / ids / emails)
 
     // English question with no KB match → abstain IN ENGLISH to the official
     // English FAQ + staff. We do NOT translate-and-answer (that would risk
     // inventing facts, against "facts from KB only"), and we do NOT reply in
     // Thai to an English speaker. Honest hand-off instead of a wrong guess.
     if(isEnglish(q)){
+      logGap(q);
       add('b', `${kstrip}
         <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 English question — not in the (Thai) knowledge base → staff / official FAQ ${stageTag}</span>
         <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — I've <b>logged your question for the staff / KB team</b>, and here's the official English FAQ and how to reach a human in the meantime.</div>
@@ -1884,9 +1886,17 @@ function fbUI(q, proof, entryId){
 // For the Graduate School these default to OUR two workers; for any other organisation (agency.json present) they default to NOTHING, so that its
 // questions, votes and gap log never reach our servers unless its agency.json names its own kernelApi / llmApi (or ?api= / ?llm= is given).
 let KERNEL_API = '', LLM_API = '';
+// ?api= / ?llm= are test overrides. Without a check a crafted link could point the chat at someone else's server: students' questions go
+// there and its text is shown as "staff answers". Accepted only for the shipped workers, loopback (tests, local dev) or the page's own origin.
+const _BACKEND_OK=['https://reflexwork-kernel.solana-thailand.workers.dev','https://reflexwork-llm-proxy.solana-thailand.workers.dev'];
+function safeBackend(v){ if(!v) return ''; try{ const u=new URL(v, location.href);
+  const ok = _BACKEND_OK.includes(u.origin) || ((u.protocol==='http:'||u.protocol==='https:') && /^(127\.0\.0\.1|localhost|\[::1\])$/.test(u.hostname)) || u.origin===location.origin;
+  return ok ? u.origin + u.pathname.replace(/\/$/,'') : ''; }catch(_){ return ''; } }
+let BACKEND_OVERRIDE=false;
 function pickBackends(){ const qp=new URLSearchParams(location.search);
-  KERNEL_API = qp.get('api') || (AGENCY.customised ? (AGENCY.kernelApi||'') : 'https://reflexwork-kernel.solana-thailand.workers.dev');
-  LLM_API = qp.get('llm') || (AGENCY.customised ? (AGENCY.llmApi||'') : 'https://reflexwork-llm-proxy.solana-thailand.workers.dev'); }
+  const qa=safeBackend(qp.get('api')), ql=safeBackend(qp.get('llm')); BACKEND_OVERRIDE=!!(qa||ql);
+  KERNEL_API = qa || (AGENCY.customised ? (AGENCY.kernelApi||'') : 'https://reflexwork-kernel.solana-thailand.workers.dev');
+  LLM_API = ql || (AGENCY.customised ? (AGENCY.llmApi||'') : 'https://reflexwork-llm-proxy.solana-thailand.workers.dev'); }
 // The LLM proxy is a SEPARATE worker from the kernel (the kernel has /route /gap /feedback ... but no /llm; calling it there
 // was a silent 404 on every AI request). ?llm=<url> overrides, e.g. for a local proxy.
 // ?ai=off = safe mode: answers come only from the knowledge base / official catalogue, the AI proxy is never called (demo fallback, or when the model is down)
@@ -1895,10 +1905,13 @@ const AI_OFF = (new URLSearchParams(location.search)).get('ai') === 'off';
 // gap log (the self-improving-KB loop) and staff/curators see what to add. This
 // is what makes "บันทึกคำถามไว้ให้เจ้าหน้าที่แล้ว" a TRUE statement on web, not an
 // overclaim — we really do persist it. Best-effort; never blocks the UI.
+// Strip what identifies a person before anything leaves the page (the gap log is readable by staff and public-facing tools):
+// e-mail addresses, runs of 6+ digits (student ids, phone numbers, national ids) and a name introduced by 'ชื่อ'. The server masks too.
+function scrubForLog(q){ return String(q||'').replace(/[\w.+-]+@[\w.-]+\.\w+/g,'[email]').replace(/\d[\d\s-]{4,}\d/g,'[id]').replace(/(ชื่อ(?:-สกุล)?\s*)[^\s,;]+(?:\s+[^\s,;]+)?/g,'$1[name]').slice(0,500); }
 function logGap(q){
   if(!KERNEL_API) return;
   try{ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{ method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ q, source:'web' }), keepalive:true }).catch(()=>{}); }catch(_){}
+    body: JSON.stringify({ q:scrubForLog(q), source:'web' }), keepalive:true }).catch(()=>{}); }catch(_){}
 }
 async function sendFeedback(id, reward){
   const el = document.getElementById(id); if(!el) return;
@@ -1910,13 +1923,13 @@ async function sendFeedback(id, reward){
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({category:'DataQuery', input:q, reward, proof, entry_id:entryId, vote_id:voteId})
       }).then(r=>r.json());
-      note = `✅ kernel เรียนรู้แล้ว · policy v${r.policy_version}`;
+      note = `✅ บันทึกความเห็นแล้ว`;
     }catch(e){ note = '⚠ ส่ง feedback ไม่สำเร็จ (kernel ไม่ตอบ)'; }
   } else {
     // static demo: no backend wired, but the loop is real when connected
     note = reward>0
-      ? '✅ บันทึกแล้ว — kernel จะยืนยันว่างานแบบนี้ตอบเองได้ (EMA +)'
-      : '✅ บันทึกแล้ว — kernel จะเรียนรู้ว่างานแบบนี้ควรส่ง AI (EMA −)';
+      ? '✅ บันทึกความเห็นแล้ว'
+      : '✅ บันทึกความเห็นแล้ว';
   }
   // feed the EMA bandit: 👍 = +1, 👎 = -1. The visible ratio shifts by the EMA.
   BANDIT.reward(reward > 0 ? 1 : -1);

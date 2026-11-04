@@ -44,4 +44,7 @@ Run 4 `wf_cba61ec9-532` finished 2026-11-04: 192 agents, 102 confirmed (8 high /
 - [x] F05 follow-up no longer sticks to the old programme when the question names its own field, nor after a picker (browser-verified; legit 'แล้วค่าเทอมล่ะ' still works).
 - [x] F70 a clearly matching staff answer (s>=6) now beats the programme resolver / finder (browser-verified with the mock /live-kb).
 - [x] F04 generic fee questions ("ค่าเทอมเท่าไร", "…ปริญญาโท", "…ทั่วไป") and fee+field ("ค่าเทอมพยาบาล") open the fee finder. Scholarship generic left alone (benchmark expects scholarship_types).
-- [ ] 94 medium/low findings + F43 (contested).
+- [x] F66 / F43(dup) /gap logged once via logGap, scrubbed (email, id/phone digit runs, name after 'ชื่อ') and cut to 500 chars; intake messages are not logged. Browser-verified against a local mock. Names typed WITHOUT 'ชื่อ' cannot be detected - the privacy note under the input says not to type personal data.
+- [x] F10 ?api= / ?llm= accepted only for the shipped workers, loopback or same origin (browser-verified: an evil.example override makes no request to it). approved_at bounded so a huge value cannot throw.
+- [x] F44 privacy / learning overclaims reworded (chat swimlane, slide 5, slide 9 names try.html, feedback notes, index.html); privacy note under the input.
+- [ ] ~85 medium/low findings left + F43-contested (draft KB files on prod). Server side not touched: kernel-worker /llm and write endpoints still open (finding 32).
