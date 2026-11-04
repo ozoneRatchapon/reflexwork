@@ -18,5 +18,5 @@ check('F23: an English question gets the English premise reply', /isEnglish\(q\)
   const FIND = re('_P_FINDQ'), OTHER = re('_P_OTHER'), isFinder = q => FIND.test(q) && !OTHER.test(q);
   const named = P.flatMap(p => [p.title, 'สมัคร ' + p.title, p.title + ' เปิดรับไหม']);
   check('F54: "list of programs" is a finder question; no programme-name question is', isFinder('list of programs') && named.every(q => !isFinder(q)), named.filter(isFinder).slice(0, 3).join(' | '));
-  check('F54: the resolver is skipped for finder questions', /const prog = \(pinned \|\| staffFirst \|\| \(PROG\.length && isFinderQuestion\(q\)\)\) \? null : resolveProgramme\(q, PROG\);/.test(html)); }
+  check('F54: the resolver is skipped for finder questions', /const prog = \(pinned \|\| staffFirst \|\| \(PROG\.length && \(?isFinderQuestion\(q\)[^?]*\) \? null : resolveProgramme\(q, PROG\);/.test(html)); }
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
