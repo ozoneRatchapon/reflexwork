@@ -681,6 +681,7 @@ const VOICE = {
   askYearTerm:   'ขอถามเพิ่มนิดหนึ่งครับ — คำตอบเปลี่ยนตามปีและภาคการศึกษา',
   frustrated:    '🙇 ขออภัยที่ยังหาคำตอบที่ตรงให้ไม่ได้ครับ เพื่อไม่ให้เสียเวลา ติดต่อเจ้าหน้าที่ได้เลยนะครับ (ปุ่มด้านล่าง)',
   adviceAbstain: 'เรื่องนี้เป็นคำถามขอคำแนะนำที่คู่มือยังตอบได้ไม่ครบครับ ผมไม่อยากตอบพลาด เลยจดคำถามไว้ให้เจ้าหน้าที่/ทีมคู่มือแล้ว ระหว่างนี้ติดต่อเจ้าหน้าที่ได้จากปุ่มด้านล่าง',
+  feePremiseEn:  'I can\'t say it is free: tuition differs by programme, and some list scholarships. Pick a programme below to see its official fee table (in Thai).',
   feePremise:    'ผมบอกไม่ได้ว่าฟรีหรือเปล่าครับ เพราะค่าเทอมต่างกันตามหลักสูตร (บางหลักสูตรมีทุนตามประกาศ) เลือกหลักสูตรด้านล่างเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการได้เลย',
   understanding: 'ขอเวลาสักครู่ครับ ผมกำลังลองทำความเข้าใจคำถามนี้',
   understoodLead: 'ผมเข้าใจว่าถามเรื่อง',
@@ -1369,6 +1370,8 @@ const _AREAS=[
 ];
 const _P_CAREER=/ทำงานอะไร|งานอะไรดี|งานไหนดี|อาชีพ|สายงาน|ตำแหน่งงาน|อยากทำงาน|หางาน|เปลี่ยนสายงาน|(?:พัฒนา|เพิ่ม|เรียนรู้).{0,12}(?:skill|ทักษะ|สกิล)|(?:skill|ทักษะ|สกิล).{0,6}(?:อะไร|ไหนดี)|อยากทำ(?:งาน)?เกี่ยวกับ|อยากทำงานสาย|career/i;
 const _P_FREEQ=/ฟรี|ไม่เสียค่า|ไม่มีค่า(?:ใช้จ่าย|เทอม|ธรรมเนียม)|เรียนฟรี|free of charge|\bfree\b/i;
+// QA F23: 'เรียนฟรีไหม' / 'ปริญญาโทเรียนฟรีจริงไหม' / 'is tuition free?' name no fee word, so the premise guard below missed them
+const _P_FREESTUDY=/(?:เรียน|ศึกษา|ปริญญา(?:โท|เอก)?|หลักสูตร|ป\.(?:โท|เอก)).{0,12}ฟรี|ฟรี.{0,8}(?:เรียน|ศึกษา)|ไม่เสียค่า(?:เรียน|ใช้จ่าย|เทอม)|(?:tuition|study|studying|degree|master'?s?|program(?:me)?)\b.{0,12}\bfree\b/i;
 function isCareerQuestion(q){ const s=String(q||''); return _P_CAREER.test(s) && !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)); }
 function careerArea(q){ const s=String(q||''); const hit=_AREAS.find(a=>a.say.test(s)); return hit?hit.k:''; }
 function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && !_P_OTHER.test(s); }
@@ -1854,6 +1857,10 @@ function _askCore(){
     }
   }
   // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
+  if(!pinned && !staffFirst && PROG.length && _P_FREEQ.test(q) && _P_FREESTUDY.test(q)){   // QA F23: never confirm a 'free' premise; fees differ per programme
+    renderFinder(q, d, kstrip, isEnglish(q) ? VOICE.feePremiseEn : VOICE.feePremise, true, null, true, 'ค่าเทอม ');
+    return;
+  }
   if(!pinned && !staffFirst && PROG.length && isCareerQuestion(q)){
     PCTX=null; const area=careerArea(q);
     const intro=VOICE.careerIntro+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่างครับ)':'ครับ');
