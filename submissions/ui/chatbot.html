@@ -139,6 +139,7 @@
   .dis{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--accent);cursor:pointer}
   .dis.on{border-color:var(--accent);font-weight:700}
   .dis:hover{background:#15203f;border-color:var(--accent)}
+  .dis.gone{color:var(--muted,#8a93a8);border-style:dashed;cursor:default;background:none}
   .chip:focus-visible,.dis:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .ask{display:flex;gap:10px;background:var(--panel);padding:10px;border-radius:14px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6);border:1px solid var(--line)}
   .ask input{flex:1;background:var(--raised);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:13px 15px;font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
@@ -441,19 +442,21 @@ const EXAMPLE_QS=()=>AGENCY.examples.map(e=>e.q);
 // Live staff answers (2026-11-03): an answer a staff member approves in the dashboard is in the chat within seconds, with its own
 // label, until it is merged into the main manual (or retracted). Read from the kernel's public GET /live-kb and merged into KB;
 // the search reads KB on every question, so nothing else changes. No kernel (other agencies by default) = no live answers.
-let LIVE_N=0;
+let LIVE_N=0, LIVE_SEQ=0, LIVE_SETTLED=false, LIVE_READY=Promise.resolve();
 function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์ · engine: '+ENGINE+'</span>'; }
 async function refreshLiveKb(){
-  if(!KERNEL_API) return;
+  if(!KERNEL_API){ LIVE_SETTLED=true; return; }
+  const my=++LIVE_SEQ;   // QA G11: overlapping refreshes (tab focus + poll) - only the latest request may write KB, a slow older one is dropped
   try{
     const j = await fetch(KERNEL_API.replace(/\/$/,'')+'/live-kb',{cache:'no-store', signal:AbortSignal.timeout(2500)}).then(r=>r.ok?r.json():null);
-    if(!j || !Array.isArray(j.entries)) return;
+    if(my!==LIVE_SEQ || !j || !Array.isArray(j.entries)) return;
     const live = j.entries.filter(e=>e && e.id && e.answer).map(e=>({ id:'staff_'+Number(e.id), staff:true, approved_at:(Number.isFinite(Number(e.approved_at))&&Number(e.approved_at)>0&&Number(e.approved_at)<8.64e15)?Number(e.approved_at):0,
       // titles are interpolated as-is in several bubbles (they used to come only from our own manual): strip markup characters
       title:String(e.title||e.question||'').replace(/[<>"'&`]/g,'').slice(0,200), answer:String(e.answer).slice(0,2000), category:'staff',
       keywords:[e.title,e.question,e.keywords].filter(Boolean).join(' ').toLowerCase().slice(0,600) }));
     KB = KB.filter(e=>!e.staff).concat(live); LIVE_N = live.length; renderNote();
   }catch(_){ /* kernel down: the manual still answers */ }
+  finally{ if(my===LIVE_SEQ) LIVE_SETTLED=true; }
 }
 async function load(){
   await loadAgency(); pickBackends(); applyAgency();
@@ -475,7 +478,10 @@ async function load(){
       <div class="g-cta">👆 กดตัวอย่างด้านบน หรือพิมพ์คำถามของคุณ</div>
     </div>`;
   renderNote();
-  refreshLiveKb(); setInterval(()=>{ if(!document.hidden) refreshLiveKb(); }, 15000);
+  // QA G12: a question typed before the first /live-kb lands waits for it (at most 1.5 s), so a staff answer is not missed
+  // and the question is not logged as a gap. The input still enables at once.
+  LIVE_READY = Promise.race([refreshLiveKb(), new Promise(r=>setTimeout(r,1500))]).then(()=>{ LIVE_SETTLED=true; });
+  setInterval(()=>{ if(!document.hidden) refreshLiveKb(); }, 15000);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) refreshLiveKb(); });   // back from the dashboard tab -> up to date at once
   const seeds=AGENCY.examples.map(e=>({t:e.q,k:e.ai?'a':'f'}));
 
@@ -602,7 +608,20 @@ function _jsSearch(q){
   for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; const ovLead=i===0?scored[0].overlap-runnerOv:0; scored[i].s=_cosToScore(scored[i].cos,margin,scored[i].overlap,ovLead); }
   return scored;
 }
-function search(q){
+// QA G07: a staff answer written for the same question as a manual entry (same cosine and overlap) is the newer word on it:
+// it goes first and its exact-tie manual twin leaves the ranking, so the winner no longer follows keyword length and the tie
+// does not open a two-identical-titles picker. The top score is recomputed against the new runner-up (same formula as the kernel).
+// A page-level step on the kernel's output, the same for ?engine=rust and ?engine=js.
+function _staffSupersede(rows){
+  if(rows.length<2 || !rows.some(r=>r.e.staff)) return rows;
+  const tie=(a,b)=>Math.abs(a.cos-b.cos)<1e-9 && a.overlap===b.overlap;
+  const st=rows.find(r=>r.e.staff && tie(r,rows[0])); if(!st) return rows;
+  const out=[st, ...rows.filter(r=>r!==st && !(!r.e.staff && tie(r,st)))];
+  const r1=out[1]; out[0]={...st, s:_cosToScore(st.cos, st.cos-(r1?r1.cos:0), st.overlap, st.overlap-(r1?r1.overlap:0))};
+  return out;
+}
+function search(q){ return _staffSupersede(_searchRaw(q)); }
+function _searchRaw(q){
   // Prefer the Rust/WASM kernel (single source of truth). Map id → entry.
   if(typeof wasm_kb_search==='function' && KB.length){
     try{
@@ -748,7 +767,7 @@ function _leadIndex(pts, q){
 // Returns HTML (every piece goes through linkify, which escapes).
 function kbBody(hit, q){
   const pts=answerPoints(hit.answer); if(!pts.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
-  const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(new Date(hit.approved_at).toISOString().slice(0,10)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
+  const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(_bkkIso(hit.approved_at)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
   // A dated schedule entry (academic_year + "กำหนดการ" title) tags each point against today (QA G16); the snapshot line
   // ("ที่เก็บวันที่ …") is about the data, not an event, so it is never tagged.
   const dated=isDatedSchedule(hit), today=dated ? todayIso() : '';
@@ -909,6 +928,11 @@ const _TH_MON_FULL=['มกราคม','กุมภาพันธ์','ม�
 const _TH_MON_ALT=[..._TH_MON_FULL, ..._TH_MON].map(m=>m.replace(/\./g,'\\.')).join('|');
 // "[d1 –] d2 <month> [25xx]" not inside a longer number (no lookbehind: older Safari): an optional same-month range start, then a day and a Thai month, then an optional BE year.
 const _TH_DATE_RE=new RegExp(`(?:^|[^\\d])(?:(\\d{1,2})\\s*[–-]\\s*)?(\\d{1,2})\\s*(${_TH_MON_ALT})(?:\\s*(25\\d\\d))?`,'g');
+// QA G09: an epoch-ms instant as its Asia/Bangkok YYYY-MM-DD (toISOString() is the UTC day: 00:00-06:59 Bangkok showed the day before)
+function _bkkIso(ms){
+  try{ return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms)); }
+  catch{ return new Date(ms+7*36e5).toISOString().slice(0,10); }
+}
 function todayIso(){
   const o=globalThis.__today; if(typeof o==='string' && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
   try{ return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); }
@@ -2194,8 +2218,13 @@ async function sendFeedback(id, reward){
 window.sendFeedback = sendFeedback;
 $('send').addEventListener('click', ask);
 // ---- suggestions: (1) after an answer, "ask next"; (2) while typing, matching questions. Deterministic, 0 token, from the KB.
+let _askWait=false;
 function ask(){
   const typed=$('q').value.trim(); closeTypeahead();
+  if(typed && ready && !LIVE_SETTLED){   // QA G12: hold an early question until the first staff-answer refresh settles
+    if(_askWait) return; _askWait=true;
+    LIVE_READY.then(()=>{ _askWait=false; LIVE_SETTLED=true; $('q').value=typed; ask(); }); return;
+  }
   _askCore();
   if(!typed) return;
   try{ addFollowUps(typed); }catch(_){}
@@ -2209,11 +2238,15 @@ function addFollowUps(typed){
     const shown=t.textContent.replace(/^(?:ที่มา|หัวข้อ|อ้างอิง):\s*/,'').trim();
     picks=search(q).filter(r=>r.s>=2 && r.e.title!==shown).slice(0,3).map(r=>r.e.title);
     const cur=KB.find(e=>e.title===shown);               // too few close matches: top up with other entries of the same topic area
-    if(cur && cur.category) for(const e of KB){ if(picks.length>=3) break; if(e.category===cur.category && e.title!==shown && !picks.includes(e.title)) picks.push(e.title); } }
+    // QA G13: every staff entry is category 'staff' - topping up after a staff answer listed unrelated staff answers
+    if(cur && cur.category && !cur.staff) for(const e of KB){ if(picks.length>=3) break; if(e.category===cur.category && e.title!==shown && !picks.includes(e.title)) picks.push(e.title); } }
   if(!picks.length) return;
   const box=document.createElement('div'); box.className='followups';
   box.innerHTML='<span class="fu-h">ถามต่อ:</span>'+picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('');
-  box.querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value=el.dataset.t; ask(); }));
+  box.querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
+    const t=el.dataset.t;   // QA G13: a staff answer retracted since the chip was drawn would re-ask into an unrelated official entry
+    if(!_FU_PROG.includes(t) && !KB.some(e=>e.title===t)){ el.classList.add('gone'); el.removeAttribute('role'); el.removeAttribute('tabindex'); el.textContent='คำตอบนี้ถูกถอนแล้ว'; return; }
+    $('q').value=t; ask(); }));
   last.appendChild(box);
 }
 let _sgIdx=-1;
