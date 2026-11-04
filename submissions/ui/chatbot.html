@@ -1456,6 +1456,13 @@ function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(
 // the official English FAQ + staff, rather than dropping to the hallucination-
 // prone LLM path or replying in Thai. A question mixing Thai + English (common)
 // is treated as Thai and uses the normal KB path.
+// QA F52: input that is not a question at all ('ok', 'a', a bare URL, a curse) gets a short prompt, not the 'not in the knowledge
+// base' hand-off and no gap log; a question in a script the bot does not read (Chinese, Japanese, Korean, Arabic, Cyrillic) is told
+// in English that it answers in Thai or English.
+const _P_ACK=/^(?:ok(?:ay)?|k|yes|no|yep|nope|ya|yeah|hmm+|lol|test(?:ing)?|f+u+c*k+(?:\s*(?:you|u|off))?|wtf|shit)\W*$/i;
+function isNotAQuestion(q){ const s=String(q||'').trim(); if(/[\u0E00-\u0E7F]/.test(s)) return false;
+  return _P_ACK.test(s) || /^https?:\/\/\S+$/i.test(s) || (/^[\x00-\x7F]*$/.test(s) && (s.match(/[A-Za-z]/g)||[]).length<=2); }
+function isOtherScript(q){ const s=String(q||''); return !/[\u0E00-\u0E7F]/.test(s) && /[\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF\u0600-\u06FF\u0400-\u04FF]/.test(s); }
 function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 // Deep link to the exact official page, and the entry's steps as a tick-list (deterministic, no AI).
@@ -2102,6 +2109,26 @@ function _askCore(){
     // English FAQ + staff. We do NOT translate-and-answer (that would risk
     // inventing facts, against "facts from KB only"), and we do NOT reply in
     // Thai to an English speaker. Honest hand-off instead of a wrong guess.
+    if(isNotAQuestion(q)){
+      ai--;   // not a question: neither answered nor handed off
+      add('b', `${kstrip}
+        <span class="route auto">💬 ยังไม่ใช่คำถาม · ไม่เรียก AI ${stageTag}</span>
+        <div class="ans">พิมพ์สิ่งที่อยากรู้ได้เลยครับ เช่น ส่งรูปเล่มภายในกี่วัน · Turnitin เกิน 25% ทำอย่างไร · ค่าเทอมหลักสูตรที่สนใจ<br><small>Tell me what you need, e.g. thesis deadline, Turnitin, fees.</small></div>
+        <div class="meta">ข้อความสั้น / ลิงก์ / คำตอบรับ — ไม่ใช่คำถามคู่มือ จึงไม่บันทึกเป็นคำถามที่ตอบไม่ได้</div>`);
+      paintBar();
+      return;
+    }
+    if(isOtherScript(q)){
+      logGap(q);
+      add('b', `${kstrip}
+        <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 ภาษาที่ระบบยังไม่รองรับ → เจ้าหน้าที่ ${stageTag}</span>
+        <div class="ans">Sorry, I can answer in Thai or English only. Please ask again in Thai or English, or contact the Graduate School staff below.<br><small>ขออภัยครับ ตอบได้เฉพาะภาษาไทยหรืออังกฤษ</small></div>
+        <div class="meta">kernel abstain: ภาษาอื่นที่ไม่ใช่ไทย/อังกฤษ — ไม่แปลและไม่เดาคำตอบ</div>
+        <div class="staffbox"><div class="staff-h">Contact staff</div><div class="staff-btns">${_btn((AGENCY.english||{}).contact || AGENCY.contact)}</div></div>
+        ${fbUI(q, d.blake3_proof)}`);
+      paintBar();
+      return;
+    }
     if(isEnglish(q)){
       logGap(q);
       add('b', `${kstrip}
