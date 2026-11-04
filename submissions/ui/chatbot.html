@@ -1255,7 +1255,11 @@ function _pScheduleData(lines){
   if(hi<0) return list();
   const cols=L[hi].split(' | ').slice(1), rows=[], notes=[];
   for(const l of L.slice(hi+1)){
-    if(!l.includes(' | ')){ if(!/^หมายเหตุ\s*:?$/.test(l)) notes.push(l.replace(/^\*+\s*/,'')); continue; }
+    if(!l.includes(' | ')){
+      // QA F62: '(เปิดรับสมัคร พฤ. 1 ก.ค. 2570)' under the header is the opening date of the last, named round ('รอบภาคปลาย')
+      const last=cols[cols.length-1]||'';
+      if(l.startsWith('(เปิดรับสมัคร') && l.endsWith(')') && last && !/^รอบ \d+$/.test(last)){ notes.push(`${last}: ${l.slice(1,-1)}`); continue; }
+      if(!/^หมายเหตุ\s*:?$/.test(l)) notes.push(l.replace(/^\*+\s*/,'')); continue; }
     const c=l.split(' | '); if(c.length!==cols.length+1) return list();
     rows.push([c[0], ...c.slice(1).map((x,i)=>x.startsWith(cols[i]+' ') ? x.slice(cols[i].length+1) : x)]);
   }
