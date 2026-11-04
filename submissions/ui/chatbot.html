@@ -327,7 +327,7 @@
           <div class="swstep"><b>2.</b> รับคำถาม → ถามตัวเองว่า "เคยตอบเรื่องนี้ได้ไหม?"</div>
           <div class="swstep ok"><b>→</b> เคย (เจอในคู่มือ) → ตอบเลย <b style="color:var(--fast,#22c58b)">ฟรี · เร็วมาก</b></div>
           <div class="swstep esc"><b>→</b> ไม่แน่ใจ → ส่งต่อ + บันทึกไว้ปรับปรุงคู่มือ</div>
-          <div class="swtech"><code>sigmoid gate (θ=0.72)</code> + ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82%) · ทุกคำตอบผนึก <code>BLAKE3 fingerprint</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns</code></div>
+          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อใช้คะแนนค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82%) · ทุกคำถามที่เข้า kernel มีรหัส <code>BLAKE3</code> ของคำถาม+เส้นทาง ถามซ้ำได้ค่าเดิม · เส้นทางเร็ว <code>0 token · ~12ns</code></div>
         </div></div>
         <div class="swrow swa"><div class="swact">🤖 AI / เจ้าหน้าที่</div><div class="swbody">
           <div class="swstep"><b>3.</b> เฉพาะคำถาม <b>ใหม่จริง ~20%</b> เท่านั้นที่มาถึงชั้นนี้</div>
@@ -363,14 +363,14 @@
     </div>
     <aside class="evidence" id="evidence" aria-label="หลักฐานเบื้องหลัง">
       <div class="evidence-h"><span class="dot"></span>🔬 หลักฐานเบื้องหลัง</div>
-      <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ผู้ใช้เห็น · ฝั่งนี้คือ<b>การตัดสินใจของ kernel ที่ตรวจสอบได้</b> — เส้นทาง · คะแนน · หัวข้อ KB · BLAKE3 fingerprint</div>
+      <div class="evidence-sub">ฝั่งซ้ายคือสิ่งที่ผู้ใช้เห็น · ฝั่งนี้คือ<b>หลักฐานที่ตรวจสอบได้</b> — คะแนนค้นคู่มือ · หัวข้อ KB · เส้นทาง kernel · รหัส BLAKE3 ของคำถาม</div>
       <div id="ev-list"><div class="ev-empty">
         <div style="font-size:12px;margin-bottom:12px">ถามคำถามด้านซ้าย แล้ว<b style="color:var(--ink)">หลักฐานการตัดสินใจ</b>ของแต่ละคำตอบจะขึ้นที่นี่ — ตัวอย่างหน้าตา 👇</div>
         <div class="ev-example">
           <div class="ev-ex-q">"Turnitin เกิน 25% ทำอย่างไร"</div>
           <div class="ev-ex-row"><span class="ev-ex-tag ok">✅ ตอบเอง · ไม่เรียก AI</span><span class="ev-ex-tag">⚡ 0 token</span></div>
           <div class="ev-ex-line">🎯 เจอในคู่มือ: <b>Turnitin Originality Report</b> (คะแนนความมั่นใจสูง)</div>
-          <div class="ev-ex-line">🔒 ลายเซ็นตรวจย้อนหลัง: <code>a1b2c3…</code> (รันซ้ำได้ผลเดิม)</div>
+          <div class="ev-ex-line">🔒 รหัส BLAKE3 ของคำถาม+เส้นทาง: <code>a1b2c3…</code> (ถามซ้ำได้ค่าเดิม)</div>
         </div>
         <div style="font-size:11px;margin-top:10px;opacity:.8">= ระบบคัดเองว่าตอบได้จากคู่มือ จึงไม่เสียค่า AI และตรวจสอบย้อนหลังได้</div>
       </div></div>
@@ -1734,12 +1734,12 @@ function _askCore(){
   // kernel decision strip — always shown, proves it's a decision engine not a search box
   const kstrip = `<div class="kernel-strip">
       <span class="kbadge ${d.fast_path?'kf':'kl'}">🦀 kernel: ${d.route}</span>
-      <span class="km">gate θ=0.72 · ความซับซ้อน ${complexity}${typeof d.gate_score==='number'?` · g=${d.gate_score.toFixed(3)}`:''}</span>
+      <span class="km" title="gate ของ kernel ในหน้าแชทนี้ต่ำกว่า θ เสมอ (docs/METHOD.md §3.1) — การตัดสินว่าตอบเองหรือส่งต่อใช้คะแนนค้นคู่มือ (ดูบรรทัดล่าง)">gate θ=0.72 · ความซับซ้อน ${complexity}${typeof d.gate_score==='number'?` · g=${d.gate_score.toFixed(3)}`:''}</span>
       <span class="km" title="นาฬิกาเบราว์เซอร์ละเอียดแค่ 0.1 ms; ตัวเลขละเอียดกว่านี้วัดใน benchmark/compare/latency.mjs">⚡ ${usLabel}</span>
-      <span class="km" title="นับเฉพาะขั้นคัดกรองเส้นทาง; ถ้าคำตอบใช้ AI ช่วยเรียบเรียง จะมีป้ายบอกที่หัวคำตอบ">💰 ขั้นคัดกรอง: ${d.fast_path?'0 token':'ส่งต่อ AI'}</span>
+      <span class="km" title="นับเฉพาะขั้นคัดกรองเส้นทาง; ถ้าคำตอบใช้ AI ช่วยเรียบเรียง จะมีป้ายบอกที่หัวคำตอบ">💰 ขั้นคัดกรอง: 0 token</span>
     </div>
-    <div class="proof-full">🔒 BLAKE3 fingerprint: <code>${d.blake3_proof}</code><br>
-      <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ fingerprint เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
+    <div class="proof-full">🔒 รหัส BLAKE3 ของคำถาม+เส้นทาง: <code>${d.blake3_proof}</code><br>
+      <span class="proof-note">คำนวณจากคำถามหลังปรับรูป "${_lEsc(q)}" + เส้นทาง + ประเภทงาน — ถามซ้ำได้รหัสเดิม (ไม่ครอบคลุมตัวคำตอบ)</span></div>`;
 
   // Broad "what should I know / what is interesting" questions have no single answer: give the common starting points
   // (derived from the KB, tap = guaranteed answer) instead of guessing one entry under the official badge.
@@ -1974,11 +1974,11 @@ function _askCore(){
     // link) so a user who needs more than the summary lands on the right source.
     const src = kbSource(hit), steps = kbSteps(hit);
     add('b', `${kstrip}
-      <span class="route auto">✅ ตอบจากคู่มือทันที · ไม่เรียก AI ${stageTag}</span>
+      <span class="route auto">${hit.staff?'📝 ตอบจากคำตอบเจ้าหน้าที่':'✅ ตอบจากคู่มือทันที'} · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${kbBody(hit, q)}</div>
       ${steps}
       <span class="topic">ที่มา: ${hit.title}</span>
-      <div class="meta">${verdict.reason}</div>
+      <div class="meta">${verdict.reason}${evWhy(ranked, hit)}</div>
       ${src}
       ${fbUI(q, d.blake3_proof, hit.id)}`);
   } else if(verdict.action==='disambiguate'){
@@ -2091,7 +2091,7 @@ function _askCore(){
       ${frustratedNote()}
       <div class="ans">${offer.length?VOICE.nearest:VOICE.notUnderstood}</div>
       <div class="dislist" id="${cid}">${picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('')}</div>
-      <div class="meta">${verdict.reason}${aiPicks?' · AI ช่วยตีความแล้วแต่ยังไม่ตรงข้อเดียวชัด':''} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
+      <div class="meta">${notFoundWhy(verdict.reason, !!LLM_API && !AI_OFF, aiPicks)} (ไม่ให้ AI เดาข้อเท็จจริงเอง — ข้อมูลมาจากคู่มือที่อนุมัติแล้วเท่านั้น)</div>
       <div class="staffbox">
         <div class="staff-h">${VOICE.staffHelp}</div>
         <div class="staff-btns">
@@ -2154,6 +2154,17 @@ function satisfactionNote(ema, n){
   return `นับจากคำถามในเซสชันนี้เท่านั้น · คะแนนความพอใจจาก 👍/👎 = ${ema >= 0 ? '+' : ''}${ema.toFixed(2)} (จาก ${n} โหวต, ช่วง −1…+1) — แสดงแยก ไม่ปรับตัวเลขสัดส่วนข้างบน`;
 }
 // </ratio>
+// QA G33: what the evidence card shows for an answer from the KB - the retrieval score, its lead over the runner-up, and which entry
+function evWhy(ranked, hit){
+  const r=ranked.find(x=>x.e===hit) || ranked[0], i=ranked.indexOf(r), next=ranked[i===0?1:0];
+  const lead = (r && next && i===0) ? ` (อันดับ 2 ได้ ${+next.s.toFixed(2)})` : '';
+  return ` · คะแนน ${r?+r.s.toFixed(2):'—'}${lead} · ${hit.staff?'คำตอบเจ้าหน้าที่':'คู่มือ'} #${_lEsc(String(hit.id))} ${_lEsc(hit.title)}`;
+}
+// QA G32: decideTier's last reason ends 'จึงส่งให้ AI' (golden contract); the card only says so when the AI reading really ran
+function notFoundWhy(reason, aiAsked, aiPicks){
+  const base = String(reason||'').replace(/ — (?:จึงส่งให้ AI|ส่ง LLM)$/, '');
+  return base + (aiPicks && aiPicks.length ? ' · AI ช่วยตีความแล้วแต่ยังไม่ตรงข้อเดียวชัด' : aiAsked ? ' · ให้ AI ช่วยตีความคำถามแล้ว ยังไม่ตรงข้อใด' : ' · ไม่ได้เรียก AI');
+}
 function paintBar(){ $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio(); }
 function updateRatio(){
   const st = ratioStats(auto, ai);
