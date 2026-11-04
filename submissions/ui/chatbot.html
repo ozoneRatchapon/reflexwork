@@ -768,9 +768,17 @@ function scopeOf(q){
     if(/(?:เกณฑ์|ข้อบังคับ|regulation)\s*(?:พ\.?ศ\.?\s*)?$/i.test(before)) continue;   // regulation year != academic year
     if(/^\s*(?:บาท|baht|thb|฿|%)/i.test(after)) continue;                              // "2000 บาท" is money
     if(n>=2567&&n<=2588){ year=String(n); break; }
-    if(n>=2024&&n<=2045){ year=String(n+543); break; }
+    // A CE year is a calendar year (QA G18): a summer term sits in the calendar year AFTER its academic year starts
+    // ("summer 2027" = May 2027 = ฤดูร้อน ปีการศึกษา 2569), unless the year is explicitly an academic year.
+    if(n>=2024&&n<=2045){ year=String(n+543-(term==='ฤดูร้อน' && !/(?:ปีการศึกษา|academic year|a\.?y\.?)\s*$/i.test(before) ? 1 : 0)); break; }
   }
   return {year,term};
+}
+// Echo how a CE year was read (QA G18), so "2026" shown back as "ปีการศึกษา 2568" is not a surprise.
+function ceNote(q, year, en){
+  const ce=(String(q||'').replace(/[๐-๙]/g,c=>_TH_DIGITS.indexOf(c)).match(/(?:^|\D)(20[2-4]\d)(?!\d)/)||[])[1];
+  if(!ce || !year) return '';
+  return en ? ` (read ${ce} as a calendar year: academic year ${year})` : ` (อ่าน ${ce} เป็นปี ค.ศ. ตรงกับปีการศึกษา ${year}${+year!==+ce+543?' เพราะภาคฤดูร้อนอยู่ในปีปฏิทินถัดไป':''})`;
 }
 function scopeClarify(q, ranked, kb){
   const top=ranked[0]; if(!top||top.s<4||!top.e.academic_year) return null;
@@ -1733,7 +1741,7 @@ function _askCore(){
       const link = (scope.category==='registration' ? SL.registration : scope.category==='admissions' ? SL.admissions : SL.other) || SL.other || (AGENCY.contact||{}).url || '';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'No data for that year':'คู่มือยังไม่มีข้อมูลปีนั้น'} ${stageTag}</span>
-        <div class="ans">${en?`The knowledge base has no verified data for academic year ${scope.year} (it covers ${scope.years.join(', ')}). I won't substitute another year — please check the official page below.`:`ตอนนี้คู่มือยังไม่มีข้อมูลที่ยืนยันแล้วของปีการศึกษา ${scope.year} ครับ (มีเฉพาะปี ${scope.years.join(', ')}) ผมจึงไม่เอาข้อมูลของปีอื่นมาตอบแทน ตรวจสอบจากหน้าทางการด้านล่างได้เลย`}</div>
+        <div class="ans">${en?`The knowledge base has no verified data for academic year ${scope.year}${ceNote(q, scope.year, true)} (it covers ${scope.years.join(', ')}). I won't substitute another year — please check the official page below.`:`ตอนนี้คู่มือยังไม่มีข้อมูลที่ยืนยันแล้วของปีการศึกษา ${scope.year}${ceNote(q, scope.year)} ครับ (มีเฉพาะปี ${scope.years.join(', ')}) ผมจึงไม่เอาข้อมูลของปีอื่นมาตอบแทน ตรวจสอบจากหน้าทางการด้านล่างได้เลย`}</div>
         <div class="meta">scope guard: ไม่พบปี ${scope.year} ในหมวด ${scope.category} — ไม่แทนด้วยปีอื่น</div>
         ${link?`<a class="golink" href="${_lEsc(link)}" target="_blank" rel="noopener">📄 ${en?'Open the official page':'เปิดหน้าทางการ'} →</a>`:''}`);
     }
