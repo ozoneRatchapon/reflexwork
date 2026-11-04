@@ -393,8 +393,12 @@
 </div>
 
 <script type="module">
-import init, { route_task, kb_search as wasm_kb_search, classify_smalltalk as wasm_classify } from './wasm/reflex_wasm.js';
-import * as WASM from './wasm/reflex_wasm.js';   // the rest of the Rust exports (engine switch below)
+// QA F34: a static import that fails (glue 404, CDN/cache error) stops this module before load() runs, so the boot spinner
+// spun forever. A guarded dynamic import lets load() fail normally and show the error with a retry button.
+let WASM = {}, WASM_ERR = null;
+try{ WASM = await import('./wasm/reflex_wasm.js'); }catch(e){ WASM_ERR = e; console.warn('Reflex Kernel glue failed to load', e); }
+const init = typeof WASM.default==='function' ? WASM.default : async()=>{ throw WASM_ERR || new Error('reflex_wasm.js has no init'); };
+const route_task = WASM.route_task, wasm_kb_search = WASM.kb_search, wasm_classify = WASM.classify_smalltalk;   // the rest of the Rust exports: WASM.* (engine switch below)
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
 let LINKS=[];   // system-links.json: named systems -> official URLs (optional)
@@ -439,7 +443,13 @@ const NEUTRAL_AGENCY = {
 let AGENCY = DEFAULT_AGENCY;
 async function loadAgency(){
   try{ const r=await fetch('./agency.json'); if(!r.ok) return; const j=await r.json(); if(j && typeof j==='object') AGENCY = Object.assign({}, NEUTRAL_AGENCY, j, {customised:true, persona:Object.assign({}, NEUTRAL_AGENCY.persona, j.persona||{})}); }catch(e){}
+  // QA F57: one bad field ({examples:null}) used to throw in load() and the input never enabled. Keep only well-formed examples.
+  AGENCY.examples = (Array.isArray(AGENCY.examples) ? AGENCY.examples : []).filter(e=>e && typeof e.q==='string' && e.q.trim());
 }
+// QA F57: a single malformed row (null, a number, a row without title/answer or code/title) used to throw on the first question
+// or hang the resolver for every later one. Rows the page cannot use are dropped at load; the rest of the file still works.
+const _okKb = e => !!e && typeof e==='object' && typeof e.title==='string' && e.title.trim() && typeof e.answer==='string';
+const _okProg = p => !!p && typeof p==='object' && typeof p.code==='string' && p.code && typeof p.title==='string' && p.title.trim();
 // a button for a {label,url} pair, or nothing (an agency without that link simply has no such button)
 const _btn=(c,cls)=> c && c.url ? `<a class="golink${cls?' '+cls:''}" href="${_lEsc(c.url)}" target="_blank" rel="noopener">${_lEsc(c.label||c.url)}</a>` : '';
 function applyAgency(){
@@ -479,9 +489,10 @@ async function load(){
   // small built-in fallback so the public demo still works without the other
   // team's private data.
   KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>AGENCY.builtinKb?FALLBACK_KB:[]);
-  if(!Array.isArray(KB) || !KB.length) KB = AGENCY.builtinKb?FALLBACK_KB:[];
+  KB = Array.isArray(KB) ? KB.filter(_okKb) : [];
+  if(!KB.length) KB = AGENCY.builtinKb?FALLBACK_KB:[];
   // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
-  fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes)){ PROGDOC=d; PROG=d.programmes; PROG_STATE='ok'; } else PROG_STATE='failed'; }).catch(()=>{ PROG_STATE='failed'; });
+  fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes) && (d.programmes=d.programmes.filter(_okProg)).length){ PROGDOC=d; PROG=d.programmes; PROG_STATE='ok'; } else PROG_STATE='failed'; }).catch(()=>{ PROG_STATE='failed'; });
   fetch('./system-links.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.links)) LINKS=d.links; }).catch(()=>{});
   ready=true; $('q').disabled=false; $('send').disabled=false;
   // kernel ready → replace the boot spinner with an inviting greeting
@@ -562,9 +573,9 @@ load().catch(()=>{
   const boot=$('boot');
   if(boot){ boot.classList.add('err');
     boot.innerHTML='<div>⚠ โหลด Reflex Kernel ไม่สำเร็จ</div>'
-      +'<div style="font-size:.78125rem">ต้องเปิดผ่าน http(s) (ไม่ใช่ file://) — ลองรีเฟรชอีกครั้ง</div>'
+      +`<div style="font-size:.78125rem">${location.protocol==='file:' ? 'ต้องเปิดผ่าน http(s) (ไม่ใช่ file://)' : 'เครือข่ายหรือแคชของเบราว์เซอร์อาจขัดข้อง'} — ลองใหม่อีกครั้ง</div>`
       +'<button class="retry" onclick="location.reload()">ลองใหม่</button>'; }
-  $('note').textContent='⚠ เปิดหน้านี้ผ่าน http(s)';
+  $('note').textContent = location.protocol==='file:' ? '⚠ เปิดหน้านี้ผ่าน http(s)' : '⚠ โหลดระบบไม่สำเร็จ';
 });
 
 // Minimal built-in KB (public info, paraphrased) used when the full index is absent.
