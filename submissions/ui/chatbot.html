@@ -704,7 +704,7 @@ function topicPicks(q){
   const hits=KB.filter(e=>String(e.title||'').replace(/\s+/g,'').toLowerCase().includes(core.toLowerCase()));
   return hits.length>=1 && hits.length<=12 ? {core, hits} : null;
 }   // the question the next bot bubble is answering
-const _REDUCED_MOTION = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);   // QA F51
+const _REDUCED_MOTION = typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;   // QA F51
 let turnN = 0, askSeq = 0;   // evidence-card counter; one number per question asked
 // QA G35: a slow understand / AI reply used to label its evidence card with whatever was asked last. _askCore shadows add()
 // with one bound to its own question and number, so every bubble it adds (also from .then callbacks) carries them.
