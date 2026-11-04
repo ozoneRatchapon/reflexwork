@@ -1198,7 +1198,22 @@ const _P_FINDQ=/(?:เรียน|ศึกษาต่อ|ต่อ(?:โท|�
 const _P_LV=[['M','ปริญญาโท'],['D','ปริญญาเอก'],['C','ประกาศนียบัตรบัณฑิต'],['N','ป.บัณฑิตชั้นสูง']];
 // A question that is ABOUT studying but names no programme we can find (typo, slang, "เรียนรายยย"): the finder is the
 // graceful way out - better than a staff hand-off. Fee / registration / thesis topics are excluded (the KB owns them).
-function hasStudyIntent(q){ const s=String(q||''); return !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)) && /เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร(?!สอบ)|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply/i.test(s); }   // bare "ศึกษา" is not a signal (ลาพักการศึกษา, วุฒิการศึกษา); "สมัครสอบ" is an exam, not a programme
+// Words that contain เรียน/สมัคร/ศึกษา but are about something else (QA F16): leave, grades, timetable, the admissions office.
+const _P_NOTSTUDY=/พัก(?:การ)?เรียน|ผลการเรียน|ตารางเรียน|(?:ยัง|กำลัง)เรียน(?:อยู่|ไม่จบ)?|ระหว่างเรียน|เรียนไม่จบ|เรียน(?:วัน)?เสาร์|นั่งเรียน|เรียนออนไลน์|(?:ฝ่าย|งาน|เจ้าหน้าที่)รับสมัคร|ภาพรวมการสมัคร|ปฏิทินการศึกษา|จบการศึกษา|ลาศึกษา/g;
+// A loose programme match is used for a not-found question only when the question READS as a misspelt programme name: the
+// question core is an approximate substring of the title (edits < 20% of its length, Sellers DP). 'กายอุปกณ์' -> กายอุปกรณ์ passes;
+// 'โรงอาหาร' (โภชนาการและการกำหนดอาหาร) and 'ปฏิทินการศึกษา' (การจัดการการศึกษา) share only a fragment and do not.
+const _P_CORE_DROP=/ครับ|ค่ะ|คะ|นะ|หน่อย|ยังไง|อย่างไร|ไหม|มั้ย|ได้|อยาก|เรียน(?:ต่อ)?|สมัคร|สาขา(?:วิชา)?|หลักสูตร|ป\.?\s?(?:โท|เอก)|ปริญญา(?:โท|เอก)|[\s?!.,]/g;
+function nearSpelling(q, title){
+  const a=String(q||'').toLowerCase().replace(_P_CORE_DROP,''), b=String(title||'').toLowerCase().replace(/\s/g,'');
+  if(a.length<4 || !b) return 0;
+  let prev=new Array(b.length+1).fill(0);   // row 0 = 0 everywhere: the match may start anywhere in the title
+  for(let i=1;i<=a.length;i++){ const cur=[i];
+    for(let j=1;j<=b.length;j++) cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur; }
+  return 1-Math.min(...prev)/a.length;
+}
+function hasStudyIntent(q){ const s=String(q||'').replace(_P_NOTSTUDY,' '); return !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)) && /เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร(?!สอบ)|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply/i.test(s); }   // bare "ศึกษา" is not a signal (ลาพักการศึกษา, วุฒิการศึกษา); "สมัครสอบ" is an exam, not a programme
 // Career-first questions ("ทำงานอะไรดี", "อยากทำเกี่ยวกับคอม", "อยากพัฒนา skill อะไร"): there is no single right answer and this
 // system does NOT predict jobs or pay. It narrows the OFFICIAL list by an area of interest (matched on the programme title) and
 // points to the university's own career-based tool. Areas overlap on purpose; they are search aids, not a taxonomy.
@@ -1928,8 +1943,9 @@ function _askCore(){
     // with the staff hand-off. The question is already in the gap log, which is how the KB learns it (LLM drafts, staff approve).
     $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
-    if(PROG.length && (hasStudyIntent(q) || nearP)){
-      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearP && nearP.rows, hasStudyIntent(q));
+    const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
+    if(PROG.length && (hasStudyIntent(q) || nearOk)){
+      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q));
       return;
     }
     if(PROG.length && _P_TOPIC[0][1].test(q)){   // a fee question that names no programme: fees differ per programme, so help find it

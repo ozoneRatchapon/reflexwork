@@ -100,7 +100,7 @@ export const KB = [
   "id": "admission_last_term",
   "title": "กำลังศึกษาเทอมสุดท้ายสมัครเรียนได้ไหม",
   "category": "admission",
-  "keywords": "กำลังศึกษาเทอมสุดท้ายสมัครเรียนได้ไหม last semester apply admission eligibility",
+  "keywords": "กำลังศึกษาเทอมสุดท้ายสมัครเรียนได้ไหม last semester apply admission eligibility ยังเรียนไม่จบ ยังไม่จบปริญญาตรี กำลังเรียนปีสุดท้าย",
   "answer": "สมัครได้ โดยใช้ใบเกรด (Report) ที่มีเกรดเทอมล่าสุดสมัครก่อนได้ แต่ต้องสำเร็จการศึกษาก่อนเปิดภาคเรียนที่สมัคร",
   "source_url": "https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai",
   "approval_status": "approved"
@@ -197,7 +197,7 @@ export const KB = [
   "id": "gm_admissions_office_contacts",
   "title": "ช่องทางติดต่องานรับนักศึกษา",
   "category": "admissions",
-  "keywords": "ช่องทางติดต่องานรับนักศึกษา admissions contact งานรับนักศึกษา ติดต่อสมัครเรียน",
+  "keywords": "ช่องทางติดต่องานรับนักศึกษา admissions contact งานรับนักศึกษา ติดต่อสมัครเรียน เบอร์โทรฝ่ายรับสมัคร เบอร์ติดต่อรับสมัคร โทรถามเรื่องสมัคร",
   "answer": "หน้าผู้สนใจเข้าศึกษาที่เก็บวันที่ 26 ตุลาคม 2569 ระบุ:\n- งานรับนักศึกษา บัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล\n- โทรศัพท์ 0 2441 4125 ต่อ 110–115\n- อีเมล gradthai@mahidol.ac.th และ gradinter@mahidol.ac.th\n- LINE @mugradmissions: https://line.me/ti/p/~@mugradmissions",
   "source_url": "https://graduate.mahidol.ac.th/thai/prospective-students/",
   "approval_status": "approved"
@@ -431,7 +431,7 @@ export const KB = [
   "id": "gm_registration_graduation",
   "title": "ขอสำเร็จการศึกษา บฑ.5 และช่องทางงานทะเบียน",
   "category": "registration",
-  "keywords": "ขอสำเร็จการศึกษา บฑ.5 และช่องทางงานทะเบียน ",
+  "keywords": "ขอสำเร็จการศึกษา บฑ.5 และช่องทางงานทะเบียน ขอจบการศึกษา ยื่นจบ ขอจบ graduation",
   "answer": "หน้าทะเบียนเชื่อมคู่มือและระบบ บฑ.5 ออนไลน์ที่ https://grad-graduation.my.canva.site/\nการขอสำเร็จการศึกษาเป็นงานทะเบียน ไม่ใช่เพียงการส่งรูปเล่ม e-Thesis หรือการสอบผ่าน\nกำหนดส่งแต่ละรอบ วันประชุมสภา เงื่อนไขผลงานตีพิมพ์ และวันรับปริญญา ตรวจได้จากคู่มือ บฑ.5 หรือถามงานทะเบียน\nสถานะคำร้องของคุณต้องให้เจ้าหน้าที่ตรวจ ระบบนี้มองไม่เห็นคำร้องส่วนบุคคล",
   "source_url": "https://graduate.mahidol.ac.th/thai/current-students/?new=registration",
   "approval_status": "approved"
@@ -449,7 +449,7 @@ export const KB = [
   "id": "gm_registration_proof",
   "title": "ขอ Transcript และหลักฐานการศึกษาผ่านระบบออนไลน์",
   "category": "registration",
-  "keywords": "ขอ transcript และหลักฐานการศึกษาผ่านระบบออนไลน์ ",
+  "keywords": "ขอ transcript และหลักฐานการศึกษาผ่านระบบออนไลน์ transcript ใบแสดงผลการเรียน ใบเกรด ใบรับรองผลการเรียน",
   "answer": "▪ ระบบขอหลักฐานการศึกษาออนไลน์\nเข้าได้ที่ https://graduate.mahidol.ac.th/academic/transcript/login.php\nนักศึกษาใช้บัญชีเดียวกับ Student Service System หน้าเข้าสู่ระบบระบุ Student ID และ Password เดียวกับ e-Registration\nบุคคลภายนอกใช้บัญชีเดียวกับโครงการรับบุคคลทั่วไปเข้าศึกษารายวิชาระดับบัณฑิตศึกษา ตามคำแนะนำในหน้าเข้าสู่ระบบ\nมีคู่มือไทย: https://graduate.mahidol.ac.th/academic/transcript/pdf/Manual-Requesting-Proof-Education-Th.pdf\nมีคู่มืออังกฤษ: https://graduate.mahidol.ac.th/academic/transcript/pdf/Manual-Requesting-Proof-Education-En.pdf\n\n▪ ขอบเขตบริการหลักฐานการศึกษา\nข้อมูลนี้ยังไม่มีค่าธรรมเนียม ระยะเวลาออกเอกสาร และสถานะคำร้อง สอบถามงานทะเบียนได้\nล็อกอินเข้าระบบด้วยตัวเอง ไม่ต้องให้รหัสผ่านกับใคร รวมถึงแชทนี้ ถ้าติดขัดติดต่องานทะเบียน",
   "source_url": "https://graduate.mahidol.ac.th/academic/transcript/login.php",
   "approval_status": "approved"
@@ -874,7 +874,7 @@ export const KB = [
   "id": "leave_of_absence",
   "title": "ลาพักการศึกษาต้องทำอย่างไร",
   "category": "registration",
-  "keywords": "ลาพักการศึกษาต้องทำอย่างไร leave of absence suspend study ra-04 maintain status",
+  "keywords": "ลาพักการศึกษาต้องทำอย่างไร leave of absence suspend study ra-04 maintain status พักเรียน ขอพักเรียน พักการเรียน หยุดเรียนชั่วคราว",
   "answer": "ยื่นแบบฟอร์ม RA-04 ผ่านประธานและส่งผ่านระบบ E-doc. เมื่อได้รับอนุมัติจากคณบดีบัณฑิตวิทยาลัย ต้องชำระค่ารักษาสถานภาพนักศึกษาภาคการศึกษาละ 4,000 บาท จากนั้นเข้าระบบลงทะเบียนระบุ Voluntarily Suspend พร้อมชำระค่าธรรมเนียมเพื่อคงสภาพนักศึกษา",
   "source_url": "https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai",
   "approval_status": "approved",

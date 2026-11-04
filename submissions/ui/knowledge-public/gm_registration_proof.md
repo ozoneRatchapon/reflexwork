@@ -18,6 +18,7 @@ parent_source_url: "https://graduate.mahidol.ac.th/thai/current-students/?new=re
 ---
 
 ## ระบบขอหลักฐานการศึกษาออนไลน์
+คำค้นภาษาอังกฤษ: transcript ใบแสดงผลการเรียน ใบเกรด ใบรับรองผลการเรียน
 เข้าได้ที่ https://graduate.mahidol.ac.th/academic/transcript/login.php
 นักศึกษาใช้บัญชีเดียวกับ Student Service System หน้าเข้าสู่ระบบระบุ Student ID และ Password เดียวกับ e-Registration
 บุคคลภายนอกใช้บัญชีเดียวกับโครงการรับบุคคลทั่วไปเข้าศึกษารายวิชาระดับบัณฑิตศึกษา ตามคำแนะนำในหน้าเข้าสู่ระบบ
