@@ -93,5 +93,8 @@ lands('ลงทะเบียนภาค 2/69', 'gm_registration_2569_second_
 { const { c } = runN('ลงทะเบียนภาคต้น 2569 และ 2570 ต่างกันยังไง'); check('two years named -> both offered, not the first only', c && c.kind === 'ask' && ids(c).join() === 'gm_registration_2569,gm_registration_2570_first', ids(c).join()); }
 check('"ค่าเทอม 1 ภาค" is a fee, untouched', normTermYear('ค่าเทอม 1 ภาคเท่าไร') === 'ค่าเทอม 1 ภาคเท่าไร');
 check('text without schedule words is untouched', normTermYear('ปี 69 สมัครได้ไหม') === 'ปี 69 สมัครได้ไหม');
+// --- admission round (F15)
+{ const c = run('รับสมัครรอบ 2 ปี 2570'); check('"รับสมัครรอบ 2" -> no_round (the manual has round 1 only)', c && c.kind === 'no_round' && c.round === '2' && c.rounds.join() === '1', JSON.stringify(c && { k: c.kind, r: c.round })); }
+{ const c = run('รับสมัครปี 70 รอบแรกวันไหนคะ'.replace('ปี 70', 'ปี 2570')); check('"รอบแรก" is round 1 -> not no_round', !c || c.kind !== 'no_round'); }
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

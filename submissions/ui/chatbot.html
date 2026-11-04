@@ -640,6 +640,7 @@ const VOICE = {
   restartLead:   'ได้ครับ เริ่มใหม่ได้เลย เลือกหัวข้อด้านล่าง หรือพิมพ์เรื่องที่อยากถามใหม่ ถ้าต้องการคุยกับเจ้าหน้าที่ ใช้ปุ่มติดต่อด้านล่างได้เลยครับ',
   timeLead:      'วันนี้ {today} ครับ — นี่คือกำหนดการในคู่มือที่ใกล้วันนี้ที่สุด เลือกเพื่อดูวันที่ครบ (วันที่ผ่านไปแล้วจะมีป้ายบอก)',
   timeAdmissionsHint: ' ตัดรอบรับสมัครของแต่ละหลักสูตรไม่เท่ากัน — พิมพ์ชื่อหลักสูตร เช่น "จิตวิทยาคลินิก ปิดรับวันไหน" เพื่อดูของหลักสูตรนั้น',
+  noRound:       'คู่มือมีกำหนดการรับสมัครกลางเฉพาะรอบ {rounds} ครับ ยังไม่มีของรอบ {round} ดูหน้าทางการด้านล่าง หรือพิมพ์ชื่อหลักสูตรเพื่อดูตัดรอบของหลักสูตรนั้น',
   overviewLead:  'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว ลองเลือกหัวข้อที่ใกล้ที่สุดด้านล่าง หรือพิมพ์เรื่องที่อยากรู้ เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',
   careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
 };
@@ -800,6 +801,13 @@ function ceNote(q, year, en){
 }
 function scopeClarify(q, ranked, kb){
   const top=ranked[0]; if(!top||top.s<4||!top.e.academic_year) return null;
+  // A named admission round the manual has no schedule for ("รับสมัครรอบ 2"): say so instead of showing round 1 or a sample
+  // announcement as if it answered (QA F15). Rounds come from the dated admissions titles ("… รอบ 1").
+  const rnd=(String(q||'').match(/รอบ\s*(?:ที่\s*)?(\d)(?!\d)|round\s*(\d)/i)||[]).slice(1).find(Boolean) || (/รอบแรก/.test(q||'')?'1':'');
+  if(rnd && top.e.category==='admissions'){
+    const rounds=[...new Set((kb||[]).filter(e=>e.category==='admissions'&&e.academic_year).map(e=>(e.title.match(/รอบ\s*(\d)/)||[])[1]).filter(Boolean))].sort();
+    if(rounds.length && !rounds.includes(rnd)) return {kind:'no_round', round:rnd, rounds, category:'admissions'};
+  }
   const sc=scopeOf(q), shape=!!top.e.semester;
   // same kind of document as the top hit (a schedule vs a schedule), dated, same category
   const same=ranked.filter(r=>r.e.academic_year&&r.e.category===top.e.category&&!!r.e.semester===shape);
@@ -1749,13 +1757,13 @@ function _askCore(){
   // Scope guard: same question, different academic year/semester → ask, never guess a year.
   const scope = verdict.action==='act' ? scopeClarify(q, ranked, KB) : null;
   if(scope && scope.kind==='pick') verdict.entry = scope.entry;
-  if(scope && (scope.kind==='ask' || scope.kind==='no_year')){
+  if(scope && (scope.kind==='ask' || scope.kind==='no_year' || scope.kind==='no_round')){
     auto++; saved+=COST;
     const en = isEnglish(q);
     if(scope.kind==='ask'){
       const what = scope.axis==='both' ? (en?'academic year and semester':'ปีการศึกษาและภาคเรียน') : scope.axis==='year' ? (en?'academic year':'ปีการศึกษา') : (en?'semester':'ภาคเรียน');
       const mid='scp'+(++fbN);
-      const opts = scope.candidates.map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
+      const opts = scope.candidates.map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('');
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'Which one? (answer differs)':VOICE.askYearTerm} ${stageTag}</span>
         <div class="ans">${en?`The answer depends on the ${what}. Which do you mean?`:`เรื่องนี้คำตอบไม่เหมือนกันในแต่ละ${what}ครับ — หมายถึงอันไหน?`}</div>
@@ -1765,7 +1773,12 @@ function _askCore(){
     } else {
       const SL = AGENCY.scopeLinks || {};
       const link = (scope.category==='registration' ? SL.registration : scope.category==='admissions' ? SL.admissions : SL.other) || SL.other || (AGENCY.contact||{}).url || '';
-      add('b', `${kstrip}
+      if(scope.kind==='no_round') add('b', `${kstrip}
+        <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'No data for that round':'คู่มือยังไม่มีข้อมูลรอบนั้น'} ${stageTag}</span>
+        <div class="ans">${en?`The knowledge base has the admission schedule for round ${scope.rounds.join(', ')} only, not round ${scope.round}. I won't substitute another round — please check the official page below, or type a programme name to see its own cut-off dates.`:VOICE.noRound.replace('{round}', scope.round).replace('{rounds}', scope.rounds.join(', '))}</div>
+        <div class="meta">scope guard: ไม่พบรอบ ${_lEsc(scope.round)} ในกำหนดการรับสมัครของคู่มือ (มีรอบ ${_lEsc(scope.rounds.join(', '))}) — ไม่แทนด้วยรอบอื่น</div>
+        ${link?`<a class="golink" href="${_lEsc(link)}" target="_blank" rel="noopener">📄 เปิดหน้าทางการ →</a>`:''}`);
+      else add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'No data for that year':'คู่มือยังไม่มีข้อมูลปีนั้น'} ${stageTag}</span>
         <div class="ans">${en?`The knowledge base has no verified data for academic year ${scope.year}${ceNote(q, scope.year, true)} (it covers ${scope.years.join(', ')}). I won't substitute another year — please check the official page below.`:`ตอนนี้คู่มือยังไม่มีข้อมูลที่ยืนยันแล้วของปีการศึกษา ${scope.year}${ceNote(q, scope.year)} ครับ (มีเฉพาะปี ${scope.years.join(', ')}) ผมจึงไม่เอาข้อมูลของปีอื่นมาตอบแทน ตรวจสอบจากหน้าทางการด้านล่างได้เลย`}</div>
         <div class="meta">scope guard: ไม่พบปี ${scope.year} ในหมวด ${scope.category} — ไม่แทนด้วยปีอื่น</div>
