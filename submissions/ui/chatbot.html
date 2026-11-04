@@ -693,7 +693,9 @@ function add(cls, html){ const d=document.createElement('div'); d.className='msg
 // Now: the manual's own words, unchanged, cut into short points - the first point is the answer, the rest are bullets, and
 // anything past the first few is folded behind "อ่านเพิ่ม". If the question asks for a number (กี่วัน/กี่บาท/กี่ %), that
 // number from the entry is shown first in bold. Only whitespace, a trailing full stop and list markers are removed.
-const _SPLIT_BEFORE=/\s+(?=(?:หาก|ถ้า|จากนั้น|ทั้งนี้|กรณี|หลังจาก|นอกจากนี้|อย่างไรก็ตาม|ส่วน|ขั้นตอนหลัก|ข้อควรจำ|ระหว่างนี้|FAQ))/;
+// "ส่วน" and "FAQ" are not split words (QA F17): they begin noun phrases ("ส่วน FAQ …", "หน้า FAQ ระบุว่า") and left bare
+// "ส่วน" / "หน้า" bullets.
+const _SPLIT_BEFORE=/\s+(?=(?:หาก|ถ้า|จากนั้น|ทั้งนี้|กรณี|หลังจาก|นอกจากนี้|อย่างไรก็ตาม|ขั้นตอนหลัก|ข้อควรจำ|ระหว่างนี้))/;
 function _sentences(line){   // split at ". " / "。" - but not after an abbreviation (พ.ศ. 2569, ม.มหิดล, e.g.) or before a digit
   const out=[]; let from=0; const re=/[.。]\s+/g; let m;
   while((m=re.exec(line))){ const before=line.slice(Math.max(0,m.index-4), m.index), after=line[m.index+m[0].length]||'';
@@ -701,13 +703,48 @@ function _sentences(line){   // split at ". " / "。" - but not after an abbrevi
     out.push(line.slice(from, m.index+1)); from=m.index+m[0].length; }
   out.push(line.slice(from)); return out;
 }
+// A label line ending in ":" keeps its value (QA F17: "ช่วงลงทะเบียนเรียนปกติ:" was one bullet, "13–20 กรกฎาคม 2569" the next,
+// and the fold could fall between them). It takes the next plain line, or a run of at most _LABEL_RUN "•"/"-"/"*" lines
+// (joined with " · ") while the point stays within _LABEL_MAX characters; a longer run stays a list. A "▪" section header
+// or another label is never pulled in.
+const _LABEL_MAX=120, _LABEL_RUN=2;
+function _joinLabels(lines){
+  const out=[], bullet=l=>/^[-•*]\s+/.test(l||''), stop=l=>!l || /^▪/.test(l) || /[:：]$/.test(l);
+  for(let i=0;i<lines.length;i++){ let l=lines[i];
+    if(/[:：]$/.test(l) && !stop(lines[i+1])){
+      if(!bullet(lines[i+1])) l+=' '+_unmark(lines[++i]);
+      else { let k=0; while(bullet(lines[i+1+k]) && !stop(lines[i+1+k])) k++;
+        const run=lines.slice(i+1, i+1+k).map(_unmark), joined=l+' '+run.join(' · ');
+        if(k<=_LABEL_RUN && joined.length<=_LABEL_MAX){ l=joined; i+=k; } } }
+    out.push(l); }
+  return out;
+}
+function _unmark(l){ return l.replace(/^(?:[-•*]|\d+[.)])\s+/,''); }
 function answerPoints(body){
-  return String(body||'').split(/\n+/)
-    .map(l=>l.trim().replace(/^(?:[-•*]|\d+[.)])\s+/,''))
+  return _joinLabels(String(body||'').split(/\n+/).map(l=>l.trim()))
+    .map(_unmark)
     .flatMap(l=>_sentences(l)).flatMap(x=>x.split(_SPLIT_BEFORE))
     .map(x=>x.trim().replace(/\.$/,'')).filter(Boolean);
 }
 const _SHOW_POINTS=4;
+// QA F17: a "▪ n. …" section header is never the answer line; it is shown as a sub-heading above the first point it heads.
+// A date question ("วันไหน", "วันสุดท้าย…", "เมื่อไร") leads with the first dated point - of the section whose header names the
+// term or kind asked ("ภาคปลาย", "ล่าช้า"), and with "วันสุดท้าย" asked, the dated point that says วันสุดท้าย.
+const _HEAD=/^▪\s*/, _DATE_ASK=/วันสุดท้าย|วันไหน|เมื่อไร|เมื่อไหร่|ถึงวันที่|หมดเขต|ช่วงไหน|ช่วงวันที่|deadline|\bwhen\b/i;
+const _SECTION_WORDS=/ภาคต้น|ภาคปลาย|ฤดูร้อน|ล่าช้า|ปกติ|เพิ่ม|ถอน|คืนค่าหน่วยกิต|ปฐมนิเทศ|สอบ/g;
+let _hasThDateRe=null;   // built on first use: _TH_MON_ALT is defined further down the script (<today>)
+const _hasThDate=x=>(_hasThDateRe ||= new RegExp(`\\d\\s*(?:${_TH_MON_ALT})`)).test(x);
+function _leadIndex(pts, q){
+  const body=pts.map((x,i)=>i).filter(i=>!_HEAD.test(pts[i])); if(!body.length) return 0;
+  if(!_DATE_ASK.test(q||'')) return body[0];
+  const want=new Set(String(q).match(_SECTION_WORDS)||[]), heads=pts.map((x,i)=>i).filter(i=>_HEAD.test(pts[i]));
+  const score=i=>[...want].filter(w=>pts[i].includes(w)).length;
+  let from=0, to=pts.length; const best=heads.reduce((b,i)=>score(i)>(b<0?0:score(b)) ? i : b, -1);
+  if(best>=0){ from=best+1; const nx=heads.find(i=>i>best); if(nx!==undefined) to=nx; }
+  const region=body.filter(i=>i>=from && i<to), dated=region.filter(i=>_hasThDate(pts[i]));
+  const last=/วันสุดท้าย|หมดเขต|deadline/i.test(q) ? dated.find(i=>/วันสุดท้าย|หมดเขต|ภายในวันที่/.test(pts[i])) : undefined;
+  return last ?? dated[0] ?? region[0] ?? body[0];
+}
 // Returns HTML (every piece goes through linkify, which escapes).
 function kbBody(hit, q){
   const pts=answerPoints(hit.answer); if(!pts.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
@@ -716,21 +753,33 @@ function kbBody(hit, q){
   // ("ที่เก็บวันที่ …") is about the data, not an event, so it is never tagged.
   const dated=isDatedSchedule(hit), today=dated ? todayIso() : '';
   const T=x=>dated && !_SNAPSHOT_RE.test(x) ? dateTag(x, today) : '';
-  const L=x=>linkify(x, LINKS)+T(x), lead=slotLead(hit,q);
+  const L=x=>linkify(x, LINKS)+T(x), lead=slotLead(hit,q), H=x=>`<b>${linkify(x.replace(_HEAD,''), LINKS)}</b>`;
   const head = lead ? `<b>${L(lead)}</b>\n` : '';
-  const [first, ...rest] = pts, bullets = rest.map(x=>'• '+L(x));
-  const shown = bullets.slice(0,_SHOW_POINTS-1), more = bullets.slice(_SHOW_POINTS-1);
-  return staffTag + head + L(first) + (shown.length ? '\n'+shown.join('\n') : '')
-    + (more.length ? `<details class="more"><summary>อ่านเพิ่มอีก ${more.length} ข้อ</summary>${more.join('\n')}</details>` : '');
+  // the header of the lead's own section goes above it and is not repeated below
+  const li=_leadIndex(pts, q), hi=pts.slice(0,li).map((x,i)=>i).filter(i=>_HEAD.test(pts[i])).pop();
+  const ctx = hi!==undefined ? `<small>${H(pts[hi])}</small>\n` : '';
+  const rest=pts.filter((x,i)=>i!==li && i!==hi), item=x=>_HEAD.test(x) ? H(x) : '• '+L(x);
+  // fold after _SHOW_POINTS-1 bullets (headers are not counted), never on a header or label left without its points
+  let n=0, cut=rest.length; for(let i=0;i<rest.length;i++){ if(_HEAD.test(rest[i])) continue; if(++n>_SHOW_POINTS-1){ cut=i; break; } }
+  while(cut>0 && cut<rest.length && (_HEAD.test(rest[cut-1]) || /[:：]$/.test(rest[cut-1]))) cut--;
+  const shown=rest.slice(0,cut).map(item), more=rest.slice(cut).map(item), moreN=rest.slice(cut).filter(x=>!_HEAD.test(x)).length;
+  return staffTag + head + ctx + L(pts[li]) + (shown.length ? '\n'+shown.join('\n') : '')
+    + (more.length ? `<details class="more"><summary>อ่านเพิ่มอีก ${moreN} ข้อ</summary>${more.join('\n')}</details>` : '');
 }
 // --- Slot-filling: lead with the SPECIFIC fact asked (duration/cost/percent), no AI
+// QA F17: "นานเท่าไร"/"ใช้เวลา" ask a duration (1-3 digits standing alone: "2569 วันสุดท้าย" is a year); a lead keeps its space ("ภายใน 3 วันทำการ"). A deadline question that only
+// names a fee ("วันสุดท้ายชำระค่าธรรมเนียม") asks for a date, not the fine; and an entry with several amounts (GRID: three tiers)
+// gets no money lead - one bold figure out of three would mislead.
 const _SLOTS=[
-  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*\d+\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>`${/ไม่เกิน|ภายใน/.test(m)?'':'ภายใน'}${m}` },
-  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, grab:/\d[\d,]*\s*บาท/, lead:m=>`${m}` },
+  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|นานเท่าไร|นานเท่าไหร่|นานไหม|ใช้เวลา|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*(?<!\d)\d{1,3}\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>/^\d/.test(m) ? `ภายใน ${m}` : m.replace(/^(ไม่เกิน|ภายใน|ประมาณ)(?=\d)/,'$1 ') },
+  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, not:/นานเท่าไ|วันสุดท้าย|วันไหน|เมื่อไร|เมื่อไหร่|กี่วัน/, unless:/กี่บาท|ราคา|ค่า\S*เท่าไ/, grab:/\d[\d,]*\s*บาท/, single:true, lead:m=>`${m}` },
   { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}` },
 ];
 function slotLead(hit,q){ q=q||''; const body=String(hit.answer||'');
-  for(const s of _SLOTS){ if(!s.ask.test(q)) continue; const m=body.match(s.grab); if(m) return s.lead(m[0].trim().replace(/\s+/g,' ')); }
+  for(const s of _SLOTS){ if(!s.ask.test(q) || (s.not && s.not.test(q) && !s.unless.test(q))) continue;
+    const all=body.match(new RegExp(s.grab.source,'g')); if(!all) continue;
+    if(s.single && new Set(all.map(x=>x.replace(/[\s,]/g,''))).size>1) continue;
+    return s.lead(all[0].trim().replace(/\s+/g,' ')); }
   return ''; }
 
 // --- Rethink layer (System 1 / System 2, deterministic, no AI) ---------------
