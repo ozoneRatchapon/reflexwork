@@ -60,8 +60,8 @@ function groundedGuard(answer, context) {
     if (inv || /^\d+[.)]?$/.test(p)) continue;
     kept.push(p);
   }
-  return kept.join('\n').trim()
-    || 'คู่มือมีข้อมูลไม่พอสำหรับคำถามนี้ รบกวนติดต่อเจ้าหน้าที่เพื่อความถูกต้องครับ';
+  return kept.join('\n').trim();   // QA F59: '' when nothing survives - the caller answers source:'fallback' and the page shows the manual text
+  // (it used to return an apology, sent as source:'gemini': the student read a 'manual lacks info' apology under the entry that HAS the answer)
 }
 
 const server = http.createServer(async (req, res) => {
@@ -105,7 +105,7 @@ const server = http.createServer(async (req, res) => {
                  ?? 'ขออภัย โมเดล local ตอบไม่ได้ในขณะนี้';
     if (grounded) answer = groundedGuard(answer, context);
     res.writeHead(200, headers);
-    res.end(JSON.stringify({ answer, source: 'ollama-local', model: MODEL }));
+    res.end(JSON.stringify(answer ? { answer, source: 'ollama-local', model: MODEL } : { answer: '', source: 'fallback', detail: ['guard-emptied'] }));   // QA F59
   } catch (e) {
     res.writeHead(502, headers);
     res.end(JSON.stringify({ error: 'local model unreachable — is `ollama serve` running?' }));

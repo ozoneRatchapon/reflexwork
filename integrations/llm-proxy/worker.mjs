@@ -55,8 +55,8 @@ function groundedGuard(answer, context) {
     if (inv || /^\d+[.)]?$/.test(p)) continue;
     kept.push(p);
   }
-  return kept.join('\n').trim()
-    || 'คู่มือมีข้อมูลไม่พอสำหรับคำถามนี้ รบกวนติดต่อเจ้าหน้าที่เพื่อความถูกต้องครับ';
+  return kept.join('\n').trim();   // QA F59: '' when nothing survives - the caller answers source:'fallback' and the page shows the manual text
+  // (it used to return an apology, sent as source:'gemini': the student read a 'manual lacks info' apology under the entry that HAS the answer)
 }
 
 // Gemini model ids churn: 1.5 shut down 2025-09, 2.0 shut down 2026-06, and Google's own pages name different successors.
@@ -260,6 +260,7 @@ export default {
         let otext = od?.choices?.[0]?.message?.content ?? od?.message?.content ?? od?.response ?? null;
         if (or.ok && otext) {
           if (grounded) otext = groundedGuard(otext, context);   // correctness backstop
+          if (!otext) return new Response(JSON.stringify({ answer: '', source: 'fallback', detail: ['guard-emptied'] }), { headers: { ...headers, 'Content-Type': 'application/json' } });
           return new Response(JSON.stringify({ answer: otext, source: 'ollama' }), {
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
@@ -305,6 +306,7 @@ export default {
       });
     }
     if (grounded) text = groundedGuard(text, context);
+    if (!text) return new Response(JSON.stringify({ answer: '', source: 'fallback', detail: ['guard-emptied'] }), { headers: { ...headers, 'Content-Type': 'application/json' } });
     return new Response(JSON.stringify({ answer: text, source: 'gemini' }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     });

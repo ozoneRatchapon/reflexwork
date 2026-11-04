@@ -1278,7 +1278,7 @@ function programmeCard(p, asOf, year, topic, q){
   const closedNote = a.status && a.status!=='กำลังเปิดรับสมัคร' && !(a.notice||[]).length && cutAhead
     ? `<small>ℹ️ ประกาศนี้แสดงทั้งสถานะ "${_pEsc(a.status)}" และกำหนดการรอบที่ยังไม่ถึง — สอบถามหลักสูตรก่อนว่ายังรับสมัครรอบใดอยู่</small>` : '';
   const statusLine=`${light} สถานะบนเว็บบัณฑิตวิทยาลัย: ${status} (ปีการศึกษา ${_pEsc(a.year)}${a.intake?` · รับ ${_pEsc(a.intake)}`:''})${closedNote?'\n'+closedNote:''}`;
-  const plans=S['แผนการศึกษาที่เปิดรับสมัคร']||[];
+  const plans=(S['แผนการศึกษาที่เปิดรับสมัคร']||[]).filter(p=>!/^ไม่พบแผนการศึกษา/.test(String(p).trim()));   // QA F41: the scraper's placeholder is not a plan
   const schedBlock = sched ? `🗓️ กำหนดการ\n${sched}` : plans.length ? '🗓️ ประกาศนี้ยังไม่ระบุกำหนดการสอบคัดเลือก — ตรวจในประกาศฉบับเต็ม' : '';
   const engLine = eng ? `🔤 ภาษาอังกฤษ: ${_pEsc(eng)}` : '';
   // Answer first (staff feedback 2026-11-03: people should not have to scan the card). A question about one aspect gets that
