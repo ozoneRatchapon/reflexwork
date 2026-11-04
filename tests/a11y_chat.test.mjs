@@ -13,4 +13,6 @@ check('the question input has an accessible name', /<input id="q"[^>]*aria-label
 check('the question input is a combobox wired to the suggestion list', /id="q"[^>]*role="combobox"[^>]*aria-controls="sg"/.test(html));
 check('page language is Thai', /<html lang="th"/.test(html));
 check('the viewport allows zoom (no user-scalable=no)', !/user-scalable\s*=\s*no|maximum-scale\s*=\s*1(\.0)?[,"]/.test(html));
+check('chips and choices are keyboard operable (role=button, tabindex, Enter/Space)', /_a11yClickables/.test(html) && /e\.key==='Enter'\|\|e\.key===' '/.test(html));
+check('the IT call link dials the number it shows', /href="tel:028496022">[^<]*02-849-6022/.test(html));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

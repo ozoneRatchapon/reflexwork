@@ -23,6 +23,6 @@ for (const q of ['วิธีทำต้มยำกุ้ง', 'อธิก�
   check(`off-topic or empty "${q}" gets no list`, topicPicks(q) === null);
 check('too generic (more than 12 titles, e.g. "การ") gets no list', topicPicks('การ') === null);
 check('"วิทยานิพนธ์" (11 titles) gets the list; the list gets a search box (> 10)', (r => r && r.hits.length === 11)(topicPicks('วิทยานิพนธ์')));
-check('a picked chip answers THAT entry (pinned), not a re-search of its title', /const ranked = pinned \? \[\{e:PIN, s:9, cos:1, overlap:99\}\] : search\(q\);/.test(page) && /PIN = e; \$\('q'\)\.value = e\.title; ask\(\);/.test(page));
+check('a picked chip answers THAT entry (pinned), not a re-search of its title', /const ranked = pinned \? \[\{e:PIN, s:9, cos:1, overlap:99\}\] : \(_pre \|\| search\(q\)\);/.test(page) && /PIN = e; \$\('q'\)\.value = e\.title; ask\(\);/.test(page));
 check('the picker is offered only after the normal search found nothing (escalate branch, before the AI step)', page.indexOf('const tp = topicPicks(q);') > page.indexOf("logGap(q);") && page.indexOf('const tp = topicPicks(q);') < page.indexOf('rewriteQuery(q).then('));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

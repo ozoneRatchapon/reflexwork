@@ -9,6 +9,6 @@ approval_status: "approved"
 ---
 ## ขอรับผลคะแนน TOEFL ITP อย่างไร
 
-คำค้นภาษาอังกฤษ: toefl itp result pickup line
+คำค้นภาษาอังกฤษ: toefl itp result pickup line ผลสอบ ขอผลสอบ ใบผลสอบ
 
 ติดต่อโดยตรงทางโทรศัพท์ หรือ LINE @693lascg เพื่อนัดรับผลคะแนนที่ชั้น 1 อาคารบัณฑิตวิทยาลัย ในวันและเวลาราชการ

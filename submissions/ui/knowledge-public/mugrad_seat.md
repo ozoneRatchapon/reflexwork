@@ -9,6 +9,6 @@ approval_status: "approved"
 ---
 ## ดูที่นั่งสอบและสถานที่สอบ MU GRAD Plus ได้อย่างไร
 
-คำค้นภาษาอังกฤษ: mu grad plus seat exam venue
+คำค้นภาษาอังกฤษ: mu grad plus seat exam venue สอบที่ไหน ที่นั่งสอบ ห้องสอบ
 
 เช็กเลขที่นั่งสอบโดย Log in เข้าระบบรับสมัคร เลือกเมนู Seat No. ที่นั่งสอบจะประกาศ 2 วันก่อนสอบ

@@ -87,7 +87,7 @@ Plain text in, escaped HTML out; only (a) `http(s)` URLs on `mahidol.ac.th | lin
 | C | independent FAQ queries from another university team's own logs, 440-doc corpus | 31 | `benchmark/gradmahidol` | **no** (corpus is another team's; script only) |
 | D | latency per layer, real WASM | — | `benchmark/compare/latency.mjs` | yes (machine-dependent) |
 
-Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 44/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
+Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 43/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
 
 ## 5. Results (runs 002–004; `benchmark/compare/results/`; run 004 at commit `149f87f` is the current scoring rule — A2, E and F below are from it)
 
@@ -170,7 +170,7 @@ Cause (inspected): the lexical-overlap rule in `_cosToScore` (`ov ≥ 8 ∧ lead
 | It works in English | **understands, but answers in Thai**; refuses honestly when nothing matches; mixed Thai–English works as well as Thai (§5 E) |
 | The kernel gate decides whether an LLM is needed | **false in the web chat today** (§3.1: `g ≤ 0.451` always) |
 | The system learns from users' 👍/👎 | **partly, and only since 2026-11-03**: before that every click threw `ReferenceError` in the page, so no web vote reached the server (4 votes on record, all from curl). Now votes arrive. Until the vote-id fix (§8.6) the server de-duplicated them by the replay hash, identical for everyone who asks the same sentence, so each distinct question string could move the policy only once; from that fix each vote counts once per answer shown. Effect of votes on answer quality: not measured, and a script can still mint vote ids (only the per-IP rate limit brakes that) |
-| "87 % fast path" | **not a quality metric** (§3.1); use A2: 44/52 answered unaided, 4 of them wrong |
+| "87 % fast path" | **not a quality metric** (§3.1); use A2: 43/52 answered unaided, 3 of them wrong |
 
 ## 7. Threats to validity
 

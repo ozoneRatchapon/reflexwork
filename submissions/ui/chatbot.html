@@ -138,6 +138,7 @@
   .dis{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--accent);cursor:pointer}
   .dis.on{border-color:var(--accent);font-weight:700}
   .dis:hover{background:#15203f;border-color:var(--accent)}
+  .chip:focus-visible,.dis:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .ask{display:flex;gap:10px;background:var(--panel);padding:10px;border-radius:14px;box-shadow:0 8px 30px -16px rgba(0,0,0,.6);border:1px solid var(--line)}
   .ask input{flex:1;background:var(--raised);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:13px 15px;font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
   .ask input::placeholder{color:#6b7aa3}
@@ -477,6 +478,11 @@ async function load(){
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     $('q').value=c.dataset.q; ask();
   }));
+  // a11y: chips / "which one" choices / follow-ups / undo are <span>s with click listeners — make them keyboard + screen-reader operable
+  const _a11yClickables=root=>{ (root.querySelectorAll?root.querySelectorAll('.chip,.dis'):[]).forEach(el=>{ if(el.matches('.dis-filter,.dis-none'))return; el.setAttribute('role','button'); el.tabIndex=0; }); };
+  _a11yClickables(document);
+  new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType!==1)return; if(n.matches('.chip,.dis')&&!n.matches('.dis-filter,.dis-none')){ n.setAttribute('role','button'); n.tabIndex=0; } _a11yClickables(n); }))).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('keydown', e=>{ const t=e.target&&e.target.closest&&e.target.closest('.chip,.dis'); if(t&&t.getAttribute('role')==='button'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); t.click(); } });
   renderMood(false);
 }
 // ===== Engine switch (2026-11-04): the same pure answer logic runs in Rust (wasm) or in the JS functions above =====
@@ -570,12 +576,16 @@ function _cosToScore(c, margin, ov, ovLead){
   if(c>=0.15 && ov>=5 && ovLead>=2) return 5;
   if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.20) return 4;
   if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
+// Question-form words say HOW the student asks, never WHAT about; left in, their trigrams matched unrelated entries
+// ("ค่าสมัครเรียนเท่าไหร่ครับ" -> TOEFL fee). Stripped from the QUERY only (lockstep with reflex-wasm::strip_query_fillers).
+const _QFILL=/เท่าไหร่|เท่าไร|เท่าใด|คืออะไร|อะไรบ้าง|ได้ไหม|ได้มั้ย|หรือไม่|นะครับ|นะคะ|ครับ|ค่ะ|คะ|บ้าง|หน่อย|ไหม|มั้ย/g;
+function _stripQ(q){ const r=String(q||'').replace(_QFILL,' ').replace(/\s+/g,' ').trim(); return r||String(q||''); }
 function _jsSearch(q){
   const docGrams=KB.map(e=>_jsGramSet(e.keywords)); const DF=new Map();
   for(const gs of docGrams) for(const g of gs) DF.set(g,(DF.get(g)||0)+1);
   const N=KB.length||1; const idf=g=>Math.log((N+1)/((DF.get(g)||0)+1))+1;
   const nv=gs=>{const v=new Map();let n2=0;for(const g of gs){const w=idf(g);v.set(g,w);n2+=w*w;}const nr=Math.sqrt(n2)||1;for(const[k,w] of v)v.set(k,w/nr);return v;};
-  const DV=docGrams.map(nv); const qg=_jsGramSet(q); const qv=nv([...qg]);
+  const DV=docGrams.map(nv); const qg=_jsGramSet(_stripQ(q)); const qv=nv([...qg]);
   const scored=[];
   for(let i=0;i<KB.length;i++){ const e=KB[i]; let overlap=0; for(const g of qg) if(e.keywords.includes(g)) overlap++;
     let cos=0; const dv=DV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; }
@@ -620,6 +630,7 @@ const VOICE = {
   notThis:       'ไม่ใช่เรื่องนี้',
   topicPick:     'เรื่อง "{w}" ในคู่มือมีหลายหัวข้อครับ เลือกหัวข้อที่ต้องการได้เลย',
   topicPickOne:  'เรื่อง "{w}" ในคู่มือมีหัวข้อนี้ครับ กดเพื่อดูคำตอบได้เลย',
+  overviewLead:  'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว ลองเลือกหัวข้อที่ใกล้ที่สุดด้านล่าง หรือพิมพ์เรื่องที่อยากรู้ เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',
   careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
 };
 let lastUserQ = '';
@@ -922,6 +933,14 @@ const _P_ASPECT=[['fee',_P_TOPIC[0][1]],['scholarship',_P_TOPIC[1][1]],
   ['schedule',/สอบ|สัมภาษณ์|ประกาศผล|กำหนดการ|ปิดรับวัน|สมัครได้ถึง|ถึงวันไหน|วันไหน|เมื่อไหร่|เมื่อไร|deadline|interview|schedule|รอบ/i],
   ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับ(?:สมัคร)?(?:อยู่)?ไหม|\bopen\b/i]];
 const _P_ASPECT_TH={fee:'ค่าธรรมเนียม',scholarship:'ทุน',docs:'หลักฐานการสมัคร',elig:'คุณสมบัติผู้สมัคร',english:'เกณฑ์ภาษาอังกฤษ',schedule:'กำหนดการ',status:'สถานะการรับสมัคร'};
+// True when a fee question carries nothing but the fee word, a level word and filler (no programme / field of its own).
+function isGenericFeeQuestion(text){
+  const left=String(text||'').toLowerCase()
+    .replace(/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย|ค่าเรียน|เหมาจ่าย|tuition|fees?/g,'')
+    .replace(/เท่าไหร่|เท่าไร|เท่าใด|กี่บาท|โดยทั่วไป|ทั่วไป|ปกติ|ปริญญา(?:โท|เอก)|ป\.?(?:โท|เอก)|โท|เอก|ระดับ|หลักสูตร|ไหม|มั้ย|มี|ครับ|ค่ะ|คะ|นะ|หน่อย|ขอ|อยากรู้|ของ|ที่นี่|ปี|ละ|ล่ะ|แล้ว|how much|is|the|what|are|for|master'?s?|phd|doctoral?/g,'')
+    .replace(/[\s?!.,]/g,'');
+  return left.length===0;
+}
 function followUpAspect(q){
   const raw=String(q||'').trim(); if(!raw || raw.replace(/\s+/g,'').length>40) return '';
   if(_P_OTHER.test(raw) || _pLevel(raw) || /\d{4}[MDNC]\d{2}[GS]/i.test(raw) || /มหิดล|บัณฑิตวิทยาลัย|ทั่วไป|ทุกหลักสูตร|mahidol/i.test(raw)) return '';
@@ -1294,6 +1313,13 @@ function scoreSmalltalk(text){
   for(const it of _INTENTS){ let dot=0; for(let i=0;i<f.length;i++) dot+=f[i]*it.w[i]; const gate=_sig(dot); if(gate>_GATE && (!best||gate>best.score)) best={kind:it.kind, score:gate}; }
   return best;
 }
+// Self-harm / abuse = 'crisis'; distress / wanting to quit = 'stress'. Plain regex over the raw text (no network).
+function wellbeingKind(text){
+  const t=String(text||'');
+  if(/ฆ่าตัวตาย|อยากตาย|ไม่อยากมีชีวิต|ทำร้ายตัวเอง|ล่วงละเมิด|ข่มขืน|คุกคามทางเพศ|suicid|kill myself|self.?harm/i.test(t)) return 'crisis';
+  if(/ซึมเศร้า|เครียด|ท้อ(?!ง)|หมดไฟ|เหนื่อยมาก|เหนื่อยจัง|เรียนไม่ไหว|ไม่ไหวแล้ว|อยากเลิกเรียน|วิตกกังวล|นอนไม่หลับ|depress|burn.?out|overwhelm/i.test(t)) return 'stress';
+  return null;
+}
 function classifySmalltalk(text){
   // Prefer the Rust/WASM scorer (single source of truth, reflex-wasm
   // ::classify_smalltalk) — returns "" for non-smalltalk. JS scorer is fallback.
@@ -1376,6 +1402,12 @@ function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx, finit, e
 
 // Starting points for a question we did not understand: from each of the most populated KB categories, the first entry whose
 // own title retrieves itself (so tapping the chip is guaranteed to answer). Derived from the KB, nothing hand-listed.
+// A short question that names no topic and just asks for the highlights / must-knows. Narrow on purpose: anything that names a topic goes on to search.
+function isOverviewQuestion(text){
+  const t=String(text||'').replace(/\s+/g,'').toLowerCase();
+  if(t.length>40) return false;
+  return /^(?:มี)?อะไร(?:บ้าง)?(?:ที่)?(?:น่าสนใจ|น่ารู้|ควรรู้|ต้องรู้)|^(?:ต้อง|ควร)รู้อะไร(?:บ้าง)?(?:ไหม)?$|^(?:ต้อง|ควร)รู้(?:อะไร)?บ้าง$|^(?:มี)?(?:อะไร)?น่าสนใจ(?:บ้าง|ไหม|อะไร)?$|^เริ่มต้น(?:ยังไง|อย่างไร|ตรงไหน)?$|^whatshouldiknow$|^anythinginteresting$/.test(t);
+}
 function starterEntries(){
   const by=new Map(); for(const e of KB){ if(!e.category) continue; (by.get(e.category)||by.set(e.category,[]).get(e.category)).push(e); }
   const out=[]; for(const [,es] of [...by].sort((a,b)=>b[1].length-a[1].length)){
@@ -1394,6 +1426,21 @@ function _askCore(){
   // staff case. Greet back and INVITE the user to say what they need (let them
   // finish their thought) instead of coldly routing to the LLM/staff fallback.
   // Deterministic, 0 token — and it nudges the affect kernel's mood.
+  // Wellbeing / crisis: a caring, deterministic reply + the counselling entry. Runs BEFORE smalltalk, the KB tier gate and the
+  // programme finder so none of them can swallow it with a cold "ไม่เข้าใจ". No hotline number is invented (none is confirmed).
+  const wb = wellbeingKind(q);
+  if(wb){
+    const wbHit = KB.find(e=>e.id==='gm_mental_wellbeing_navigation');
+    const lead = wb==='crisis'
+      ? 'ขอบคุณที่บอกนะครับ เรื่องนี้สำคัญมาก ถ้าตอนนี้ไม่ปลอดภัยหรือกำลังคิดทำร้ายตัวเอง โปรดติดต่อบริการฉุกเฉิน (1669) หรือคนที่ไว้ใจให้มาอยู่ด้วยทันที ไม่ต้องอยู่คนเดียวนะครับ'
+      : 'ฟังแล้วเป็นห่วงนะครับ ความรู้สึกแบบนี้เกิดขึ้นได้ และมีคนช่วยได้ ลองดูช่องทางให้คำปรึกษาด้านล่างได้เลยครับ';
+    add('b', `<span class="route auto">💚 ดูแลใจก่อน · ไม่เรียก AI</span>
+      <div class="ans">${lead}${wbHit?`\n\n${kbBody(wbHit, q)}`:''}</div>
+      ${wbHit?kbSteps(wbHit):''}
+      <div class="meta">ถ้าอยากคุยกับเจ้าหน้าที่ ติดต่อได้ที่ช่องทางของหน่วยงานครับ</div>
+      ${wbHit?kbSource(wbHit):''}`);
+    return;
+  }
   const st = classifySmalltalk(q);
   if(st){
     MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
@@ -1423,9 +1470,35 @@ function _askCore(){
     <div class="proof-full">🔒 BLAKE3 fingerprint: <code>${d.blake3_proof}</code><br>
       <span class="proof-note">รันคำถามเดิมซ้ำ → ได้ fingerprint เดิมเป๊ะ (ตรวจสอบย้อนหลังได้)</span></div>`;
 
+  // Broad "what should I know / what is interesting" questions have no single answer: give the common starting points
+  // (derived from the KB, tap = guaranteed answer) instead of guessing one entry under the official badge.
+  if(isOverviewQuestion(q)){
+    const picks=starterEntries(), cid='ov'+(++fbN);
+    add('b', `${kstrip}
+      <span class="route auto">🧭 คำถามกว้าง · ไม่เรียก AI</span>
+      <div class="ans">${VOICE.overviewLead}</div>
+      <div class="dislist" id="${cid}">${picks.map(e=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}</span>`).join('')}</div>
+      <div class="meta">คำถามกว้างที่ไม่ระบุหัวข้อ → เสนอจุดเริ่มต้นจากคู่มือให้เลือก แทนการเดาคำตอบเดียว (deterministic, 0 token)</div>
+      ${fbUI(q, d.blake3_proof)}`);
+    document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
+      const e = KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN = e; $('q').value = e.title; ask(); }));
+    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    return;
+  }
+
   // Programme path: "I want to apply to <programme>" → that programme's own page + status, not a
   // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
-  const prog = pinned ? null : resolveProgramme(q, PROG);
+  // A generic fee question ("ค่าเทอมเท่าไร", "ค่าเทอมปริญญาโท", "ค่าเทอมทั่วไป"): fees differ per programme, so open the fee finder instead of
+  // a wrong-topic entry or a random programme's fee. Only when NOTHING but topic / level / filler words is left (a programme name keeps its own card).
+  if(!pinned && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q) && isGenericFeeQuestion(q)){
+    PCTX=null;
+    renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, null, true, 'ค่าเทอม ');
+    return;
+  }
+  // A staff-written answer that matches this question clearly (s>=6) wins over the programme resolver: staff corrections about a
+  // named programme (extended deadline, fee change) were unreachable because the resolver always showed a picker first.
+  const _pre = pinned ? null : search(q), staffFirst = !!(_pre && _pre[0] && _pre[0].e.staff && _pre[0].s>=6);
+  const prog = (pinned || staffFirst) ? null : resolveProgramme(q, PROG);
   if(prog){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
@@ -1439,6 +1512,7 @@ function _askCore(){
         ${c.links}
         ${fbUI(q, d.blake3_proof)}`);
     } else {
+      PCTX = null;   // a picker is on screen: a later 'แล้วค่าเทอมล่ะ' must not silently refer to the programme from before it
       const opts = prog.rows.map(p=>`<span class="dis" data-t="${{fee:'ค่าเทอม ',scholarship:'ทุน '}[prog.topic]||'สมัคร '}${_pEsc(p.code)}">${_pEsc(p.level)} · ${_pEsc(p.title)} · ${_pEsc(p.faculty)}${p.announcement?` · ${_pEsc(p.announcement.status)}`:''}</span>`).join('');
       const mid='prg'+(++fbN);
       add('b', `${kstrip}
@@ -1454,17 +1528,27 @@ function _askCore(){
   }
 
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
+  // A fee question that names a field but not one programme ("ค่าเทอมพยาบาล": 30+ programmes): show those programmes, not a wrong-topic KB entry.
+  if(!pinned && !staffFirst && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q)){
+    const nf = resolveProgramme(q, PROG, true);
+    if(nf && nf.rows && nf.rows.length){
+      PCTX=null;
+      renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตร — เลือกหลักสูตรที่ต้องการเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการ', true, nf.rows, true, 'ค่าเทอม ');
+      return;
+    }
+  }
   // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
-  if(!pinned && PROG.length && isCareerQuestion(q)){
+  if(!pinned && !staffFirst && PROG.length && isCareerQuestion(q)){
     PCTX=null; const area=careerArea(q);
     const intro=VOICE.careerIntro+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่างครับ)':'ครับ');
     const ext='<a class="golink alt" href="https://suggest-program.mahidol.ac.th/" target="_blank" rel="noopener">🧭 อยากเริ่มจากอาชีพและทักษะ? เครื่องมือแนะนำหลักสูตรของมหาวิทยาลัยมหิดล (เว็บแยก ภาษาอังกฤษ ไม่ได้ทำโดยระบบนี้) →</a>';
     renderFinder(q, d, kstrip, intro, true, null, true, undefined, {career:true, topic:area}, ext); return;
   }
-  if(!pinned && PROG.length && isFinderQuestion(q)){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
+  if(!pinned && !staffFirst && PROG.length && isFinderQuestion(q)){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
-  const aspect = (PCTX && !pinned) ? followUpAspect(q) : '';
+  // ...and only when the question names no programme/field of its own: 'ค่าเทอมสาธารณสุข' after a psychology card is NOT about the psychology card.
+  const aspect = (PCTX && !pinned && !staffFirst && !(PROG.length && resolveProgramme(q, PROG, true))) ? followUpAspect(q) : '';
   if(aspect){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect, q), uid='fu'+(++fbN);
@@ -1487,7 +1571,7 @@ function _askCore(){
   }
 
   // A topic chip picked from a list answers THAT entry; re-searching its title would not always land on it (35/132 titles).
-  const ranked = pinned ? [{e:PIN, s:9, cos:1, overlap:99}] : search(q); PIN = null;
+  const ranked = pinned ? [{e:PIN, s:9, cos:1, overlap:99}] : (_pre || search(q)); PIN = null;
   // The WASM kernel now exposes the raw sigmoid gate score g — use it directly
   // (falls back to a proxy only on an older build that lacks the field).
   const gateProxy = (typeof d.gate_score === 'number')
@@ -1658,7 +1742,7 @@ function _askCore(){
         <div class="staffbox">
           <div class="staff-h">ปัญหาบัญชี/ล็อกอิน ติดต่อกองไอทีได้โดยตรง</div>
           <div class="staff-btns">
-            <a class="golink" href="tel:024596022">☎️ โทรกองไอที 02-849-6022</a>
+            <a class="golink" href="tel:028496022">☎️ โทรกองไอที 02-849-6022</a>
             <a class="golink alt" href="mailto:account@mahidol.ac.th">✉️ account@mahidol.ac.th</a>
           </div>
         </div>
