@@ -1428,7 +1428,8 @@ function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(
 function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 // Deep link to the exact official page, and the entry's steps as a tick-list (deterministic, no AI).
-function kbSource(hit){ return hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : ''; }
+// QA F48: entry fields reach innerHTML; a source link must be an allow-listed http(s) URL (no javascript:/data:, no quote-break) and is escaped
+function kbSource(hit){ return hit && _lUrlOk(hit.source_url) ? `<a class="golink" href="${_lEsc(hit.source_url)}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : ''; }
 function kbSteps(hit){
   return Array.isArray(hit.steps) && hit.steps.length
     ? `<div class="steps"><div class="steps-h">ทำตามขั้นตอน (กดติ๊กเมื่อทำเสร็จ):</div>` +
@@ -1978,11 +1979,11 @@ function _askCore(){
       // from KB only" promise: a strong hit is never handed to a generative model.
       if(topScore >= 6 || ranked.slice(0,3).some(r=>r.e.staff)){   // a staff-written answer is shown as the staff wrote it (tag + date), never rephrased as 'AI from official data'
         saved+=COST;
-        const srcH0 = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
+        const srcH0 = kbSource(hit);
         add('b', `${kstrip}
           <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">✅ ตอบจากคู่มือ (เรียบเรียงแบบ deterministic · ไม่เรียก AI) ${stageTag}</span>
           <div class="ans">${kbBody(hit, q)}</div>
-          <span class="topic">ที่มา: ${hit.title}</span>
+          <span class="topic">ที่มา: ${_lEsc(hit.title)}</span>
           <div class="meta">KB ตรงชัด (score ${topScore}) → ใช้ template NLG ไม่ต้องเรียก AI · 0 token · ไม่มีโอกาสแต่งนอกคู่มือ</div>
           ${srcH0}
           ${fbUI(q, d.blake3_proof, hit.id)}`);
@@ -1990,12 +1991,12 @@ function _askCore(){
         return;
       }
       const mid='hyb'+(++fbN);
-      const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
+      const srcH = kbSource(hit);
       add('b', `${kstrip}
         <span class="route auto" id="${mid}r">✅ ตอบจากคู่มือ · กำลังให้ AI เรียบเรียงให้อ่านง่าย ${stageTag}</span>
         <div class="ans" id="${mid}">${kbBody(hit, q)}</div>
         <div class="hyb-wait" id="${mid}w" role="status"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงให้อ่านง่ายขึ้น… (ข้อความด้านบนคือคู่มือ)</div>
-        <span class="topic">ที่มา: ${hit.title}</span>
+        <span class="topic">ที่มา: ${_lEsc(hit.title)}</span>
         <div class="meta" id="${mid}m">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม) · score ${topScore}</div>
         ${srcH}
         ${fbUI(q, d.blake3_proof, hit.id)}`);
@@ -2025,14 +2026,14 @@ function _askCore(){
       <span class="route auto">${hit.staff?'📝 ตอบจากคำตอบเจ้าหน้าที่':'✅ ตอบจากคู่มือทันที'} · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${kbBody(hit, q)}</div>
       ${steps}
-      <span class="topic">ที่มา: ${hit.title}</span>
+      <span class="topic">ที่มา: ${_lEsc(hit.title)}</span>
       <div class="meta">${verdict.reason}${evWhy(ranked, hit)}</div>
       ${src}
       ${fbUI(q, d.blake3_proof, hit.id)}`);
   } else if(verdict.action==='disambiguate'){
     // rethink found two close candidates — ask which, no AI.
     auto++; saved+=COST;
-    const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
+    const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('');
     const mid='dis'+(++fbN);
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย ${stageTag}</span>
@@ -2167,7 +2168,7 @@ function _askCore(){
       <span class="route auto">✅ ตอบจากคู่มือ · 🧠 AI ช่วยตีความคำถาม ${stageTag}</span>
       <div class="ans">${VOICE.understoodLead} <b>${_lEsc(hit.title)}</b> <span class="dis" id="${uid}">${VOICE.notThis}</span>\n\n${kbBody(hit, q)}</div>
       ${kbSteps(hit)}
-      <span class="topic">ที่มา: ${hit.title}</span>
+      <span class="topic">ที่มา: ${_lEsc(hit.title)}</span>
       <div class="meta">ค้นตรงไม่เจอ → AI แปลงคำถามเป็นคำค้น "${_lEsc(u.via)}" → ค้นคู่มือเจอข้อเดียวชัด (score ${u.score}) · คำตอบเป็นข้อความคู่มือ AI ไม่ได้เขียน</div>
       ${kbSource(hit)}
       ${fbUI(q, d.blake3_proof, hit.id)}`);
