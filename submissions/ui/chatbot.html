@@ -2352,10 +2352,14 @@ function addFollowUps(typed){
   if(PCTX) picks=_FU_PROG;                                  // a programme card is on screen: its fees / scholarships are the natural next questions
   else { const t=last.querySelector('.topic'); if(!t) return;  // only after a knowledge-base answer
     const shown=t.textContent.replace(/^(?:ที่มา|หัวข้อ|อ้างอิง):\s*/,'').trim();
-    picks=search(q).filter(r=>r.s>=2 && r.e.title!==shown).slice(0,3).map(r=>r.e.title);
-    const cur=KB.find(e=>e.title===shown);               // too few close matches: top up with other entries of the same topic area
-    // QA G13: every staff entry is category 'staff' - topping up after a staff answer listed unrelated staff answers
-    if(cur && cur.category && !cur.staff) for(const e of KB){ if(picks.length>=3) break; if(e.category===cur.category && e.title!==shown && !picks.includes(e.title)) picks.push(e.title); } }
+    const cur=KB.find(e=>e.title===shown);
+    // QA F18: related to the ANSWER shown (its title), not to the typed words; never a near-copy of that answer
+    const key=t=>String(t||'').replace(/[\s?？]/g,'').toLowerCase(), sk=key(shown), dup=t=>{ const k=key(t); return k===sk || k.includes(sk) || sk.includes(k); };
+    // the organisation's own name is in many titles and made unrelated entries look close; a same-category top-up was unrelated
+    // filler (and, QA G13, listed other staff answers after a staff answer) - so no top-up: fewer chips beat unrelated ones
+    const org=String(AGENCY.name||'').split(' ')[0], basis=cur ? (normChat(cur.title)||cur.title).split(org||'\u0000').join(' ') : q;
+    picks=search(basis).filter(r=>r.s>=3 && !dup(r.e.title)).slice(0,3).map(r=>r.e.title);
+  }
   if(!picks.length) return;
   const box=document.createElement('div'); box.className='followups';
   box.innerHTML='<span class="fu-h">ถามต่อ:</span>'+picks.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('');

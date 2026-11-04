@@ -29,7 +29,7 @@ check('no kernel configured (other agencies) = no live answers', /async function
 check('G11: only the latest /live-kb request writes KB (sequence counter)', /const my=\+\+LIVE_SEQ;/.test(chat) && /if\(my!==LIVE_SEQ \|\| !j/.test(chat));
 check('G12: an early question waits (<= 1.5 s) for the first live refresh', /LIVE_READY = Promise\.race\(\[refreshLiveKb\(\), new Promise\(r=>setTimeout\(r,1500\)\)\]\)/.test(chat) && /if\(typed && ready && !LIVE_SETTLED\)/.test(chat));
 check('G09: the staff approval date is the Bangkok calendar day', /_pDate\(_bkkIso\(hit\.approved_at\)\)/.test(chat) && !/approved_at\)\.toISOString/.test(chat));
-check('G13: no same-category top-up after a staff answer; retracted chips say so', /cur\.category && !cur\.staff/.test(chat) && /คำตอบนี้ถูกถอนแล้ว/.test(chat));
+check('G13: no same-category top-up after a staff answer (F18: no top-up at all now); retracted chips say so', !/e\.category===cur\.category/.test(chat) && /คำตอบนี้ถูกถอนแล้ว/.test(chat));
 check('G07: search() applies the staff-supersede step to both engines', /function search\(q\)\{ return _staffSupersede\(_searchRaw\(q\)\); \}/.test(chat));
 check('G14: a staff answer keeps its own lines (staffBody), not answerPoints bullets', /if\(hit\.staff\) return staffTag \+ staffBody\(hit, q\);/.test(chat) && /const _SHOW_STAFF=8;/.test(chat));
 check('G35: _askCore binds add() to its own question and number', /const myTurn=\+\+askSeq, add=\(cls, html\)=>_add\(cls, html, typed, myTurn\);/.test(chat) && /const qsrc = askedQ !== undefined \? askedQ : lastUserQ/.test(chat));
