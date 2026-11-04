@@ -963,7 +963,10 @@ function scopeClarify(q, ranked, kb){
 function normChat(q){
   // QA F28: fullwidth ASCII (U+FF01-FF5E) folds to ASCII and U+3000 to a space; emoji and a trailing run of ?!.~ go, so
   // "X???" or "X ครับ 🙏" reads as "X" / "X ครับ" (whose particle _P_TAIL drops). No NFKC: it breaks Thai ำ.
-  return String(q==null?'':q).normalize('NFC').replace(/[​-‍﻿]/g,'').replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g,' ')
+  // QA G27: a sara am typed as nikhahit + sara aa, a tone mark typed before its vowel, and invisible format characters (U+2060,
+  // soft hyphen, bidi marks, variation selectors) made the same question score differently. Fold sara am first, then reorder.
+  return String(q==null?'':q).normalize('NFC').replace(/\u0E4D([\u0E48-\u0E4B])?\u0E32/g,(m,t)=>(t||'')+'\u0E33')
+    .replace(/([\u0E48-\u0E4B])([\u0E31\u0E34-\u0E37\u0E47])/g,'$2$1').replace(/[\p{Cf}\u034F\u3164\uFE00-\uFE0F]/gu,'').replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g,' ')
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{1F3FB}-\u{1F3FF}]/gu,' ').replace(/([ก-๎])\1{2,}/g,'$1').replace(/\s+/g,' ').trim().replace(/[\s?!.~？！]+$/,'').trim();
 }
 // </chat-normalize>
