@@ -124,12 +124,12 @@ Before the floor, `ours` made 5 errors among 45 answers (AURC 0.06, AUROC 0.84);
 |---|---|---|---|---|---|
 | official name + level | 100 % / 100 % | **0** | 0 | 100 % / 91 % | 0 |
 | bare name | 100 % / 99 % | **0** | 0 | 98 % / 52 % | 6 |
-| one letter dropped | 96 % / 95 % | **0** | 10 (3 %) | 99 % / 59 % | 2 |
+| one letter dropped | 97 % / 96 % | **0** | 10 (3 %) | 99 % / 59 % | 2 |
 | no tone marks | 100 % / 100 % | **0** | 0 | 97 % / 54 % | 6 |
 | elongated ending | 100 % / 99 % | **0** | 0 | 98 % / 52 % | 6 |
 | English title | 100 % / 100 % | **0** | 0 | 100 % / 96 % | 0 |
 
-Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosine ≥ 0.6 (fixed, untuned), else a picker of its top 6. It never abstains. Its "exact" is low because it shows one card where several programmes share a name (level / plan / faculty); ours asks which one (mean 1.6–2.8 programmes shown).
+Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosine ≥ 0.6 (fixed, untuned), else a picker of its top 6. It never abstains. Its "exact" is low because it shows one card where several programmes share a name (level / plan / faculty); ours asks which one (mean 1.1–2.8 programmes shown).
 
 **C — independent corpus (not reproducible here):** FAQ-only (62 docs, 31 queries) recall@1 94 %, @3 100 %, 5/5 off-corpus rejected; full 440-doc corpus with a separate namespace for the 378 programme templates 87 % / 97 % (`benchmark/gradmahidol/RESULTS.md`). This is the least tuned evidence we have — but it is 31 queries and the corpus is not in the repo.
 

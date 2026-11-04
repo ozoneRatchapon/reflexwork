@@ -844,7 +844,10 @@ function scopeClarify(q, ranked, kb){
 // matching. Only runs of 3+ of the SAME THAI letter/mark collapse to one (no Thai word has one) - Latin and digits are left
 // alone on purpose ("www", "10000" must survive). The user's own bubble keeps what they typed.
 function normChat(q){
-  return String(q==null?'':q).normalize('NFC').replace(/[​-‍﻿]/g,'').replace(/([ก-๎])\1{2,}/g,'$1').replace(/\s+/g,' ').trim();
+  // QA F28: fullwidth ASCII (U+FF01-FF5E) folds to ASCII and U+3000 to a space; emoji and a trailing run of ?!.~ go, so
+  // "X???" or "X ครับ 🙏" reads as "X" / "X ครับ" (whose particle _P_TAIL drops). No NFKC: it breaks Thai ำ.
+  return String(q==null?'':q).normalize('NFC').replace(/[​-‍﻿]/g,'').replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g,' ')
+    .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{1F3FB}-\u{1F3FF}]/gu,' ').replace(/([ก-๎])\1{2,}/g,'$1').replace(/\s+/g,' ').trim().replace(/[\s?!.~？！]+$/,'').trim();
 }
 // </chat-normalize>
 
@@ -952,9 +955,10 @@ const _P_ZERO=/[​‌‍]/g;
 // Intent phrases are removed only as WHOLE phrases at the start/end of the question (never single
 // words like "ต่อ"/"ศึกษา"/"ทาง", which begin real field names: ต่อมไร้ท่อ, ศึกษาศาสตร์, ทางการแพทย์).
 const _P_LEAD=/^(?:(?:ผม|หนู|ฉัน|เรา|พี่|ขอ|รบกวน|ช่วย|สอบถาม|ถามหน่อย)\s*)?(?:(?:อยาก|จะ|ต้องการ|สนใจ|กำลังจะ|ตั้งใจจะ)?(?:สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เข้าเรียน|เข้าศึกษา|เรียน)(?:ทำ|ด้าน|สาย)?|มี(?=หลักสูตร|สาขา)|ขอ(?:ข้อมูล|รายละเอียด)|(?:ข้อมูล|รายละเอียด)(?:ของ|เกี่ยวกับ)?|เกี่ยวกับ|อยาก|สนใจ|ต้องการ|ต่อ(?=โท|เอก)|ด้าน|ใน|ที่(?=\s)|ของ|หลักสูตร|สาขาวิชา|สาขา|ระดับ|คณะ|หา|ดู|i want to|i would like to|i'd like to|how to apply to|apply(?:ing)? (?:to|for)|the|a|an|in|of|program(?:me)?|course)\s*/i;
-const _P_TAIL=/\s*(?:ครับ|ค่ะ|คะ|นะครับ|นะคะ|นะ|หน่อย|ด้วย|ได้ไหม|ได้หรือไม่|ได้ยังไง|ยังไง|อย่างไร|ไหม|หรือเปล่า|หรือไม่|สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|ปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|รับสมัคร|หรือยัง|เท่าไหร่|เท่าไร|กี่บาท|อะไรบ้าง|ต่อเทอม|เทอมละ|ต่อภาค(?:การศึกษา)?|ภาคละ|ทั้งหมด|ตลอดหลักสูตร|ที่ไหน|เมื่อไหร่|เมื่อไร|วันไหน|ปี ?\d{4}|\d{4}|หลักสูตร|program(?:me)?|course|please)\s*$/i;
+const _P_TAIL=/\s*(?:ครับ|ค่ะ|คะ|นะครับ|นะคะ|นะ|หน่อย|ด้วย|ได้ไหม|ได้หรือไม่|ได้ยังไง|ยังไง|อย่างไร|ไหม|หรือเปล่า|หรือไม่|อยู่|สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|ปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|รับสมัคร|หรือยัง|เท่าไหร่|เท่าไร|กี่บาท|อะไรบ้าง|ต่อเทอม|เทอมละ|ต่อภาค(?:การศึกษา)?|ภาคละ|ทั้งหมด|ตลอดหลักสูตร|ที่ไหน|เมื่อไหร่|เมื่อไร|วันไหน|ปี ?\d{4}|\d{4}|หลักสูตร|program(?:me)?|course|please)\s*$/i;
 const _P_DEGREE=/ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต|ประกาศนียบัตร|ปริญญาโท|ปริญญาเอก|ปริญญา|ป\.\s?โท|ป\.\s?เอก|ระดับโท|ระดับเอก|มหาบัณฑิต|ดุษฎีบัณฑิต|ต่อโท|ต่อเอก|master(?:'s)?|doctoral|doctorate|ph\.?\s?d|\bmsc\b|m\.\s?sc\.?/gi;
 const _P_QUAL=/ภาคพิเศษ|ภาคปกติ|นานาชาติ|international(?: program(?:me)?)?|special program(?:me)?/gi;
+const _P_PAREN=/\(\s*(?:หลักสูตร)?\s*\)/g;
 const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(?:ใน)?(?:การ)?สมัคร|ค่าปรับ|ค่า\S{0,10}สอบ|รักษาสถานภาพ|ใบรับรอง|ผ่อนผัน|โครงร่าง|ประมวลความรู้|อาจารย์ที่ปรึกษา|เปลี่ยนสาขา|ย้ายสาขา|วิทยานิพนธ์|ลงทะเบียน|ลาพัก|ลาออก|หยุดเรียน|พักการเรียน|เกรด|transcript|ตารางสอบ|ย้ายหลักสูตร|เปลี่ยนหลักสูตร|ตารางเรียน|เรียนกี่|เรียนนาน|จบกี่ปี|ใช้เวลาเรียน|application fee|thesis|turnitin/i;
 // Topic of a programme question: "ค่าเทอม <programme>" / "ทุน <programme>" -> that programme's own fee table /
 // scholarship note from its announcement. Without a programme in the question the KB answers as before.
@@ -963,7 +967,7 @@ const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึก�
 // What a question naming a programme ASKS about, so the card can lead with that answer ("จิตวิทยาคลินิกสอบสัมภาษณ์วันไหน").
 // Narrower than the follow-up list below (_P_ASPECT): these words are also removed before matching the programme name.
 const _P_ASK=[['schedule',/สอบสัมภาษณ์|สัมภาษณ์|สอบข้อเขียน|สอบวันไหน|สอบเมื่อ(?:ไหร่|ไร)|ประกาศผล|ประกาศรายชื่อ|รายงานตัว|กำหนดการ|สมัครได้ถึง|หมดเขต|ตัดรอบ|ปิดรับ(?:สมัคร)?(?:วันไหน|เมื่อ(?:ไหร่|ไร))|deadline|interview/i],
-  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับสมัครอยู่|ยังรับ|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย)/i],
+  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด(?:รับ)?(?:สมัคร)?|รับกี่คน|จำนวนรับ|รับสมัครอยู่|ยังรับ(?:สมัคร)?|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย)/i],
   ['docs',/เอกสาร(?:การ)?สมัคร|ใช้เอกสาร|หลักฐานการสมัคร|ต้องใช้อะไรบ้าง/i],
   ['elig',/คุณสมบัติ(?:ผู้สมัคร)?/i],
   ['english',/เกณฑ์(?:ภาษา)?อังกฤษ|คะแนน(?:ภาษา)?อังกฤษ|toefl|ielts|ยื่นผล(?:ภาษา)?อังกฤษ/i]];
@@ -983,7 +987,10 @@ function _pPieces(n, h){ let i=0, cov=0;
 function _pCore(title){ let t=String(title||'').replace(/\([^)]*\)/g,' ');
   const i=t.indexOf('สาขาวิชา'); t = i>=0 ? t.slice(i+8) : t.replace(/มหาบัณฑิต|ดุษฎีบัณฑิต|ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต/g,'');
   return _pTone(t.replace(/\s+/g,'').toLowerCase()); }
-function _pClean(q){ let s=String(q||'').toLowerCase().replace(_P_ZERO,'').replace(_P_DEGREE,' ').replace(_P_QUAL,' ').replace(/\s+/g,' ').trim(), prev;
+// An official title pasted whole (QA F24): "(หลักสูตรนานาชาติ)" leaves "(หลักสูตร)" once _P_QUAL has gone, and the degree
+// name before สาขาวิชา ("วิทยาศาสตร", "พยาบาลศาสตร") is not the field - read only what follows สาขาวิชา, as _pCore does.
+function _pClean(q){ let s=String(q||'').toLowerCase().replace(_P_ZERO,'').replace(_P_DEGREE,' ').replace(_P_QUAL,' ').replace(_P_PAREN,' ').replace(/\s+/g,' ').trim(), prev;
+  const i=s.indexOf('สาขาวิชา'); if(i>=0 && s.slice(i+8).trim()) s=s.slice(i+8).trim();
   do{ prev=s; s=s.replace(_P_LEAD,'').replace(_P_TAIL,'').replace(/\s+มี$/,'').trim(); }while(s!==prev && s);   // "ทุน X มีไหม" leaves a stray มี
   return s.replace(/\s+/g,''); }
 const _P_FUNC=/^(?:ต้อง|สำหรับ|เพื่อ|การ|ของ|และ|ที่|ใน|มี|ได้|เป็น|จะ|ให้|กับ|แบบ|ทาง|ด้าน|เรื่อง|อะไร|ยังไง|อย่างไร|ไหม|บ้าง|ศึกษา|วิจัย|เรียน|สมัคร|ทำ|ไป|นี้|นั้น)+$/;
@@ -996,10 +1003,12 @@ function resolveProgramme(q, P, loose){
   const feeTopic=(_P_TOPIC.find(([,re])=>re.test(raw))||[''])[0], topic=feeTopic || (_P_ASK.find(([,re])=>re.test(raw))||[''])[0];
   const code=raw.toUpperCase().match(/\b(\d{4}[MDNC]\d{2}[GS])\b/);
   if(code){ const r=P.find(p=>p.code===code[1]); return r ? {kind:'one', row:r, via:'code', topic} : null; }
-  const text=[..._P_TOPIC,..._P_ASK].reduce((s,[,re])=>s.replace(new RegExp('(?:มี)?(?:'+re.source+')','gi'),' '), raw);
+  // A leading "มี" goes with the ask ("มีสอบสัมภาษณ์ไหม", "X มีทุนไหม") - unless it ends the name ("เคมีสอบข้อเขียน", QA F25):
+  // both readings are tried, the มี-less one first.
+  const strip=mi=>[..._P_TOPIC,..._P_ASK].reduce((s,[,re])=>s.replace(new RegExp(mi+'(?:'+re.source+')','gi'),' '), raw), texts=[...new Set([strip('(?:มี)?'), strip('')])];
   const alias=Object.keys(_P_ALIAS).find(a=>new RegExp('(?:^|[^a-z])'+a+'(?:[^a-z]|$)','i').test(raw));
   const level=_pLevel(raw), intl=/นานาชาติ|international/i.test(raw), special=/ภาคพิเศษ|special program/i.test(raw);
-  const needles = (alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : [_pClean(text)]).filter(n=>!_P_FUNC.test(n)).map(_pTone);   // function-word test BEFORE tone marks go ("เพื่อ" must still read as เพื่อ)
+  const needles = [...new Set(alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : texts.map(_pClean))].filter(n=>!_P_FUNC.test(n)).map(_pTone);   // function-word test BEFORE tone marks go ("เพื่อ" must still read as เพื่อ)
   const need = needles.map(n=>({n, g:_pTri(n)})).filter(x=>x.g.size>=2);
   if(!need.length) return null;
   const intentOk=_P_INTENT.test(raw) || !!alias || !!topic;
@@ -1016,7 +1025,10 @@ function resolveProgramme(q, P, loose){
         // Needs ≥4 trigrams so short names (เคมี) cannot match incidental text; longer names rank higher.
         // ...but a short name hidden inside a longer, mistyped one ("ชีววิทยา" inside "ชีวเคมีและชีววิทยา…") is not the programme asked for:
         // the contained name must be a real share (>= 40%) of what was asked.
-        if(hg.size>=4 && h===core && h.length>=0.4*n.length){ let inQ=0; for(const t of hg) if(g.has(t)) inQ++; if(inQ===hg.size) best=Math.max(best, 1 + Math.min(h.length,40)/50); } }
+        // A name with a long leftover (QA F27: "ชีววิทยา" inside the slip "จุลชีววิทยาสาธารณุข") only just clears the bar, so a
+        // name that covers the whole question outranks it; with a small leftover ("เรียนทำ" + name) it is the programme asked for.
+        if(hg.size>=4 && h===core && h.length>=0.4*n.length){ let inQ=0; for(const t of hg) if(g.has(t)) inQ++;
+          if(inQ===hg.size) best=Math.max(best, n.length-h.length<=Math.max(3, 0.25*n.length) ? 1 + Math.min(h.length,40)/50 : 0.85 + Math.min(h.length,40)/400); } }
     }
     if(best>0) scored.push({p, s:best});
   }

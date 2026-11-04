@@ -15,12 +15,22 @@ struct Needle {
     tri: Tri,
 }
 
+const FIELD_MARK: &str = "สาขาวิชา";
+
 /// `_pClean`: the question without filler at its start and end, spaces removed.
 fn clean(q: &str, p: &Patterns) -> String {
     let lowered = strip_zero_width(&q.to_lowercase());
     let degrees = p.degree.replace_all(&lowered, " ");
     let quals = p.qual.replace_all(&degrees, " ");
-    let mut s = trim(&replace_ws(&quals, " ")).to_owned();
+    let parens = p.paren.replace_all(&quals, " ");
+    let mut s = trim(&replace_ws(&parens, " ")).to_owned();
+    // a pasted official title: only what follows สาขาวิชา is the field (as `core_of` reads a title)
+    if let Some(i) = s.find(FIELD_MARK) {
+        let field = trim(&s[i + FIELD_MARK.len()..]);
+        if !field.is_empty() {
+            s = field.to_owned();
+        }
+    }
     loop {
         let prev = s.clone();
         let cut = match p.lead.captures(&s) {
@@ -44,17 +54,30 @@ fn level_of(q: &str, p: &Patterns) -> Option<char> {
     p.levels.iter().find(|(_, re)| re.is_match(q)).map(|(k, _)| *k)
 }
 
-/// The text the programme name is read from: topic and ask words are removed first.
-fn name_text(q: &str, p: &Patterns) -> String {
-    p.strip.iter().fold(q.to_owned(), |s, re| re.replace_all(&s, " ").into_owned())
+/// The texts the programme name is read from: topic and ask words are removed first, with a leading มี (the usual reading) and
+/// without it (the มี may end the name: "เคมีสอบข้อเขียน"). Distinct readings only, the มี-less one first.
+fn name_texts(q: &str, p: &Patterns) -> Vec<String> {
+    let strip = |res: &[regex_lite::Regex]| res.iter().fold(q.to_owned(), |s, re| re.replace_all(&s, " ").into_owned());
+    dedup(vec![strip(&p.strip), strip(&p.strip_keep_mi)])
 }
 
-fn needles(text: &str, alias: Option<usize>, p: &Patterns) -> Vec<Needle> {
+/// Order-preserving dedup (JS `[...new Set(xs)]`).
+fn dedup(xs: Vec<String>) -> Vec<String> {
+    let mut out: Vec<String> = Vec::with_capacity(xs.len());
+    for x in xs {
+        if !out.contains(&x) {
+            out.push(x);
+        }
+    }
+    out
+}
+
+fn needles(texts: &[String], alias: Option<usize>, p: &Patterns) -> Vec<Needle> {
     let raw: Vec<String> = match alias {
         Some(i) => ALIASES[i].1.iter().map(|s| replace_ws(s, "")).collect(),
-        None => vec![clean(text, p)],
+        None => texts.iter().map(|t| clean(t, p)).collect(),
     };
-    raw.into_iter()
+    dedup(raw).into_iter()
         .filter(|n| !p.func.is_match(n)) // the function-word test comes BEFORE tone marks go ("เพื่อ" must still read as เพื่อ)
         .map(|n| tone(&n))
         .map(|n| Needle { tri: tri(&n), text: u16s(&n) })
@@ -81,7 +104,10 @@ fn score(entry: &Entry, needles: &[Needle], loose: bool) -> f64 {
             if hg.len() >= 4 && h == entry.core.as_slice() && h.len() as f64 >= 0.4 * n.text.len() as f64 {
                 let in_q = hg.iter().filter(|t| n.tri.contains(*t)).count();
                 if in_q == hg.len() {
-                    best = best.max(1.0 + (h.len().min(40) as f64) / 50.0);
+                    // a long leftover (a slip around a shorter name: "จุลชีววิทยาสาธารณุข") only just clears the bar
+                    let (nl, hl) = (n.text.len() as f64, h.len().min(40) as f64);
+                    let small_rest = nl - h.len() as f64 <= 3f64.max(0.25 * nl);
+                    best = best.max(if small_rest { 1.0 + hl / 50.0 } else { 0.85 + hl / 400.0 });
                 }
             }
         }
@@ -111,11 +137,11 @@ impl Catalogue {
             let code = &c[1];
             return self.entries.iter().find(|e| e.code == code).map(|e| one(e, "code", topic, false));
         }
-        let text = name_text(q, p);
+        let texts = name_texts(q, p);
         let alias = p.aliases.iter().position(|(_, re)| re.is_match(q));
         let level = level_of(q, p);
         let (intl, special) = (p.intl.is_match(q), p.special.is_match(q));
-        let needles = needles(&text, alias, p);
+        let needles = needles(&texts, alias, p);
         if needles.is_empty() {
             return None;
         }
