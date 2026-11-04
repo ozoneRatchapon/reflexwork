@@ -97,9 +97,13 @@ export function isAdvice(q) {
 // Build the grounded-hybrid instruction: the model rephrases from KB entries
 // ONLY, never inventing facts. Used when askTeam has no separate context param —
 // the grounding is embedded in the prompt text itself.
+// The manual excerpt itself (the top 3 entries), for a backend that takes it as a separate `context` - our LLM proxy then runs its
+// grounded path and groundedGuard on the answer (QA F12). Same text the web page sends.
+export function groundedContext(entries) {
+  return (entries || []).slice(0, 3).map((e, i) => `[${i + 1}] ${e.title}\n${e.answer}`).join('\n\n');
+}
 export function groundedPrompt(question, entries) {
-  const ctx = (entries || []).slice(0, 3)
-    .map((e, i) => `[${i + 1}] ${e.title}\n${e.answer}`).join('\n\n');
+  const ctx = groundedContext(entries);
   return `ตอบคำถามนี้ให้ผู้ใช้ทำตามได้จริง: "${question}"\n\n`
     + `กฎข้อเท็จจริง (เข้มงวด): ใช้ข้อเท็จจริงจาก "ข้อมูลคู่มือ" ด้านล่างเท่านั้น — ห้ามเพิ่มหรือเดา `
     + `ตัวเลข วัน เบอร์ติดต่อ ชื่อหน่วยงาน หรือข้อเท็จจริงใด ๆ ที่ไม่มีในนั้น. ถ้าไม่พอ ให้บอกว่าคู่มือ`
