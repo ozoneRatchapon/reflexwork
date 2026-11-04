@@ -1832,7 +1832,9 @@ function _askCore(){
   // A staff-written answer that matches this question clearly (s>=6) wins over the programme resolver: staff corrections about a
   // named programme (extended deadline, fee change) were unreachable because the resolver always showed a picker first.
   const _pre = pinned ? null : search(q), staffFirst = !!(_pre && _pre[0] && _pre[0].e.staff && _pre[0].s>=6);
-  const prog = (pinned || staffFirst) ? null : resolveProgramme(q, PROG);
+  // QA F54: 'list of programs' reached the resolver first and listed 8 programmes with PROGRAM in their English title; a finder
+  // question (no programme named - 0 of 1,137 programme-name questions match it) goes straight to the finder below
+  const prog = (pinned || staffFirst || (PROG.length && isFinderQuestion(q))) ? null : resolveProgramme(q, PROG);
   if(prog){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;

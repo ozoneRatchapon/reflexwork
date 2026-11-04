@@ -14,7 +14,7 @@ const own = ['ค่าเทอมสาธารณสุข', 'ทุนว�
 const plain = ['แล้วค่าเทอมล่ะ', 'มีทุนไหม', 'สมัครได้ถึงเมื่อไหร่', 'ค่าเทอมเท่าไร'];
 check('questions naming their own field are detected (follow-up refused)', own.every(q => followUpAspect(q) && resolveProgramme(q, P, true)), own.filter(q => !resolveProgramme(q, P, true)).join(','));
 check('plain follow-ups still use the remembered programme', plain.every(q => followUpAspect(q) && !resolveProgramme(q, P, true)), plain.filter(q => resolveProgramme(q, P, true)).join(','));
-check('a staff answer that clearly matches pre-empts the programme resolver', /staffFirst/.test(html) && /\(pinned \|\| staffFirst\) \? null : resolveProgramme/.test(html));
+check('a staff answer that clearly matches pre-empts the programme resolver', /staffFirst/.test(html) && /\(pinned \|\| staffFirst(?: \|\| [^?]+)?\) \? null : resolveProgramme/.test(html));
 check('a picker (many / broad) clears the programme context', /a picker is on screen: a later/.test(html));
 const gen = ['ค่าเทอมเท่าไร', 'ค่าเทอมปริญญาโท', 'ค่าเทอมทั่วไป', 'ค่าเล่าเรียนปริญญาเอกเท่าไหร่', 'ค่าเรียนกี่บาท'];
 const named = ['ค่าเทอมพยาบาล', 'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก', 'ค่าเทอม 2022M04G', 'ค่าสมัครเท่าไร', 'ค่าปรับส่งเล่ม'];
