@@ -1420,7 +1420,8 @@ async function rewriteQuery(q){
       body: JSON.stringify({ input:q }), signal: AbortSignal.timeout(9000) });
     const j = r.ok ? await r.json() : {};
     const qs = (Array.isArray(j.queries) ? j.queries : []).filter(x=>typeof x==='string' && x.trim()).slice(0,3);
-    _RW_CACHE.set(q, qs); return qs;
+    if(r.ok && j.source!=='fallback') _RW_CACHE.set(q, qs);   // QA F31: only a real answer is cached; 5xx / 429 / fallback retry
+    return qs;
   }catch{ return []; }
 }
 function understand(phrases){
@@ -1645,7 +1646,7 @@ function renderFinder(q, d, kstrip, intro, explicit, near, facets, pfx, finit, e
     el.querySelectorAll('[data-code]').forEach(x=>x.addEventListener('click',()=>{ $('q').value=(pfx||'สมัคร ')+x.dataset.code; ask(); }));
     attachChoiceFilter(el); };
   draw();
-  $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+  paintBar();
 }
 
 // Starting points for a question we did not understand: from each of the most populated KB categories, the first entry whose
@@ -1670,7 +1671,7 @@ function renderChooser(q, d, kstrip, route, lead, picks, meta){
       ${fbUI(q, d.blake3_proof)}`);
   document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
     const e = KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN = e; $('q').value = e.title; ask(); }));
-  $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+  paintBar();
 }
 function starterEntries(){
   const by=new Map(); for(const e of KB){ if(!e.category) continue; (by.get(e.category)||by.set(e.category,[]).get(e.category)).push(e); }
@@ -1687,6 +1688,7 @@ function _askCore(){
   if(!ready) return;
   const typed=$('q').value.trim(); if(!typed) return;
   const myTurn=++askSeq, add=(cls, html)=>_add(cls, html, typed, myTurn);   // QA G35: see _add
+  $('chat').querySelectorAll('.msg.pending').forEach(e=>e.remove());   // QA F60: an older question's understand spinner ends here (its late reply is dropped)
   add('u', typed); $('q').value='';
   const q=normTermYear(stripLeadIn(normChat(typed) || typed));   // everything below reads the normalised text; the bubble above shows what was typed
   const pinned = !!(PIN && PIN.title===typed); if(!pinned) PIN = null;   // a picked topic skips the programme/finder paths
@@ -1758,7 +1760,7 @@ function _askCore(){
       <div class="ans">${PROG_STATE==='failed'?'โหลดรายการหลักสูตรทางการไม่สำเร็จครับ ลองรีเฟรชหน้านี้ หรือดูรายการหลักสูตรจากเว็บทางการโดยตรง':'รายการหลักสูตรทางการกำลังโหลดอยู่ครับ ลองถามอีกครั้งในอีกสักครู่'}</div>
       ${_btn({label:'📋 ดูหลักสูตรทั้งหมด →',url:AGENCY.catalogueUrl},'alt')}
       ${fbUI(q, d.blake3_proof)}`);
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    paintBar();
     return;
   }
 
@@ -1797,7 +1799,7 @@ function _askCore(){
         ${_btn({label:'📋 ดูหลักสูตรทั้งหมด →',url:AGENCY.catalogueUrl},'alt')}`);
       document.getElementById(mid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value = el.dataset.t; ask(); }));
     }
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    paintBar();
     return;
   }
 
@@ -1832,8 +1834,8 @@ function _askCore(){
       <div class="meta">follow-up: ${_pEsc(aspect)} → ${_pEsc(p.code)} (หลักสูตรล่าสุดที่คุยกัน) · ข้อมูลเก็บ ${_pEsc(PROGDOC.fetched_at)}</div>
       ${c.links}
       ${fbUI(q, d.blake3_proof)}`);
-    document.getElementById(uid).addEventListener('click',()=>{ PCTX=null; $('q').value=q; ask(); });
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    document.getElementById(uid).addEventListener('click',()=>{ auto--; saved-=COST; PCTX=null; $('q').value=q; ask(); }, {once:true});   // QA G31: the re-ask counts this question again
+    paintBar();
     return;
   }
   PCTX = null;   // the conversation moved on: never pin a later question to an old programme
@@ -1904,7 +1906,7 @@ function _askCore(){
         <div class="meta">scope guard: ไม่พบปี ${scope.year} ในหมวด ${scope.category} — ไม่แทนด้วยปีอื่น</div>
         ${link?`<a class="golink" href="${_lEsc(link)}" target="_blank" rel="noopener">📄 ${en?'Open the official page':'เปิดหน้าทางการ'} →</a>`:''}`);
     }
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    paintBar();
     return;
   }
 
@@ -1928,18 +1930,18 @@ function _askCore(){
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
             <div class="staff-btns">${_btn(AGENCY.contact)}</div></div>
           ${fbUI(q, d.blake3_proof)}`);
-        $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+        paintBar();
         return;
       }
-      // decent KB match → grounded hybrid (async)
-      auto++; saved+=COST;
+      // decent KB match → grounded hybrid (async). QA G30/G31: counted ONCE here; 'saved' only on the no-LLM strong path below
+      auto++;
       // Strong KB match → the verified answer is good enough on its own. Render
       // it with deterministic template NLG (humanize) — 0 token, 0 hallucination
       // risk. We only pay for (and risk) an LLM rephrase when the match is
       // MID-strength (4–5) and genuinely needs smoothing. This keeps the "facts
       // from KB only" promise: a strong hit is never handed to a generative model.
       if(topScore >= 6 || ranked.slice(0,3).some(r=>r.e.staff)){   // a staff-written answer is shown as the staff wrote it (tag + date), never rephrased as 'AI from official data'
-        auto++; saved+=COST;
+        saved+=COST;
         const srcH0 = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
         add('b', `${kstrip}
           <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">✅ ตอบจากคู่มือ (เรียบเรียงแบบ deterministic · ไม่เรียก AI) ${stageTag}</span>
@@ -1948,7 +1950,7 @@ function _askCore(){
           <div class="meta">KB ตรงชัด (score ${topScore}) → ใช้ template NLG ไม่ต้องเรียก AI · 0 token · ไม่มีโอกาสแต่งนอกคู่มือ</div>
           ${srcH0}
           ${fbUI(q, d.blake3_proof, hit.id)}`);
-        $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+        paintBar();
         return;
       }
       const mid='hyb'+(++fbN);
@@ -1964,7 +1966,7 @@ function _askCore(){
         const n=document.getElementById(mid);
         if(n) n.innerHTML = ans ? mdLite(linkify(ans, LINKS)) : kbBody(hit, q);   // fall back to raw KB if AI unavailable; linkify escapes (LLM text is untrusted)
       });
-      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      paintBar();
       return;
     }
     auto++; saved+=COST;
@@ -1981,7 +1983,7 @@ function _askCore(){
       ${fbUI(q, d.blake3_proof, hit.id)}`);
   } else if(verdict.action==='disambiguate'){
     // rethink found two close candidates — ask which, no AI.
-    auto++;
+    auto++; saved+=COST;
     const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${e.title.replace(/"/g,'&quot;')}">${e.title}</span>`).join('');
     const mid='dis'+(++fbN);
     add('b', `${kstrip}
@@ -2017,7 +2019,7 @@ function _askCore(){
           </div>
         </div>
         ${fbUI(q, d.blake3_proof)}`);
-      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      paintBar();
       return;
     }
 
@@ -2049,7 +2051,7 @@ function _askCore(){
     // point of this bot is that facts come from the KB / the official catalogue). Instead: (1) a study-ish question that names
     // no programme we can find -> the finder; (2) otherwise the nearest KB entries or the common starting points; always
     // with the staff hand-off. The question is already in the gap log, which is how the KB learns it (LLM drafts, staff approve).
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    paintBar();
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
     const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
     if(PROG.length && (hasStudyIntent(q) || nearOk)){
@@ -2073,7 +2075,8 @@ function _askCore(){
       ${fbUI(q, d.blake3_proof)}`);
       document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
         const e = KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN = e; $('q').value = e.title; ask(); }));
-      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      ai--; auto++; saved+=COST;   // QA G31: counted as not-found at the top of this branch; a pick list from the manual is not a hand-off
+      paintBar();
       return;
     }
     const near = ranked.slice(0,3).filter(r=>r.s>=2).map(r=>r.e);
@@ -2107,9 +2110,11 @@ function _askCore(){
     $('chat').appendChild(wait); wait.scrollIntoView({block:'end'});
     rewriteQuery(q).then(phrases=>{
       wait.remove();
+      if(myTurn!==askSeq) return;   // QA F60: a newer question was asked meanwhile - a late reply here would read as its answer
       const u = understand(phrases);
       if(u.kind!=='one'){ showNotFound(u.kind==='many' ? u.entries : null); return; }
-      const hit = u.entry, uid='un'+(++fbN);   // counted as an AI turn (ai++ above): the rewrite is an LLM call
+      const hit = u.entry, uid='un'+(++fbN);
+      ai--; auto++;   // QA G31: counted as not-found above; it was answered from the manual (the rewrite is an LLM call, so no 'saved')
       add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือ · 🧠 AI ช่วยตีความคำถาม ${stageTag}</span>
       <div class="ans">${VOICE.understoodLead} <b>${_lEsc(hit.title)}</b> <span class="dis" id="${uid}">${VOICE.notThis}</span>\n\n${kbBody(hit, q)}</div>
@@ -2118,15 +2123,14 @@ function _askCore(){
       <div class="meta">ค้นตรงไม่เจอ → AI แปลงคำถามเป็นคำค้น "${_lEsc(u.via)}" → ค้นคู่มือเจอข้อเดียวชัด (score ${u.score}) · คำตอบเป็นข้อความคู่มือ AI ไม่ได้เขียน</div>
       ${kbSource(hit)}
       ${fbUI(q, d.blake3_proof, hit.id)}`);
-      document.getElementById(uid).addEventListener('click',()=>showNotFound(u.others));
-      $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+      document.getElementById(uid).addEventListener('click',()=>{ auto--; ai++; paintBar(); showNotFound(u.others); }, {once:true});   // QA G31: 'not this' turns the answer back into a not-found
+      paintBar();
       try{ addFollowUps(q); }catch(_){}
     });
     return;
     }
   }
-  $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved;
-  updateRatio();
+  paintBar();
 }
 
 // live fast-path ratio — the self-learning signal made visible
@@ -2150,6 +2154,7 @@ function satisfactionNote(ema, n){
   return `นับจากคำถามในเซสชันนี้เท่านั้น · คะแนนความพอใจจาก 👍/👎 = ${ema >= 0 ? '+' : ''}${ema.toFixed(2)} (จาก ${n} โหวต, ช่วง −1…+1) — แสดงแยก ไม่ปรับตัวเลขสัดส่วนข้างบน`;
 }
 // </ratio>
+function paintBar(){ $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio(); }
 function updateRatio(){
   const st = ratioStats(auto, ai);
   if(!st.total) return;
