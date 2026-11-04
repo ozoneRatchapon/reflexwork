@@ -1468,6 +1468,13 @@ async function rewriteQuery(q){
     return qs;
   }catch{ return []; }
 }
+// QA F29: the AI's phrases did not agree on one entry, but a phrase may still point clearly at one. Offer those (up to 3) as the
+// suggestions under the honest not-found instead of the 4 generic starting points. Suggestions only - nothing is answered.
+function phraseHints(phrases){
+  const out=[], seen=new Set();
+  for(const p of (phrases||[])){ const top=search(p)[0]; if(top && top.s>=3 && !seen.has(top.e.id)){ seen.add(top.e.id); out.push(top.e); } }
+  return out.slice(0,3);
+}
 function understand(phrases){
   const clear = [];
   for(const p of phrases){ const r = search(p), top = r[0], second = r[1];
@@ -2187,7 +2194,7 @@ function _askCore(){
       wait.remove();
       if(myTurn!==askSeq) return;   // QA F60: a newer question was asked meanwhile - a late reply here would read as its answer
       const u = understand(phrases);
-      if(u.kind!=='one'){ showNotFound(u.kind==='many' ? u.entries : null); return; }
+      if(u.kind!=='one'){ showNotFound(u.kind==='many' ? u.entries : phraseHints(phrases)); return; }
       const hit = u.entry, uid='un'+(++fbN);
       ai--; auto++;   // QA G31: counted as not-found above; it was answered from the manual (the rewrite is an LLM call, so no 'saved')
       add('b', `${kstrip}
