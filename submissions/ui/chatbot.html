@@ -431,6 +431,7 @@ const DEFAULT_AGENCY = {
     howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?'
   },
   contact:{label:'☎️ ติดต่อบัณฑิตวิทยาลัย',url:'https://graduate.mahidol.ac.th/thai/contact-us/'},
+  it:{name:'กองไอที', phone:'02-849-6022', email:'account@mahidol.ac.th'},   // QA G05: the account / system-problem box (intake); null elsewhere
   faq:{label:'📚 เปิดคู่มือ FAQ ทางการ',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai'},
   english:{home:{label:'🌐 Graduate School (English)',url:'https://graduate.mahidol.ac.th/eng/'},faq:{label:'📚 Official FAQ (English)',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng'},contact:{label:'☎️ Contact staff',url:'https://graduate.mahidol.ac.th/thai/contact-us/'}},
   scopeLinks:{registration:'https://graduate.mahidol.ac.th/thai/current-students/?p=academic-calendar',admissions:'https://graduate.mahidol.ac.th/thai/prospective-students/?topic=schedule',other:'https://graduate.mahidol.ac.th/thai/contact-us/'},
@@ -444,7 +445,7 @@ const NEUTRAL_AGENCY = {
   metaTitle:'ถาม-ตอบ — ReflexWork', metaDescription:'ผู้ช่วยตอบคำถามจากข้อมูลทางการของหน่วยงาน',
   placeholder:'พิมพ์คำถามของคุณ', greeting:'ถามได้เลยครับ', examples:[],
   persona:{hello:'ผมเป็นผู้ช่วยตอบคำถามจากข้อมูลทางการครับ — มีเรื่องอะไรให้ช่วยไหมครับ?', bye:'ด้วยความยินดีครับ 🦀', whatCan:'ผมตอบคำถามจากข้อมูลทางการของหน่วยงานครับ ถ้าไม่มีในข้อมูล ผมจะบอกและพาไปหาเจ้าหน้าที่ ลองถามมาได้เลย', howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องอะไรให้ช่วยไหมครับ?'},
-  contact:null, faq:null, english:null, scopeLinks:{}, builtinKb:false, customised:true
+  contact:null, faq:null, english:null, it:null, scopeLinks:{}, builtinKb:false, customised:true
 };
 let AGENCY = DEFAULT_AGENCY;
 async function loadAgency(){
@@ -2096,20 +2097,23 @@ function _askCore(){
     if(issue){
       const fields = INTAKE_FIELDS.map((f,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${f}</span></label>`).join('');
       const mailBody = encodeURIComponent(`เรื่อง: ${issue.label}\n${INTAKE_FIELDS.map((f,i)=>`${i+1}. ${f}: `).join('\n')}\n`);
-      const mailTo = `mailto:account@mahidol.ac.th?subject=${encodeURIComponent(issue.label)}&body=${mailBody}`;
-      const boxHead = issue.category==='login' ? 'ปัญหาบัญชี/ล็อกอิน ติดต่อกองไอทีได้โดยตรง' : 'ระบบขัดข้องหรือข้อมูลค้าง แจ้งกองไอทีได้โดยตรง';
+      // QA G05: the IT contact comes from the agency config (another deployment never shows Mahidol's IT); the tel: link and its
+      // label come from ONE phone value (F07 was a mismatch between them). No IT contact -> the agency's general contact, or no box.
+      const it = AGENCY.it && (AGENCY.it.phone || AGENCY.it.email) ? AGENCY.it : null, itName = _lEsc((it && it.name) || 'เจ้าหน้าที่');
+      const mailTo = it && it.email ? `mailto:${encodeURIComponent(it.email).replace(/%40/g,'@')}?subject=${encodeURIComponent(issue.label)}&body=${mailBody}` : '';
+      const itBtns = it ? (it.phone ? `<a class="golink" href="tel:${String(it.phone).replace(/[^\d+]/g,'')}">☎️ โทร${itName} ${_lEsc(it.phone)}</a>` : '')
+          + (mailTo ? `<a class="golink alt" href="${mailTo.replace(/&/g,'&amp;')}">✉️ เขียนอีเมลถึง ${_lEsc(it.email)} (มีหัวข้อให้แล้ว)</a>` : '')
+        : _btn(AGENCY.contact);
+      const boxHead = issue.category==='login' ? `ปัญหาบัญชี/ล็อกอิน ติดต่อ${itName}ได้โดยตรง` : `ระบบขัดข้องหรือข้อมูลค้าง แจ้ง${itName}ได้โดยตรง`;
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ติดต่อเจ้าหน้าที่ ${stageTag}</span>
         <div class="ans">เรื่องนี้เป็นปัญหาเฉพาะบัญชี/ข้อมูลของคุณ ต้องให้เจ้าหน้าที่ดูให้ครับ 🙇 แชตนี้ส่งข้อมูลให้เจ้าหน้าที่เองไม่ได้ และไม่ต้องพิมพ์ข้อมูลส่วนตัวไว้ที่นี่ — เตรียมข้อมูลต่อไปนี้แล้วใส่ในอีเมลหรือบอกตอนโทรครับ:</div>
         <div class="steps"><div class="steps-h">ข้อมูลที่ต้องเตรียมก่อนติดต่อเจ้าหน้าที่ (กดติ๊กเมื่อเตรียมครบ):</div>${fields}</div>
         <div class="meta">kernel คัดว่าไม่ใช่คำถามคู่มือ — เป็นเคสที่ต้องคนจริง จึงบอกข้อมูลที่ต้องเตรียมและช่องทางติดต่อ (ไม่เรียก AI)</div>
-        <div class="staffbox">
+        ${itBtns ? `<div class="staffbox">
           <div class="staff-h">${boxHead}</div>
-          <div class="staff-btns">
-            <a class="golink" href="tel:028496022">☎️ โทรกองไอที 02-849-6022</a>
-            <a class="golink alt" href="${mailTo.replace(/&/g,'&amp;')}">✉️ เขียนอีเมลถึง account@mahidol.ac.th (มีหัวข้อให้แล้ว)</a>
-          </div>
-        </div>
+          <div class="staff-btns">${itBtns}</div>
+        </div>` : ''}
         ${fbUI(q, d.blake3_proof)}`);
     } else {
     logGap(q);
