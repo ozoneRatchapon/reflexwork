@@ -1396,13 +1396,13 @@ function finderHtml(F, f, asOf, showAll){
 // for, then hand off to a human. Kept in lockstep with _shared/intake.mjs (LINE).
 const INTAKE_FIELDS=['ชื่อ-นามสกุล','รหัสนักศึกษา / username / อีเมลมหาวิทยาลัย','ระบบที่มีปัญหา (เช่น WE Mahidol, Student Card App, e-Thesis, ระบบลงทะเบียน)','อาการ / ข้อความ error ที่เจอ (แนบภาพหน้าจอได้)'];
 const _ISSUE_CATS=[
-  {category:'login', label:'เข้าระบบ/ล็อกอินไม่ได้', re:/ล็อก ?อิน|เข้าระบบ(?:ไม่ได้)?|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset.{0,8}(?:password|รหัส)|account.{0,12}(?:locked|ล็อก|ไม่ได้)|server ?error|we ?mahidol|student ?card/i},
-  {category:'data_stuck', label:'ข้อมูล/สถานะค้างในระบบ', re:/(?:ข้อมูล|รายชื่อ|สถานะ|ชื่อ).{0,12}(?:ค้าง|ไม่อัปเดต|ไม่อัพเดต|ไม่ขึ้น|หาย|ไม่ตรง|ผิด)|ยังมีรายชื่อ|ติดอยู่ในระบบ|stuck|not ?updat|pending.*(?:system|ระบบ)/i},
-  {category:'system_error', label:'ระบบขัดข้อง/ใช้งานไม่ได้', re:/ระบบ.{0,16}(?:error|ขัดข้อง|ล่ม|พัง|ใช้ ?ไม่ ?ได้|มีปัญหา|ไม่ทำงาน|ไม่ได้)|กดไม่ได้|(?:ใส่|กรอก|เลือก|เพิ่ม)(?:ชื่อ)?.{0,12}ไม่ได้|บันทึกไม่ได้|อัปโหลดไม่ได้|system ?(?:error|down|broken)/i},
+  {category:'login', label:'เข้าระบบ/ล็อกอินไม่ได้', re:/ล็อก ?อิน|เข้า ?(?:สู่ ?)?ระบบ(?:ไม่ได้)?|เข้า ?บัญชี|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset.{0,8}(?:password|รหัส)|account.{0,12}(?:locked|ล็อก|ไม่ได้)|server ?error|we ?mahidol|student ?card/i},
+  {category:'data_stuck', label:'ข้อมูล/สถานะค้างในระบบ', re:/(?:ข้อมูล|รายชื่อ|สถานะ|ชื่อ).{0,12}(?:ค้าง|ไม่อัปเดต|ไม่อัพเดต|ไม่ขึ้น|หาย|ไม่ตรง|ผิด)|(?:รหัส ?(?:นักศึกษา|นศ)|ผล ?(?:สอบ|การเรียน)|เกรด|คะแนน).{0,12}ไม่ขึ้น|ยังมีรายชื่อ|ติดอยู่ในระบบ|stuck|not ?updat|pending.*(?:system|ระบบ)/i},
+  {category:'system_error', label:'ระบบขัดข้อง/ใช้งานไม่ได้', re:/ระบบ.{0,16}(?:error|ขัดข้อง|ล่ม|พัง|ใช้ ?ไม่ ?ได้|มีปัญหา|ไม่ทำงาน|ไม่ได้)|กดไม่ได้|(?:ใส่|กรอก|เลือก|เพิ่ม)(?:ชื่อ)?.{0,12}ไม่ได้|บันทึกไม่ได้|อัปโหลดไม่ได้|กด ?(?:ส่ง|ยืนยัน|บันทึก)?.{0,10}ไม่(?:ไป|ขึ้น|ทำงาน)|(?:ระบบ|หน้า ?(?:เว็บ|จอ)) ?ค้าง|system ?(?:error|down|broken)/i},
 ];
 // QA G03: a term system (ทวิภาค, "เรียนระบบนี้"), a full exam round, and a name on a degree certificate or transcript are manual
 // questions (registrar), not an account problem for the IT box. Bare reset/account no longer read as login.
-const _NOT_PERSONAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ|ทวิภาค|ไตรภาค|ระบบการศึกษา|ระบบภาค|เรียนระบบ|เพราะเต็ม|ที่นั่งเต็ม|รอบเต็ม|เต็มแล้ว|ใบปริญญา|ปริญญาบัตร|ใบรับรอง|ใบแสดงผล|transcript/i;
+const _NOT_PERSONAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ|ทวิภาค|ไตรภาค|ระบบการศึกษา|ระบบภาค|เรียนระบบ|เพราะเต็ม|ที่นั่งเต็ม|รอบเต็ม|เต็มแล้ว|ใบปริญญา|ปริญญาบัตร|ใบรับรอง|ใบแสดงผล|transcript|ดาวน์โหลด|download/i;
 function classifyIssue(text){ const q=String(text||''); if(!q.trim()) return null; if(_NOT_PERSONAL.test(q)) return null;
   for(const c of _ISSUE_CATS){ if(c.re.test(q)) return {kind:'personal', category:c.category, label:c.label}; } return null; }
 
@@ -1892,7 +1892,14 @@ function _askCore(){
     ? d.gate_score
     : (d.fast_path ? Math.min(0.59, 0.30 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.25)
                    : Math.max(0.70, 0.60 + ((typeof d.gate_dim8_complexity==='number')?d.gate_dim8_complexity:0.5)*0.35));
-  const verdict = decideTier({ gate: gateProxy, ranked });
+  let verdict = decideTier({ gate: gateProxy, ranked });
+  // QA F22: 'ข้อมูลหาย' / 'ข้อมูลค้างในระบบ' got the welfare overview from the loose s>=3 guess, never reaching the IT intake. A real
+  // personal account/system problem wins over that loose guess, and over a tie at the top ('เข้าระบบไม่ได้' ties the advisor-only
+  // Thesis Online entry with the student login entry, and cosine picked the advisor one). A clear, untied manual answer or a staff
+  // answer still goes first.
+  const top0 = ranked[0], tied0 = !!(top0 && ranked[1] && ranked[1].s===top0.s);
+  if(verdict.action==='act' && top0 && (top0.s<4 || tied0) && !top0.e.staff && classifyIssue(q))
+    verdict = {action:'escalate', stage:'rethink', reason:`คัดเป็นปัญหาเฉพาะบุคคล — ข้อในคู่มือที่ใกล้สุด${tied0?'มีสองข้อคะแนนเท่ากัน':'ตรงไม่พอ'} (score ${top0.s})`};
   // Affect kernel: answering well warms the mood; a miss (abstain/escalate)
   // makes the bot more apologetic in its hand-off. Deterministic, tone-only.
   MOOD.felt(verdict.action==='escalate' ? 'miss' : 'hit');
