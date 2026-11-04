@@ -759,20 +759,38 @@ function decideTier({gate, ranked}){
 // year the KB has no data for, say so instead of substituting another year.
 const _TH_DIGITS='๐๑๒๓๔๕๖๗๘๙';
 const _TERMS=[['ภาคต้น',/ภาคต้น|ภาคเรียนที่ ?1|first semester|semester 1/i],['ภาคปลาย',/ภาคปลาย|ภาคเรียนที่ ?2|second semester|semester 2/i],['ฤดูร้อน',/ฤดูร้อน|summer/i]];
-function scopeOf(q){
-  const s=String(q||'').replace(/[๐-๙]/g,c=>_TH_DIGITS.indexOf(c));
-  const term=(_TERMS.find(([,re])=>re.test(s))||[''])[0];
-  let year=''; const re=/(?:^|[^A-Za-z0-9])(\d{4})(?![A-Za-z0-9])/g; let m;   // no lookbehind: older Safari fails to parse the whole page
+// Students write terms and years in shorthand (QA F14): "เทอม 1/2569", "เทอมแรกปี 69", "ซัมเมอร์", "เทอมสอง". Rewrite them to the
+// manual's own words BEFORE search and the guard, only for registration/schedule talk, so nothing else is touched.
+const _TERM_NUM=['','ภาคต้น','ภาคปลาย','ฤดูร้อน'];
+const _yy=y=>y.length===2 ? '25'+y : y;
+function normTermYear(q){
+  let s=String(q||''); if(!/ลงทะเบียน|กำหนดการ|เปิดภาค|ปิดภาค|เทอม|ซัมเมอร์|summer|add ?\/? ?drop|ถอนรายวิชา/i.test(s)) return s;
+  s=s.replace(/[๐-๙]/g,c=>_TH_DIGITS.indexOf(c)).replace(/ค่าเทอม/g,'\u0001')   // "ค่าเทอม 1 ภาค" is a fee, not a term
+    .replace(/(?:เทอม|ภาค(?:เรียน)?(?:ที่)?)\s*([123])\s*\/\s*(\d{4}|\d{2})(?!\d)/g,(_,t,y)=>` ${_TERM_NUM[+t]} ปีการศึกษา ${_yy(y)} `)
+    .replace(/เทอม\s*(?:ฤดู)?ร้อน|ซัมเมอร์|ภาค\s*ซัมเมอร์|summer|(?:เทอม|ภาค)\s*(?:ที่\s*)?3(?!\d)/gi,' ฤดูร้อน ')
+    .replace(/เทอม\s*(?:แรก|ต้น|หนึ่ง)|(?:เทอม|ภาค)\s*(?:ที่\s*)?1(?![\d\/])/g,' ภาคต้น ')
+    .replace(/เทอม\s*(?:สอง|ปลาย|หลัง)|(?:เทอม|ภาค)\s*(?:ที่\s*)?2(?![\d\/])/g,' ภาคปลาย ')
+    .replace(/ปี(?:การศึกษา)?\s*(6[7-9]|7\d|8[0-8])(?!\d)/g,(_,y)=>`ปีการศึกษา 25${y}`);
+  return s.replace(/\u0001/g,'ค่าเทอม').replace(/\s+/g,' ').trim();
+}
+// Every academic year a question names, in order ("ภาคต้น 2569 และ 2570" -> both).
+function scopeYears(q){
+  const s=String(q||'').replace(/[๐-๙]/g,c=>_TH_DIGITS.indexOf(c)), term=(_TERMS.find(([,re])=>re.test(s))||[''])[0], out=[];
+  const re=/(?:^|[^A-Za-z0-9])(\d{4})(?![A-Za-z0-9])/g; let m;   // no lookbehind: older Safari fails to parse the whole page
   while((m=re.exec(s))){
     const at=m.index+m[0].length-4, n=+m[1], before=s.slice(Math.max(0,at-14),at), after=s.slice(at+4,at+10);
     if(/(?:เกณฑ์|ข้อบังคับ|regulation)\s*(?:พ\.?ศ\.?\s*)?$/i.test(before)) continue;   // regulation year != academic year
     if(/^\s*(?:บาท|baht|thb|฿|%)/i.test(after)) continue;                              // "2000 บาท" is money
-    if(n>=2567&&n<=2588){ year=String(n); break; }
     // A CE year is a calendar year (QA G18): a summer term sits in the calendar year AFTER its academic year starts
     // ("summer 2027" = May 2027 = ฤดูร้อน ปีการศึกษา 2569), unless the year is explicitly an academic year.
-    if(n>=2024&&n<=2045){ year=String(n+543-(term==='ฤดูร้อน' && !/(?:ปีการศึกษา|academic year|a\.?y\.?)\s*$/i.test(before) ? 1 : 0)); break; }
+    const y = n>=2567&&n<=2588 ? n : n>=2024&&n<=2045 ? n+543-(term==='ฤดูร้อน' && !/(?:ปีการศึกษา|academic year|a\.?y\.?)\s*$/i.test(before) ? 1 : 0) : 0;
+    if(y && !out.includes(String(y))) out.push(String(y));
   }
-  return {year,term};
+  return out;
+}
+function scopeOf(q){
+  const s=String(q||'').replace(/[๐-๙]/g,c=>_TH_DIGITS.indexOf(c));
+  return {year:scopeYears(s)[0]||'', term:(_TERMS.find(([,re])=>re.test(s))||[''])[0]};
 }
 // Echo how a CE year was read (QA G18), so "2026" shown back as "ปีการศึกษา 2568" is not a surprise.
 function ceNote(q, year, en){
@@ -785,11 +803,19 @@ function scopeClarify(q, ranked, kb){
   const sc=scopeOf(q), shape=!!top.e.semester;
   // same kind of document as the top hit (a schedule vs a schedule), dated, same category
   const same=ranked.filter(r=>r.e.academic_year&&r.e.category===top.e.category&&!!r.e.semester===shape);
+  // The chips list EVERY dated entry of the family that fits what was given (QA F14: "ลงทะเบียนเมื่อไหร่" offered 3 of 6), in
+  // calendar order, not only the ones that happened to score near the top.
+  const _TO={'ภาคต้น':0,'ภาคปลาย':1,'ฤดูร้อน':2}, years=scopeYears(q);
+  const family=(kb||ranked.map(r=>r.e)).filter(e=>e.academic_year&&e.category===top.e.category&&!!e.semester===shape
+      &&(years.length>1 ? years.includes(e.academic_year) : !sc.year||e.academic_year===sc.year)&&(!sc.term||e.semester===sc.term))
+    .sort((a,b)=>a.academic_year.localeCompare(b.academic_year)||(_TO[a.semester]??9)-(_TO[b.semester]??9));
   const ask=near=>{
     const ambY=!sc.year&&new Set(near.map(r=>r.e.academic_year)).size>1;
     const ambT=!sc.term&&new Set(near.map(r=>r.e.semester)).size>1;
-    return (ambY||ambT) ? {kind:'ask', axis:ambY&&ambT?'both':ambY?'year':'term', candidates:near.slice(0,4).map(r=>r.e)} : null;
+    return (ambY||ambT) ? {kind:'ask', axis:ambY&&ambT?'both':ambY?'year':'term', candidates:(family.length>1?family:near.map(r=>r.e)).slice(0,6)} : null;
   };
+  // Two years named ("ภาคต้น 2569 และ 2570 ต่างกันยังไง"): never collapse to the first one - offer both.
+  if(years.length>1 && family.length>1) return {kind:'ask', axis:'year', candidates:family.slice(0,6)};
   if(sc.year||sc.term){
     const hit=same.filter(r=>(!sc.year||r.e.academic_year===sc.year)&&(!sc.term||r.e.semester===sc.term));
     if(hit.length && hit[0].s>=Math.max(3,top.s-2)){
@@ -1534,7 +1560,7 @@ function _askCore(){
   if(!ready) return;
   const typed=$('q').value.trim(); if(!typed) return;
   add('u', typed); $('q').value='';
-  const q=stripLeadIn(normChat(typed) || typed);   // everything below reads the normalised text; the bubble above shows what was typed
+  const q=normTermYear(stripLeadIn(normChat(typed) || typed));   // everything below reads the normalised text; the bubble above shows what was typed
   const pinned = !!(PIN && PIN.title===typed); if(!pinned) PIN = null;   // a picked topic skips the programme/finder paths
 
   // Smalltalk first — a greeting/thanks is NOT a knowledge question and NOT a

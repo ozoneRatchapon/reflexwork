@@ -25,7 +25,7 @@ check('_jsSearch block found', sm);
 check('scope-clarify block found', cm);
 if (!sm || !cm) process.exit(1);
 const search = new Function('KB', sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
-const { scopeOf, scopeClarify, ceNote } = new Function(cm[1] + '\nreturn {scopeOf, scopeClarify, ceNote};')();
+const { scopeOf, scopeClarify, ceNote, normTermYear } = new Function(cm[1] + '\nreturn {scopeOf, scopeClarify, ceNote, normTermYear};')();
 
 const run = q => scopeClarify(q, search(q), KB);
 const ids = r => (r && r.candidates || []).map(e => e.id);
@@ -79,5 +79,19 @@ for (const e of dated) {
   check(`chip resolves: ${e.id}`, final && final.id === e.id, r ? r.kind : `top=${top.id}`);
 }
 
+// --- term/year shorthand (F14): the page runs normTermYear before search and the guard
+const runN = q => { const n = normTermYear(q); return { n, top: search(n)[0], c: scopeClarify(n, search(n), KB) }; };
+const lands = (q, id) => { const { top, c } = runN(q); const got = c && c.kind === 'pick' ? c.entry.id : c ? c.kind : top && top.e.id; check(`"${q}" -> ${id}`, got === id, `got ${got}`); };
+lands('ลงทะเบียนเรียนเทอมแรกปี 69 เมื่อไหร่ค่ะ', 'gm_registration_2569');
+lands('ซัมเมอร์ปี 69 ลงทะเบียนเมื่อไหร่คะ', 'gm_registration_2569_summer');
+lands('เทอมสองปี 70 ลงทะเบียนเมื่อไหร่', 'gm_registration_2570_second');
+lands('ลงทะเบียนเทอม 1/2569', 'gm_registration_2569');
+lands('ลงทะเบียนเทอม 1 ปี 2570', 'gm_registration_2570_first');
+lands('ลงทะเบียนภาค 2/69', 'gm_registration_2569_second_semester');
+{ const { c } = runN('ลงทะเบียนซัมเมอร์'); check('"ลงทะเบียนซัมเมอร์" asks between the two summers', c && c.kind === 'ask' && ids(c).join() === 'gm_registration_2569_summer,gm_registration_2570_summer', ids(c).join()); }
+{ const { c } = runN('ลงทะเบียนเมื่อไหร่'); check('"ลงทะเบียนเมื่อไหร่" lists all 6 schedules in calendar order', c && c.kind === 'ask' && ids(c).length === 6 && ids(c)[0] === 'gm_registration_2569', ids(c).join()); }
+{ const { c } = runN('ลงทะเบียนภาคต้น 2569 และ 2570 ต่างกันยังไง'); check('two years named -> both offered, not the first only', c && c.kind === 'ask' && ids(c).join() === 'gm_registration_2569,gm_registration_2570_first', ids(c).join()); }
+check('"ค่าเทอม 1 ภาค" is a fee, untouched', normTermYear('ค่าเทอม 1 ภาคเท่าไร') === 'ค่าเทอม 1 ภาคเท่าไร');
+check('text without schedule words is untouched', normTermYear('ปี 69 สมัครได้ไหม') === 'ปี 69 สมัครได้ไหม');
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
