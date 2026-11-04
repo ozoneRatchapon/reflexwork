@@ -1278,7 +1278,7 @@ function programmeCard(p, asOf, year, topic, q){
   const head=`<b>${_pEsc(p.title)}</b>${(a&&a.title_en)||p.title_en?`<br><small>${_pEsc((a&&a.title_en)||p.title_en)}</small>`:''}\n${_pEsc(p.level)} · ${_pEsc(p.faculty)} · ${tag}`;
   const detail=_pBtn(p.detail_url,'📄 หน้ารายละเอียดหลักสูตร →');
   const topicBtn = topic==='fee' ? _pBtn(_P_FEE_URL,'💰 ค่าธรรมเนียมการศึกษา',1) : topic==='scholarship' ? _pBtn(_P_SCH_URL,'🎓 ทุนการศึกษา',1) : '';
-  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — ตรวจสถานะล่าสุดจากหน้าด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}${(x=>x?'\n\n'+x:'')(staleLine(asOf))}`,
+  if(!a) return {html:`${head}\n\n🗓️ ยังไม่พบประกาศรับสมัครปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ ณ วันที่ ${_pEsc(date)} (ไม่ได้แปลว่าปิดรับ — บางสาขาวิชาเอกมีประกาศแยกของตัวเองซึ่งยังไม่อยู่ในข้อมูลชุดนี้ ตรวจสถานะล่าสุดจากรายการหลักสูตรที่เปิดรับสมัครด้านล่าง)${topic==='fee'||topic==='scholarship'?`\n${topic==='fee'?'💰 อัตราค่าธรรมเนียม':'🎓 ทุน'}รายหลักสูตรมาจากประกาศรับสมัคร จึงยังไม่มีข้อมูลของหลักสูตรนี้`:''}${(x=>x?'\n\n'+x:'')(staleLine(asOf))}`,
     links:detail+_pBtn('https://graduate.mahidol.ac.th/Admission/announce/cur_open_list.php','📋 หลักสูตรที่เปิดรับสมัคร',1)+topicBtn};
   const S=a.sections||{};
   const SC=_pSchedule(S['กำหนดการสอบคัดเลือก']), today=todayIso();
