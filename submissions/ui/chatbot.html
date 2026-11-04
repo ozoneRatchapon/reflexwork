@@ -638,6 +638,8 @@ const VOICE = {
   topicPick:     'เรื่อง "{w}" ในคู่มือมีหลายหัวข้อครับ เลือกหัวข้อที่ต้องการได้เลย',
   topicPickOne:  'เรื่อง "{w}" ในคู่มือมีหัวข้อนี้ครับ กดเพื่อดูคำตอบได้เลย',
   restartLead:   'ได้ครับ เริ่มใหม่ได้เลย เลือกหัวข้อด้านล่าง หรือพิมพ์เรื่องที่อยากถามใหม่ ถ้าต้องการคุยกับเจ้าหน้าที่ ใช้ปุ่มติดต่อด้านล่างได้เลยครับ',
+  timeLead:      'วันนี้ {today} ครับ — นี่คือกำหนดการในคู่มือที่ใกล้วันนี้ที่สุด เลือกเพื่อดูวันที่ครบ (วันที่ผ่านไปแล้วจะมีป้ายบอก)',
+  timeAdmissionsHint: ' ตัดรอบรับสมัครของแต่ละหลักสูตรไม่เท่ากัน — พิมพ์ชื่อหลักสูตร เช่น "จิตวิทยาคลินิก ปิดรับวันไหน" เพื่อดูของหลักสูตรนั้น',
   overviewLead:  'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว ลองเลือกหัวข้อที่ใกล้ที่สุดด้านล่าง หรือพิมพ์เรื่องที่อยากรู้ เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',
   careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
 };
@@ -711,8 +713,8 @@ function kbBody(hit, q){
   const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(new Date(hit.approved_at).toISOString().slice(0,10)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
   // A dated schedule entry (academic_year + "กำหนดการ" title) tags each point against today (QA G16); the snapshot line
   // ("ที่เก็บวันที่ …") is about the data, not an event, so it is never tagged.
-  const dated=!!(hit.academic_year && /กำหนดการ/.test(hit.title||'')), today=dated ? todayIso() : '';
-  const T=x=>dated && !/เก็บวันที่|ข้อมูล ณ|ประกาศ ณ/.test(x) ? dateTag(x, today) : '';
+  const dated=isDatedSchedule(hit), today=dated ? todayIso() : '';
+  const T=x=>dated && !_SNAPSHOT_RE.test(x) ? dateTag(x, today) : '';
   const L=x=>linkify(x, LINKS)+T(x), lead=slotLead(hit,q);
   const head = lead ? `<b>${L(lead)}</b>\n` : '';
   const [first, ...rest] = pts, bullets = rest.map(x=>'• '+L(x));
@@ -839,6 +841,27 @@ function dateState(text, today){
 const _WHEN={passed:'ผ่านไปแล้ว', now:'อยู่ในช่วงนี้', today:'วันนี้'};
 function dateTag(text, today){ const k=dateState(text, today); return k ? ` <small class="when when-${k}">(${_WHEN[k]})</small>` : ''; }
 function daysSince(iso, today){ const a=Date.parse(iso), b=Date.parse(today||todayIso()); return isNaN(a)||isNaN(b) ? 0 : Math.round((b-a)/864e5); }
+// A line about the DATA ("ที่เก็บวันที่ 26 ตุลาคม 2569"), not an event: never tagged, never part of an entry's span.
+const _SNAPSHOT_RE=/เก็บวันที่|ข้อมูล ณ|ประกาศ ณ/;
+// A dated schedule entry of the manual: has an academic year and is a "กำหนดการ" entry.
+function isDatedSchedule(e){ return !!(e && e.academic_year && /กำหนดการ/.test(e.title||'')); }
+function entrySpan(e){ return dateSpan(String(e.answer||'').split('\n').filter(l=>!_SNAPSHOT_RE.test(l)).join('\n')); }
+
+// "Now / still in time" questions (QA G17): 'ยังทันไหม', 'ตอนนี้ภาคเรียนอะไร', 'วันนี้ปิดรับหรือยัง'. Only when, after the time words,
+// nothing but schedule words, fillers and dates is left - 'ตอนนี้ลาพักได้ไหม' names its own topic and goes on to search.
+const _TIME_W=/ตอนนี้|วันนี้|ขณะนี้|เทอมนี้|ภาคนี้|ปีนี้|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย|อยู่)|หรือยัง|ผ่าน(?:ไป)?แล้ว/;
+const _TIME_REST=/ตอนนี้|วันนี้|ขณะนี้|เทอมนี้|ภาคนี้|ปีนี้|หรือยัง|ผ่าน(?:ไป)?แล้ว|ยัง|ทัน|ลงทะเบียน|เรียน|ล่าช้า|รับสมัคร|สมัคร|ตัดรอบ|ปิดรับ|เปิดรับ|เปิด|ปิด|หมดเขต|ภาคการศึกษา|ภาคเรียน|เทอม|กำหนดการ|วันสุดท้าย|รอบ|ช่วง|อยู่|ใน|ได้|ไหม|มั้ย|มั๊ย|อะไร|วันไหน|เมื่อไหร่|เมื่อไร|ถึง|แล้ว|หรือ|ไหน|ครับ|ค่ะ|คะ|นะ|จ้า|เรา|ผม|หนู|ฉัน|จะ|ของ|ที่|คือ|เป็น|ตอน|บ้าง|วันที่|\d+|[ก-ฮ]{1,2}\.(?:[ก-ฮ]\.)?|[\s?!.,]/g;
+function timeIntent(q){
+  const s=String(q||''); if(!_TIME_W.test(s) || s.replace(_TIME_REST,'').length) return null;
+  return /ลงทะเบียน|ภาคเรียน|ภาคการศึกษา|เทอม|เรียน/.test(s) ? 'registration' : /สมัคร|ตัดรอบ|ปิดรับ|เปิดรับ|หมดเขต|รอบ/.test(s) ? 'admissions' : 'any';
+}
+// The dated schedule entries for that intent, nearest to today first: in progress, then upcoming, then the most recently passed.
+function datedPicks(kb, intent, today, n=4){
+  const t=today||todayIso(), want={registration:'registration', admissions:'admissions'}[intent];
+  const rows=(kb||[]).filter(e=>isDatedSchedule(e) && (!want || e.category===want)).map(e=>({e, sp:entrySpan(e)})).filter(r=>r.sp);
+  const st=r=>r.sp.end<t ? 2 : r.sp.start<=t ? 0 : 1, key=r=>st(r)===2 ? -Date.parse(r.sp.end) : Date.parse(st(r) ? r.sp.start : r.sp.end);
+  return rows.sort((a,b)=>st(a)-st(b) || key(a)-key(b)).slice(0,n).map(r=>({e:r.e, state:['now','ahead','passed'][st(r)]}));
+}
 // </today>
 
 // <linkify>
@@ -898,7 +921,7 @@ const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึก�
 // What a question naming a programme ASKS about, so the card can lead with that answer ("จิตวิทยาคลินิกสอบสัมภาษณ์วันไหน").
 // Narrower than the follow-up list below (_P_ASPECT): these words are also removed before matching the programme name.
 const _P_ASK=[['schedule',/สอบสัมภาษณ์|สัมภาษณ์|สอบข้อเขียน|สอบวันไหน|สอบเมื่อ(?:ไหร่|ไร)|ประกาศผล|ประกาศรายชื่อ|รายงานตัว|กำหนดการ|สมัครได้ถึง|หมดเขต|ตัดรอบ|ปิดรับ(?:สมัคร)?(?:วันไหน|เมื่อ(?:ไหร่|ไร))|deadline|interview/i],
-  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับสมัครอยู่|ยังรับ/i],
+  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับสมัครอยู่|ยังรับ|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย)/i],
   ['docs',/เอกสาร(?:การ)?สมัคร|ใช้เอกสาร|หลักฐานการสมัคร|ต้องใช้อะไรบ้าง/i],
   ['elig',/คุณสมบัติ(?:ผู้สมัคร)?/i],
   ['english',/เกณฑ์(?:ภาษา)?อังกฤษ|คะแนน(?:ภาษา)?อังกฤษ|toefl|ielts|ยื่นผล(?:ภาษา)?อังกฤษ/i]];
@@ -1474,6 +1497,20 @@ function isOverviewQuestion(text){
 }
 // Whole-utterance control phrases only: 'ยกเลิกการลงทะเบียนทำอย่างไร' is a real question and must still reach the KB.
 function isRestartPhrase(text){ return /^(?:ยกเลิก|เริ่มใหม่|ข้าม|ไม่รู้|ถามเรื่องอื่น|ไม่เอา|ช่างมัน)(?:ครับ|ค่ะ|คะ|นะ|เลย)*$/.test(String(text||'').replace(/\s+/g,'')); }
+// One chooser bubble: KB entries as chips (tap = that entry, pinned), with an optional state label per chip.
+const _PICK_STATE={now:'กำลังอยู่ในช่วงนี้', ahead:'ยังไม่ถึง', passed:'ผ่านไปแล้ว'};
+function renderChooser(q, d, kstrip, route, lead, picks, meta){
+  const cid='ov'+(++fbN);
+  add('b', `${kstrip}
+      <span class="route auto">${route}</span>
+      <div class="ans">${lead}</div>
+      <div class="dislist" id="${cid}">${picks.map(({e,state})=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}${state?` · <small>${_PICK_STATE[state]}</small>`:''}</span>`).join('')}</div>
+      <div class="meta">${meta}</div>
+      ${fbUI(q, d.blake3_proof)}`);
+  document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
+    const e = KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN = e; $('q').value = e.title; ask(); }));
+  $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+}
 function starterEntries(){
   const by=new Map(); for(const e of KB){ if(!e.category) continue; (by.get(e.category)||by.set(e.category,[]).get(e.category)).push(e); }
   const out=[]; for(const [,es] of [...by].sort((a,b)=>b[1].length-a[1].length)){
@@ -1545,16 +1582,8 @@ function _askCore(){
   const restart = isRestartPhrase(q);
   if(restart || isOverviewQuestion(q)){
     if(restart){ PCTX=null; PIN=null; }
-    const picks=starterEntries(), cid='ov'+(++fbN);
-    add('b', `${kstrip}
-      <span class="route auto">🧭 คำถามกว้าง · ไม่เรียก AI</span>
-      <div class="ans">${restart?VOICE.restartLead:VOICE.overviewLead}</div>
-      <div class="dislist" id="${cid}">${picks.map(e=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}</span>`).join('')}</div>
-      <div class="meta">คำถามกว้างที่ไม่ระบุหัวข้อ → เสนอจุดเริ่มต้นจากคู่มือให้เลือก แทนการเดาคำตอบเดียว (deterministic, 0 token)</div>
-      ${fbUI(q, d.blake3_proof)}`);
-    document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
-      const e = KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN = e; $('q').value = e.title; ask(); }));
-    $('b-auto').textContent=auto; $('b-ai').textContent=ai; $('b-saved').textContent='฿'+saved; updateRatio();
+    renderChooser(q, d, kstrip, '🧭 คำถามกว้าง · ไม่เรียก AI', restart?VOICE.restartLead:VOICE.overviewLead,
+      starterEntries().map(e=>({e})), 'คำถามกว้างที่ไม่ระบุหัวข้อ → เสนอจุดเริ่มต้นจากคู่มือให้เลือก แทนการเดาคำตอบเดียว (deterministic, 0 token)');
     return;
   }
 
@@ -1651,6 +1680,19 @@ function _askCore(){
   if(!pinned && PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
     renderFinder(q, d, kstrip, VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
+  }
+
+  // "Now / still in time" with no topic of its own (QA G17): the dated schedules of the manual, nearest to today first, each
+  // labelled against today's date. Never picks one for the student, never states a date the manual does not have.
+  const tIntent = !pinned && !staffFirst ? timeIntent(q) : null;
+  if(tIntent){
+    const today=todayIso(), picks=datedPicks(KB, tIntent, today);
+    if(picks.length){
+      const lead = VOICE.timeLead.replace('{today}', _pDate(today)) + (tIntent!=='registration' ? VOICE.timeAdmissionsHint : '');
+      renderChooser(q, d, kstrip, '📅 เทียบกับวันนี้ · ไม่เรียก AI', lead, picks,
+        `คำถามเรื่อง "ตอนนี้/ยังทันไหม" → กำหนดการในคู่มือเรียงจากช่วงที่ใกล้วันนี้ (${_pEsc(today)}) ที่สุด (deterministic, 0 token)`);
+      return;
+    }
   }
 
   // A topic chip picked from a list answers THAT entry; re-searching its title would not always land on it (35/132 titles).
