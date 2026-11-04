@@ -1044,7 +1044,11 @@ function linkify(text, links){
   for(const l of (Array.isArray(links)?links:[])){
     if(!l || !l.match || !_lUrlOk(l.url)) continue;
     let re; try{ re=new RegExp(l.match,'gi'); }catch(e){ continue; }
-    while((m=re.exec(t))){ if(!m[0]) { re.lastIndex++; continue; } cand.push({s:m.index, e:m.index+m[0].length, url:l.url, label:l.label, key:l.id||l.url}); break; }   // first mention only
+    while((m=re.exec(t))){ if(!m[0]) { re.lastIndex++; continue; }
+      // QA F40: 'mugrad' inside the LINE id @mugradmissions became a MU GRAD link. A Latin edge must not run into an @id, URL or longer word.
+      const pv=t[m.index-1]||'', nx=t[m.index+m[0].length]||'';
+      if((/^[A-Za-z0-9]/.test(m[0]) && /[@A-Za-z0-9._\/~-]/.test(pv)) || (/[A-Za-z0-9]$/.test(m[0]) && /[A-Za-z0-9]/.test(nx))) continue;
+      cand.push({s:m.index, e:m.index+m[0].length, url:l.url, label:l.label, key:l.id||l.url}); break; }   // first mention only
   }
   const lineRe=/@[a-z0-9]{5,20}/gi, seen={};
   while((m=lineRe.exec(t))){ const prev=t[m.index-1]||'';

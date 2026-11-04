@@ -84,5 +84,11 @@ if (process.argv.includes('--online')) {
   check(`all ${LINKS.length} registry URLs answer (no 4xx/5xx)`, bad.length === 0, bad.join(' | '));
 }
 
+// QA F40: a registry name inside a LINE id / URL / longer word is not linked; the LINE id itself is, and a free-standing name still is
+{ const kb = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
+  const e = kb.find(x => x.id === 'gm_admissions_office_contacts'), h = linkify(e ? e.answer : '', LINKS);
+  check('F40: @mugradmissions stays one LINE link (no MU GRAD link inside it)', !!e && /<a [^>]*href="https:\/\/line\.me\/R\/ti\/p\/@mugradmissions"[^>]*>@mugradmissions<\/a>/.test(h) && !/@<a /.test(h), h.slice(0, 200));
+  const h2 = linkify('ติดต่อ LINE @mugradmissions หรือสมัครผ่าน MU GRAD', LINKS);
+  check('F40: the later free-standing MU GRAD is still linked', /MUGRADRegister[^>]*>MU GRAD<\/a>/.test(h2), h2); }
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
