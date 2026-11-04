@@ -168,17 +168,38 @@ function clean_gaps(entries){
     note.textContent = hidden ? `ซ่อน ${hidden} รายการที่มาจากการทดสอบระบบหรือข้อความเสีย` : ''; }
   return kept;
 }
-async function tick(){
+// QA F44: the kernel rate-limits per IP (60 burst, 1/s refill) and students on the same campus IP share that bucket. Polling 6
+// endpoints every 2 s (3 req/s) drained it in ~30 s, and every failed panel was then drawn as "nothing yet". Now: /status + /audit
+// every 10 s, the other four every 30 s (~0.33 req/s), a full refresh after each staff action; a failed panel keeps its last data;
+// a 429 backs off; once the kernel has answered, a failure never swaps in the demo data.
+const POLL_MS = 10000, FULL_EVERY = 3, BACKOFF_MS = 30000;
+let LIVE_SEEN = false, BACKOFF_UNTIL = 0, POLL_N = 0;
+const PHASE_LIVE = $('phase').textContent;   // renderDemo overwrites the banner; live data puts it back
+class HttpError extends Error { constructor(status){ super('HTTP '+status); this.status = status; } }
+async function getj(path, opts={}){
+  const r = await fetch(base()+path, {signal:AbortSignal.timeout(4000), ...opts});
+  if(!r.ok) throw new HttpError(r.status);
+  return r.json();
+}
+const _opt = p => p.then(v=>({ok:true, v}), e=>({ok:false, e}));   // an optional panel: failure keeps what is on screen
+function linkDown(text){ $('dot').classList.remove('up'); $('livetxt').textContent = text; }
+async function tick(full=true){
+  if(Date.now() < BACKOFF_UNTIL) return;
+  const opt = full ? [
+      _opt(getj('/gaps')),
+      _opt(getj('/kb-drafts',{headers:staffHeaders()})),
+      _opt(getj('/entry-conf')),
+      _opt(getj('/live-kb',{cache:'no-store'})),
+    ] : [];
   try{
-    const [s,a,g,kd,ec,lk] = await Promise.all([
-      fetch(base()+'/status',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
-      fetch(base()+'/audit',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()),
-      fetch(base()+'/gaps',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
-      fetch(base()+'/kb-drafts',{headers:staffHeaders(),signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({drafts:[]})),
-      fetch(base()+'/entry-conf',{signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
-      fetch(base()+'/live-kb',{cache:'no-store',signal:AbortSignal.timeout(2000)}).then(r=>r.json()).catch(()=>({entries:[]})),
-    ]);
-    $('dot').classList.add('up'); $('livetxt').textContent='เชื่อมต่อแล้ว · รีเฟรชทุก 2 วิ';
+    const [s,a,g,kd,ec,lk] = await Promise.all([getj('/status'), getj('/audit'), ...opt]);
+    const limited = [g,kd,ec,lk].some(x=>x && !x.ok && x.e && x.e.status===429);
+    if(limited) BACKOFF_UNTIL = Date.now() + BACKOFF_MS;
+    LIVE_SEEN = true; $('phase').textContent = PHASE_LIVE;
+    $('dot').classList.add('up');
+    $('livetxt').textContent = limited ? 'เชื่อมต่อแล้ว · บางส่วนถูกจำกัดความถี่ (แสดงข้อมูลล่าสุด) · ลองใหม่ใน 30 วิ'
+      : [g,kd,ec,lk].some(x=>x && !x.ok) ? 'เชื่อมต่อแล้ว · บางส่วนโหลดไม่สำเร็จ (แสดงข้อมูลล่าสุด)'
+      : 'เชื่อมต่อแล้ว · สถิติรีเฟรชทุก 10 วิ · รายการรีเฟรชทุก 30 วิ';
     $('k-total').textContent = s.total_routed;
     $('k-fastpct').textContent = (s.fast_path_pct||0)+'%';
     $('k-llm').textContent = s.llm_path;
@@ -196,7 +217,8 @@ async function tick(){
       <td>${routePill(esc(e.route),e.fast_path)}</td></tr>`).join('')
       + (rows.length>shown.length ? `<tr><td colspan="3" class="empty">+ อีก ${rows.length-shown.length} การตัดสินใจ</td></tr>` : '')
       : '<tr><td colspan="3" class="empty">ยังไม่มีข้อมูล</td></tr>';
-    const gaprows = clean_gaps((g&&g.entries)||[]);
+    if(g && g.ok){
+    const gaprows = clean_gaps(g.v.entries||[]);
     $('gaprows').innerHTML = gaprows.length ? gaprows.map(e=>`<tr>
       <td>${esc(e.question)} <button class="ans-btn" data-q="${esc(e.question)}" style="margin-left:6px;background:transparent;color:#b07bff;border:1px solid rgba(176,123,255,.5);border-radius:6px;padding:1px 8px;cursor:pointer;font-size:12px">ตอบ</button></td>
       <td class="mono">${Number(e.hits)||0}</td>
@@ -204,11 +226,15 @@ async function tick(){
       <td>${esc(e.source||'—')}</td></tr>`).join('')
       : '<tr><td colspan="4" class="empty">ยังไม่มี — คู่มือครอบคลุมทุกคำถามที่เข้ามา 🎉</td></tr>';
     renderSystems(gaprows);
-    renderDrafts((kd&&kd.drafts)||[]);
-    renderConf((ec&&ec.entries)||[]);
-    renderLive((lk&&lk.entries)||[]);
+    }
+    if(kd && kd.ok) renderDrafts(kd.v.drafts||[]);
+    if(ec && ec.ok) renderConf(ec.v.entries||[]);
+    if(lk && lk.ok) renderLive(lk.v.entries||[]);
     return;   // live data rendered — do not overwrite with demo
   }catch(e){
+    if(e && e.status===429){ BACKOFF_UNTIL = Date.now() + BACKOFF_MS; }
+    // The kernel answered before: keep its last data on screen and say the link is down - demo numbers here would be a false report.
+    if(LIVE_SEEN){ linkDown(e && e.status===429 ? 'โหลดไม่สำเร็จ (ถูกจำกัดความถี่) · แสดงข้อมูลล่าสุด · ลองใหม่ใน 30 วิ' : 'การเชื่อมต่อขาด · แสดงข้อมูลล่าสุด · กำลังลองใหม่'); return; }
     // No local API (the usual case on the public demo) → representative demo data.
     renderDemo();
   }
@@ -414,7 +440,7 @@ function renderDemo(){
     { id:1, title:'วีซ่านักศึกษาต่างชาติต่ออายุอย่างไร', answer:'ติดต่องานวิเทศสัมพันธ์ เตรียมพาสปอร์ต+หนังสือรับรองสถานภาพ ล่วงหน้า 30 วัน', category:'international', source:'line-staff' },
   ]);
 }
-tick(); setInterval(tick, 2000);
+tick(); setInterval(()=>tick(!LIVE_SEEN || ++POLL_N % FULL_EVERY === 0), POLL_MS);   // until the kernel answers, every poll is full: no demo rows left under live numbers
 </script>
 </body>
 </html>
