@@ -233,7 +233,7 @@ export default {
     // the correctness backstop regardless of which model answers. (Gemini, when
     // a valid key + model is configured, obeys grounding better and is tried as
     // the fallback below.)
-    // Every upstream wait is bounded by ONE wall-clock budget (LLM_BUDGET_MS, default 18 s - the chat page gives up at 25 s).
+    // Every upstream wait is bounded by ONE wall-clock budget (LLM_BUDGET_MS, default 18 s - the chat page gives up at 20 s).
     // Before this, the local-model timer was cleared as soon as the response HEADERS arrived (the body read was unbounded) and the
     // Gemini calls had no timeout at all, so one stalled upstream left the user hanging with no log line saying why.
     const t0 = Date.now(), budget = Number(env.LLM_BUDGET_MS) || 18000, left = () => Math.max(0, budget - (Date.now() - t0));

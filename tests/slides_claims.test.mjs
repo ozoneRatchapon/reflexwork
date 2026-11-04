@@ -29,7 +29,15 @@ else if (kpis.length === 3) {
   const wrong = m.shippedWrong;   // wrong answers the page really gives (decideTier), not an estimate
   check(`slide 6 answered = measured (${m.answeredOurs} of ${m.n})`, kpis[0].k === m.answeredOurs && kpis[0].n === m.n, `slide ${kpis[0].k}/${kpis[0].n}, measured ${m.answeredOurs}/${m.n} - update the slide (and METHOD.md §5) after changing the KB or the eval`);
   check(`slide 6 wrong-among-answered = measured (${wrong} of ${m.answeredOurs})`, kpis[2].k === wrong && kpis[2].n === m.answeredOurs, `slide ${kpis[2].k}/${kpis[2].n}, measured ${wrong}/${m.answeredOurs}`);
+  // QA G36: the chat-page and slide swimlanes quote recall@1 / @3 and the eval size - they must be the measured ones
+  const r1 = Math.round(m.rows.ours.r1 / m.labelled * 100), r3 = Math.round(m.rows.ours.r3 / m.labelled * 100);
+  for (const f of ['submissions/ui/chatbot.html', 'submissions/ui/slides.html']) {
+    const got = read(f).match(/recall@1 (\d+)% \/ @3 (\d+)%, eval (\d+) เคส/);
+    check(`${f} swimlane recall = measured (@1 ${r1}%, @3 ${r3}%, eval ${m.labelled})`, !!got && +got[1] === r1 && +got[2] === r3 && +got[3] === m.labelled, got ? got[0] : 'no recall claim found');
+  }
 }
+check('the chat page does not quote the native ~12ns route time for its WASM path', !/12 ?ns/.test(read('submissions/ui/chatbot.html')));
+check('no default example chip is marked as an AI question (none reaches /llm)', !/\{q:'[^']*',ai:true\}/.test(read('submissions/ui/chatbot.html')));
 
 const shown = ['submissions/ui/slides.html', 'submissions/ui/pitch.html', 'submissions/ui/chatbot.html', 'submissions/ui/try.html', 'submissions/ui/dashboard.html', 'submissions/concept-paper.md', 'README.md'];
 check('"neurosymbolic" does not appear in pitch / UI / README / concept paper', shown.every(f => !/neuro-?symbolic/i.test(read(f))), shown.filter(f => /neuro-?symbolic/i.test(read(f))).join());

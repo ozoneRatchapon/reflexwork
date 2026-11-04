@@ -283,7 +283,7 @@
         <div class="swact">🦀 Reflex Kernel</div>
         <div class="swbody">
           <div class="swstep">ตัดสินเส้นทาง + ค้นคู่มือ + ผนึกหลักฐาน</div>
-          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 84% / @3 96%, eval 50 เคส) · ทุกคำตอบผนึก <code>BLAKE3 fingerprint</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns route</code></div>
+          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 86% / @3 96%, eval 50 เคส) · ทุกคำถามที่เข้า kernel มีรหัส <code>BLAKE3</code> ของคำถาม+เส้นทาง ถามซ้ำได้ค่าเดิม · เส้นทางเร็ว <code>0 token · ~1.9 µs (gate + รหัส, WASM)</code></div>
         </div>
       </div>
       <div class="swrow swa">

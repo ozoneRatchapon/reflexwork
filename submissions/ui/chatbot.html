@@ -103,6 +103,7 @@
   .msg.b .staff-h{font-size:.8125rem;font-weight:700;color:var(--ink);margin-bottom:8px}
   .msg.b .staff-btns{display:flex;gap:8px;flex-wrap:wrap}
   .msg.b .golink.alt{background:var(--raised);color:var(--accent);border:1px solid var(--line)}
+  .hyb-wait{font-size:.75rem;color:var(--muted);margin-top:6px}   /* QA F61: student-visible, so not .meta (that moves to the evidence panel) */
   .meta{font-size:.6875rem;color:var(--muted);margin-top:6px}
   /* technical lines (score, rule, kernel timings) are for judges: they follow the 'show evidence' switch, a student sees the answer */
   .cols.ev-off .msg.b .meta,.cols.ev-off .kernel-strip{display:none}
@@ -340,10 +341,10 @@
           <div class="swstep"><b>2.</b> รับคำถาม → ถามตัวเองว่า "เคยตอบเรื่องนี้ได้ไหม?"</div>
           <div class="swstep ok"><b>→</b> เคย (เจอในคู่มือ) → ตอบเลย <b style="color:var(--fast,#22c58b)">ฟรี · เร็วมาก</b></div>
           <div class="swstep esc"><b>→</b> ไม่แน่ใจ → ส่งต่อ + บันทึกไว้ปรับปรุงคู่มือ</div>
-          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อใช้คะแนนค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 82%) · ทุกคำถามที่เข้า kernel มีรหัส <code>BLAKE3</code> ของคำถาม+เส้นทาง ถามซ้ำได้ค่าเดิม · เส้นทางเร็ว <code>0 token · ~12ns</code></div>
+          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อใช้คะแนนค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 86% / @3 96%, eval 50 เคส) · ทุกคำถามที่เข้า kernel มีรหัส <code>BLAKE3</code> ของคำถาม+เส้นทาง ถามซ้ำได้ค่าเดิม · เส้นทางเร็ว <code>0 token · ~1.9 µs (gate + รหัส, WASM)</code></div>
         </div></div>
         <div class="swrow swa"><div class="swact">🤖 AI / เจ้าหน้าที่</div><div class="swbody">
-          <div class="swstep"><b>3.</b> เฉพาะคำถาม <b>ใหม่จริง ~20%</b> เท่านั้นที่มาถึงชั้นนี้</div>
+          <div class="swstep"><b>3.</b> เฉพาะคำถาม <b>ใหม่จริง</b> (ประมาณการ ~20%) เท่านั้นที่มาถึงชั้นนี้</div>
           <div class="swstep"><b>·</b> AI ช่วยร่างจากคู่มือ (ห้ามแต่งเอง) หรือเจ้าหน้าที่ดูแลต่อ</div>
           <div class="swtech">เรียก LLM เฉพาะ escalate ด้วย prompt <code>"ห้ามแต่งนอก KB"</code> · คำถามที่ตอบไม่ได้เข้า <code>gap log</code> → ปรับคู่มือ ไม่เทรนโมเดลใหม่</div>
         </div></div>
@@ -412,7 +413,7 @@ const DEFAULT_AGENCY = {
   metaDescription:'ถามเรื่องหลักสูตร ค่าเทอม สถานะรับสมัคร และการส่งวิทยานิพนธ์ของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล ตอบจากประกาศและคู่มือทางการ',
   placeholder:'เช่น ส่งรูปเล่มภายในกี่วัน / Turnitin เกิน 25% ทำยังไง',
   greeting:'ถามเรื่องสมัครเรียน หลักสูตร ค่าเทอม หรือการส่งวิทยานิพนธ์ได้เลย',
-  examples:[{q:'เรียนไรดี'},{q:'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก'},{q:'ส่งรูปเล่มภายในกี่วัน'},{q:'Turnitin เกิน 25% ทำอย่างไร'},{q:'ค่าสอบ MU GRAD Plus เท่าไร'},{q:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์',ai:true}],
+  examples:[{q:'เรียนไรดี'},{q:'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก'},{q:'ส่งรูปเล่มภายในกี่วัน'},{q:'Turnitin เกิน 25% ทำอย่างไร'},{q:'ค่าสอบ MU GRAD Plus เท่าไร'},{q:'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์'}],
   persona:{
     hello:'ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน',
     bye:'ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀',
@@ -499,7 +500,7 @@ async function load(){
   const seeds=AGENCY.examples.map(e=>({t:e.q,k:e.ai?'a':'f'}));
 
   $('chips').innerHTML =
-    `<div class="chip-hint">ลองถามเรื่องเหล่านี้ได้เลย<span class="judge-only"> — 🟢 ตอบเองทันที (0 token)${AI_OFF?'':' · 🟠 ส่งให้ AI'}</span></div>` +
+    `<div class="chip-hint">ลองถามเรื่องเหล่านี้ได้เลย<span class="judge-only"> — 🟢 ตอบเองทันที (0 token)${AI_OFF||!seeds.some(s=>s.k==='a')?'':' · 🟠 ขอคำแนะนำ (AI ช่วยเรียบเรียงเมื่อคู่มือตรงไม่ชัด)'}</span></div>` +
     '<div class="chip-row">'+seeds.filter(s=>!AI_OFF||s.k!=='a').map(s=>`<span class="chip ${s.k==='a'?'chip-ai':'chip-fast'}" data-q="${_lEsc(s.t)}"><span class="judge-only">${s.k==='a'?'🟠':'🟢'} </span>${_lEsc(s.t)}</span>`).join('')+'</div>';
   document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     $('q').value=c.dataset.q; ask();
@@ -1455,7 +1456,7 @@ function understand(phrases){
 async function groundedHybrid(q, entries){
   if(!LLM_API || AI_OFF) return null;
   const context = entries.slice(0,3).map((e,i)=>`[${i+1}] ${e.title}\n${e.answer}`).join('\n\n');
-  const ac = new AbortController(), timer = setTimeout(()=>ac.abort(), 25000);   // proxy tries local model (20 s) then Gemini; never leave the user on a spinner
+  const ac = new AbortController(), timer = setTimeout(()=>ac.abort(), 20000);   // QA F61: the proxy's whole budget is 18 s (LLM_BUDGET_MS); 2 s margin, then the manual text stays
   try{
     const r = await fetch(LLM_API.replace(/\/$/,'')+'/llm',{
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1969,15 +1970,27 @@ function _askCore(){
       const mid='hyb'+(++fbN);
       const srcH = hit.source_url ? `<a class="golink" href="${hit.source_url}" target="_blank" rel="noopener">📄 เปิดหน้าทางการที่เกี่ยวข้อง →</a>` : '';
       add('b', `${kstrip}
-        <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🔀 KB-grounded + AI ช่วยเรียบเรียง ${stageTag}</span>
-        <div class="ans" id="${mid}"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงจากคู่มือ…<div class="skel" aria-hidden="true"><i></i><i></i><i style="width:55%"></i></div></div>
+        <span class="route auto" id="${mid}r">✅ ตอบจากคู่มือ · กำลังให้ AI เรียบเรียงให้อ่านง่าย ${stageTag}</span>
+        <div class="ans" id="${mid}">${kbBody(hit, q)}</div>
+        <div class="hyb-wait" id="${mid}w" role="status"><span class="typing"><i></i><i></i><i></i></span> กำลังเรียบเรียงให้อ่านง่ายขึ้น… (ข้อความด้านบนคือคู่มือ)</div>
         <span class="topic">ที่มา: ${hit.title}</span>
-        <div class="meta">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม)</div>
+        <div class="meta" id="${mid}m">คำถามขอคำแนะนำ → ground ด้วย KB แล้วให้ AI เรียบเรียง (ข้อเท็จจริงจากคู่มือเท่านั้น ไม่แต่งเพิ่ม) · score ${topScore}</div>
         ${srcH}
         ${fbUI(q, d.blake3_proof, hit.id)}`);
+      // QA F30/F61: the manual text is shown at once under the official badge; the AI badge and route only appear when an AI
+      // answer really replaces it, and a failed / empty / timed-out AI says so instead of keeping 'AI ช่วยเรียบเรียง' over manual text.
       groundedHybrid(q, ranked.map(r=>r.e)).then(ans=>{
-        const n=document.getElementById(mid);
-        if(n) n.innerHTML = ans ? mdLite(linkify(ans, LINKS)) : kbBody(hit, q);   // fall back to raw KB if AI unavailable; linkify escapes (LLM text is untrusted)
+        const n=document.getElementById(mid), w=document.getElementById(mid+'w'), rt=document.getElementById(mid+'r'), mt=document.getElementById(mid+'m');
+        if(w) w.remove(); if(!n) return;
+        if(!ans){
+          if(rt) rt.innerHTML = `✅ ตอบจากคู่มือ · AI ไม่ได้เรียบเรียง ${stageTag}`;
+          if(mt) mt.textContent = `คำถามขอคำแนะนำ → AI เรียบเรียงไม่สำเร็จหรือไม่พร้อม → แสดงข้อความคู่มือโดยตรง · score ${topScore}`;
+          return;
+        }
+        n.innerHTML = mdLite(linkify(ans, LINKS));   // linkify escapes (LLM text is untrusted)
+        if(rt){ rt.innerHTML = `🔀 KB-grounded + AI ช่วยเรียบเรียง ${stageTag}`; rt.style.cssText='background:rgba(91,140,255,.16);color:#8fb0ff'; }
+        const bubble = n.closest('.msg'), b = bubble && bubble.querySelector('.src-badge');
+        if(b){ b.className='src-badge ai'; b.textContent='🤖 AI ช่วยเรียบเรียง จากข้อมูลทางการ'; }
       });
       paintBar();
       return;
