@@ -1661,8 +1661,13 @@ function attachChoiceFilter(root){
     inp.placeholder=`พิมพ์เพื่อค้นหาใน ${chips.length} รายการ`; inp.setAttribute('aria-label', inp.placeholder);
     const none=document.createElement('div'); none.className='dis-none'; none.hidden=true; none.textContent='ไม่พบในรายการนี้ — ลองคำอื่น หรือพิมพ์คำถามในช่องด้านล่าง';
     wrap.append(inp, none); list.before(wrap);
+    const more=list.querySelector(':scope > .dis[data-fk=more]');
     inp.addEventListener('input',()=>{ const t=_fNorm(inp.value); let n=0;
       for(const c of chips){ const ok=!t || _fNorm(c.textContent).includes(t); c.hidden=!ok; if(ok) n++; }
+      // QA F55: nothing among the 12 shown, but more are behind "ดูทั้งหมด": open the full list and search it with the same text
+      if(!n && t && more && root.isConnected){ const val=inp.value, idx=[...root.querySelectorAll('.dis-filter')].indexOf(inp);
+        more.click(); const fresh=root.querySelectorAll('.dis-filter')[idx];
+        if(fresh && fresh!==inp){ fresh.value=val; fresh.dispatchEvent(new Event('input')); fresh.focus(); return; } }
       none.hidden=n>0; });
     inp.addEventListener('keydown',e=>{ if(e.key!=='Enter' || e.isComposing || e.keyCode===229) return; e.preventDefault(); const vis=chips.filter(c=>!c.hidden); if(vis.length===1) vis[0].click(); });
   });

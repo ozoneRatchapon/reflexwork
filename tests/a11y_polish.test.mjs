@@ -18,4 +18,6 @@ check('F51: the judge-view toggle is hidden but focusable', !/\.sw-toggle input\
 check('F51: reduced motion also stops the mood bump, the proof flash and smooth scrolling', /\.mood\.bump \.mood-face,\.proof-full\.flash\{animation:none !important\}/.test(html) && /behavior:_REDUCED_MOTION\?'auto':'smooth'/.test(html));
 // F53
 check('F53: the answer logic reads at most 500 characters; typeahead at most 200', /normChat\(typed\.slice\(0,500\)\)/.test(html) && /\$\('q'\)\.value\.trim\(\)\.slice\(0,200\)/.test(html));
+// F55
+check('F55: no match among the shown chips opens "ดูทั้งหมด" and re-applies the typed text to the full list', /if\(!n && t && more && root\.isConnected\)\{[\s\S]*?more\.click\(\);[\s\S]*?fresh\.value=val; fresh\.dispatchEvent\(new Event\('input'\)\); fresh\.focus\(\);/.test(html));
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
