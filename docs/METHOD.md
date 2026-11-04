@@ -89,32 +89,32 @@ Plain text in, escaped HTML out; only (a) `http(s)` URLs on `mahidol.ac.th | lin
 
 Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 43/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
 
-## 5. Results (runs 002–004; `benchmark/compare/results/`; run 004 at commit `149f87f` is the current scoring rule — A2, E and F below are from it)
+## 5. Results (runs 002–005; `benchmark/compare/results/`; run 005 at commit `6f314ff` is the current KB + scoring rule — A1 and A2 below are from it; E and F are from run 004, and the shipped off-corpus rates are unchanged in 005)
 
 **A1 — ranking** (50 labelled queries)
 
 | method | recall@1 (95 % CI) | recall@3 | MRR |
 |---|---|---|---|
-| **ours** | **84 %** (71–92) | 96 % | 0.90 |
-| cosine only (ablation) | 84 % | 96 % | 0.90 |
-| lexical overlap only (ablation) | 78 % | 94 % | 0.86 |
-| BM25 over char-trigrams | 78 % | 96 % | 0.87 |
+| **ours** | **86 %** (74–93) | 96 % | 0.91 |
+| cosine only (ablation) | 86 % | 96 % | 0.91 |
+| lexical overlap only (ablation) | 78 % | 96 % | 0.86 |
+| BM25 over char-trigrams | 80 % | 98 % | 0.88 |
 | BM25 over whitespace words | 42 % (29–56) | 50 % | 0.47 |
 
-Paired, ours − baseline: vs overlap **+6 pp** [0, 14], p = 0.25 · vs BM25-char3 **+6 pp** [0, 14], p = 0.25 · vs BM25-word **+42 pp** [28, 56], p < 0.001. By kind (ours): exact 9/10, paraphrase 14/15, typo 7/10, English 12/15.
+Paired, ours − baseline: vs overlap **+8 pp** [2, 16], p = 0.125 · vs BM25-char3 **+6 pp** [0, 14], p = 0.25 · vs BM25-word **+44 pp** [30, 58], p < 0.001. By kind (ours): exact 9/10, paraphrase 15/15, typo 7/10, English 12/15.
 
 **A2 — confidence** (when is it safe to answer without an LLM?)
 
 | method | wrong among the 44 answered / most-confident | AURC ↓ | AUROC ↑ |
 |---|---|---|---|
-| ours (hand-set score; since 2026-11-03 with the cosine floor on the overlap lift) | **4 (9 %)** | 0.05 | 0.86 |
-| cosine only | 5 | 0.05 | 0.86 |
-| BM25-char3 | 7 | 0.06 | 0.91 |
+| ours (hand-set score; since 2026-11-03 with the cosine floor on the overlap lift) | **3 (7 %)** | 0.05 | 0.86 |
+| cosine only | 5 | 0.05 | 0.84 |
+| BM25-char3 | 5 | 0.05 | 0.94 |
 | lexical overlap only | 8 | 0.08 | 0.85 |
 | BM25-word | 23 | 0.24 | 0.99* |
-| ours, weights **fitted** (logistic, leave-one-out) | 6 | 0.07 | 0.81 |
+| ours, weights **fitted** (logistic, leave-one-out) | 5 | 0.05 | 0.84 |
 
-Before the floor, `ours` made 5 errors among 45 answers (AURC 0.06, AUROC 0.84). With 52 queries one error fewer than cosine-only is **within noise**; the honest reading is "on par with cosine alone, no longer worse".
+Before the floor, `ours` made 5 errors among 45 answers (AURC 0.06, AUROC 0.84); run 004 (floor, before the 2026-11-04 KB aliases) had 4 among 44. With 52 queries two errors fewer than cosine-only is **within noise**; the honest reading is "on par with cosine alone, no longer worse".
 
 \*AUROC measures separation, not accuracy; BM25-word separates its many errors well but makes them — read it with AURC.
 
@@ -170,7 +170,7 @@ Cause (inspected): the lexical-overlap rule in `_cosToScore` (`ov ≥ 8 ∧ lead
 | It works in English | **understands, but answers in Thai**; refuses honestly when nothing matches; mixed Thai–English works as well as Thai (§5 E) |
 | The kernel gate decides whether an LLM is needed | **false in the web chat today** (§3.1: `g ≤ 0.451` always) |
 | The system learns from users' 👍/👎 | **partly, and only since 2026-11-03**: before that every click threw `ReferenceError` in the page, so no web vote reached the server (4 votes on record, all from curl). Now votes arrive. Until the vote-id fix (§8.6) the server de-duplicated them by the replay hash, identical for everyone who asks the same sentence, so each distinct question string could move the policy only once; from that fix each vote counts once per answer shown. Effect of votes on answer quality: not measured, and a script can still mint vote ids (only the per-IP rate limit brakes that) |
-| "87 % fast path" | **not a quality metric** (§3.1); use A2: 43/52 answered unaided, 3 of them wrong |
+| "87 % fast path" | **not a quality metric** (§3.1); use A2: 44/52 answered unaided, 3 of them wrong |
 
 ## 7. Threats to validity
 
