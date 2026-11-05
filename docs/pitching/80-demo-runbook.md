@@ -15,6 +15,12 @@ node scripts/demo_smoke.mjs            # live site; writes nothing to production
 
 Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret answers 404) so no request wastes time on it.
 
+> **2026-11-05 - for the 5-minute pitch use the 3 moments in `10-pitch-script-5min.md` scene 2** (open `chatbot?view=judge`): the open programme
+> **ชีวสารสนเทศทางการแพทย์** (open, fee amounts), `แล้วค่าเทอมล่ะ` with the evidence panel, and the staff loop on `ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน`.
+> `demo_smoke.mjs` steps 2c/2d check the first two on the live site; `tests/chat_e2e.test.mjs` rehearses all three on a mock kernel (never writes to production).
+> The table below is the longer 6-minute demo. Its programme (clinical psychology) is **closed** and its 2570 announcement has **no fee rates** - do not open the pitch with it.
+> The staff loop on production writes to the real kernel: use a verified answer, retract it right after, and keep the dashboard staff token handy.
+
 ## The demo (≈ 6 min) — type exactly this
 | # | type | the audience sees | say |
 |---|---|---|---|

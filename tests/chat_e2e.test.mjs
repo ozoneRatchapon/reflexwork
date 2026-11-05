@@ -33,13 +33,13 @@ const stat = http.createServer((req, res) => {
 });
 
 // --- mock kernel + LLM proxy (one port; the page allows loopback overrides) ------------------------------------------------------
-const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [] };
+const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [], live: [] };
 const mock = http.createServer((req, res) => {
   const h = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
   if (req.method === 'OPTIONS') { res.writeHead(204, h); return res.end(); }
   let b = ''; req.on('data', d => b += d); req.on('end', () => {
     const u = req.url.split('?')[0];
-    if (u === '/live-kb') { res.writeHead(200, h); return res.end('{"entries":[]}'); }
+    if (u === '/live-kb') { res.writeHead(200, h); return res.end(JSON.stringify({ entries: MOCK.live })); }
     if (u === '/gap') { MOCK.gaps.push(b); res.writeHead(200, h); return res.end('{}'); }
     if (u === '/rewrite') return setTimeout(() => { res.writeHead(200, h); res.end(JSON.stringify(MOCK.rewrite.body)); }, MOCK.rewrite.delay);
     if (u === '/llm') { res.writeHead(MOCK.llm.status, h); return res.end(MOCK.llm.status === 200 ? JSON.stringify(MOCK.llm.body) : 'x'); }
@@ -114,6 +114,26 @@ for (const eng of ['rust', 'js']) {
   const last = await ev(`(()=>{const m=[...document.querySelectorAll('#chat .msg')]; const i=m.findLastIndex(x=>x.classList.contains('u') && /Turnitin เกิน 25%/.test(x.innerText)); return {after:m.slice(i+1).map(x=>x.className.replace('msg ','')), pending:document.querySelectorAll('#chat .msg.pending').length}})()`);
   check(`[${eng}] a late AI reading for an older question is dropped (nothing after the newer answer)`, last.pending === 0 && last.after.length === 1 && last.after[0].startsWith('b'), JSON.stringify(last));
   MOCK.rewrite = { delay: 0, body: { queries: [], source: 'gemini' } };
+
+  // ---- the 5-minute pitch rehearsal (docs/pitching/10-pitch-script-5min.md): same questions, same expectations ----------------------
+  const p1 = await ask('อยากสมัครเรียนชีวสารสนเทศทางการแพทย์');
+  check(`[${eng}] pitch 1: the demo programme shows an OPEN card (not "closed")`, /ชีวสารสนเทศทางการแพทย์/.test(p1) && /🟢 สถานะบนเว็บบัณฑิตวิทยาลัย: กำลังเปิดรับสมัคร/.test(p1) && !/ปิดรับสมัครแล้ว/.test(p1), p1);
+  const p2 = await ask('แล้วค่าเทอมล่ะ');
+  check(`[${eng}] pitch 2: "แล้วค่าเทอมล่ะ" shows real fee amounts for that programme`, /ตีความว่าถามเรื่องค่าธรรมเนียมของ/.test(p2) && /ชีวสารสนเทศ/.test(p2) && /\d{1,3},\d{3}/.test(p2) && !/ยังไม่ระบุอัตรา/.test(p2), p2);
+  await ask('ส่งรูปเล่มภายในกี่วัน');
+  const evTxt = await ev(`(document.querySelector('#ev-list .ev-card')||{textContent:''}).textContent.replace(/\\s+/g,' ')`);
+  check(`[${eng}] pitch 2b: the evidence panel shows score, entry and BLAKE3 (question + route)`, /คะแนน \d/.test(evTxt) && /คู่มือ #thesis_submit_days/.test(evTxt) && /รหัส BLAKE3 ของคำถาม\+เส้นทาง/.test(evTxt), evTxt.slice(0, 200));
+
+  const nf = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
+  check(`[${eng}] pitch 3a: a question the manual lacks gets "not in the manual" and the staff contact, no invented answer`, /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(nf) && /ติดต่อ/.test(nf) && !/เจ้าหน้าที่ตอบ/.test(nf), nf);
+  MOCK.live = [{ id: 901, title: 'ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน', question: 'ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน', answer: '(ตัวอย่างทดสอบ ไม่ใช่ข้อมูลจริง) ที่จอดรถอยู่ด้านหลังอาคาร A', approved_at: Date.now() }];
+  await ev(`document.dispatchEvent(new Event('visibilitychange'))`); await wait(900);   // what the page does when the tab gets focus; it also polls every 15 s
+  const again = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
+  const staffBadge = await ev(`(([...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.src-badge'))||{}).textContent||''`);
+  check(`[${eng}] pitch 3b: after staff approval the same question is answered, labelled "เจ้าหน้าที่ตอบ"`, /ที่จอดรถอยู่ด้านหลังอาคาร A/.test(again) && /เจ้าหน้าที่ตอบ/.test(staffBadge), `${staffBadge} | ${again}`);
+  MOCK.live = []; await ev(`document.dispatchEvent(new Event('visibilitychange'))`); await wait(900);
+  const gone = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
+  check(`[${eng}] pitch 3c: after staff retract the answer is gone again`, !/ด้านหลังอาคาร A/.test(gone) && /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(gone), gone);
 
   // the conversation survives a reload in this tab; the clear button wipes it
   const before = await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`);
