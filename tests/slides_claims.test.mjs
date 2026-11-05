@@ -39,7 +39,7 @@ else if (kpis.length === 3) {
 check('the chat page does not quote the native ~12ns route time for its WASM path', !/12 ?ns/.test(read('submissions/ui/chatbot.html')));
 check('no default example chip is marked as an AI question (none reaches /llm)', !/\{q:'[^']*',ai:true\}/.test(read('submissions/ui/chatbot.html')));
 
-const shown = ['submissions/ui/slides.html', 'submissions/ui/pitch.html', 'submissions/ui/chatbot.html', 'submissions/ui/try.html', 'submissions/ui/dashboard.html', 'submissions/concept-paper.md', 'README.md'];
+const shown = ['submissions/ui/slides.html', 'submissions/ui/how-it-works.html', 'submissions/ui/pitch.html', 'submissions/ui/chatbot.html', 'submissions/ui/try.html', 'submissions/ui/dashboard.html', 'submissions/concept-paper.md', 'README.md'];
 check('"neurosymbolic" does not appear in pitch / UI / README / concept paper', shown.every(f => !/neuro-?symbolic/i.test(read(f))), shown.filter(f => /neuro-?symbolic/i.test(read(f))).join());
 check('the replay hash is not called a "BLAKE3 proof" in pitch / UI / README / concept paper', shown.every(f => !/BLAKE3 proof/i.test(read(f))), shown.filter(f => /BLAKE3 proof/i.test(read(f))).join());
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

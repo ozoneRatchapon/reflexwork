@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ReflexWork — ระบบทำงานอย่างไร</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a33; --ink:#e9edff; --muted:#9fb0d8;
+    --accent:#5b8cff; --fast:#22c58b; --llm:#f6a93b; --audit:#b07bff; --warn:#ff6b7a;
+    --line:#2a3660;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif}
+  .deck{scroll-snap-type:y mandatory;height:100vh;overflow-y:auto;scroll-behavior:smooth}
+  .slide{scroll-snap-align:start;min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+    padding:9vh 8vw 8vh;position:relative;border-bottom:1px solid var(--line)}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;font-size:clamp(11px,1.1vw,14px);margin-bottom:14px}
+  h1{font-size:clamp(34px,6vw,72px);line-height:1.05;letter-spacing:-.02em}
+  h1 .sub{display:block;font-size:clamp(16px,2.1vw,26px);color:var(--muted);font-weight:500;margin-top:22px;line-height:1.55}
+  h2{font-size:clamp(24px,3.4vw,42px);margin-bottom:22px;letter-spacing:-.01em;line-height:1.2}
+  .pageno{position:absolute;top:10vh;right:8vw;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+  .foot{position:absolute;bottom:3.5vh;left:8vw;right:8vw;color:var(--muted);font-size:clamp(12px,1.25vw,15px);line-height:1.5}
+  .lead{color:var(--muted);font-size:clamp(14px,1.6vw,19px);line-height:1.6;max-width:980px;margin-bottom:18px}
+  .lead b,.foot b{color:var(--ink)}
+  small.note{display:block;color:var(--muted);font-size:clamp(12px,1.2vw,14px);margin-top:14px;max-width:980px;line-height:1.55}
+
+  /* top bar: jump to a part by audience */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    padding:9px 4vw;background:rgba(11,16,32,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+  .nav b{color:var(--ink);font-size:14px;margin-right:6px}
+  .nav a{color:var(--muted);text-decoration:none;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+  .nav a:hover,.nav a:focus-visible{color:var(--ink);border-color:var(--accent)}
+  .aud{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:3px 11px;margin-left:10px;vertical-align:middle;border:1px solid}
+  .aud.all{color:var(--accent);border-color:var(--accent)} .aud.staff{color:var(--fast);border-color:var(--fast)}
+  .aud.exec{color:var(--llm);border-color:var(--llm)} .aud.dev{color:var(--audit);border-color:var(--audit)}
+
+  .tag{display:inline-flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:14px;color:var(--muted)}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1100px}
+  .cards.two{grid-template-columns:repeat(2,1fr)} .cards.four{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:14px;padding:22px 22px}
+  .card.fast{border-top-color:var(--fast)} .card.llm{border-top-color:var(--llm)} .card.warn{border-top-color:var(--warn)} .card.audit{border-top-color:var(--audit)}
+  .card .t{font-weight:700;font-size:clamp(16px,1.7vw,20px);margin-bottom:8px}
+  .card .d{color:var(--muted);font-size:clamp(13px,1.3vw,15px);line-height:1.6}
+  .card .d b{color:var(--ink)}
+  .card .n{font-weight:800;font-size:clamp(24px,3vw,36px);margin-bottom:6px}
+  .card.fast .n{color:var(--fast)} .card.llm .n{color:var(--llm)} .card.warn .n{color:var(--warn)} .card.audit .n{color:var(--audit)} .card .n.a{color:var(--accent)}
+
+  .flow{display:flex;flex-direction:column;gap:10px;max-width:1000px}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 20px;display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center}
+  .node .no{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800}
+  .node .t{font-weight:700;font-size:clamp(15px,1.7vw,20px)}
+  .node .d{color:var(--muted);font-size:clamp(12px,1.25vw,15px);margin-top:3px;line-height:1.5}
+  .arrow{align-self:center;color:var(--muted);font-size:18px;line-height:1}
+
+  .loop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;max-width:1100px;margin:6px 0 18px}
+  .loop .st{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:clamp(13px,1.4vw,16px);font-weight:600}
+  .loop .st.you{border-color:var(--fast);color:var(--fast)} .loop .st.bot{border-color:var(--accent)}
+  .loop .ar{color:var(--muted)}
+
+  .bars{display:flex;flex-direction:column;gap:12px;max-width:900px;margin-top:8px}
+  .br{display:grid;grid-template-columns:clamp(170px,26vw,320px) 1fr clamp(60px,7vw,90px);gap:14px;align-items:center}
+  .br .l{font-weight:600;font-size:clamp(13px,1.5vw,18px)}
+  .br .l small{display:block;color:var(--muted);font-weight:400;font-size:.8em}
+  .br .tr{background:var(--panel);border:1px solid var(--line);border-radius:8px;height:22px;overflow:hidden}
+  .br .tr i{display:block;height:100%;border-radius:7px 0 0 7px}
+  .br b{text-align:right;font-variant-numeric:tabular-nums;font-size:clamp(14px,1.6vw,20px)}
+
+  .arch{display:flex;flex-direction:column;gap:10px;max-width:1040px}
+  .arch .tier{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .arch .n{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;text-align:center;min-width:170px;flex:1 1 170px}
+  .arch .n .t{font-weight:700;font-size:clamp(13px,1.5vw,16px)} .arch .n .s{color:var(--muted);font-size:12px;margin-top:3px;line-height:1.4}
+  .arch .n.k{border-color:var(--accent)} .arch .n.k .t{color:var(--accent)}
+  .arch .n.f{border-color:var(--fast)} .arch .n.f .t{color:var(--fast)}
+  .arch .n.l{border-color:var(--llm)} .arch .n.l .t{color:var(--llm)}
+  .arch .n.a{border-color:var(--audit)} .arch .n.a .t{color:var(--audit)}
+  .arch .tl{color:var(--muted);font-size:12px;letter-spacing:.08em;text-align:center}
+  .arch .ar2{text-align:center;color:var(--muted)}
+
+  ul.pts{list-style:none;max-width:1000px;display:flex;flex-direction:column;gap:11px}
+  ul.pts li{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 18px;font-size:clamp(13px,1.45vw,17px);line-height:1.55;color:var(--muted)}
+  ul.pts li b{color:var(--ink)}
+  ul.pts li.good{border-left:3px solid var(--fast)} ul.pts li.bad{border-left:3px solid var(--warn)} ul.pts li.mid{border-left:3px solid var(--llm)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#070b17;border:1px solid var(--line);border-radius:6px;padding:1px 7px;font-size:.9em;color:#cfe0ff}
+  @media (max-width:820px){ .cards,.cards.two,.cards.four{grid-template-columns:1fr} .br{grid-template-columns:1fr auto} .br .tr{grid-column:1/-1;order:3} .slide{padding:12vh 6vw 9vh} }
+  @media print{ .nav{display:none} .deck{height:auto;overflow:visible} .slide{min-height:auto;break-after:page} }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="ข้ามไปยังส่วนที่เกี่ยวกับคุณ">
+  <b>🦀 ReflexWork</b>
+  <a href="#s2">👥 ทุกคน</a><a href="#s5">🧑‍💼 เจ้าหน้าที่ / เจ้าของคู่มือ</a><a href="#s9">📊 ผู้บริหาร</a><a href="#s11">🛠️ ทีมพัฒนา</a><a href="./chatbot.html">ลองใช้จริง →</a>
+</nav>
+<div class="deck" id="deck">
+
+  <section class="slide" id="s1">
+    <div class="pageno"></div>
+    <div class="kicker">ระบบทำงานอย่างไร</div>
+    <h1>ReflexWork
+      <span class="sub">ผู้ช่วยตอบคำถามของบัณฑิตวิทยาลัย — ตอบจาก<b>คู่มือที่อนุมัติแล้ว</b>เท่านั้น<br/>ไม่รู้ก็บอกว่าไม่รู้ แล้วส่งต่อให้เจ้าหน้าที่</span>
+    </h1>
+    <div style="margin-top:34px;display:flex;gap:12px;flex-wrap:wrap">
+      <a class="tag" href="#s2" style="text-decoration:none">👥 ทุกคน · หน้า 2–4</a>
+      <a class="tag" href="#s5" style="text-decoration:none">🧑‍💼 เจ้าหน้าที่ · หน้า 5–8</a>
+      <a class="tag" href="#s9" style="text-decoration:none">📊 ผู้บริหาร · หน้า 9–10</a>
+      <a class="tag" href="#s11" style="text-decoration:none">🛠️ ทีมพัฒนา · หน้า 11–15</a>
+    </div>
+    <div class="foot">เลื่อนลงหรือกดลูกศร ↓ → เพื่อไปหน้าถัดไป · เลือกส่วนที่ตรงกับคุณจากแถบด้านบนได้เลย · ลองสด: reflexwork.pages.dev</div>
+  </section>
+
+  <section class="slide" id="s2">
+    <div class="pageno"></div>
+    <div class="kicker">ภาพรวม <span class="aud all">👥 ทุกคน</span></div>
+    <h2>นักศึกษาถามหนึ่งข้อ ระบบมีคำตอบได้ 3 แบบ</h2>
+    <div class="cards">
+      <div class="card fast"><div class="n">✅</div><div class="t">ตอบจากคู่มือ</div><div class="d">เจอหัวข้อที่ตรงชัดเจน → แสดงคำตอบ<b>ตามถ้อยคำในคู่มือ</b> พร้อมชื่อหัวข้อที่มาและลิงก์หน้าทางการ</div></div>
+      <div class="card llm"><div class="n">🤔</div><div class="t">ถามให้ชัดก่อน</div><div class="d">มีหลายหัวข้อที่ใกล้กัน หรือคำถามเปลี่ยนตามปีการศึกษา → <b>ให้เลือก</b>แทนที่จะเดา</div></div>
+      <div class="card warn"><div class="n">🙇</div><div class="t">บอกตรง ๆ ว่ายังไม่มี</div><div class="d">ไม่มีในคู่มือ → ไม่แต่งคำตอบ แนะนำหัวข้อใกล้เคียง พาไปหาเจ้าหน้าที่ และ<b>จดคำถามไว้</b>ให้ทีมเติมคู่มือ</div></div>
+    </div>
+    <div class="loop" style="margin-top:26px">
+      <span class="st">นักศึกษาถาม</span><span class="ar">→</span><span class="st bot">ระบบตอบ / บอกว่ายังไม่มี</span><span class="ar">→</span>
+      <span class="st you">เจ้าหน้าที่เติมคำตอบ</span><span class="ar">→</span><span class="st bot">คนถัดไปถามเรื่องเดียวกัน ได้คำตอบเลย</span>
+    </div>
+    <div class="foot">หลักของระบบข้อเดียว: <b>ข้อเท็จจริงมาจากคู่มือที่คนอนุมัติแล้ว ไม่ได้มาจากโมเดล AI</b></div>
+  </section>
+
+  <section class="slide" id="s3">
+    <div class="pageno"></div>
+    <div class="kicker">เส้นทางของคำถามหนึ่งข้อ <span class="aud all">👥 ทุกคน</span></div>
+    <h2>จากที่พิมพ์ ถึงที่ได้คำตอบ</h2>
+    <div class="flow">
+      <div class="node"><div class="no">1</div><div><div class="t">ทำความสะอาดข้อความ</div><div class="d">รวมสระ/วรรณยุกต์ที่พิมพ์ต่างกัน ตัดอักขระที่มองไม่เห็นและอีโมจิ ตัดคำนำ เช่น "สวัสดีครับ ขอถามว่า…"</div></div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="no">2</div><div><div class="t">คัดประเภทก่อน</div><div class="d">ทักทาย · ความทุกข์ใจ/วิกฤต · ปัญหาเฉพาะบัญชี (ล็อกอิน ข้อมูลค้าง) · ถามหลักสูตร · ถามคู่มือ — แต่ละแบบมีทางของมันเอง</div></div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="no">3</div><div><div class="t">ค้นคู่มือและให้คะแนน</div><div class="d">ค้นด้วยคำที่ตรงกันและความคล้ายของข้อความ ได้คะแนนของแต่ละหัวข้อ และดูว่าที่หนึ่งนำที่สองแค่ไหน</div></div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="no">4</div><div><div class="t">ตัดสินใจ</div><div class="d">ชัดและนำห่าง → ตอบ · ใกล้กันหลายข้อ → ให้เลือก · ต่ำเกิน → ยังไม่มีในคู่มือ</div></div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="no">5</div><div><div class="t">แสดงคำตอบ</div><div class="d">เรียงเป็นข้อสั้น ๆ คำตอบนำหน้า พร้อมป้ายที่มา (ข้อมูลทางการ / เจ้าหน้าที่ตอบ) และวันที่เทียบกับวันนี้ เช่น "ผ่านไปแล้ว"</div></div></div>
+    </div>
+  </section>
+
+  <section class="slide" id="s4">
+    <div class="pageno"></div>
+    <div class="kicker">ใครเป็นผู้ตอบ <span class="aud all">👥 ทุกคน</span></div>
+    <h2>AI ทำได้แค่ 3 อย่าง — และไม่เคยเป็นผู้ให้ข้อเท็จจริง</h2>
+    <div class="cards">
+      <div class="card llm"><div class="t">1 · แปลคำถามเป็นคำค้น</div><div class="d">เมื่อค้นตรง ๆ ไม่เจอ AI ช่วยเขียนคำค้นสั้น ๆ <b>โดยไม่เห็นคู่มือและไม่ตอบ</b> จากนั้นระบบค้นคู่มือเอง และตอบเฉพาะเมื่อชี้ข้อเดียวชัดเจน</div></div>
+      <div class="card llm"><div class="t">2 · เรียบเรียงคำแนะนำ</div><div class="d">คำถามแนวขอคำแนะนำ ("ควรวางแผนอย่างไร") ที่คู่มือตรงไม่ชัด → AI เรียบเรียงจากข้อความคู่มือ แล้ว<b>ตัวกรองตัดประโยคที่มีตัวเลข/ชื่อ/เดือนที่ไม่อยู่ในคู่มือ</b></div></div>
+      <div class="card llm"><div class="t">3 · ร่างคำตอบให้เจ้าหน้าที่</div><div class="d">จากคำถามที่ตอบไม่ได้ AI ร่างให้ — แต่<b>ไม่ขึ้นแชต</b>จนกว่าเจ้าหน้าที่ตรวจและกดอนุมัติ</div></div>
+    </div>
+    <ul class="pts" style="margin-top:22px">
+      <li class="good"><b>คำถามเชิงข้อเท็จจริง</b> (กี่วัน เท่าไร เมื่อไร) ไม่ผ่าน AI เลย — แสดงถ้อยคำในคู่มือโดยตรง</li>
+      <li class="good">AI ล่มหรือช้า → <b>ข้อความคู่มือขึ้นทันทีอยู่แล้ว</b> ผู้ใช้ไม่ต้องรอ และป้ายไม่อ้างว่า AI ช่วย</li>
+      <li class="mid">เติม <code>?ai=off</code> ท้าย URL → ไม่เรียก AI เลยสักครั้ง</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s5">
+    <div class="pageno"></div>
+    <div class="kicker">คำตอบมาจากไหน <span class="aud staff">🧑‍💼 เจ้าหน้าที่ / เจ้าของคู่มือ</span></div>
+    <h2>3 แหล่ง — ทุกแหล่งมีที่มาและวันที่</h2>
+    <div class="cards">
+      <div class="card fast"><div class="n"><span data-claim="kb">132</span></div><div class="t">หัวข้อในคู่มือ</div><div class="d">ไฟล์ข้อความที่มีสถานะ <code>approved</code> เท่านั้นถึงขึ้นแชต เช่น ส่งรูปเล่มกี่วัน ค่าปรับ Turnitin ติดต่อกองไอที</div></div>
+      <div class="card"><div class="n a"><span data-claim="prog">379</span></div><div class="t">หลักสูตรในแคตตาล็อก</div><div class="d">ดึงจากเว็บบัณฑิตวิทยาลัย ณ <b>4 พ.ย. 2569</b> เก็บถ้อยคำตามต้นฉบับ มีประกาศรับสมัครปี 2570 <span data-claim="ann">239</span> หลักสูตร (<span data-claim="majors">9</span> หลักสูตรประกาศแยกตามวิชาเอก)</div></div>
+      <div class="card audit"><div class="n">📝</div><div class="t">คำตอบจากเจ้าหน้าที่</div><div class="d">เขียนและอนุมัติในแดชบอร์ด ขึ้นแชตพร้อมป้าย "เจ้าหน้าที่ตอบ" และวันที่อนุมัติ ถอนออกได้ทุกเมื่อ</div></div>
+    </div>
+    <ul class="pts" style="margin-top:22px">
+      <li class="good">คำตอบที่มีวันที่ (ลงทะเบียน สมัคร ชำระเงิน) <b>เทียบกับวันนี้ตามเวลาไทย</b> และติดป้าย "ผ่านไปแล้ว / อยู่ในช่วงนี้ / ยังไม่ถึง"</li>
+      <li class="mid">ข้อมูลหลักสูตรเป็น <b>ภาพถ่าย ณ วันที่ดึง</b> — ถ้าเก่าเกิน ระบบเตือนอายุข้อมูลและให้ตรวจที่ปุ่มหน้าทางการ</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s6">
+    <div class="pageno"></div>
+    <div class="kicker">วงจรที่เจ้าหน้าที่มีส่วนร่วม <span class="aud staff">🧑‍💼 เจ้าหน้าที่ / เจ้าของคู่มือ</span></div>
+    <h2>เรื่องที่ตอบไม่ได้ กลายเป็นคำตอบใหม่</h2>
+    <div class="loop">
+      <span class="st">คำถามที่ตอบไม่ได้</span><span class="ar">→</span>
+      <span class="st bot">บันทึก (ตัดอีเมล เลขรหัสออก)</span><span class="ar">→</span>
+      <span class="st">แดชบอร์ด: จัดกลุ่มตามระบบที่เกี่ยวข้อง</span><span class="ar">→</span>
+      <span class="st you">เจ้าหน้าที่เขียน หรือให้ AI ร่างแล้วตรวจ</span><span class="ar">→</span>
+      <span class="st you">กดอนุมัติ</span><span class="ar">→</span>
+      <span class="st bot">ขึ้นในแชต ไม่เกินราว 15 วินาที</span>
+    </div>
+    <ul class="pts">
+      <li class="good"><b>เห็นว่าคู่มือขาดอะไร</b> เรียงตามจำนวนครั้งที่ถูกถาม ไม่ต้องเดาว่าควรเขียนเรื่องไหนก่อน</li>
+      <li class="good"><b>ถอนได้ทันที</b> ถ้าคำตอบผิด คนที่กดดูหัวข้อแนะนำเดิมจะเห็นว่า "คำตอบนี้ถูกถอนแล้ว"</li>
+      <li class="mid">คำตอบของเจ้าหน้าที่ที่ตรงกับคู่มือทุกประการ → ระบบเลือกของเจ้าหน้าที่ขึ้นก่อน และซ่อนของเดิมที่คะแนนเท่ากัน</li>
+      <li class="mid">แดชบอร์ดไม่ถามเซิร์ฟเวอร์ถี่ — ดึงสถิติทุก 10 วินาที รายการทุก 30 วินาที จึงไม่แย่งโควตากับนักศึกษา</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s7">
+    <div class="pageno"></div>
+    <div class="kicker">สิ่งที่บอทไม่ทำ <span class="aud staff">🧑‍💼 เจ้าหน้าที่ / เจ้าของคู่มือ</span></div>
+    <h2>ข้อควรระวังที่ใส่ไว้ในระบบ ไม่ได้พึ่งให้ AI "ระวังเอง"</h2>
+    <div class="cards two" style="max-width:1100px">
+      <div class="card warn"><div class="t">ไม่เดา</div><div class="d">ไม่มีในคู่มือ → บอกว่ายังไม่มี ไม่แปลงคำถามภาษาอื่นแล้วเดาคำตอบ</div></div>
+      <div class="card warn"><div class="t">ไม่ยืนยันข้อสมมติ</div><div class="d">"เรียนฟรีใช่ไหม" → ไม่ตอบว่าใช่ เพราะค่าเทอมต่างกันตามหลักสูตร พาไปเลือกหลักสูตรดูตารางจริง</div></div>
+      <div class="card llm"><div class="t">ปัญหาเฉพาะบัญชี</div><div class="d">"เข้าระบบไม่ได้" "ข้อมูลค้าง" → แสดงข้อมูลที่ต้องเตรียมและช่องติดต่อกองไอที <b>แชตไม่ได้รับหรือส่งข้อมูลส่วนตัวต่อ</b> และบอกชัดว่าส่งเองไม่ได้</div></div>
+      <div class="card llm"><div class="t">ความทุกข์ใจ</div><div class="d">ตอบอย่างห่วงใยก่อนอย่างอื่น พร้อมช่องให้คำปรึกษา — ไม่แต่งเบอร์โทรที่ไม่ได้ยืนยัน</div></div>
+      <div class="card"><div class="t">คำถามที่ขึ้นกับปี/ภาค</div><div class="d">ถามคนละปีการศึกษา → ถามกลับว่าปีไหน ไม่เลือกให้เอง</div></div>
+      <div class="card"><div class="t">ไม่เรียกคำตอบเก่าว่าปัจจุบัน</div><div class="d">เทียบวันกับนาฬิกา ติดป้ายอายุข้อมูล และบอกเมื่อกำหนดการผ่านไปแล้ว</div></div>
+    </div>
+  </section>
+
+  <section class="slide" id="s8">
+    <div class="pageno"></div>
+    <div class="kicker">ความเป็นส่วนตัว <span class="aud staff">🧑‍💼 เจ้าหน้าที่ / เจ้าของคู่มือ</span></div>
+    <h2>ข้อมูลของใครอยู่ที่ไหน</h2>
+    <ul class="pts">
+      <li class="good"><b>ประวัติแชต</b> เก็บในแท็บของผู้ใช้เองเท่านั้น (ปิดแท็บแล้วหาย ไม่ส่งขึ้นเซิร์ฟเวอร์) มีปุ่ม "ล้างประวัติแชต" — หลายคนใช้พร้อมกันจึงไม่เห็นแชตของกัน และเครื่องที่ใช้ร่วมกันไม่ทิ้งประวัติไว้ให้คนถัดไป</li>
+      <li class="good"><b>คำถามที่ตอบไม่ได้</b> ถูกบันทึกให้ทีมคู่มือ หลังตัดอีเมล เลขรหัสนักศึกษา/โทรศัพท์ และชื่อที่ตามหลังคำว่า "ชื่อ" แล้วตัดเหลือ 500 ตัวอักษร</li>
+      <li class="good"><b>ข้อความเรื่องบัญชี/ระบบขัดข้อง</b> ไม่ถูกบันทึกเลย เพราะอาจมีชื่อและรหัส</li>
+      <li class="good"><b>การค้นคู่มือ</b> ทำในเบราว์เซอร์ของผู้ใช้ (WebAssembly) ไม่ต้องส่งคำถามไปไหนเพื่อค้น</li>
+      <li class="bad"><b>ข้อจำกัดที่ต้องบอกตรง ๆ:</b> ชื่อที่พิมพ์โดยไม่มีคำว่า "ชื่อ" นำหน้าตรวจจับไม่ได้ จึงมีข้อความใต้ช่องพิมพ์เตือนไม่ให้พิมพ์ข้อมูลส่วนตัว</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s9">
+    <div class="pageno"></div>
+    <div class="kicker">ผลที่วัดได้ <span class="aud exec">📊 ผู้บริหาร</span></div>
+    <h2>แม่นแค่ไหน — ตัวเลขจากชุดทดสอบที่รันซ้ำได้</h2>
+    <div class="bars">
+      <div class="br"><div class="l">หัวข้อที่ถูกอยู่ <b>อันดับ 1</b><small>จาก <span data-claim="labelled">50</span> คำถามที่ติดป้ายเฉลยไว้</small></div><div class="tr"><i style="width:86%;background:var(--fast)"></i></div><b><span data-claim="r1">86</span>%</b></div>
+      <div class="br"><div class="l">หัวข้อที่ถูกอยู่ใน <b>3 อันดับแรก</b></div><div class="tr"><i style="width:96%;background:var(--fast)"></i></div><b><span data-claim="r3">96</span>%</b></div>
+      <div class="br"><div class="l">บอทตอบเองได้<small>จากคำถามทดสอบ <span data-claim="n">52</span> ข้อ (รวม 2 ข้อนอกคู่มือ)</small></div><div class="tr"><i style="width:84.6%;background:var(--accent)"></i></div><b><span data-claim="answered">44</span>/<span data-claim="n2">52</span></b></div>
+      <div class="br"><div class="l">ในที่ตอบเอง <b>ตอบผิด</b></div><div class="tr"><i style="width:6.8%;background:var(--warn)"></i></div><b><span data-claim="wrong">3</span>/<span data-claim="answered2">44</span></b></div>
+    </div>
+    <small class="note">⚠️ <b>ตีความอย่างระวัง:</b> ชุดทดสอบมี 50 ข้อ จึงมีช่วงเชื่อมั่นกว้าง (อันดับ 1 อยู่ราว 74–93%) ตัวเลขนี้บอกว่าระบบอยู่ในระดับใช้งานได้ ไม่ใช่การรับประกันว่าทุกคำถามจริงจะถูก — รันซ้ำได้ด้วย <code>benchmark/compare/run_all.sh</code> และมี test ตรวจว่าตัวเลขในสไลด์นี้ตรงกับผลวัดเสมอ</small>
+    <div class="foot">เมื่อไม่แน่ใจ ระบบเลือก "ส่งต่อ" มากกว่า "ตอบผิด" — จึงมี 8 ข้อจาก 52 ที่ไม่ถูกตอบเอง (ถามให้เลือกหัวข้อ หรือส่งต่อเจ้าหน้าที่)</div>
+  </section>
+
+  <section class="slide" id="s10">
+    <div class="pageno"></div>
+    <div class="kicker">ต้นทุนและความเร็ว <span class="aud exec">📊 ผู้บริหาร</span></div>
+    <h2>จ่ายค่า AI เฉพาะตอนที่จำเป็นจริง</h2>
+    <div class="cards">
+      <div class="card fast"><div class="n">0</div><div class="t">ค่า AI ของคำตอบเชิงข้อเท็จจริง</div><div class="d">คำถามที่ตอบจากคู่มือไม่เรียก LLM เลย จึงไม่มีค่า token และไม่มีโอกาสที่โมเดลจะแต่งเรื่อง</div></div>
+      <div class="card"><div class="n a">~4 ms</div><div class="t">ค้นคู่มือ 132 หัวข้อ</div><div class="d">ในเบราว์เซอร์ของผู้ใช้ (ค่ากลางที่วัดบนเครื่องพัฒนา) เทียบกับการรอ LLM ที่ใช้เวลาเป็นวินาที</div></div>
+      <div class="card llm"><div class="n">3</div><div class="t">กรณีที่เรียก AI</div><div class="d">แปลคำค้น · เรียบเรียงคำแนะนำ · ร่างคำตอบให้เจ้าหน้าที่ — เท่านั้น</div></div>
+    </div>
+    <small class="note">ตัวเลข "ประหยัด ฿" ที่เห็นในหน้า judge view เป็น<b>ประมาณการ</b> (สมมติ ฿2 ต่อคำถามถ้าให้ LLM ตอบ) ไม่ใช่ค่าที่วัดจากบิลจริง — ยังไม่มีข้อมูลบิลจริงให้ยืนยันเปอร์เซ็นต์การลดต้นทุน จึงไม่ขอระบุตัวเลขนั้นเป็นข้อเท็จจริง</small>
+  </section>
+
+  <section class="slide" id="s11">
+    <div class="pageno"></div>
+    <div class="kicker">สถาปัตยกรรม <span class="aud dev">🛠️ ทีมพัฒนา</span></div>
+    <h2>ส่วนที่รันในเบราว์เซอร์ และส่วนที่รันบน edge</h2>
+    <div class="arch">
+      <div class="tl">เบราว์เซอร์ของผู้ใช้ (Cloudflare Pages: ไฟล์คงที่)</div>
+      <div class="tier">
+        <div class="n k"><div class="t">chatbot.html</div><div class="s">ตรรกะการตอบ · แสดงผล · ประวัติแชตต่อแท็บ</div></div>
+        <div class="n k"><div class="t">Reflex Kernel (Rust → WASM)</div><div class="s">ค้นคู่มือ · คัดประเภท · ตัดสินใจ · ลายนิ้วมือ BLAKE3</div></div>
+        <div class="n f"><div class="t">คู่มือ + แคตตาล็อก</div><div class="s">knowledge-index.json · programmes.json</div></div>
+      </div>
+      <div class="ar2">↓ เฉพาะเมื่อจำเป็น (โหวต · บันทึกคำถามที่ตอบไม่ได้ · คำตอบเจ้าหน้าที่ · AI)</div>
+      <div class="tl">Cloudflare Workers</div>
+      <div class="tier">
+        <div class="n a"><div class="t">kernel-worker + D1</div><div class="s">gap log · โหวต · ร่างคำตอบ · live-kb</div></div>
+        <div class="n l"><div class="t">llm-proxy</div><div class="s">Gemini / Ollama · งบเวลา 18 วินาที · ตัวกรองข้อเท็จจริง</div></div>
+        <div class="n k"><div class="t">line-worker</div><div class="s">webhook ของ LINE OA · ใช้โมดูลคัดแยกชุดเดียวกัน</div></div>
+      </div>
+    </div>
+    <div class="foot">หน่วยงานอื่นที่นำไปใช้ <b>ไม่เรียกเซิร์ฟเวอร์ของเราโดยค่าเริ่มต้น</b> — ค้นคู่มือทั้งหมดในเบราว์เซอร์</div>
+  </section>
+
+  <section class="slide" id="s12">
+    <div class="pageno"></div>
+    <div class="kicker">ฝาแฝด Rust ↔ JS <span class="aud dev">🛠️ ทีมพัฒนา</span></div>
+    <h2>ตรรกะสำคัญมี 2 ฉบับ และต้องได้ผลเหมือนกันทุกกรณี</h2>
+    <ul class="pts">
+      <li class="good">เปิดหน้าด้วย <code>?engine=rust</code> (ค่าเริ่มต้น) หรือ <code>?engine=js</code> — ฟังก์ชันที่ย้ายไป Rust แล้วถ้าล้มเหลวจะ<b>ถอยกลับไปใช้ฉบับ JS</b> เองโดยผู้ใช้ไม่เห็น</li>
+      <li class="good"><b>Golden contract:</b> ชุดอินพุตที่แช่แข็งไว้กว่า 5,000 กรณี (ค้นชื่อหลักสูตร · ตารางกำหนดการ/ค่าธรรมเนียม · คัดปัญหาเฉพาะบุคคล · ตัดสินใจ · แปลคำค้น · เรียงคำตอบ) พร้อมผลลัพธ์ที่ JS ให้ — ฉบับ Rust ต้องตรงทุกกรณี (CI: <code>rust-golden</code>)</li>
+      <li class="mid">เปลี่ยนตรรกะโดยตั้งใจ → สร้างค่า golden ใหม่ด้วย <code>golden_dump.mjs --keep-inputs</code> แล้วตรวจ diff ทีละรายการก่อน commit</li>
+      <li class="mid">รูปแบบ regex ที่ใช้ร่วมกัน (เช่น คัดปัญหาบัญชี) ถูกสร้างเป็นโค้ด Rust จากไฟล์หน้าเว็บอัตโนมัติ <code>gen_rust_pattern_sources.mjs</code> กันไม่ให้สองฉบับเพี้ยนจากกัน</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s13">
+    <div class="pageno"></div>
+    <div class="kicker">เส้นทาง AI ในรายละเอียด <span class="aud dev">🛠️ ทีมพัฒนา</span></div>
+    <h2>AI อยู่ในกรอบ: ถูกถามน้อย ถูกกรอง และไม่ขวางคำตอบ</h2>
+    <div class="cards two" style="max-width:1100px">
+      <div class="card llm"><div class="t">Understand step</div><div class="d">ค้นตรงไม่เจอ → <code>/rewrite</code> ขอคำค้น 1–3 คำ (โมเดลเห็นแค่คำถาม) → ค้นคู่มือด้วยทุกคำ → ตอบเมื่อชี้หัวข้อเดียวชัดเจนด้วยเกณฑ์เดียวกับการค้นตรง ถ้าไม่ชัดจะเสนอหัวข้อที่แต่ละคำชี้ไป ผลล้มเหลวชั่วคราว (5xx / 429) ไม่ถูกแคช</div></div>
+      <div class="card llm"><div class="t">Grounded rephrase + guard</div><div class="d">ส่ง <code>question</code> กับ <code>context</code> (ข้อความคู่มือ 3 หัวข้อ) แยกกัน → <code>groundedGuard</code> ตรวจตัวเลขทั้งตัว เลขไทย คู่เลข+หน่วย เบอร์โทร และชื่อเดือน → ประโยคที่ไม่อยู่ใน context ถูกตัด; ถ้าเหลือว่าง ส่ง <code>source:'fallback'</code></div></div>
+      <div class="card"><div class="t">งบเวลา</div><div class="d">proxy ใช้เวลารวมไม่เกิน 18 วินาที หน้าเว็บยกเลิกที่ 20 วินาที — ระหว่างรอ ข้อความคู่มือแสดงอยู่แล้ว ผู้ใช้ไม่เห็นหน้าจอว่างหรือสปินเนอร์ค้าง</div></div>
+      <div class="card"><div class="t">ลำดับความถูกต้องในหน้าเว็บ</div><div class="d">คำตอบเจ้าหน้าที่ที่ตรงชัดมาก่อนการเดาหลักสูตร · ปัญหาเฉพาะบุคคลชนะการเดาคะแนนต่ำหรือคะแนนเสมอ · คำตอบช้าของคำถามเก่าไม่ขึ้นใต้คำถามใหม่</div></div>
+    </div>
+    <div class="foot">ข้อสังเกตตรง ๆ: ค่า gate ของ kernel ในหน้าเว็บต่ำกว่าเกณฑ์เสมอ — <b>คะแนนค้นคู่มือเป็นตัวตัดสิน</b> ไม่ใช่ gate (ดู docs/METHOD.md §3.1) และรหัส BLAKE3 ครอบคลุมคำถามกับเส้นทาง ไม่รวมตัวคำตอบ</div>
+  </section>
+
+  <section class="slide" id="s14">
+    <div class="pageno"></div>
+    <div class="kicker">คุณภาพและการทดสอบ <span class="aud dev">🛠️ ทีมพัฒนา</span></div>
+    <h2>เปลี่ยนแล้วรู้ว่าพังตรงไหน</h2>
+    <div class="cards four">
+      <div class="card fast"><div class="n"><span data-min="tests">60</span>+</div><div class="t">ไฟล์ test</div><div class="d">รันทุกไฟล์ใน CI ด้วย glob — เพิ่มไฟล์ใหม่ไม่มีทางหลุด</div></div>
+      <div class="card"><div class="n a">E2E</div><div class="t">เปิดหน้าเว็บจริง</div><div class="d">Chrome headless ทั้ง Rust และ JS กับ mock server ไม่ยิง production ใช้เวลาราว 25 วินาที</div></div>
+      <div class="card audit"><div class="n">🔁</div><div class="t">Benchmark ซ้ำได้</div><div class="d">seed คงที่ บันทึกทุก run พร้อม commit และ test ตรวจตัวเลขในสไลด์</div></div>
+      <div class="card llm"><div class="n">102</div><div class="t">ข้อที่ QA พบ</div><div class="d">รอบแรกแก้ฝั่งโค้ดครบ ที่เหลือเป็นเนื้อหาคู่มือรอเจ้าของ</div></div>
+    </div>
+    <ul class="pts" style="margin-top:22px">
+      <li class="good">ทุกการแก้ใน UI ถูกลองใน Chrome จริงทั้ง 2 engine ก่อน commit และมี test ที่ล้มเมื่อใส่บั๊กเดิมกลับ</li>
+      <li class="mid">บทเรียน: test แบบตัดชิ้นโค้ดมาทดสอบไม่เห็นบั๊กลำดับการทำงานของทั้งหน้า (คำถาม "แล้วค่าเทอมล่ะ" เคยถูกตีเป็นตัวช่วยเลือกทั่วไป) จึงเพิ่ม E2E ที่เปิดทั้งหน้า</li>
+    </ul>
+  </section>
+
+  <section class="slide" id="s15">
+    <div class="pageno"></div>
+    <div class="kicker">นำไปใช้กับหน่วยงานอื่น <span class="aud dev">🛠️ ทีมพัฒนา</span></div>
+    <h2>เปลี่ยนคู่มือกับไฟล์ตั้งค่า ได้ระบบของหน่วยงานคุณ</h2>
+    <div class="flow">
+      <div class="node"><div class="no">1</div><div><div class="t">เขียนคู่มือเป็นไฟล์ข้อความ</div><div class="d">หัวข้อ ถ้อยคำ แหล่งที่มา สถานะอนุมัติ — ใช้โครงเดียวกับของบัณฑิตวิทยาลัย</div></div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="no">2</div><div><div class="t">ตั้งค่า <code>agency.json</code></div><div class="d">ชื่อหน่วยงาน ข้อความต้อนรับ คำถามตัวอย่าง ลิงก์ติดต่อ/FAQ และช่องทางกองไอที (ถ้ามี) — ที่ไม่ใส่จะไม่มีปุ่มนั้น ไม่ย้อนไปใช้ของเรา</div></div></div>
+      <div class="arrow">↓</div>
+      <div class="node"><div class="no">3</div><div><div class="t">สร้างเว็บ แล้วเผยแพร่</div><div class="d"><code>node scripts/new_agency.mjs my-unit /path/to/site</code> แล้วอัปโหลดโฟลเดอร์ขึ้นโฮสต์ใดก็ได้ — ดูขั้นตอนเต็มใน <code>docs/adopt.md</code></div></div></div>
+    </div>
+    <div class="foot">ค่าเริ่มต้นสำหรับหน่วยงานอื่น: <b>ไม่ติดต่อเซิร์ฟเวอร์ของเรา ไม่มี AI ไม่บันทึกคำถาม</b> จนกว่าจะตั้งปลายทางของตัวเอง</div>
+  </section>
+
+  <section class="slide" id="s16">
+    <div class="pageno"></div>
+    <div class="kicker">ข้อจำกัดและงานต่อ <span class="aud all">👥 ทุกคน</span></div>
+    <h2>สิ่งที่ยังไม่เสร็จ — บอกตรง ๆ</h2>
+    <ul class="pts">
+      <li class="bad"><b>คู่มือ 30 หัวข้อยังเป็น draft</b> และ 3 หัวข้อรอตรวจ — รอเจ้าของคู่มือตัดสินใจ (ไฟล์ <code>.plans/005_kb-owner-decisions.md</code>) · ราว 35 คำตอบยังเขียนถึงบอทมากกว่านักศึกษา</li>
+      <li class="mid"><b>ข้อมูลหลักสูตรเป็นภาพถ่าย</b> ณ 4 พ.ย. 2569 — สถานะรับสมัครเปลี่ยนทุกสัปดาห์ ควรตั้งให้ดึงใหม่อัตโนมัติและเปิด PR เมื่อมีการเปลี่ยน</li>
+      <li class="mid"><b>ชุดวัดคุณภาพมี 50 ข้อ</b> — ควรเก็บคำถามจริงจากบันทึกคำถามที่ตอบไม่ได้มาขยายชุดทดสอบ</li>
+      <li class="mid">ยังไม่มี Content-Security-Policy แบบเต็ม (ต้องใส่ hash ให้สคริปต์ inline) และแดชบอร์ดบนจอแคบยังไม่ปรับ</li>
+      <li class="mid">ถามภาษาอื่นนอกจากไทย/อังกฤษ ระบบบอกว่าตอบไม่ได้ ยังไม่แปล (เลือกไม่แปลเพื่อไม่เดาข้อเท็จจริง)</li>
+    </ul>
+    <div class="foot">ถ้าพบคำตอบที่ผิด กด 👎 ใต้คำตอบ หรือแจ้งทีมคู่มือ — ทุกเรื่องที่แจ้งกลายเป็นงานแก้คู่มือ</div>
+  </section>
+
+</div>
+<script>
+  // page numbers (so adding a slide never leaves a stale "NN / total")
+  const slides=[...document.querySelectorAll('.slide')], deck=document.getElementById('deck');
+  slides.forEach((s,i)=>{ const p=s.querySelector('.pageno'); if(p) p.textContent=String(i+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0'); });
+  // keyboard: arrows / space / page keys move one slide; Home / End jump
+  const cur=()=>{ const y=deck.scrollTop+deck.clientHeight/2; let k=0; slides.forEach((s,i)=>{ if(s.offsetTop<=y) k=i; }); return k; };
+  const go=i=>{ const s=slides[Math.max(0,Math.min(slides.length-1,i))]; deck.scrollTo({top:s.offsetTop}); };
+  addEventListener('keydown',e=>{
+    if(e.target.closest && e.target.closest('input,textarea,select')) return;
+    const k=e.key;
+    if(['ArrowDown','ArrowRight','PageDown',' '].includes(k)){ e.preventDefault(); go(cur()+1); }
+    else if(['ArrowUp','ArrowLeft','PageUp'].includes(k)){ e.preventDefault(); go(cur()-1); }
+    else if(k==='Home'){ e.preventDefault(); go(0); } else if(k==='End'){ e.preventDefault(); go(slides.length-1); }
+  });
+  // in-page anchors scroll the deck (not the window)
+  document.querySelectorAll('a[href^="#s"]').forEach(a=>a.addEventListener('click',e=>{ const t=document.querySelector(a.getAttribute('href')); if(t){ e.preventDefault(); deck.scrollTo({top:t.offsetTop}); } }));
+</script>
+</body>
+</html>
