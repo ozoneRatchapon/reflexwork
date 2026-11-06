@@ -103,7 +103,7 @@ for (const eng of ['rust', 'js']) {
   check(`[${eng}] 'แล้วค่าเทอมล่ะ' after a card answers THAT programme's fees (not the generic fee finder)`, /ตีความว่าถามเรื่องค่าธรรมเนียมของ/.test(fu) && /จิตวิทยาคลินิก/.test(fu), fu);
 
   const it = await ask('เข้าระบบไม่ได้');
-  check(`[${eng}] a login problem gets the IT contact box`, /ติดต่อกองไอทีได้โดยตรง/.test(it) && /02-849-6022/.test(it), it);
+  check(`[${eng}] a login problem gets the Graduate School IT first (LINE), the university IT desk after it`, /ติดต่องานเทคโนโลยีสารสนเทศ บัณฑิตวิทยาลัยได้โดยตรง/.test(it) && /@322wjrbo/.test(it) && /บัญชีมหาวิทยาลัยถูกล็อก: โทรกองไอที 02-849-6022/.test(it) && it.indexOf('@322wjrbo') < it.indexOf('02-849-6022'), it);
 
   MOCK.gaps = []; const stk = await ask('ติดปัญหา');
   check(`[${eng}] 'ติดปัญหา' asks which area (area chips + staff contact), not 'not understood', no gap`, /ติดปัญหาเรื่องไหน/.test(stk) && /วิทยานิพนธ์ \/ ส่งเล่ม/.test(stk) && /ติดต่อบัณฑิตวิทยาลัย/.test(stk) && !/จับใจความ/.test(stk) && await ev(`!![...document.querySelectorAll('#chat .msg.b')].pop().querySelector('a[href="https://line.me/R/ti/p/@gradmu"]')`) && (await wait(300), MOCK.gaps.length === 0), `${stk} gaps=${MOCK.gaps.length}`);

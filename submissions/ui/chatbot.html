@@ -440,10 +440,11 @@ const DEFAULT_AGENCY = {
   it:{name:'กองไอที', phone:'02-849-6022', email:'account@mahidol.ac.th'},
   // Talk to a person now: the Graduate School's own LINE Official Accounts, as listed on its contact page (?p=aboutUs&g=2, checked
   // 2026-11-06). general = "ติดต่อสอบถามข้อมูลทั่วไป", admissions = รับสมัคร/รายงานตัว, it = the Graduate School's own web / information systems
-  // (not the university account desk above). null for other agencies (NEUTRAL_AGENCY).
+  // (the account / system box asks it FIRST; the university IT desk above stays as the place for a locked university account, as the
+  // manual's account entries say). null for other agencies (NEUTRAL_AGENCY).
   line:{general:{label:'💬 แชตกับเจ้าหน้าที่ทาง LINE (@gradmu)',url:'https://line.me/R/ti/p/@gradmu'},
         admissions:{label:'💬 ถามงานรับสมัครทาง LINE (@mugradmissions)',url:'https://line.me/R/ti/p/@mugradmissions'},
-        it:{label:'💬 แจ้งปัญหาระบบของบัณฑิตวิทยาลัยทาง LINE',url:'https://line.me/R/ti/p/@322wjrbo'}},   // QA G05: the account / system-problem box (intake); null elsewhere
+        it:{name:'งานเทคโนโลยีสารสนเทศ บัณฑิตวิทยาลัย', label:'💬 แชตกับงานไอทีบัณฑิตวิทยาลัยทาง LINE (@322wjrbo)',url:'https://line.me/R/ti/p/@322wjrbo'}},   // QA G05: the account / system-problem box (intake); null elsewhere
   faq:{label:'📚 เปิดคู่มือ FAQ ทางการ',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai'},
   english:{home:null,faq:{label:'📚 Official FAQ (English)',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng'},contact:{label:'☎️ Contact staff',url:'https://graduate.mahidol.ac.th/thai/?p=aboutUs&g=2'}},
   scopeLinks:{registration:'https://graduate.mahidol.ac.th/thai/current-students/?p=academic-calendar',admissions:'https://graduate.mahidol.ac.th/thai/prospective-students/?topic=schedule',other:'https://graduate.mahidol.ac.th/thai/?p=aboutUs&g=2'},
@@ -2278,20 +2279,24 @@ function _askCore(){
       // QA G05: the IT contact comes from the agency config (another deployment never shows Mahidol's IT); the tel: link and its
       // label come from ONE phone value (F07 was a mismatch between them). No IT contact -> the agency's general contact, or no box.
       const it = AGENCY.it && (AGENCY.it.phone || AGENCY.it.email) ? AGENCY.it : null, itName = _lEsc((it && it.name) || 'เจ้าหน้าที่');
+      // The Graduate School's own IT unit (its systems: e-Thesis, the graduate-student system, its website) is asked first; the
+      // university IT desk handles the university account itself (locked, password reset at account.mahidol.ac.th), so it follows,
+      // labelled for that. No own-IT LINE in the agency config -> the university desk alone, as before.
+      const own = (AGENCY.line||{}).it && AGENCY.line.it.url ? AGENCY.line.it : null, ownName = _lEsc((own && own.name) || '');
       const mailTo = it && it.email ? `mailto:${encodeURIComponent(it.email).replace(/%40/g,'@')}?subject=${encodeURIComponent(issue.label)}&body=${mailBody}` : '';
-      const itBtns = it ? (it.phone ? `<a class="golink" href="tel:${String(it.phone).replace(/[^\d+]/g,'')}">☎️ โทร${itName} ${_lEsc(it.phone)}</a>` : '')
-          + (mailTo ? `<a class="golink alt" href="${mailTo.replace(/&/g,'&amp;')}">✉️ เขียนอีเมลถึง ${_lEsc(it.email)} (มีหัวข้อให้แล้ว)</a>` : '')
-        : _btn(AGENCY.contact);
-      const itLine = issue.category==='login' ? '' : _line('it');
-      const boxHead = issue.category==='login' ? `ปัญหาบัญชี/ล็อกอิน ติดต่อ${itName}ได้โดยตรง` : `ระบบขัดข้องหรือข้อมูลค้าง แจ้ง${itName}ได้โดยตรง`;
+      const deskBtns = it ? (it.phone ? `<a class="golink${own?' alt':''}" href="tel:${String(it.phone).replace(/[^\d+]/g,'')}">☎️ ${own?'บัญชีมหาวิทยาลัยถูกล็อก: ':''}โทร${itName} ${_lEsc(it.phone)}</a>` : '')
+          + (mailTo ? `<a class="golink alt" href="${mailTo.replace(/&/g,'&amp;')}">✉️ เขียนอีเมลถึง ${_lEsc(it.email)} (มีหัวข้อให้แล้ว)</a>` : '') : '';
+      const itBtns = own ? _btn(own) + deskBtns : (deskBtns || _btn(AGENCY.contact));
+      const who = own && ownName ? ownName : itName;
+      const boxHead = issue.category==='login' ? `ปัญหาบัญชี/ล็อกอิน ติดต่อ${who}ได้โดยตรง` : `ระบบขัดข้องหรือข้อมูลค้าง แจ้ง${who}ได้โดยตรง`;
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ติดต่อเจ้าหน้าที่ ${stageTag}</span>
-        <div class="ans">เรื่องนี้เป็นปัญหาเฉพาะบัญชี/ข้อมูลของคุณ ต้องให้เจ้าหน้าที่ดูให้ครับ 🙇 แชตนี้ส่งข้อมูลให้เจ้าหน้าที่เองไม่ได้ และไม่ต้องพิมพ์ข้อมูลส่วนตัวไว้ที่นี่ — เตรียมข้อมูลต่อไปนี้แล้วใส่ในอีเมลหรือบอกตอนโทรครับ:</div>
+        <div class="ans">เรื่องนี้เป็นปัญหาเฉพาะบัญชี/ข้อมูลของคุณ ต้องให้เจ้าหน้าที่ดูให้ครับ 🙇 แชตนี้ส่งข้อมูลให้เจ้าหน้าที่เองไม่ได้ และไม่ต้องพิมพ์ข้อมูลส่วนตัวไว้ที่นี่ — เตรียมข้อมูลต่อไปนี้แล้วส่งให้เจ้าหน้าที่ทาง LINE อีเมล หรือบอกตอนโทรครับ:</div>
         <div class="steps"><div class="steps-h">ข้อมูลที่ต้องเตรียมก่อนติดต่อเจ้าหน้าที่ (กดติ๊กเมื่อเตรียมครบ):</div>${fields}</div>
         <div class="meta">kernel คัดว่าไม่ใช่คำถามคู่มือ — เป็นเคสที่ต้องคนจริง จึงบอกข้อมูลที่ต้องเตรียมและช่องทางติดต่อ (ไม่เรียก AI)</div>
         ${itBtns ? `<div class="staffbox">
           <div class="staff-h">${boxHead}</div>
-          <div class="staff-btns">${itBtns}${itLine}</div>
+          <div class="staff-btns">${itBtns}</div>
         </div>` : ''}
         ${fbUI(q, d.blake3_proof)}`);
     } else {
