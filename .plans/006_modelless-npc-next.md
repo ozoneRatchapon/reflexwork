@@ -32,3 +32,7 @@ An LLM as the brain or the judge; publishing without a human approval; personal 
 
 ## How we will know it works
 Answering on negatives down at equal recall (`benchmark/abstain`), the follow-up scenarios green in `tests/chat_e2e.test.mjs`, median time from a gap to a live answer, gap backlog size.
+
+## Where this is developed (2026-11-06)
+Branch `feature/modelless-npc`; try it at the preview `https://modelless-npc.reflexwork.pages.dev` (no production backend by default; see `docs/dev-preview.md`). Production only changes with `deploy_pages.sh main`, after the pitch.
+First task on this branch: step 1 (outcome log + labelled set). Also open: the 14 FAQ drafts (`docs/kb-faq-drafts/`) - approving them raw moves 14 answers to right but makes some existing ones wrong (measured); a conflict review by the owner is needed first.
