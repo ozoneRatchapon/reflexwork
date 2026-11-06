@@ -106,7 +106,7 @@ for (const eng of ['rust', 'js']) {
   check(`[${eng}] a login problem gets the IT contact box`, /ติดต่อกองไอทีได้โดยตรง/.test(it) && /02-849-6022/.test(it), it);
 
   MOCK.gaps = []; const stk = await ask('ติดปัญหา');
-  check(`[${eng}] 'ติดปัญหา' asks which area (area chips + staff contact), not 'not understood', no gap`, /ติดปัญหาเรื่องไหน/.test(stk) && /วิทยานิพนธ์ \/ ส่งเล่ม/.test(stk) && /ติดต่อบัณฑิตวิทยาลัย/.test(stk) && !/จับใจความ/.test(stk) && (await wait(300), MOCK.gaps.length === 0), `${stk} gaps=${MOCK.gaps.length}`);
+  check(`[${eng}] 'ติดปัญหา' asks which area (area chips + staff contact), not 'not understood', no gap`, /ติดปัญหาเรื่องไหน/.test(stk) && /วิทยานิพนธ์ \/ ส่งเล่ม/.test(stk) && /ติดต่อบัณฑิตวิทยาลัย/.test(stk) && !/จับใจความ/.test(stk) && await ev(`!![...document.querySelectorAll('#chat .msg.b')].pop().querySelector('a[href="https://line.me/R/ti/p/@gradmu"]')`) && (await wait(300), MOCK.gaps.length === 0), `${stk} gaps=${MOCK.gaps.length}`);
   const stkT = await ask('ติดปัญหาวิทยานิพนธ์');
   check(`[${eng}] 'ติดปัญหาวิทยานิพนธ์' opens the thesis entries`, /วิทยานิพนธ์และการส่งเล่มในคู่มือมีหัวข้อ/.test(stkT) && /Turnitin/.test(stkT), stkT);
 

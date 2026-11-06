@@ -437,7 +437,13 @@ const DEFAULT_AGENCY = {
     howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?'
   },
   contact:{label:'☎️ ติดต่อบัณฑิตวิทยาลัย',url:'https://graduate.mahidol.ac.th/thai/?p=aboutUs&g=2'},
-  it:{name:'กองไอที', phone:'02-849-6022', email:'account@mahidol.ac.th'},   // QA G05: the account / system-problem box (intake); null elsewhere
+  it:{name:'กองไอที', phone:'02-849-6022', email:'account@mahidol.ac.th'},
+  // Talk to a person now: the Graduate School's own LINE Official Accounts, as listed on its contact page (?p=aboutUs&g=2, checked
+  // 2026-11-06). general = "ติดต่อสอบถามข้อมูลทั่วไป", admissions = รับสมัคร/รายงานตัว, it = the Graduate School's own web / information systems
+  // (not the university account desk above). null for other agencies (NEUTRAL_AGENCY).
+  line:{general:{label:'💬 แชตกับเจ้าหน้าที่ทาง LINE (@gradmu)',url:'https://line.me/R/ti/p/@gradmu'},
+        admissions:{label:'💬 ถามงานรับสมัครทาง LINE (@mugradmissions)',url:'https://line.me/R/ti/p/@mugradmissions'},
+        it:{label:'💬 แจ้งปัญหาระบบของบัณฑิตวิทยาลัยทาง LINE',url:'https://line.me/R/ti/p/@322wjrbo'}},   // QA G05: the account / system-problem box (intake); null elsewhere
   faq:{label:'📚 เปิดคู่มือ FAQ ทางการ',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai'},
   english:{home:null,faq:{label:'📚 Official FAQ (English)',url:'https://graduate.mahidol.ac.th/engine/structure/faq/?lang=eng'},contact:{label:'☎️ Contact staff',url:'https://graduate.mahidol.ac.th/thai/?p=aboutUs&g=2'}},
   scopeLinks:{registration:'https://graduate.mahidol.ac.th/thai/current-students/?p=academic-calendar',admissions:'https://graduate.mahidol.ac.th/thai/prospective-students/?topic=schedule',other:'https://graduate.mahidol.ac.th/thai/?p=aboutUs&g=2'},
@@ -451,7 +457,7 @@ const NEUTRAL_AGENCY = {
   metaTitle:'ถาม-ตอบ — ReflexWork', metaDescription:'ผู้ช่วยตอบคำถามจากข้อมูลทางการของหน่วยงาน',
   placeholder:'พิมพ์คำถามของคุณ', greeting:'ถามได้เลยครับ', examples:[],
   persona:{hello:'ผมเป็นผู้ช่วยตอบคำถามจากข้อมูลทางการครับ — มีเรื่องอะไรให้ช่วยไหมครับ?', bye:'ด้วยความยินดีครับ 🦀', whatCan:'ผมตอบคำถามจากข้อมูลทางการของหน่วยงานครับ ถ้าไม่มีในข้อมูล ผมจะบอกและพาไปหาเจ้าหน้าที่ ลองถามมาได้เลย', howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องอะไรให้ช่วยไหมครับ?'},
-  contact:null, faq:null, english:null, it:null, scopeLinks:{}, builtinKb:false, customised:true
+  contact:null, faq:null, english:null, it:null, line:null, scopeLinks:{}, builtinKb:false, customised:true
 };
 let AGENCY = DEFAULT_AGENCY;
 async function loadAgency(){
@@ -464,6 +470,7 @@ async function loadAgency(){
 const _okKb = e => !!e && typeof e==='object' && typeof e.title==='string' && e.title.trim() && typeof e.answer==='string';
 const _okProg = p => !!p && typeof p==='object' && typeof p.code==='string' && p.code && typeof p.title==='string' && p.title.trim();
 // a button for a {label,url} pair, or nothing (an agency without that link simply has no such button)
+const _line=k=>{ const L=AGENCY.line||{}; return _btn(L[k]||L.general,'alt'); };   // a LINE chat with staff (agency config; none -> no button)
 const _btn=(c,cls)=> c && c.url ? `<a class="golink${cls?' '+cls:''}" href="${_lEsc(c.url)}" target="_blank" rel="noopener">${_lEsc(c.label||c.url)}</a>` : '';
 function applyAgency(){
   document.title=AGENCY.metaTitle; const md=document.querySelector('meta[name=description]'); if(md) md.setAttribute('content',AGENCY.metaDescription);
@@ -1923,7 +1930,7 @@ function _askCore(){
         <div class="ans">${c ? VOICE.stuckTopicLead.replace('{w}', _lEsc(c.name)) : VOICE.stuckLead}</div>
         <div class="dislist" id="${sid}">${chips}</div>
         <div class="meta">${c?`บอกว่าติดปัญหาเรื่อง "${_lEsc(c.name)}" แต่ยังไม่บอกว่าตรงไหน → เสนอหัวข้อของเรื่องนั้นจากคู่มือ`:'บอกว่าติดปัญหาแต่ยังไม่บอกเรื่อง → ถามกลับเป็นหมวดปัญหา'} · ไม่นับเป็นคำถามที่ตอบไม่ได้ (deterministic, 0 token)</div>
-        <div class="staffbox"><div class="staff-h">อยากคุยกับเจ้าหน้าที่เลยก็ได้ครับ</div><div class="staff-btns">${_btn(AGENCY.contact)}</div></div>
+        <div class="staffbox"><div class="staff-h">อยากคุยกับเจ้าหน้าที่เลยก็ได้ครับ</div><div class="staff-btns">${_line('general')}${_btn(AGENCY.contact)}</div></div>
         ${fbUI(q, d.blake3_proof)}`);
       document.getElementById(sid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
         if(el.dataset.id){ const e=KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN=e; $('q').value=e.title; }
@@ -2134,7 +2141,7 @@ function _askCore(){
           <div class="ans">${MOOD.empathy()} — ${VOICE.adviceAbstain}</div>
           <div class="meta">kernel abstain: KB match อ่อน (score ${topScore}) — ไม่ดันตอบ (ตรงหลัก "ไม่รู้ก็บอกว่าไม่รู้")</div>
           <div class="staffbox"><div class="staff-h">ติดต่อเจ้าหน้าที่</div>
-            <div class="staff-btns">${_btn(AGENCY.contact)}</div></div>
+            <div class="staff-btns">${_line('general')}${_btn(AGENCY.contact)}</div></div>
           ${fbUI(q, d.blake3_proof)}`);
         paintBar();
         return;
@@ -2275,6 +2282,7 @@ function _askCore(){
       const itBtns = it ? (it.phone ? `<a class="golink" href="tel:${String(it.phone).replace(/[^\d+]/g,'')}">☎️ โทร${itName} ${_lEsc(it.phone)}</a>` : '')
           + (mailTo ? `<a class="golink alt" href="${mailTo.replace(/&/g,'&amp;')}">✉️ เขียนอีเมลถึง ${_lEsc(it.email)} (มีหัวข้อให้แล้ว)</a>` : '')
         : _btn(AGENCY.contact);
+      const itLine = issue.category==='login' ? '' : _line('it');
       const boxHead = issue.category==='login' ? `ปัญหาบัญชี/ล็อกอิน ติดต่อ${itName}ได้โดยตรง` : `ระบบขัดข้องหรือข้อมูลค้าง แจ้ง${itName}ได้โดยตรง`;
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ติดต่อเจ้าหน้าที่ ${stageTag}</span>
@@ -2283,7 +2291,7 @@ function _askCore(){
         <div class="meta">kernel คัดว่าไม่ใช่คำถามคู่มือ — เป็นเคสที่ต้องคนจริง จึงบอกข้อมูลที่ต้องเตรียมและช่องทางติดต่อ (ไม่เรียก AI)</div>
         ${itBtns ? `<div class="staffbox">
           <div class="staff-h">${boxHead}</div>
-          <div class="staff-btns">${itBtns}</div>
+          <div class="staff-btns">${itBtns}${itLine}</div>
         </div>` : ''}
         ${fbUI(q, d.blake3_proof)}`);
     } else {
@@ -2296,7 +2304,7 @@ function _askCore(){
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
     const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
     if(PROG.length && (hasStudyIntent(q) || nearOk)){
-      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q));
+      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q), undefined, undefined, _line('admissions'));
       return;
     }
     if(PROG.length && _P_TOPIC[0][1].test(q)){   // a fee question that names no programme: fees differ per programme, so help find it
@@ -2336,6 +2344,7 @@ function _askCore(){
       <div class="staffbox">
         <div class="staff-h">${VOICE.staffHelp}</div>
         <div class="staff-btns">
+          ${_line('general')}
           ${_btn(AGENCY.contact)}
           ${_btn(AGENCY.faq,'alt')}
         </div>

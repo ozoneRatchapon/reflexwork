@@ -38,4 +38,8 @@ check('the branch runs after kstrip / personalAsk and before the restart / overv
 const branch = html.slice(at, html.indexOf('isRestartPhrase(q);'));
 check('the stuck branch does not log a gap or show the not-understood line', !/logGap|notUnderstood|frustratedNote/.test(branch));
 check('the stuck branch always shows the staff contact', /_btn\(AGENCY\.contact\)/.test(branch));
+check('the stuck branch offers a LINE chat with staff (agency config)', /_line\('general'\)/.test(branch));
+check("another agency never gets the Graduate School's LINE (NEUTRAL_AGENCY.line is null)", /const NEUTRAL_AGENCY = \{[\s\S]*?line:null[\s\S]*?\n\};/.test(html));
+check('the default LINE accounts are the ones on the official contact page', ['@gradmu', '@mugradmissions', '@322wjrbo'].every(id => html.includes(`https://line.me/R/ti/p/${id}`)));
+check('a login problem keeps the university IT desk only (no Graduate School systems LINE)', /const itLine = issue\.category==='login' \? '' : _line\('it'\)/.test(html));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);
