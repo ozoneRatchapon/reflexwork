@@ -701,6 +701,8 @@ const VOICE = {
   notThis:       'ไม่ใช่เรื่องนี้',
   topicPick:     'เรื่อง "{w}" ในคู่มือมีหลายหัวข้อครับ เลือกหัวข้อที่ต้องการได้เลย',
   topicPickOne:  'เรื่อง "{w}" ในคู่มือมีหัวข้อนี้ครับ กดเพื่อดูคำตอบได้เลย',
+  stuckLead:     'ไม่เป็นไรครับ ติดปัญหาเรื่องไหนครับ เลือกหัวข้อด้านล่างได้เลย หรือพิมพ์เล่าสั้น ๆ ว่าติดตรงไหนก็ได้ ถ้าอยากคุยกับเจ้าหน้าที่ กดปุ่มติดต่อได้เลยครับ',
+  stuckTopicLead:'เรื่อง{w}ในคู่มือมีหัวข้อเหล่านี้ครับ เลือกข้อที่ใกล้ที่สุดได้เลย ถ้ายังไม่ตรง พิมพ์เล่าสั้น ๆ ว่าติดตรงไหน หรือติดต่อเจ้าหน้าที่ได้ครับ',
   restartLead:   'ได้ครับ เริ่มใหม่ได้เลย เลือกหัวข้อด้านล่าง หรือพิมพ์เรื่องที่อยากถามใหม่ ถ้าต้องการคุยกับเจ้าหน้าที่ ใช้ปุ่มติดต่อด้านล่างได้เลยครับ',
   timeLead:      'วันนี้ {today} ครับ — นี่คือกำหนดการในคู่มือที่ใกล้วันนี้ที่สุด เลือกเพื่อดูวันที่ครบ (วันที่ผ่านไปแล้วจะมีป้ายบอก)',
   timeAdmissionsHint: ' ตัดรอบรับสมัครของแต่ละหลักสูตรไม่เท่ากัน — พิมพ์ชื่อหลักสูตร เช่น "จิตวิทยาคลินิก ปิดรับวันไหน" เพื่อดูของหลักสูตรนั้น',
@@ -1771,6 +1773,47 @@ function isOverviewQuestion(text){
 }
 // Whole-utterance control phrases only: 'ยกเลิกการลงทะเบียนทำอย่างไร' is a real question and must still reach the KB.
 function isRestartPhrase(text){ return /^(?:ยกเลิก|เริ่มใหม่|ข้าม|ไม่รู้|ถามเรื่องอื่น|ไม่เอา|ช่างมัน)(?:ครับ|ค่ะ|คะ|นะ|เลย)*$/.test(String(text||'').replace(/\s+/g,'')); }
+// "ติดปัญหา" / "มีปัญหา" / "ช่วยด้วย": the person is stuck but has not said what with. Not a miss (no 'not understood', no gap
+// log, no frustration bump): ask which area, with problem areas as chips, and the staff contact in the same bubble. "ติดปัญหา +
+// area word" ("ติดปัญหาวิทยานิพนธ์", "ติดปัญหาจ่ายค่าเทอม") opens that area's entries. Anything more than an area word
+// ("ติดปัญหาส่งเล่มเกินกำหนดต้องเสียค่าปรับไหม") is a real question and goes on to search. The chips come from the KB (a seed
+// phrase's top entry, kept only if its title is in the area), so an area this deployment's KB has nothing for is not offered.
+const _STUCK_W=/ติดปัญหา|มีปัญหา|เจอปัญหา|ปัญหา|ติดขัด|ช่วยด้วย|ช่วยหน่อย|ขอความช่วยเหลือ|ไม่รู้จะทำ(?:ยังไง|ไง|อย่างไร)(?:ดี)?|ทำ(?:ยังไง|ไง|อย่างไร)ดี|งงมาก|งง/;
+const _STUCK_FILL=/^(?:ผม|หนู|ฉัน|ดิฉัน|กระผม|เรา|คือ|ตอนนี้|อยู่|ขอ)+|(?:ครับ|ค่ะ|คะ|ค่า|จ้า|นะ|หน่อย|ด้วย|อยู่|เลย|ช่วย|ที)+$/g;
+const _STUCK_CATS=[
+  {key:'login',  chip:'🔐 เข้าระบบไม่ได้',          name:'การเข้าระบบและบัญชี', asks:'เข้าระบบไม่ได้',   // the account / IT intake path (classifyIssue) answers this
+   topic:/ล็อก ?อิน|ล็อค ?อิน|เข้า(?:สู่)?ระบบ|รหัสผ่าน|บัญชี|login/gi, title:/ล็อก|เข้าระบบ|บัญชี|รหัสผ่าน/i,
+   seeds:['เข้าระบบไม่ได้ ลืมรหัสผ่าน','บัญชีถูกล็อก ยืนยันตัวตนไม่ผ่าน','อาจารย์เข้าระบบ Thesis Online Advisor ไม่ได้']},
+  {key:'reg',    chip:'📝 ลงทะเบียน / ชำระเงิน',   name:'ลงทะเบียนและชำระเงิน', asks:'ติดปัญหาเรื่องลงทะเบียน',
+   topic:/ลงทะเบียน|ชำระ(?:เงิน)?|จ่าย(?:เงิน)?|ค่าเทอม|ค่าเล่าเรียน|ค่าธรรมเนียม/g, title:/ลงทะเบียน|ค่าเล่าเรียน|ค่าธรรมเนียม|ชำระ|เหมาจ่าย|หน่วยกิต|งานทะเบียน/,
+   seeds:['ตรวจค่าเล่าเรียนให้ตรงปีเข้าศึกษา','หลักเกณฑ์ทะเบียนแบบหน่วยกิตหรือเหมาจ่าย','ไม่ลงทะเบียนภาคถัดไป','ค่าธรรมเนียมการโอนเงินผ่าน Online Banking','งานทะเบียน ช่องทางบริการและติดต่อ']},
+  {key:'thesis', chip:'📘 วิทยานิพนธ์ / ส่งเล่ม',  name:'วิทยานิพนธ์และการส่งเล่ม', asks:'ติดปัญหาเรื่องวิทยานิพนธ์',
+   topic:/วิทยานิพนธ์|สารนิพนธ์|ธีสิส|thesis|รูปเล่ม|ส่งเล่ม|เล่ม|turnitin|โครงร่าง/gi, title:/วิทยานิพนธ์|สารนิพนธ์|รูปเล่ม|เล่ม|Turnitin|Thesis|หน้าลงนาม|หน้าอนุมัติ/i,
+   seeds:['ขั้นตอนการส่งรูปเล่มวิทยานิพนธ์','ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วันหลังสอบผ่าน','Turnitin เกิน 25% ต้องทำอย่างไร','ไฟล์ PDF สำหรับส่งรูปเล่ม','ขอเปลี่ยนหัวข้อวิทยานิพนธ์','หาแบบฟอร์มเกี่ยวกับวิทยานิพนธ์']},
+  {key:'status', chip:'⏸️ ลาพัก / ลาออก',          name:'ลาพัก ลาออก และสถานภาพ', asks:'ติดปัญหาเรื่องลาพัก',
+   topic:/ลาพัก|พักการศึกษา|รักษาสภาพ|ลาออก|พ้นสภาพ|คืนสภาพ|ขยายเวลา/g, title:/ลาพัก|ลาออก|รักษาสภาพ|ไม่ลงทะเบียน|ขยายเวลา|ผ่อนผัน/,
+   seeds:['ลาพักการศึกษาต้องทำอย่างไร','แบบฟอร์มทะเบียน ลาพัก ลาออก','ไม่ลงทะเบียนภาคถัดไป','ขอขยายเวลาการลาศึกษาต่อ']},
+  {key:'grad',   chip:'🎓 ขอจบ / เอกสาร',          name:'การขอจบและเอกสาร', asks:'ติดปัญหาเรื่องขอจบ',
+   topic:/ขอจบ|สำเร็จการศึกษา|จบ|ใบรับรอง|หนังสือรับรอง|transcript|ทรานสคริปต์|เอกสาร|ใบปริญญา/gi, title:/สำเร็จการศึกษา|Transcript|หลักฐานการศึกษา|หนังสือรับรอง|รอเผยแพร่|ส่งตัวกลับ/i,
+   seeds:['ขอสำเร็จการศึกษา บฑ.5','ขอ Transcript และหลักฐานการศึกษา','สอบผ่านแล้ว รอเผยแพร่ผลงาน ยังต้องลงทะเบียน','ขอหนังสือส่งตัวกลับไปปฏิบัติงาน']},
+];
+// null = not a stuck message; {cat:null} = stuck, no area named; {cat} = stuck + one area word only.
+function stuckTopic(text){
+  const t=String(text||'').replace(/\s+/g,'').toLowerCase(); if(!t || t.length>40) return null;
+  const m=t.match(_STUCK_W); if(!m) return null;
+  const before=t.slice(0,m.index).replace(_STUCK_FILL,''), after=t.slice(m.index+m[0].length).replace(/^(?:เรื่อง|กับ|ด้าน|ตอน|เกี่ยวกับ|ที่)/,'').replace(_STUCK_FILL,'');
+  if(before && after) return null;
+  if(classifyIssue(t)) return null;   // "ระบบลงทะเบียนมีปัญหา", "เข้าระบบไม่ได้ ช่วยด้วย": the account / system intake answers these with the IT contact
+  const rest=(before||after).replace(_STUCK_W,'').replace(_STUCK_FILL,'');
+  if(!rest) return {cat:null};
+  for(const c of _STUCK_CATS){ const left=rest.replace(c.topic,''); if(left!==rest && left.replace(/การ|ไม่ได้|ไม่ผ่าน|ของ|เรื่อง|ใน|แล้ว/g,'')==='') return {cat:c}; }
+  return null;
+}
+function stuckPicks(c){
+  const out=[]; for(const s of c.seeds){ const r=search(s)[0];
+    if(r && r.s>=3 && !r.e.staff && c.title.test(r.e.title) && !out.includes(r.e)) out.push(r.e); }
+  return out.slice(0,6);
+}
 // One chooser bubble: KB entries as chips (tap = that entry, pinned), with an optional state label per chip.
 const _PICK_STATE={now:'กำลังอยู่ในช่วงนี้', ahead:'ยังไม่ถึง', passed:'ผ่านไปแล้ว'};
 function renderChooser(q, d, kstrip, route, lead, picks, meta){
@@ -1867,6 +1910,28 @@ function _askCore(){
       <div class="staffbox"><div class="staff-h">ดูข้อมูลของตัวเองได้ที่</div><div class="staff-btns">${_btn(AGENCY.contact)}${thesisy&&eth?_btn({label:'🔐 เข้าระบบ e-Thesis ของคุณ',url:eth.url},'alt'):''}</div></div>`);
     if(gen.length) document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value=el.dataset.t; ask(); }));
     return;
+  }
+  const stuck = pinned ? null : stuckTopic(q);
+  if(stuck){
+    const sid='st'+(++fbN), c=stuck.cat, picks=c ? stuckPicks(c) : [];
+    const areas = c ? [] : _STUCK_CATS.filter(x=>stuckPicks(x).length || (x.key==='login' && AGENCY.it));   // only areas this KB can answer
+    if(c ? picks.length : areas.length){
+      const chips = c ? picks.map(e=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}</span>`).join('')
+                      : areas.map(x=>`<span class="dis" data-t="${_lEsc(x.asks)}">${_lEsc(x.chip)}</span>`).join('');
+      add('b', `${kstrip}
+        <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ติดปัญหา${c?` · ${_lEsc(c.name)}`:''} → ถามกลับว่าเรื่องไหน · ไม่เรียก AI</span>
+        <div class="ans">${c ? VOICE.stuckTopicLead.replace('{w}', _lEsc(c.name)) : VOICE.stuckLead}</div>
+        <div class="dislist" id="${sid}">${chips}</div>
+        <div class="meta">${c?`บอกว่าติดปัญหาเรื่อง "${_lEsc(c.name)}" แต่ยังไม่บอกว่าตรงไหน → เสนอหัวข้อของเรื่องนั้นจากคู่มือ`:'บอกว่าติดปัญหาแต่ยังไม่บอกเรื่อง → ถามกลับเป็นหมวดปัญหา'} · ไม่นับเป็นคำถามที่ตอบไม่ได้ (deterministic, 0 token)</div>
+        <div class="staffbox"><div class="staff-h">อยากคุยกับเจ้าหน้าที่เลยก็ได้ครับ</div><div class="staff-btns">${_btn(AGENCY.contact)}</div></div>
+        ${fbUI(q, d.blake3_proof)}`);
+      document.getElementById(sid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{
+        if(el.dataset.id){ const e=KB.find(x=>x.id===el.dataset.id); if(!e) return; PIN=e; $('q').value=e.title; }
+        else $('q').value=el.dataset.t;
+        ask(); }));
+      paintBar();
+      return;
+    }
   }
   const restart = isRestartPhrase(q);
   if(restart || isOverviewQuestion(q)){
