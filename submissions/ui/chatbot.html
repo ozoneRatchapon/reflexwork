@@ -689,6 +689,11 @@ const VOICE = {
   askYearTerm:   'ขอถามเพิ่มนิดหนึ่งครับ — คำตอบเปลี่ยนตามปีและภาคการศึกษา',
   frustrated:    '🙇 ขออภัยที่ยังหาคำตอบที่ตรงให้ไม่ได้ครับ เพื่อไม่ให้เสียเวลา ติดต่อเจ้าหน้าที่ได้เลยนะครับ (ปุ่มด้านล่าง)',
   adviceAbstain: 'เรื่องนี้เป็นคำถามขอคำแนะนำที่คู่มือยังตอบได้ไม่ครบครับ ผมไม่อยากตอบพลาด เลยจดคำถามไว้ให้เจ้าหน้าที่/ทีมคู่มือแล้ว ระหว่างนี้ติดต่อเจ้าหน้าที่ได้จากปุ่มด้านล่าง',
+  personalSelf:  'ข้อมูลส่วนตัวของคุณ เช่น ผลสอบ เกรด ยอดค้างชำระ หรือสถานะคำร้อง ดูให้ไม่ได้ครับ แชตนี้ไม่ได้เชื่อมกับระบบของมหาวิทยาลัยและไม่มีการเข้าสู่ระบบ',
+  personalWhy:   'ผมจึงไม่เดา และไม่ตอบข้อมูลทั่วไปแทน เพราะอาจทำให้เข้าใจว่าเป็นของคุณ',
+  personalOther: 'ข้อมูลของบุคคลอื่น หรือการค้นด้วยรหัส ผมแสดงให้ไม่ได้ครับ ให้เจ้าของข้อมูลมาถามเอง หรือติดต่อเจ้าหน้าที่',
+  personalPrep:  'เวลาติดต่อ เตรียมรหัสนักศึกษา ชื่อหลักสูตร และเรื่องที่ต้องการ — ไม่ต้องพิมพ์ในแชตนี้',
+  personalGeneral:'ถ้าอยากรู้เกณฑ์หรือขั้นตอนทั่วไป (ไม่ใช่ของคุณ) ถามได้เลยครับ เช่น',
   feePremiseEn:  'I can\'t say it is free: tuition differs by programme, and some list scholarships. Pick a programme below to see its official fee table (in Thai).',
   feePremise:    'ผมบอกไม่ได้ว่าฟรีหรือเปล่าครับ เพราะค่าเทอมต่างกันตามหลักสูตร (บางหลักสูตรมีทุนตามประกาศ) เลือกหลักสูตรด้านล่างเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการได้เลย',
   understanding: 'ขอเวลาสักครู่ครับ ผมกำลังลองทำความเข้าใจคำถามนี้',
@@ -1477,6 +1482,19 @@ const _P_ACK=/^(?:ok(?:ay)?|k|yes|no|yep|nope|ya|yeah|hmm+|lol|test(?:ing)?|f+u+
 function isNotAQuestion(q){ const s=String(q||'').trim(); if(/[\u0E00-\u0E7F]/.test(s)) return false;
   return _P_ACK.test(s) || /^https?:\/\/\S+$/i.test(s) || (/^[\x00-\x7F]*$/.test(s) && (s.match(/[A-Za-z]/g)||[]).length<=2); }
 function isOtherScript(q){ const s=String(q||''); return !/[\u0E00-\u0E7F]/.test(s) && /[\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF\u0600-\u06FF\u0400-\u04FF]/.test(s); }
+// Personal-record questions without a sign-in (QA / pitch prep): 'ผลสอบของฉันออกหรือยัง', 'ค่าเทอมที่ผมค้างจ่ายเท่าไร', 'ขอดูข้อมูลของเพื่อนผม รหัส 6537001'.
+// The chat has no sign-in and no personal data source, but these used to get a GENERAL entry (fees page, advisor-approval rule, thesis
+// exam rule) that reads like the person's own answer. Now: say so, give a way to look it up, never log it. How-to / eligibility questions
+// ('ผมสอบผ่านแล้วต้องทำอะไรต่อ', 'ดูเกรดได้ที่ไหน') are NOT personal lookups and still get their normal answer.
+const _PERS_RECORD=/ผลสอบ|ผลการเรียน|ผลการสอบ|เกรด|GPA|คะแนน|สถานะ|คำร้อง|ค้างจ่าย|ค้างชำระ|ยอดค้าง|ยอดเงิน|ที่ปรึกษา|กรรมการสอบ|หน่วยกิต|สอบผ่าน|สอบตก|จบ|ได้ทุน|ใบเสร็จ|ลงทะเบียน/i;
+const _PERS_STATUSQ=/เท่าไร|เท่าไหร่|เท่าใด|หรือยัง|หรือเปล่า|คือใคร|ถึงไหน|ครบหรือยัง|ค้างอยู่|เป็นยังไง|เป็นอย่างไร|กี่หน่วยกิต|ผ่านไหม|ผ่านมั้ย|ตกไหม|ได้ทุนไหม/;
+const _PERS_HOWTO=/ที่ไหน|อย่างไร|ยังไง|ทำไง|วิธี|ขั้นตอน|ต้อง|ควร|เมื่อไร|เมื่อไหร่|กี่วัน|กำหนด|เกณฑ์|ได้ไหม|ได้หรือไม่|เงื่อนไข|ทำได้|ขอได้|จะ|ถ้า|หาก/;
+const _PERS_SELF=/ผม|ฉัน|ดิฉัน|หนู|กระผม/, _PERS_OWN=/(?:สถานะ|ผล(?:สอบ|การเรียน|การสอบ)?|เกรด|คะแนน|ยอด[ก-๙]*|ที่ปรึกษา|คำร้อง)[^\n]{0,20}ของ(?:ผม|ฉัน|ดิฉัน|หนู)/;
+const _PERS_OTHER=/เพื่อน|น้อง|รุ่นพี่|ลูกศิษย์|ลูก(?:ชาย|สาว)?ของ|แฟน|นักศึกษาคนอื่น|คนอื่น|เขา(?![ก-๙])|เธอ|\b\d{7,10}\b/, _PERS_OTHER_REC=/ผล|เกรด|คะแนน|สถานะ|คำร้อง|ข้อมูล|ประวัติ|ค้าง|ที่ปรึกษา|สอบ/;
+function personalAsk(q){ const t=String(q||''); if(!t || _PERS_HOWTO.test(t)) return null;
+  if(_PERS_OTHER.test(t) && _PERS_OTHER_REC.test(t)) return 'other';
+  if((_PERS_SELF.test(t) && _PERS_RECORD.test(t) && _PERS_STATUSQ.test(t)) || _PERS_OWN.test(t)) return 'self';
+  return null; }
 function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
 
 // Deep link to the exact official page, and the entry's steps as a tick-list (deterministic, no AI).
@@ -1837,6 +1855,19 @@ function _askCore(){
 
   // Broad "what should I know / what is interesting" questions have no single answer: give the common starting points
   // (derived from the KB, tap = guaranteed answer) instead of guessing one entry under the official badge.
+  const pers = pinned ? null : personalAsk(q);
+  if(pers){
+    const gen = pers==='self' ? search(q).filter(r=>r.s>=3 && !r.e.staff).slice(0,2).map(r=>r.e.title) : [];
+    const eth = (LINKS||[]).find(l=>l.id==='ethesis'), thesisy = /วิทยานิพนธ์|สารนิพนธ์|คำร้อง|บฑ\./.test(q), cid='pr'+(++fbN);
+    add('b', `${kstrip}
+      <span class="route auto" style="background:rgba(176,123,255,.16);color:#b07bff">🔒 ข้อมูลส่วนตัว — ดูให้ไม่ได้ · ไม่เรียก AI</span>
+      <div class="ans">${pers==='other' ? VOICE.personalOther : VOICE.personalSelf+'\n'+VOICE.personalWhy}\n\n${VOICE.personalPrep}</div>
+      ${gen.length ? `<div class="ans" style="margin-top:6px">${VOICE.personalGeneral}</div><div class="dislist" id="${cid}">${gen.map(t=>`<span class="dis" data-t="${_lEsc(t)}">${_lEsc(t)}</span>`).join('')}</div>` : ''}
+      <div class="meta">คำถามขอดูข้อมูลรายบุคคล → ไม่มีการเข้าสู่ระบบและไม่มีแหล่งข้อมูลส่วนตัว จึงไม่ตอบ และไม่บันทึกคำถามนี้เป็น gap (deterministic, 0 token)</div>
+      <div class="staffbox"><div class="staff-h">ดูข้อมูลของตัวเองได้ที่</div><div class="staff-btns">${_btn(AGENCY.contact)}${thesisy&&eth?_btn({label:'🔐 เข้าระบบ e-Thesis ของคุณ',url:eth.url},'alt'):''}</div></div>`);
+    if(gen.length) document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value=el.dataset.t; ask(); }));
+    return;
+  }
   const restart = isRestartPhrase(q);
   if(restart || isOverviewQuestion(q)){
     if(restart){ PCTX=null; PIN=null; }

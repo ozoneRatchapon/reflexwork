@@ -135,11 +135,23 @@ for (const eng of ['rust', 'js']) {
   const gone = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
   check(`[${eng}] pitch 3c: after staff retract the answer is gone again`, !/ด้านหลังอาคาร A/.test(gone) && /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(gone), gone);
 
+  // ---- personal questions without a sign-in: an honest boundary, a way to look it up, nothing logged ----------------------------------
+  MOCK.gaps = [];
+  const ps = await ask('ผลสอบของฉันออกหรือยัง');
+  const psLinks = await ev(`[...[...document.querySelectorAll('#chat .msg.b')].pop().querySelectorAll('.staffbox a')].map(a=>a.textContent.trim()).join('|')`);
+  check(`[${eng}] personal: "my exam result" -> cannot see personal data, says why, offers the staff contact`, /ดูให้ไม่ได้/.test(ps) && /ไม่ได้เชื่อมกับระบบ/.test(ps) && /ติดต่อบัณฑิตวิทยาลัย/.test(psLinks), `${ps.slice(0, 120)} | ${psLinks}`);
+  const po = await ask('ขอดูข้อมูลของเพื่อนผมหน่อย รหัส 6537001');
+  check(`[${eng}] personal: a friend's record -> refused, "ask the owner", no general topic offered`, /ผมแสดงให้ไม่ได้/.test(po) && /เจ้าของข้อมูลมาถามเอง/.test(po) && !/ถามได้เลยครับ เช่น/.test(po), po.slice(0, 160));
+  const pg = await ask('ผมสอบผ่านแล้วต้องทำอะไรต่อ');
+  check(`[${eng}] personal: a general question with a pronoun still gets its normal answer`, !/ดูให้ไม่ได้/.test(pg) && !/ผมแสดงให้ไม่ได้/.test(pg), pg.slice(0, 120));
+  await wait(400);
+  check(`[${eng}] personal: neither personal question was logged as a gap`, MOCK.gaps.every(g => !/6537001|ผลสอบของฉัน/.test(g)), JSON.stringify(MOCK.gaps).slice(0, 160));
+
   // the conversation survives a reload in this tab; the clear button wipes it
   const before = await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`);
   await boot(eng);
   const restored = await ev(`document.querySelectorAll('#chat .msg[data-restored]').length`);
-  check(`[${eng}] a reload keeps the conversation in this tab`, restored === before && before > 0, `before=${before} restored=${restored}`);
+  check(`[${eng}] a reload keeps the conversation in this tab (the newest 30 messages: the stored history is capped)`, restored === Math.min(before, 30) && restored > 0, `before=${before} restored=${restored}`);
   await ev(`document.getElementById('clear-chat').click()`); await wait(500); await boot(eng);
   check(`[${eng}] the clear button wipes it (also after a reload)`, await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`) === 0);
 
