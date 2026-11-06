@@ -29,6 +29,11 @@ fn is_note_label(l: &str) -> bool {
     })
 }
 
+/// `/^รอบ \d+$/` (ASCII digits, like JS `\d`).
+fn is_numbered_round(c: &str) -> bool {
+    c.strip_prefix("รอบ ").is_some_and(|d| !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit()))
+}
+
 fn as_list(lines: &[&str]) -> Schedule {
     let list = lines
         .iter()
@@ -50,6 +55,12 @@ pub fn schedule_table(lines: &[String]) -> Schedule {
     let (mut rows, mut notes) = (Vec::new(), Vec::new());
     for l in &lines[hi + 1..] {
         if !l.contains(SEP) {
+            // QA F62: '(เปิดรับสมัคร …)' under the header is the opening date of the last, named round (twin of chatbot.html)
+            let last = cols.last().map(String::as_str).unwrap_or("");
+            if l.starts_with("(เปิดรับสมัคร") && l.ends_with(')') && !last.is_empty() && !is_numbered_round(last) {
+                notes.push(format!("{last}: {}", &l[1..l.len() - 1]));
+                continue;
+            }
             if !is_note_label(l) {
                 notes.push(l.trim_start_matches('*').trim_start_matches(is_js_space).to_owned());
             }

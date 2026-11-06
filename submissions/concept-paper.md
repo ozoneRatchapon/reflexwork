@@ -157,7 +157,7 @@ provider — **Typhoon (Thai-tuned) รันในเครื่องผ่�
 | Fast-path latency (end-to-end kernel) | **< 100 µs** | encode + route + BLAKE3 attest |
 | ต้นทุน token เส้นทางเร็ว | **0 tokens** | ออกแบบไว้ให้ > 80% ของงานไม่แตะ LLM |
 | หลักฐานการตัดสินใจ | **BLAKE3 reproducible** | `crates/reflex-kernel/src/attestation.rs` |
-| KB retrieval (ผสมศัพท์ + เวกเตอร์ TF-IDF) | **recall@1 = 84% (42/50, ช่วงเชื่อมั่น 95%: 71–92%) · recall@3 = 96%** | eval 50 คำถาม `tests/kb_search.test.mjs` · เทียบ baseline: `docs/METHOD.md` |
+| KB retrieval (ผสมศัพท์ + เวกเตอร์ TF-IDF) | **recall@1 = 86% (43/50, ช่วงเชื่อมั่น 95%: 74–93%) · recall@3 = 96%** | eval 50 คำถาม `tests/kb_search.test.mjs` · เทียบ baseline: `docs/METHOD.md` |
 | off-corpus abstain (ไม่เดา) | **2/2 ถูก · false-positive ≤ 6/50** | eval เดียวกัน |
 
 > **การค้นคู่มือ (วัดก่อนเลือก):** เทียบ 3 วิธีบนคอร์ปัสจริง —

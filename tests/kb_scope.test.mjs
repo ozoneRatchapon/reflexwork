@@ -25,7 +25,7 @@ check('_jsSearch block found', sm);
 check('scope-clarify block found', cm);
 if (!sm || !cm) process.exit(1);
 const search = new Function('KB', sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
-const { scopeOf, scopeClarify } = new Function(cm[1] + '\nreturn {scopeOf, scopeClarify};')();
+const { scopeOf, scopeClarify, ceNote, normTermYear } = new Function(cm[1] + '\nreturn {scopeOf, scopeClarify, ceNote, normTermYear};')();
 
 const run = q => scopeClarify(q, search(q), KB);
 const ids = r => (r && r.candidates || []).map(e => e.id);
@@ -34,7 +34,11 @@ const ids = r => (r && r.candidates || []).map(e => e.id);
 const eq = (name, got, want) => check(name, JSON.stringify(got) === JSON.stringify(want), `got ${JSON.stringify(got)} want ${JSON.stringify(want)}`);
 eq('BE year + term', scopeOf('ลงทะเบียนภาคปลาย ปี 2569'), { year: '2569', term: 'ภาคปลาย' });
 eq('Thai digits', scopeOf('ภาคต้น ๒๕๗๐'), { year: '2570', term: 'ภาคต้น' });
-eq('CE year converted to BE', scopeOf('registration 2027 summer'), { year: '2570', term: 'ฤดูร้อน' });
+eq('CE year converted to BE', scopeOf('ภาคปลาย 2026 ลงทะเบียน'), { year: '2569', term: 'ภาคปลาย' });
+eq('CE summer is the calendar year: summer 2027 = May 2027 = ฤดูร้อน 2569 (G18)', scopeOf('registration 2027 summer'), { year: '2569', term: 'ฤดูร้อน' });
+eq('summer 2026 = academic year 2568 (no data -> the no-year guard)', scopeOf('ลงทะเบียนภาคฤดูร้อน 2026 ได้เมื่อไหร่'), { year: '2568', term: 'ฤดูร้อน' });
+check('CE echo explains the summer shift', /อ่าน 2026 เป็นปี ค\.ศ\. ตรงกับปีการศึกษา 2568 เพราะภาคฤดูร้อน/.test(ceNote('ฤดูร้อน 2026', '2568')) && ceNote('ฤดูร้อน 2569', '2569') === '');
+eq('an explicit CE academic year is not shifted', scopeOf('ฤดูร้อน ปีการศึกษา 2026'), { year: '2569', term: 'ฤดูร้อน' });
 eq('money is not a year', scopeOf('ค่าสมัคร 2000 บาท'), { year: '', term: '' });
 eq('regulation year is not an academic year', scopeOf('เกณฑ์ 2560 ลงทะเบียน'), { year: '', term: '' });
 eq('no scope', scopeOf('ส่งเล่มกี่วัน'), { year: '', term: '' });
@@ -75,5 +79,22 @@ for (const e of dated) {
   check(`chip resolves: ${e.id}`, final && final.id === e.id, r ? r.kind : `top=${top.id}`);
 }
 
+// --- term/year shorthand (F14): the page runs normTermYear before search and the guard
+const runN = q => { const n = normTermYear(q); return { n, top: search(n)[0], c: scopeClarify(n, search(n), KB) }; };
+const lands = (q, id) => { const { top, c } = runN(q); const got = c && c.kind === 'pick' ? c.entry.id : c ? c.kind : top && top.e.id; check(`"${q}" -> ${id}`, got === id, `got ${got}`); };
+lands('ลงทะเบียนเรียนเทอมแรกปี 69 เมื่อไหร่ค่ะ', 'gm_registration_2569');
+lands('ซัมเมอร์ปี 69 ลงทะเบียนเมื่อไหร่คะ', 'gm_registration_2569_summer');
+lands('เทอมสองปี 70 ลงทะเบียนเมื่อไหร่', 'gm_registration_2570_second');
+lands('ลงทะเบียนเทอม 1/2569', 'gm_registration_2569');
+lands('ลงทะเบียนเทอม 1 ปี 2570', 'gm_registration_2570_first');
+lands('ลงทะเบียนภาค 2/69', 'gm_registration_2569_second_semester');
+{ const { c } = runN('ลงทะเบียนซัมเมอร์'); check('"ลงทะเบียนซัมเมอร์" asks between the two summers', c && c.kind === 'ask' && ids(c).join() === 'gm_registration_2569_summer,gm_registration_2570_summer', ids(c).join()); }
+{ const { c } = runN('ลงทะเบียนเมื่อไหร่'); check('"ลงทะเบียนเมื่อไหร่" lists all 6 schedules in calendar order', c && c.kind === 'ask' && ids(c).length === 6 && ids(c)[0] === 'gm_registration_2569', ids(c).join()); }
+{ const { c } = runN('ลงทะเบียนภาคต้น 2569 และ 2570 ต่างกันยังไง'); check('two years named -> both offered, not the first only', c && c.kind === 'ask' && ids(c).join() === 'gm_registration_2569,gm_registration_2570_first', ids(c).join()); }
+check('"ค่าเทอม 1 ภาค" is a fee, untouched', normTermYear('ค่าเทอม 1 ภาคเท่าไร') === 'ค่าเทอม 1 ภาคเท่าไร');
+check('text without schedule words is untouched', normTermYear('ปี 69 สมัครได้ไหม') === 'ปี 69 สมัครได้ไหม');
+// --- admission round (F15)
+{ const c = run('รับสมัครรอบ 2 ปี 2570'); check('"รับสมัครรอบ 2" -> no_round (the manual has round 1 only)', c && c.kind === 'no_round' && c.round === '2' && c.rounds.join() === '1', JSON.stringify(c && { k: c.kind, r: c.round })); }
+{ const c = run('รับสมัครปี 70 รอบแรกวันไหนคะ'.replace('ปี 70', 'ปี 2570')); check('"รอบแรก" is round 1 -> not no_round', !c || c.kind !== 'no_round'); }
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -25,7 +25,7 @@ check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
 if (!existsSync(progPath)) process.exit(1);
-const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
+const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
 const DOC = JSON.parse(readFileSync(progPath, 'utf8')), P = DOC.programmes;
 const by = Object.fromEntries(P.map(p => [p.code, p]));
 
@@ -252,6 +252,23 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
     check('fee and scholarship text from the page is escaped', /1,000/.test(fh) && !/<(img|script|svg)[\s>/]/i.test(fh), fh.slice(0, 200)); }
   check('every announced programme renders a card without throwing', A.every(p => { try { return programmeCard(p, DOC.fetched_at, DOC.year).html.length > 40; } catch (e) { return false; } }));
   check('a programme without an announcement says so and does not claim it is closed', /ยังไม่พบประกาศ/.test(programmeCard({ ...by[P[0].code], announcement: null }, '2026-11-02', '2570').html) && !/ปิดรับสมัครแล้ว/.test(programmeCard({ ...by[P[0].code], announcement: null }, '2026-11-02', '2570').html));
+}
+
+// --- QA round 1: pasted official titles (F24), short names before an ask word (F25), slips around a shorter name (F27) ----------
+{ const one = (q, code, topic = '') => { const r = resolveProgramme(q, P); return r && r.kind === 'one' && r.row.code === code && (r.topic || '') === topic; };
+  const pick = (q, codes) => { const r = resolveProgramme(q, P); return r && r.kind === 'many' && codes.every(c => r.rows.some(x => x.code === c)); };
+  const intl = P.filter(p => /\(หลักสูตรนานาชาติ\)$/.test(p.title) && P.filter(x => x.title === p.title).length === 1);
+  const lost = intl.filter(p => { const r = resolveProgramme(p.title, P); return !r || !(r.kind === 'one' ? r.row.code === p.code : r.rows.some(x => x.code === p.code)); });
+  check(`every unique international title pasted whole finds its programme (${intl.length} titles, F24)`, lost.length === 0, lost.slice(0, 4).map(p => p.title).join(' ; '));
+  check('a Thai official title resolves to its own programme, not a 64-way broad match (F24)', one('วิทยาศาสตรมหาบัณฑิต สาขาวิชาตจวิทยา', '2229M03G') && one('ประกาศนียบัตรบัณฑิตทางวิทยาศาสตร์การแพทย์คลินิก สาขาวิชาทันตแพทยศาสตร์', '3319C03G'));
+  check('a topic phrase before the full title still answers for it (F24)', one('สอบสัมภาษณ์วันไหน วิทยาศาสตรมหาบัณฑิต สาขาวิชาจิตวิทยาคลินิก', '2022M04G', 'schedule'));
+  check('a name ending in มี keeps it before an ask word: เคมี/ชีวเคมี + schedule/status (F25)',
+    ['เคมีสอบข้อเขียนวันไหน', 'เคมีรายงานตัวเมื่อไหร่', 'เคมีประกาศผลวันไหน', 'เคมีสอบสัมภาษณ์วันไหน', 'เคมียังเปิดรับอยู่ไหม'].every(q => pick(q, ['2129D03G', '2129M03G'])) && pick('ชีวเคมียังเปิดรับอยู่ไหม', ['2105D03G', '2105M03G']));
+  check('a มี that belongs to the ask is still removed ("จิตวิทยาคลินิกมีทุนไหม")', one('จิตวิทยาคลินิกมีทุนไหม', '2022M04G', 'scholarship') && one('จิตวิทยาคลินิกมีสอบสัมภาษณ์ไหม', '2022M04G', 'schedule'));
+  const slips = [['สมัครเรียน จุลชีววิทยาสาธารณุข', '2121D03G'], ['สมัครเรียน ชีวเวชศาสตร์ทางัตวแพทย์', '2045D03G'], ['สมัครเรียน วิทยาการระบาดทากงารแพทย์', '2025M01S'], ['สมัครเรียน วิทยาการระบาดดคลินิก', '2025M01S']];
+  check('a one-letter slip around a shorter name never gives that shorter programme as a single card (F27)', slips.every(([q, wrong]) => { const r = resolveProgramme(q, P); return !(r && r.kind === 'one' && r.row.code === wrong); }), slips.map(([q]) => { const r = resolveProgramme(q, P); return r && r.kind; }).join());
+  check('...and the slip "จุลชีววิทยาสาธารณุข" offers the programme meant', pick('สมัครเรียน จุลชีววิทยาสาธารณุข', ['2325D05G']));
+  check('a name with only filler around it keeps its strong match ("เรียนทำกายอุปกรณ์")', (r => r && r.kind !== 'broad' && r.rows ? r.rows.some(x => /กายอุปกรณ์/.test(x.title)) : r && /กายอุปกรณ์/.test(r.row.title))(resolveProgramme('เรียนทำกายอุปกรณ์', P)));
 }
 
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);

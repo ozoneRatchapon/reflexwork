@@ -68,8 +68,11 @@ const PROVIDERS = {
     needsUrl: false,
     url: (env) => `${env.LLM_PROXY || 'https://reflexwork-llm-proxy.solana-thailand.workers.dev'}/llm`,
     headers: () => ({ Origin: 'https://reflexwork.pages.dev' }),
-    toRequest: (input) => ({ input }),
-    fromResponse: (data) => data?.answer ?? null,
+    // QA F12: with a separate context the proxy grounds the answer and runs groundedGuard on it; the whole prompt sent as `input`
+    // was cut at 2000 chars and never guarded. source:'fallback' (nothing usable, e.g. the guard emptied it) is no answer.
+    takesContext: true,
+    toRequest: (input, env, o = {}) => (o.context ? { input, context: o.context } : { input }),
+    fromResponse: (data) => (data?.source === 'fallback' ? null : data?.answer ?? null),
   },
 
   // Local / on-prem model via Ollama's OpenAI-compatible chat endpoint.
@@ -130,11 +133,14 @@ const UNAVAILABLE_MARKER = /ตอบไม่ได้|ไม่พร้อม
  * @param {object} env    Worker env / process.env-like bag
  * @returns {Promise<{text: string|null, ok: boolean, source: string}>}
  */
-export async function askTeam(input, env = {}) {
+export async function askTeam(input, env = {}, opts = {}) {
   const name = (env.TEAM_API_PROVIDER || 'gemini').toLowerCase();
   const p = PROVIDERS[name] || PROVIDERS.gemini;
   const source = PROVIDERS[name] ? name : `gemini(fallback:${name})`;
 
+  // Grounded call (opts.context): a provider that takes the context separately gets the bare question + context; any other
+  // provider gets the self-contained grounded prompt (opts.prompt) as its input, as before.
+  if (opts.context && !p.takesContext && opts.prompt) input = opts.prompt;
   // Local provider — no network.
   if (p.local) return { text: p.answer(input), ok: true, source };
 
@@ -154,7 +160,7 @@ export async function askTeam(input, env = {}) {
     const r = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify(p.toRequest(input, env)),
+      body: JSON.stringify(p.toRequest(input, env, opts)),
       signal: ctrl.signal,
     });
     const data = await r.json().catch(() => ({}));

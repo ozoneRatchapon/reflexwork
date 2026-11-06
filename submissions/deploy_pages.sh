@@ -19,6 +19,12 @@ ui="$out/submissions/ui"
 for f in chatbot.html programmes.json knowledge-index.json wasm/reflex_wasm_bg.wasm; do
   [ -s "$ui/$f" ] || { echo "ABORT: missing $f"; exit 1; }
 done
+# A deploy from any branch other than main is a PREVIEW (its own URL, production untouched). Stamp every page: not indexed, and the chat / dashboard
+# default to NO production backend (see PREVIEW in chatbot.html, dashboard.html). main is the production deploy and is left exactly as committed.
+if [ "$branch" != "main" ]; then
+  for f in "$ui"/*.html; do perl -0pi -e 's/<head>/<head><meta name="robots" content="noindex"><meta name="rw-env" content="preview">/' "$f"; done
+  echo "PREVIEW deploy (branch $branch): pages stamped noindex + rw-env=preview; the chat and dashboard use no production backend unless ?api= / ?llm= says so"
+fi
 echo "deploying $(find "$ui" -type f | wc -l | tr -d ' ') files from $(git -C "$repo" rev-parse --short HEAD) to branch $branch"
 npx --yes wrangler@4 pages deploy "$ui" --project-name=reflexwork --branch="$branch" \
   --commit-hash="$(git -C "$repo" rev-parse HEAD)" --commit-message="$(git -C "$repo" log -1 --format=%s)"

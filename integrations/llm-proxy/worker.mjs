@@ -39,25 +39,33 @@ function rateOk(ip) {
 // and dropped. Sentences with no hard fact (pure phrasing) are kept. This keeps
 // the rephrase fluent while guaranteeing every NUMBER/NAME traces to the KB.
 function groundedGuard(answer, context) {
+  // QA F32: whole-number tokens, not substrings ('5 วัน' used to pass because the manual says '15 วัน'); Thai digits count as digits;
+  // every number is checked, not only those followed by a known unit (฿9,999 / 12 หน่วยกิต / 3.50 / 02-123-4567 slipped through);
+  // a month name must be in the manual. A leading list marker ("1.") is layout, not a fact.
+  const thDigits = s => String(s || '').replace(/[๐-๙]/g, d => String(d.charCodeAt(0) - 0x0E50));
+  const numsOf = s => (thDigits(s).match(/\d+(?:[.,:\-\/]\d+)*/g) || []).map(t => t.replace(/,/g, ''));
+  const MONTH = /มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม/g;
   const norm = s => String(s).replace(/[,\s]/g, '');
-  const ctxNorm = norm(context || '');
-  const parts = String(answer || '').split(/\n+/).flatMap(l => l.split(/(?<=[.!?。])\s+/)).map(s => s.trim()).filter(Boolean);
+  // a number with a unit must match as that pair: '30 วัน' is not grounded by '30 มกราคม'
+  const pairsOf = s => [...thDigits(s).replace(/(\d),(?=\d)/g, '$1').matchAll(/(\d+(?:\.\d+)?)\s*(วัน|สัปดาห์|เดือน|ปี|บาท|ครั้ง|ชั่วโมง|นาที|หน่วยกิต|ภาค|%)/g)].map(m => m[1] + m[2]);
+  const ctx = thDigits(context || ''), ctxNorm = norm(ctx), ctxNums = new Set(numsOf(ctx)), ctxPairs = new Set(pairsOf(ctx));
+  const numOk = t => ctxNums.has(t) || (/[-\/:]/.test(t) && t.split(/[-\/:]/).every(p => ctxNums.has(p)) && !/^0\d/.test(t));   // a range / date of known parts; never a phone
+  const parts = String(answer || '').split(/\n+/).flatMap(l => l.split(/(?<=(?<!^\s*\d{1,3})[.!?。])\s+/))   // never split after a leading '1.' (it stripped list numbers).map(s => s.trim()).filter(Boolean);
   const kept = [];
   for (const p of parts) {
-    const nums = p.match(/\d[\d,]*\s*(?:%|วัน|สัปดาห์|เดือน|ปี|บาท|ครั้ง|ชั่วโมง|นาที)/g) || [];
-    const lats = p.match(/[A-Za-z][A-Za-z0-9.\-]{1,}/g) || [];
-    const inv = [...nums, ...lats].some(f => {
-      const t = f.trim();
-      if (t.length < 2) return false;
-      if (/^(PDF|AI|KB|FAQ|MU|http|https|www|com|th)$/i.test(t)) return false;
-      return !ctxNorm.includes(norm(t));
-    });
-    if (inv || /^\d+[.)]?$/.test(p)) continue;
+    if (/^\d+[.)]?$/.test(p)) continue;
+    const body = p.replace(/^\s*(?:\d+[.)]|[-*•])\s+/, '');
+    const lats = body.match(/[A-Za-z][A-Za-z0-9.\-]{1,}/g) || [];
+    const badLat = lats.some(f => { const t = f.trim(); if (t.length < 2) return false;
+      if (/^(PDF|AI|KB|FAQ|MU|http|https|www|com|th)$/i.test(t)) return false; return !ctxNorm.includes(norm(t)); });
+    const badNum = numsOf(body).some(t => !numOk(t)) || pairsOf(body).some(x => !ctxPairs.has(x));
+    const badMonth = (body.match(MONTH) || []).some(m => !ctx.includes(m));
+    if (badLat || badNum || badMonth) continue;
     kept.push(p);
   }
-  return kept.join('\n').trim()
-    || 'คู่มือมีข้อมูลไม่พอสำหรับคำถามนี้ รบกวนติดต่อเจ้าหน้าที่เพื่อความถูกต้องครับ';
+  return kept.join('\n').trim();   // QA F59: '' when nothing survives - the caller answers source:'fallback' and the page shows the manual text
 }
+
 
 // Gemini model ids churn: 1.5 shut down 2025-09, 2.0 shut down 2026-06, and Google's own pages name different successors.
 // A hard-coded list is therefore a time bomb (it silently killed the LLM path). Ask the API which models THIS key can call and pick
@@ -233,7 +241,7 @@ export default {
     // the correctness backstop regardless of which model answers. (Gemini, when
     // a valid key + model is configured, obeys grounding better and is tried as
     // the fallback below.)
-    // Every upstream wait is bounded by ONE wall-clock budget (LLM_BUDGET_MS, default 18 s - the chat page gives up at 25 s).
+    // Every upstream wait is bounded by ONE wall-clock budget (LLM_BUDGET_MS, default 18 s - the chat page gives up at 20 s).
     // Before this, the local-model timer was cleared as soon as the response HEADERS arrived (the body read was unbounded) and the
     // Gemini calls had no timeout at all, so one stalled upstream left the user hanging with no log line saying why.
     const t0 = Date.now(), budget = Number(env.LLM_BUDGET_MS) || 18000, left = () => Math.max(0, budget - (Date.now() - t0));
@@ -260,6 +268,7 @@ export default {
         let otext = od?.choices?.[0]?.message?.content ?? od?.message?.content ?? od?.response ?? null;
         if (or.ok && otext) {
           if (grounded) otext = groundedGuard(otext, context);   // correctness backstop
+          if (!otext) return new Response(JSON.stringify({ answer: '', source: 'fallback', detail: ['guard-emptied'] }), { headers: { ...headers, 'Content-Type': 'application/json' } });
           return new Response(JSON.stringify({ answer: otext, source: 'ollama' }), {
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
@@ -305,6 +314,7 @@ export default {
       });
     }
     if (grounded) text = groundedGuard(text, context);
+    if (!text) return new Response(JSON.stringify({ answer: '', source: 'fallback', detail: ['guard-emptied'] }), { headers: { ...headers, 'Content-Type': 'application/json' } });
     return new Response(JSON.stringify({ answer: text, source: 'gemini' }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     });

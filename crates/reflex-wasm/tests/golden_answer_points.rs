@@ -40,7 +40,16 @@ fn slot_lead_matches_js_on_every_entry_and_question() {
 #[test]
 fn edge_cases_follow_js() {
     assert_eq!(answer_points("ประกาศ พ.ศ. 2569 กำหนดให้ส่ง. หากเกินให้แจ้ง"), vec!["ประกาศ พ.ศ. 2569 กำหนดให้ส่ง", "หากเกินให้แจ้ง"]);
-    assert_eq!(answer_points("ช่องทาง:\n- โทร 02\n- อีเมล a@b"), vec!["ช่องทาง:", "โทร 02", "อีเมล a@b"]);
+    // a label keeps up to two short bullets (QA F17); a longer list stays a list
+    assert_eq!(answer_points("ช่องทาง:\n- โทร 02\n- อีเมล a@b"), vec!["ช่องทาง: โทร 02 · อีเมล a@b"]);
+    assert_eq!(answer_points("ช่องทาง:\n- โทร 02\n- อีเมล a@b\n- ไลน์ @x"), vec!["ช่องทาง:", "โทร 02", "อีเมล a@b", "ไลน์ @x"]);
+    assert_eq!(answer_points("วันสุดท้าย:\n\n30 ก.ค.\n▪ 2. ต่อไป:\n• x"), vec!["วันสุดท้าย: 30 ก.ค", "▪ 2. ต่อไป: x"]);
+    assert_eq!(answer_points("ส่วน FAQ ระบุว่า ก"), vec!["ส่วน FAQ ระบุว่า ก"]);
+    assert_eq!(slot_lead("ภายใน3 วันทำการ", "ใช้เวลานานเท่าไร"), "ภายใน 3 วันทำการ");
+    assert_eq!(slot_lead("ปีการศึกษา 2569 วันสุดท้าย", "กี่วัน"), "");
+    assert_eq!(slot_lead("ค่าปรับ 2,000 บาท", "วันสุดท้ายชำระค่าธรรมเนียมวันไหน"), "");
+    assert_eq!(slot_lead("ค่าปรับ 2,000 บาท", "ค่าปรับวันสุดท้ายเท่าไหร่"), "2,000 บาท");
+    assert_eq!(slot_lead("4,000 บาท หรือ 1,800 บาท", "ราคาเท่าไร"), "");
     assert_eq!(answer_points("   \n\n"), Vec::<String>::new());
     assert_eq!(slot_lead("ส่งไม่เกิน 21 วัน นับจากวันสอบ", "ส่งกี่วัน"), "ไม่เกิน 21 วัน");
     assert_eq!(slot_lead("ค่าสมัคร 1,000 บาท", "ค่าสมัครเท่าไหร่"), "1,000 บาท");

@@ -10,7 +10,7 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 
 const chat = read('submissions/ui/chatbot.html');
 check('the user bubble is set with textContent', /if\(cls==='u'\)\s*d\.textContent=html;\s*else d\.innerHTML=html;/.test(chat));
-check('the evidence-card question label is escaped', /const qlabel = lastUserQ \? _lEsc\(/.test(chat));
+check('the evidence-card question label is escaped', /const qlabel = qsrc \? _lEsc\(/.test(chat));
 
 const dash = read('submissions/ui/dashboard.html');
 check('dashboard defines esc()', /const esc = v => /.test(dash));
@@ -27,4 +27,8 @@ for (const f of RAW) {
 check('dashboard: draft id in onclick is numeric', /approveDraft\(\$\{Number\(d\.id\)\|\|0\}\)/.test(dash));
 check('student-desk / try never print a fake "0 µs"', !/\$\{us\} µs/.test(read('submissions/ui/student-desk.html')) && !/\$\{us\} µs/.test(read('submissions/ui/try.html')) && !/\$\{a\.us\} µs/.test(read('submissions/ui/try.html')));
 check('try.html cannot print Infinity (the speed-up divides by at least the clock resolution)', /Math\.max\(parseFloat\(a\.us\), 100\)/.test(read('submissions/ui/try.html')));
+// QA F48: manual entry fields are escaped too (a staff-approved draft can carry a student's text into a title)
+check('F48: no KB title or source_url goes into the page unescaped', !/\$\{[a-zA-Z_.]*\.title\}<|ที่มา: \$\{hit\.title\}|href="\$\{hit\.source_url\}"/.test(chat));
+check('F48: a source link must pass the http(s) host allowlist', /function kbSource\(hit\)\{ return hit && _lUrlOk\(hit\.source_url\) \? `<a class="golink" href="\$\{_lEsc\(hit\.source_url\)\}"/.test(chat) && (chat.match(/const srcH0? = kbSource\(hit\);/g) || []).length === 2);
+
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

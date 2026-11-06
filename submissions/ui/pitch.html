@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="description" content="ReflexWork: ผู้ช่วยตอบคำถามจากแหล่งทางการของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล — ไม่เดา วัดได้ บอกข้อจำกัดของตัวเอง">
+<meta name="description" content="ReflexWork: ผู้ช่วยตอบคำถามจากแหล่งทางการของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล — ข้อเท็จจริงมาจากคู่มือ วัดได้ บอกข้อจำกัดของตัวเอง">
 <title>ReflexWork — Pitch</title>
 <link rel="stylesheet" href="./theme.css">
 <style>
@@ -26,12 +26,14 @@
   .card .ic{font-size:clamp(30px,3.6vw,46px);margin-bottom:12px}
   .card .t{font-size:clamp(20px,2.3vw,30px);font-weight:800;line-height:1.3}
   .card .d{margin-top:10px;color:var(--muted);font-size:clamp(15px,1.6vw,21px);line-height:1.5}
-  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:18px;align-items:stretch;max-width:1200px}
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:14px;align-items:stretch;max-width:1260px}
+  .flow.three{grid-template-columns:1fr auto 1fr auto 1fr}
   .flow .arrow{align-self:center;color:var(--muted);font-size:clamp(22px,3vw,40px)}
   .step{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 24px}
   .step .n{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(91,140,255,.18);color:var(--accent);font-size:20px;margin-bottom:12px}
   .step .t{font-size:clamp(19px,2.2vw,28px);font-weight:800;line-height:1.3}
   .step .d{margin-top:8px;color:var(--muted);font-size:clamp(14px,1.5vw,20px);line-height:1.5}
+  .step.loop{border-top:4px solid var(--audit)}
   .step.ok{border-top:4px solid var(--fast)} .step.hand{border-top:4px solid var(--llm)} .step.src{border-top:4px solid var(--accent)}
   .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1240px}
   .num{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 22px}
@@ -52,12 +54,14 @@
   .demo{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;align-items:baseline;max-width:1100px;font-size:clamp(18px,2.3vw,30px)}
   .demo .k{color:var(--accent);font-weight:800;font-variant-numeric:tabular-nums}
   .demo .q{color:var(--ink);font-weight:600}
+  .demo .r{display:block;color:var(--muted);font-weight:400;font-size:.62em;margin-top:2px}
+  small.fine{display:block;margin-top:8px;color:var(--muted);font-size:clamp(12px,1.2vw,16px);line-height:1.5}
   .qrwrap{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;max-width:1200px}
   .qr{background:#fff;padding:16px;border-radius:18px;width:clamp(200px,24vw,320px)}
   .qr img{display:block;width:100%;height:auto}
   .qr .cap{color:#222;text-align:center;font-size:clamp(13px,1.3vw,17px);margin-top:8px;font-weight:700}
   .url{font-size:clamp(22px,3.2vw,44px);font-weight:800;color:var(--accent);margin-top:18px}
-  @media (max-width:900px){.cards,.nums,.two,.flow,.qrwrap{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
+  @media (max-width:900px){.cards,.nums,.two,.flow,.flow.three,.qrwrap{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
   @media print{.deck{height:auto;overflow:visible}.slide{min-height:auto;page-break-after:always}}
 </style>
 </head>
@@ -69,7 +73,7 @@
     <div class="pageno">1 / 8</div>
     <div class="kicker">Mahidol AI Community 2026 · Pitching Day · Track A</div>
     <h1>ReflexWork</h1>
-    <p class="lead"><b>ผู้ช่วยตอบคำถามจากแหล่งทางการ</b><br/>ไม่เดา · ตรวจสอบได้ · บอกข้อจำกัดของตัวเอง</p>
+    <p class="lead"><b>ผู้ช่วยตอบคำถามจากแหล่งทางการ</b><br/>ข้อเท็จจริงมาจากคู่มือ · ตรวจสอบได้ · บอกข้อจำกัดของตัวเอง</p>
     <div class="foot">ลองสด: <b class="acc">reflexwork.pages.dev</b> &nbsp;·&nbsp; Ratchapon (Ozone) · Napatsakorn</div>
   </section>
 
@@ -83,7 +87,7 @@
       <div class="card"><div class="ic">⚠️</div><div class="t">AI เดาตัวเลข</div><div class="d">วัน เงิน เงื่อนไข ผิดได้</div></div>
       <div class="card"><div class="ic">🔍</div><div class="t">ตรวจย้อนหลังไม่ได้</div><div class="d">ไม่รู้ว่าตอบจากอะไร</div></div>
     </div>
-    <div class="foot">ความเสี่ยงนี้เกิดจริง: ศาลแคนาดาให้บริษัทรับผิดต่อ chatbot ที่ตอบผิด (<i>Moffatt v. Air Canada</i>, 2024)</div>
+    <div class="foot">ความเสี่ยงนี้เกิดจริง: ปี 2024 tribunal ของแคนาดาให้ Air Canada รับผิดต่อ chatbot ที่ให้ข้อมูลนโยบายผิด (<i>Moffatt v. Air Canada</i>)</div>
   </section>
 
   <!-- 3 — Solution -->
@@ -92,11 +96,13 @@
     <div class="kicker">ทางออก</div>
     <h2>ตอบจากประกาศและคู่มือทางการ<br/><span class="em">ไม่แน่ใจ = บอก แล้วพาไปหาเจ้าหน้าที่</span></h2>
     <div class="flow">
-      <div class="step src"><div class="n">1</div><div class="t">ค้นจากข้อมูลทางการ</div><div class="d">379 หลักสูตร + คู่มือที่อนุมัติแล้ว</div></div>
+      <div class="step src"><div class="n">1</div><div class="t">ค้นจากข้อมูลทางการ</div><div class="d"><span data-claim="prog">379</span> หลักสูตร + คู่มือ <span data-claim="kb">132</span> หัวข้อ</div></div>
       <div class="arrow">→</div>
-      <div class="step ok"><div class="n">2</div><div class="t">ตอบ + ลิงก์ต้นทาง</div><div class="d">AI ช่วยเรียบเรียงเท่านั้น</div></div>
+      <div class="step ok"><div class="n">2</div><div class="t">ตอบ + ที่มา + วันที่</div><div class="d">AI ช่วยเรียบเรียงเท่านั้น</div></div>
       <div class="arrow">→</div>
-      <div class="step hand"><div class="n">3</div><div class="t">ไม่แน่ใจ → ส่งต่อคน</div><div class="d">และจดคำถามให้ทีมเติมคู่มือ</div></div>
+      <div class="step hand"><div class="n">3</div><div class="t">ไม่มีในคู่มือ → บอกตรง ๆ</div><div class="d">พาไปหาคน และจดคำถามไว้</div></div>
+      <div class="arrow">→</div>
+      <div class="step loop"><div class="n">4</div><div class="t">เจ้าหน้าที่อนุมัติ</div><div class="d">คำตอบขึ้นแชต ไม่เกินราว 15 วินาที</div></div>
     </div>
     <div class="foot">ข้อเท็จจริงมาจากแหล่งทางการเสมอ — ไม่ได้มาจากโมเดล</div>
   </section>
@@ -107,11 +113,9 @@
     <div class="kicker">เดโมสด · 2 นาที</div>
     <h2>สลับไปหน้าเว็บ</h2>
     <div class="demo">
-      <div class="k">1</div><div class="q">อยากสมัครเรียนจิตวิทยาคลินิก</div>
-      <div class="k">2</div><div class="q">แล้วค่าเทอมล่ะ</div>
-      <div class="k">3</div><div class="q">ทำงานอะไรดี → คอมพิวเตอร์ · ข้อมูล</div>
-      <div class="k">4</div><div class="q">เมืองหลวงของฝรั่งเศสคืออะไร</div>
-      <div class="k">5</div><div class="q">กด “ดูหลักฐานเบื้องหลัง”</div>
+      <div class="k">1</div><div class="q">อยากสมัครเรียนชีวสารสนเทศทางการแพทย์<span class="r">การ์ดหลักสูตร 🟢 เปิดรับ + กำหนดการ ตามประกาศ</span></div>
+      <div class="k">2</div><div class="q">แล้วค่าเทอมล่ะ<span class="r">ตารางค่าธรรมเนียมจากประกาศ + ลิงก์ต้นทาง → กด “ดูหลักฐานเบื้องหลัง”</span></div>
+      <div class="k">3</div><div class="q">ถามเรื่องที่คู่มือยังไม่มี → เจ้าหน้าที่อนุมัติ → ถามซ้ำ<span class="r">บอกว่ายังไม่มี ไม่แต่งคำตอบ → ซ้ำแล้วได้คำตอบ ป้าย “เจ้าหน้าที่ตอบ”</span></div>
     </div>
     <div class="foot">สำรอง: <b class="acc">reflexwork.pages.dev/chatbot?ai=off</b> (ตอบจากคู่มือเท่านั้น ไม่เรียก AI)</div>
   </section>
@@ -119,17 +123,17 @@
   <!-- 5 — Proof -->
   <section class="slide">
     <div class="pageno">5 / 8</div>
-    <div class="kicker">หลักฐาน — วัดบน FAQ จริงของบัณฑิตวิทยาลัย</div>
+    <div class="kicker">หลักฐาน</div>
     <h2>วัดจริง เปิดวิธีวัด <span class="em">และบอกจุดอ่อนเอง</span></h2>
     <div class="nums">
-      <div class="num"><div class="v em">71<span style="font-size:.5em;color:var(--muted)">/85</span></div><div class="l">FAQ นักศึกษา/ผู้สมัครที่คู่มือครอบคลุม</div></div>
-      <div class="num"><div class="v em">94%</div><div class="l">ตอบถูก (ไทย) บนคำถามเหล่านั้น</div></div>
-      <div class="num"><div class="v em">0</div><div class="l">การ์ดหลักสูตรผิด จากชื่อพิมพ์ผิด 1,915 แบบ</div></div>
-      <div class="num"><div class="v acc">379</div><div class="l">หลักสูตรจากประกาศทางการ</div></div>
+      <div class="num"><div class="v em"><span data-claim="r1">86</span>%</div><div class="l">อันดับ 1 (<span data-claim="labelled">50</span> ข้อ)</div></div>
+      <div class="num"><div class="v em"><span data-claim="answered">44</span><span style="font-size:.5em;color:var(--muted)">/<span data-claim="n">52</span></span></div><div class="l">ตอบเอง · ผิด <span data-claim="wrong">3</span></div></div>
+      <div class="num"><div class="v em"><span data-claim="wrongcards">0</span></div><div class="l">การ์ดผิด / <span data-claim="names">1,923</span> ชื่อ</div></div>
+      <div class="num"><div class="v acc"><span data-claim="prog2">379</span></div><div class="l">หลักสูตร</div></div>
     </div>
     <div class="limits"><div class="h">ข้อจำกัดที่เรารู้</div>
-      <div class="b">ภาษาอังกฤษตอบถูกราว 50% · คำถามใกล้เคียงที่คู่มือยังไม่มีบางข้อตอบผิดหัวข้อ · ยังไม่มีข้อมูลผู้ใช้จริง</div></div>
-    <div class="foot">สคริปต์วัดทั้งหมดอยู่ใน repo — วัดซ้ำได้ (เฉลยติดป้ายโดยทีม รอเจ้าของคู่มือยืนยัน)</div>
+      <div class="b">อังกฤษถูก <span data-claim="enright">49</span>% · FAQ ที่คู่มือไม่มี <span data-claim="unc">14</span> ข้อ ไทยผิดหัวข้อ <span data-claim="uncans">10</span></div></div>
+    <div class="foot"><span data-claim="thright">94</span>% บน FAQ จริงวัดการจับคู่ ไม่ใช่คำถามใหม่</div>
   </section>
 
   <!-- 6 — AI and Kiro -->
@@ -139,16 +143,16 @@
     <h2>ใช้ AI <span class="llm">เฉพาะจุดที่ช่วยได้</span></h2>
     <div class="two">
       <div class="box"><div class="t llm">🤖 AI</div><ul>
-        <li>ตีความคำถามที่พิมพ์แปลก แล้วให้คู่มือตอบ</li>
-        <li>เรียบเรียงข้อความจากคู่มือที่ให้ไป</li>
-        <li>ตัวเลขที่ AI พิมพ์ถูกตรวจกับต้นฉบับ</li>
-        <li>ไม่ตรง → แสดงข้อความคู่มือแทน</li></ul></div>
+        <li>ตีความคำถามแปลก (ไม่เห็นคู่มือ ไม่ตอบเอง)</li>
+        <li>เรียบเรียงข้อความจากคู่มือ</li>
+        <li>ตัวเลข วัน เดือนที่ AI พิมพ์ ถูกตรวจกับต้นฉบับ</li>
+        <li>ไม่ตรง → ใช้ข้อความคู่มือ</li></ul></div>
       <div class="box"><div class="t acc">🛠️ Kiro</div><ul>
-        <li>พัฒนาแบบ spec-driven: requirements → design → tasks</li>
-        <li>specs 3 ชุด · steering · hooks ใน <code>.kiro/</code></li>
+        <li>spec-driven: requirements → design → tasks</li>
+        <li>specs <span data-claim="specs">3</span> ชุด + steering <span data-claim="steer">3</span> ไฟล์ ใน <code>.kiro/</code></li>
         <li>ตรวจได้ใน repo</li></ul></div>
     </div>
-    <div class="foot">ทำไมไม่ใช้ AI ทุกที่: เพราะคำตอบต้องตรวจสอบได้</div>
+    <div class="foot">คำตอบต้องตรวจสอบได้</div>
   </section>
 
   <!-- 7 — Readiness and next -->
@@ -158,16 +162,16 @@
     <h2>ใช้งานได้วันนี้ <span class="acc">และรู้ว่าขั้นต่อไปคืออะไร</span></h2>
     <div class="two">
       <div class="box"><div class="t em">วันนี้</div><ul>
-        <li>เว็บใช้งานได้จริง ไม่ต้องล็อกอิน</li>
-        <li>405 ข้อทดสอบใน CI ทุกครั้งที่แก้</li>
-        <li>หน่วยงานอื่นติดตั้งได้ด้วยคำสั่งเดียว<br/><small>(ทดสอบกับหน่วยงานสมมติ)</small></li>
-        <li>มือถือ: Lighthouse 99 · 100 · 100</li></ul></div>
+        <li>ใช้งานได้จริง ไม่ต้องล็อกอิน</li>
+        <li><span data-min="tests">60</span>+ ชุดทดสอบ + ทดสอบบนเบราว์เซอร์จริง</li>
+        <li>สร้างเว็บหน่วยงานใหม่ด้วยคำสั่งเดียว</li>
+        <li>มือถือ Lighthouse <span data-claim="lhp">98</span> · <span data-claim="lha">100</span> · <span data-claim="lhb">100</span></li></ul></div>
       <div class="box soon"><div class="t" style="color:var(--muted)">ต่อไป (แนวคิด ยังไม่ได้พัฒนา)</div><ul>
-        <li>ย้าย AI ไปช่วยคนดูแลคู่มือ (คนอนุมัติ) ตอนตอบไม่ต้องเรียก AI</li>
+        <li>ย้าย AI ไปช่วยคนดูแลคู่มือ</li>
         <li>หน่วยงานจริงแห่งที่สอง</li>
-        <li>เข้าสู่ระบบ เมื่อเจ้าของระบบอนุญาต + ผ่าน PDPA</li></ul></div>
+        <li>เข้าสู่ระบบ เมื่อได้รับอนุญาต + ผ่าน PDPA</li></ul></div>
     </div>
-    <div class="ask">ที่เราขอ: เจ้าของคู่มือมาเติมช่องว่าง + หน่วยงานนำร่อง</div>
+    <div class="ask">ที่เราขอ: เจ้าของคู่มือเติม FAQ <span data-claim="unc2">14</span> ข้อ + หน่วยงานนำร่อง</div>
   </section>
 
   <!-- 8 — Close -->
@@ -176,7 +180,7 @@
     <div class="qrwrap">
       <div>
         <div class="kicker">ขอบคุณครับ</div>
-        <h2 style="margin-bottom:10px">ตอบจากแหล่งทางการ<br/><span class="em">ไม่เดา วัดได้</span></h2>
+        <h2 style="margin-bottom:10px">ตอบจากแหล่งทางการ<br/><span class="em">ตรวจสอบได้ วัดได้</span></h2>
         <div class="url">reflexwork.pages.dev</div>
         <div class="lead" style="margin-top:14px;font-size:clamp(16px,1.8vw,24px)">github.com/ozoneRatchapon/reflexwork<br/>Ratchapon (Ozone) · Napatsakorn</div>
       </div>

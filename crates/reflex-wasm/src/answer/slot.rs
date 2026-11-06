@@ -11,10 +11,23 @@ enum Slot {
 }
 
 const ASKS: [(Slot, &[&str]); 3] = [
-    (Slot::Duration, &["กี่วัน", "ภายในกี่", "นานแค่ไหน", "กี่สัปดาห์", "กี่เดือน", "ระยะเวลา"]),
+    (Slot::Duration, &["กี่วัน", "ภายในกี่", "นานแค่ไหน", "นานเท่าไร", "นานเท่าไหร่", "นานไหม", "ใช้เวลา", "กี่สัปดาห์", "กี่เดือน", "ระยะเวลา"]),
     (Slot::Money, &["เท่าไร", "เท่าไหร่", "กี่บาท", "ค่าใช้จ่าย", "ราคา", "ค่าธรรมเนียม", "ค่าสอบ", "ค่าตอบแทน"]),
     (Slot::Percent, &["กี่%", "กี่ %", "กี่เปอร์", "เกินเท่าไร", "เกินกี่", "ไม่เกินเท่าไร"]),
 ];
+
+/// Money `not`: a deadline or duration question that only names a fee asks for a date, not the fine (QA F17)...
+const MONEY_NOT: [&str; 6] = ["นานเท่าไ", "วันสุดท้าย", "วันไหน", "เมื่อไร", "เมื่อไหร่", "กี่วัน"];
+/// ...`unless` it asks for an amount outright (`กี่บาท|ราคา|ค่า\S*เท่าไ`).
+fn money_asked_outright(q: &str) -> bool {
+    if q.contains("กี่บาท") || q.contains("ราคา") {
+        return true;
+    }
+    q.match_indices("ค่า").any(|(i, m)| {
+        let rest = &q[i + m.len()..];
+        rest.find("เท่าไ").is_some_and(|j| !rest[..j].chars().any(|c| c.is_whitespace()))
+    })
+}
 
 fn digits_end(u: &[u16], at: usize) -> Option<usize> {
     let end = at + u[at..].iter().take_while(|&&c| is_digit(c)).count();
@@ -24,6 +37,19 @@ fn digits_end(u: &[u16], at: usize) -> Option<usize> {
 /// `\s*\d+\s*` then a unit; returns the end of the match.
 fn number_then(u: &[u16], at: usize, unit: impl Fn(&[u16], usize) -> Option<usize>) -> Option<usize> {
     let d = digits_end(u, skip_space(u, at))?;
+    unit(u, skip_space(u, d))
+}
+
+/// `\s*(?<!\d)\d{1,3}\s*` then a duration unit: a number standing alone, at most 3 digits ("2569 วันสุดท้าย" is a year, QA F17).
+fn short_number_then(u: &[u16], at: usize, unit: impl Fn(&[u16], usize) -> Option<usize>) -> Option<usize> {
+    let d0 = skip_space(u, at);
+    if d0 > 0 && is_digit(u[d0 - 1]) {
+        return None;
+    }
+    let d = digits_end(u, d0)?;
+    if d - d0 > 3 {
+        return None;
+    }
     unit(u, skip_space(u, d))
 }
 
@@ -72,7 +98,7 @@ fn prefixed(u: &[u16], at: usize, prefixes: &[&str], rest: &dyn Fn(&[u16], usize
 
 fn grab_at(slot: Slot, u: &[u16], at: usize) -> Option<usize> {
     match slot {
-        Slot::Duration => prefixed(u, at, &["ไม่เกิน", "ภายใน", "ประมาณ", "ราว"], &|u, a| number_then(u, a, duration_unit)),
+        Slot::Duration => prefixed(u, at, &["ไม่เกิน", "ภายใน", "ประมาณ", "ราว"], &|u, a| short_number_then(u, a, duration_unit)),
         Slot::Money => {
             // `\d[\d,]*\s*บาท`
             if !u.get(at).is_some_and(|&c| is_digit(c)) {
@@ -102,6 +128,36 @@ fn normalise(m: &[u16]) -> String {
     from_u16(&out)
 }
 
+/// Every non-overlapping match of the slot's grab, left to right (`body.match(/…/g)`).
+fn all_matches(slot: Slot, u: &[u16]) -> Vec<String> {
+    let (mut out, mut at) = (Vec::new(), 0);
+    while at < u.len() {
+        match grab_at(slot, u, at) {
+            Some(end) if end > at => {
+                out.push(normalise(&u[at..end]));
+                at = end;
+            }
+            _ => at += 1,
+        }
+    }
+    out
+}
+
+/// The duration lead: a bare number gets "ภายใน "; a written-out prefix keeps a space before its number ("ภายใน3" -> "ภายใน 3").
+fn duration_lead(m: &str) -> String {
+    if m.starts_with(|c: char| c.is_ascii_digit()) {
+        return format!("ภายใน {m}");
+    }
+    for p in ["ไม่เกิน", "ภายใน", "ประมาณ"] {
+        if let Some(rest) = m.strip_prefix(p) {
+            if rest.starts_with(|c: char| c.is_ascii_digit()) {
+                return format!("{p} {rest}");
+            }
+        }
+    }
+    m.to_owned()
+}
+
 /// Port of `slotLead(entry, question)`.
 pub fn slot_lead(answer: &str, question: &str) -> String {
     let u = to_u16(answer);
@@ -109,13 +165,22 @@ pub fn slot_lead(answer: &str, question: &str) -> String {
         if !asks.iter().any(|a| question.contains(a)) {
             continue;
         }
-        let found = (0..u.len()).find_map(|at| grab_at(slot, &u, at).map(|end| normalise(&u[at..end])));
-        if let Some(m) = found {
-            return match slot {
-                Slot::Duration if !(m.contains("ไม่เกิน") || m.contains("ภายใน")) => format!("ภายใน{m}"),
-                _ => m,
-            };
+        if matches!(slot, Slot::Money) && MONEY_NOT.iter().any(|w| question.contains(w)) && !money_asked_outright(question) {
+            continue;
         }
+        let all = all_matches(slot, &u);
+        let Some(first) = all.first() else { continue };
+        // several different amounts (GRID: three tiers): one bold figure would mislead, so no money lead
+        if matches!(slot, Slot::Money) {
+            let key = |x: &String| x.chars().filter(|c| !c.is_whitespace() && *c != ',').collect::<String>();
+            if all.iter().any(|x| key(x) != key(first)) {
+                continue;
+            }
+        }
+        return match slot {
+            Slot::Duration => duration_lead(first),
+            _ => first.clone(),
+        };
     }
     String::new()
 }

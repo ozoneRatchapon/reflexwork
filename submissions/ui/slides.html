@@ -175,6 +175,7 @@
 </style>
 </head>
 <body>
+<div style="position:fixed;top:0;left:0;right:0;z-index:20;background:#1b2a66;color:#e9edff;font-size:13px;padding:6px 4vw;text-align:center;border-bottom:1px solid var(--line)">ชุดสไลด์ส่งรอบแรก (31 ต.ค.) — ไม่ใช่ชุดพิตช์ · ฉบับพิตช์ 5 นาที: <a href="./pitch.html" style="color:#9fc0ff">/pitch</a> · ระบบทำงานอย่างไร: <a href="./how-it-works.html" style="color:#9fc0ff">/how-it-works</a> · ต้นฉบับที่ส่ง: git tag <code>submission-2026-10-31</code></div>
 <div class="deck">
 
   <!-- Slide 1 — Title (ฉาก 1) -->
@@ -276,14 +277,14 @@
         <div class="swact">👤 ผู้ใช้</div>
         <div class="swbody">
           <div class="swstep">พิมพ์คำถาม (ไทย/อังกฤษ)</div>
-          <div class="swtech">หน้าเว็บเรียก kernel ที่คอมไพล์เป็น <code>WebAssembly</code> รันในเบราว์เซอร์ 100% — ไม่มีข้อมูลออกนอกเครื่อง (PDPA-friendly)</div>
+          <div class="swtech">หน้าเว็บเรียก kernel ที่คอมไพล์เป็น <code>WebAssembly</code> ค้นคู่มือในเบราว์เซอร์ · คำถามที่ตอบไม่ได้ถูกบันทึก (ปิดบังข้อมูลส่วนตัวฝั่งเซิร์ฟเวอร์) และบางคำถามส่งให้ AI เรียบเรียง</div>
         </div>
       </div>
       <div class="swrow swk">
         <div class="swact">🦀 Reflex Kernel</div>
         <div class="swbody">
           <div class="swstep">ตัดสินเส้นทาง + ค้นคู่มือ + ผนึกหลักฐาน</div>
-          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 84% / @3 96%, eval 50 เคส) · ทุกคำตอบผนึก <code>BLAKE3 fingerprint</code> รันซ้ำได้ · เส้นทางเร็ว <code>0 token · ~12ns route</code></div>
+          <div class="swtech"><code>kernel gate (sigmoid, θ=0.72)</code> จัดเส้นทางงาน — การตัดสินว่าตอบเอง/ส่งต่อในหน้าแชทใช้คะแนนการค้นคืน · ค้นคู่มือ <code>TF-IDF cosine + lexical overlap</code> (recall@1 86% / @3 96%, eval 50 เคส) · ทุกคำถามที่เข้า kernel มีรหัส <code>BLAKE3</code> ของคำถาม+เส้นทาง ถามซ้ำได้ค่าเดิม · เส้นทางเร็ว <code>0 token · ~1.9 µs (gate + รหัส, WASM)</code></div>
         </div>
       </div>
       <div class="swrow swa">
@@ -382,7 +383,7 @@
         <div class="t g">🦀 Rust kernel → WebAssembly</div>
         <ul>
           <li>algorithm เดียวกับฝั่ง server เป๊ะ (sigmoid gate θ=0.72, seeded weights)</li>
-          <li>ไม่มี backend · ไม่มี network call · ข้อมูลไม่ออกจากเครื่องผู้ใช้</li>
+          <li>หน้าทดลอง (try.html) ไม่มี backend · ไม่มี network call · ข้อมูลไม่ออกจากเครื่องผู้ใช้</li>
           <li>พิมพ์งาน → เห็น route decision + BLAKE3 fingerprint ภายในไมโครวินาที</li>
           <li>แชร์เป็น URL เดียว กรรมการ/ผู้ใช้ทั่วไป "กดลองได้เลย"</li>
         </ul>
@@ -444,7 +445,7 @@
     <div class="dash">
       <div class="dkpi f"><div class="n">85%</div><div class="l">ตอบเองจากคู่มือ — 44 จาก 52 ข้อทดสอบ</div></div>
       <div class="dkpi l2"><div class="n">15%</div><div class="l">ถามกลับ / ส่งต่อเจ้าหน้าที่ — 8 จาก 52</div></div>
-      <div class="dkpi a"><div class="n">9%</div><div class="l">ผิดในข้อที่ตอบเอง — 4 จาก 44 (วัดจริง ไม่ซ่อน)</div></div>
+      <div class="dkpi a"><div class="n">7%</div><div class="l">ผิดในข้อที่ตอบเอง — 3 จาก 44 (วัดจริง ไม่ซ่อน)</div></div>
     </div>
     <div class="dashbar">
       <div class="f" style="width:85%"></div>

@@ -128,9 +128,12 @@ def to_lines(raw: str) -> tuple[list[str], list[str]]:
     return [ln for ln in lines if ln], p.links
 
 
-def announce_id(code: str) -> str | None:
+def announce_id(code: str, n: int = 0) -> str | None:
     m = CODE_RE.match(code)
-    return f"{m.group(1)}{m.group(2)}{m.group(4)}00" if m else None
+    return f"{m.group(1)}{m.group(2)}{m.group(4)}{n:02d}" if m else None
+
+
+MAX_MAJORS = 21  # QA G19: per-major announcements use ids ending 01..21 (seen on the site's sitemap, 2026-11-04)
 
 
 def fetch(url: str, cache: Path | None, delay: float, retries: int = 2) -> str | None:
@@ -236,6 +239,7 @@ def parse_announce(raw: str, code: str, aid: str, year: str) -> dict | None:
         "status": status,                                    # as displayed by the website - not live
         "title_en": title_en,
         "intake": value_after(lines, "จำนวนที่คาดว่าจะรับ"),
+        "major": value_after(lines, "วิชาเอก") if not aid.endswith("00") else "",   # a per-major announcement names its major
         "apply_url": urllib.parse.urljoin(BASE + "/Admission/announce/", apply_link) if apply_link else "",
         "notice": notice,
         "sections": sections,
@@ -269,7 +273,7 @@ def main() -> int:
         rows = rows[: a.limit]
     print(f"{len(rows)} programmes")
 
-    out, open_n, none_n, bad = [], 0, 0, []
+    out, open_n, none_n, major_n, bad = [], 0, 0, 0, []
     for n, r in enumerate(rows, 1):
         m = CODE_RE.match(r["code"])
         if not m:
@@ -282,6 +286,22 @@ def main() -> int:
             row["announcement_error"] = "fetch_failed"
         else:
             ann = parse_announce(page, r["code"], aid, a.year)
+            if not ann:
+                # QA G19: no general announcement - some programmes announce per major instead (<id>01, <id>02, ...). Probe in order
+                # and stop at the first id the site does not know; the open one (else the first) becomes the card's announcement.
+                subs = []
+                for k in range(1, MAX_MAJORS + 1):
+                    sid = announce_id(r["code"], k)
+                    sp = fetch(ANN_URL.format(aid=sid, year=a.year), cache, a.delay)
+                    sa = parse_announce(sp, r["code"], sid, a.year) if sp else None
+                    if not sa:
+                        break
+                    subs.append((sid, sa))
+                if subs:
+                    sid, ann = next(((i, x) for i, x in subs if x["status"] == "กำลังเปิดรับสมัคร"), subs[0])
+                    row["announce_id"] = sid
+                    row["sub_announcements"] = [{"id": i, "url": x["url"], "status": x["status"], "major": x["major"], "apply_url": x["apply_url"]} for i, x in subs]
+                    major_n += 1
             row["announcement"] = ann
             open_n += bool(ann)
             none_n += not ann
@@ -291,7 +311,7 @@ def main() -> int:
 
     doc = {"fetched_at": a.fetched_at, "year": a.year, "source": BASE, "count": len(out), "programmes": out}
     Path(a.out).write_text(json.dumps(doc, ensure_ascii=False, indent=0), encoding="utf8")
-    print(f"wrote {len(out)} programmes -> {a.out}; announcements: {open_n}, none: {none_n}, bad codes: {bad or 0}")
+    print(f"wrote {len(out)} programmes -> {a.out}; announcements: {open_n} ({major_n} per-major only), none: {none_n}, bad codes: {bad or 0}")
     return 0
 
 

@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"   # Node 20 is end-of-life (2026-04); tests/chat_e2e.test.mjs needs the global WebSocket (Node >= 22)
 
       - name: Unit tests (learning-loop pure logic)
         run: node tests/learning_loop.test.mjs

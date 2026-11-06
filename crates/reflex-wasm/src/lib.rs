@@ -233,6 +233,37 @@ fn gram_set(text: &str) -> Vec<String> {
     set.into_iter().collect()
 }
 
+/// Question-form words say HOW a student asks, never WHAT about; left in, their trigrams matched unrelated entries.
+/// Stripped from the QUERY only. Lockstep with chatbot.html `_stripQ` (same list, same alternation order = leftmost, first listed wins).
+const QUERY_FILLERS: [&str; 17] = [
+    "เท่าไหร่", "เท่าไร", "เท่าใด", "คืออะไร", "อะไรบ้าง", "ได้ไหม", "ได้มั้ย", "หรือไม่", "นะครับ",
+    "นะคะ", "ครับ", "ค่ะ", "คะ", "บ้าง", "หน่อย", "ไหม", "มั้ย",
+];
+
+fn strip_query_fillers(q: &str) -> String {
+    let chars: Vec<char> = q.chars().collect();
+    let fillers: Vec<Vec<char>> = QUERY_FILLERS.iter().map(|f| f.chars().collect()).collect();
+    let mut out = String::new();
+    let mut i = 0;
+    while i < chars.len() {
+        match fillers.iter().find(|f| chars[i..].starts_with(f)) {
+            Some(f) => {
+                out.push(' ');
+                i += f.len();
+            }
+            None => {
+                out.push(chars[i]);
+                i += 1;
+            }
+        }
+    }
+    let collapsed = out.split_whitespace().collect::<Vec<_>>().join(" ");
+    match collapsed.is_empty() {
+        true => q.to_string(),
+        false => collapsed,
+    }
+}
+
 #[derive(Deserialize)]
 struct KbEntryIn {
     id: String,
@@ -321,7 +352,7 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
         v
     };
     let doc_vecs: Vec<_> = doc_grams.iter().map(|gs| norm_vec(gs)).collect();
-    let qgrams = gram_set(query);
+    let qgrams = gram_set(&strip_query_fillers(query));
     let qv = norm_vec(&qgrams);
 
     let mut scored: Vec<KbHit> = Vec::new();
@@ -513,6 +544,13 @@ mod tests {
     }
 
     // ─── kb_search gram helper ───────────────────────────────────────────────
+    #[test]
+    fn strip_query_fillers_matches_js() {
+        assert_eq!(strip_query_fillers("ค่าสมัครเรียนเท่าไหร่ครับ"), "ค่าสมัครเรียน");
+        assert_eq!(strip_query_fillers("ครับ"), "ครับ");
+        assert_eq!(strip_query_fillers("ต้องใช้ APA ไหมในวิทยานิพนธ์"), "ต้องใช้ APA ในวิทยานิพนธ์");
+    }
+
     #[test]
     fn gram_set_is_deterministic() {
         assert_eq!(gram_set("ค่าสอบเท่าไร"), gram_set("ค่าสอบเท่าไร"));

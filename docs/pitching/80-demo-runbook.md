@@ -15,6 +15,12 @@ node scripts/demo_smoke.mjs            # live site; writes nothing to production
 
 Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret answers 404) so no request wastes time on it.
 
+> **2026-11-05 - for the 5-minute pitch use the 3 moments in `10-pitch-script-5min.md` scene 2** (open `chatbot?view=judge`): the open programme
+> **ชีวสารสนเทศทางการแพทย์** (open, fee amounts), `แล้วค่าเทอมล่ะ` with the evidence panel, and the staff loop on `ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน`.
+> `demo_smoke.mjs` steps 2c/2d check the first two on the live site; `tests/chat_e2e.test.mjs` rehearses all three on a mock kernel (never writes to production).
+> The table below is the longer 6-minute demo. Its programme (clinical psychology) is **closed** and its 2570 announcement has **no fee rates** - do not open the pitch with it.
+> The staff loop on production writes to the real kernel: use a verified answer, retract it right after, and keep the dashboard staff token handy.
+
 ## The demo (≈ 6 min) — type exactly this
 | # | type | the audience sees | say |
 |---|---|---|---|
@@ -42,7 +48,7 @@ Also the day before: remove the dead local-model tunnel (`OLLAMA_URL` secret ans
 - "the kernel gate decides when to call the LLM" (in the web chat the retrieval score decides; the gate cannot exceed 0.451);
 - "the system improves automatically from users' 👍/👎": the buttons only started working on 2026-11-03 (before, each click threw an error), the effect of votes on answer quality is not measured, and per-answer counting needs the kernel worker deploy (`docs/METHOD.md` §8.6). Say: "votes are collected per answer and reviewed by staff";
 - "proof" for the BLAKE3 hash (it is a replay fingerprint, not a proof of correctness) — the UI, slides, README and concept paper now say *fingerprint*; `docs/pitching/*.md` Q&A notes may still say proof, so say fingerprint out loud;
-- that slide 6 shows live data: it is an example screen filled with the **measured** test-set figures (44 of 52 answered unaided, 4 wrong among them) and says so; the real dashboard is `/dashboard`;
+- that slide 6 shows live data: it is an example screen filled with the **measured** test-set figures (44 of 52 answered unaided, 3 wrong among them) and says so; the real dashboard is `/dashboard`;
 - that statuses are live (they are a snapshot, dated on every card).
 - that it "declines when it does not know": on 34 hand-written out-of-scope questions it still answered 13 % (English) / 17 % (Thai) with an unrelated entry (25 % / 39 % before the 2026-11-03 fix) (`docs/METHOD.md` §5 F). If a judge asks something off-topic, the honest line is "it usually declines, not always — we measured it and know why";
 - that it "works in English": it understands English and mixed Thai–English, but **answers in Thai** (it refuses honestly when nothing matches).
