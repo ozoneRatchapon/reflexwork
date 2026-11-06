@@ -139,6 +139,9 @@
 const esc = v => String(v==null?'':v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const $ = id => document.getElementById(id);
+// A preview deploy (deploy_pages.sh stamps <meta name="rw-env" content="preview">) must not act on the production kernel: approve / retract / draft buttons
+// would write real data. The base starts empty there (demo data), and can be typed in on purpose, e.g. a staging kernel.
+if(document.querySelector('meta[name="rw-env"][content="preview"]')) $('base').value='';
 const base = () => $('base').value.replace(/\/+$/,'');
 // Staff auth: a shared token stored locally and sent as X-Staff-Token on
 // privileged (kb-*) calls. Matches the kernel's optional STAFF_TOKEN guard.

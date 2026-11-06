@@ -2427,10 +2427,15 @@ function safeBackend(v){ if(!v) return ''; try{ const u=new URL(v, location.href
   const ok = _BACKEND_OK.includes(u.origin) || ((u.protocol==='http:'||u.protocol==='https:') && /^(127\.0\.0\.1|localhost|\[::1\])$/.test(u.hostname)) || u.origin===location.origin;
   return ok ? u.origin + u.pathname.replace(/\/$/,'') : ''; }catch(_){ return ''; } }
 let BACKEND_OVERRIDE=false;
+// A PREVIEW build (submissions/deploy_pages.sh stamps <meta name="rw-env" content="preview"> into every deploy that is not `main`) must never
+// write to or read from the production workers by accident: no default kernel / LLM, so no gap log entry, vote, live-kb poll or AI call.
+// ?api= / ?llm= still connect it on purpose (e.g. a staging worker or a loopback mock). Production pages carry no such meta - nothing changes there.
+const PREVIEW = !!document.querySelector('meta[name="rw-env"][content="preview"]');
 function pickBackends(){ const qp=new URLSearchParams(location.search);
   const qa=safeBackend(qp.get('api')), ql=safeBackend(qp.get('llm')); BACKEND_OVERRIDE=!!(qa||ql);
-  KERNEL_API = qa || (AGENCY.customised ? (AGENCY.kernelApi||'') : 'https://reflexwork-kernel.solana-thailand.workers.dev');
-  LLM_API = ql || (AGENCY.customised ? (AGENCY.llmApi||'') : 'https://reflexwork-llm-proxy.solana-thailand.workers.dev'); }
+  KERNEL_API = qa || (AGENCY.customised ? (AGENCY.kernelApi||'') : PREVIEW ? '' : 'https://reflexwork-kernel.solana-thailand.workers.dev');
+  LLM_API = ql || (AGENCY.customised ? (AGENCY.llmApi||'') : PREVIEW ? '' : 'https://reflexwork-llm-proxy.solana-thailand.workers.dev');
+  if(PREVIEW && !document.getElementById('preview-banner')) document.body.insertAdjacentHTML('afterbegin', `<div id="preview-banner" role="status" style="background:#5b3a00;color:#ffe9b0;font-size:.8125rem;padding:6px 4vw;text-align:center">🧪 เวอร์ชันทดสอบ (preview) — ไม่ได้เชื่อมกับเซิร์ฟเวอร์จริง: ไม่บันทึกคำถาม ไม่รับโหวต ไม่เรียก AI${(qa||ql)?' · เชื่อมเองด้วย ?api= / ?llm= แล้ว':' · เชื่อมเองได้ด้วย ?api= / ?llm='}</div>`); }
 // The LLM proxy is a SEPARATE worker from the kernel (the kernel has /route /gap /feedback ... but no /llm; calling it there
 // was a silent 404 on every AI request). ?llm=<url> overrides, e.g. for a local proxy.
 // ?ai=off = safe mode: answers come only from the knowledge base / official catalogue, the AI proxy is never called (demo fallback, or when the model is down)

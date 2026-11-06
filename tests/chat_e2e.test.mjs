@@ -26,17 +26,23 @@ const listen = srv => new Promise(r => srv.listen(0, '127.0.0.1', () => r(srv.ad
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
   '.wasm': 'application/wasm', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png' };
 const stat = http.createServer((req, res) => {
-  const p = normalize(join(UI, decodeURIComponent(new URL(req.url, 'http://x').pathname)));
+  const pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  if (pathname === '/chatbot.preview.html' || pathname === '/dashboard.preview.html') {   // what submissions/deploy_pages.sh stamps on a deploy of any branch except main
+    const src = readFileSync(join(UI, pathname.replace('.preview', '')), 'utf8').replace('<head>', '<head><meta name="robots" content="noindex"><meta name="rw-env" content="preview">');
+    res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(src); }
+  const p = normalize(join(UI, pathname));
   if (!p.startsWith(UI) || !existsSync(p)) { res.writeHead(404); return res.end(); }
   try { const body = readFileSync(p); res.writeHead(200, { 'Content-Type': MIME[extname(p)] || 'application/octet-stream' }); res.end(body); }
   catch { res.writeHead(404); res.end(); }
 });
 
 // --- mock kernel + LLM proxy (one port; the page allows loopback overrides) ------------------------------------------------------
+let MOCK_REQS = 0;
 const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [], live: [] };
 const mock = http.createServer((req, res) => {
   const h = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
   if (req.method === 'OPTIONS') { res.writeHead(204, h); return res.end(); }
+  MOCK_REQS++;
   let b = ''; req.on('data', d => b += d); req.on('end', () => {
     const u = req.url.split('?')[0];
     if (u === '/live-kb') { res.writeHead(200, h); return res.end(JSON.stringify({ entries: MOCK.live })); }
@@ -64,7 +70,10 @@ ws.addEventListener('message', e => { const m = JSON.parse(e.data);
   if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text); });
 const send = (method, params = {}) => new Promise(r => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 const ev = async x => (await send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true })).result?.value;
-await send('Page.enable'); await send('Runtime.enable');
+await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+await send('Network.setBlockedURLs', { urls: ['*workers.dev*'] });   // the real workers are never reached; an attempt is still recorded below
+const attempts = [];
+ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.method === 'Network.requestWillBeSent' && /workers\.dev/.test(m.params.request.url)) attempts.push(m.params.request.url); });
 
 const until = async (cond, ms = 8000) => { for (let t = 0; t < ms; t += 100) { if (await ev(cond)) return true; await wait(100); } return false; };
 const boot = async (eng, extra = '') => {
@@ -157,6 +166,22 @@ for (const eng of ['rust', 'js']) {
 
   check(`[${eng}] no uncaught page errors`, errors.length === 0, errors.join(' | '));
 }
+
+// ---- PREVIEW builds: no production backend by default (the safe place to develop while the demo build stays untouched) ----------------
+{ const go = async url => { attempts.length = 0; await send('Page.navigate', { url }); await until(`!!document.getElementById('q') && !document.getElementById('q').disabled`, 20000); await wait(2500); return [...attempts]; };
+  const prod = await go(`http://127.0.0.1:${SP}/chatbot.html?engine=js`);
+  check('production page (no preview stamp): still reaches for the production workers by default', prod.length > 0 && !(await ev(`!!document.getElementById('preview-banner')`)), prod.join(' '));
+  const prev = await go(`http://127.0.0.1:${SP}/chatbot.preview.html?engine=js`);
+  const banner = await ev(`!!document.getElementById('preview-banner')`);
+  const a = await ask('ส่งรูปเล่มภายในกี่วัน'); const nf = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน'); await wait(700);
+  check('preview page: shows the preview banner, makes NO request to the production workers (not even after a not-found question)', banner && prev.length === 0 && attempts.length === 0, `${prev.join(' ')} | after asking: ${attempts.join(' ')}`);
+  check('preview page: answers from the manual exactly as production does (search is local)', /21 วัน/.test(a) && /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(nf), a);
+  const r0 = MOCK_REQS; await go(`http://127.0.0.1:${SP}/chatbot.preview.html?engine=js&api=http://127.0.0.1:${MP}&llm=http://127.0.0.1:${MP}`);
+  check('preview page: ?api= / ?llm= still connect it on purpose (a staging worker or a mock)', MOCK_REQS > r0 && attempts.length === 0, `mock requests +${MOCK_REQS - r0}`);
+  await go(`http://127.0.0.1:${SP}/dashboard.preview.html`);
+  check('preview dashboard: the kernel base starts empty (approve / retract cannot touch production)', await ev(`document.getElementById('base').value === ''`) && attempts.length === 0, attempts.join(' '));
+  await go(`http://127.0.0.1:${SP}/dashboard.html`);
+  check('production dashboard: base unchanged (points at the production kernel)', /workers\.dev/.test(await ev(`document.getElementById('base').value`))); }
 
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 cleanup(); process.exit(fail ? 1 : 0);
