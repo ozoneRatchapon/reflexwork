@@ -51,6 +51,10 @@ for (const q of ['เมืองหลวงของฝรั่งเศส�
   !r.topic && r.declined ? ok(`declines: "${q}"`) : bad(`should decline: "${q}"`, `${r.topic ? 'answered from ' + r.topic : r.text.slice(0, 80)}`);
   if (r.links.some(h => GS.test(h))) bad('a Graduate School link in a decline', q);
   if (agency.contact && agency.contact.url && !r.links.includes(agency.contact.url)) bad('the decline lacks the organisation\'s contact button', q); }
+// 4) a pack without programmes.json: programme words must not show our "catalogue failed to load" notice (bug found 2026-11-06)
+for (const q of ['ทุนการศึกษามีไหม', 'ค่าเทอมเท่าไร', 'มีหลักสูตรอะไรบ้าง', 'ปริญญาโท']) {
+  const r = await ask(q);
+  !/รายการหลักสูตร/.test(r.text) ? ok(`no catalogue notice without a catalogue: "${q}"`, r.topic ? 'from ' + r.topic : 'declined') : bad(`catalogue notice on a site without a catalogue: "${q}"`, r.text.slice(0, 80)); }
 agency.contact ? ok('declines carry the organisation\'s contact button') : ok('no contact configured: declines show no staff button (as configured)');
 const all = [...hosts].filter(h => !/^127\.0\.0\.1/.test(h)); !all.length ? ok('no network request leaves the site: no kernel, no AI proxy, no Graduate School (defaults)') : bad('the adopted site called an external host by default', all.join(', '));
 errs.length ? bad('script errors', errs.slice(0, 2).join(' | ')) : ok('no script errors');

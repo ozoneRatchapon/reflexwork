@@ -414,7 +414,7 @@ const route_task = WASM.route_task, wasm_kb_search = WASM.kb_search, wasm_classi
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
 let LINKS=[];   // system-links.json: named systems -> official URLs (optional)
-let PROG_STATE='loading';   // 'loading' | 'ok' | 'failed': programme questions are not answered from a half-loaded catalogue
+let PROG_STATE='loading';   // 'loading' | 'ok' | 'failed' | 'none' (an agency without a catalogue): programme questions are not answered from a half-loaded catalogue
 let PROGDOC=null, PROG=[], PCTX=null;   // PCTX: the one programme a follow-up question may refer to (last single-programme card)   // programme catalogue (programmes.json) — optional, page works without it
 const COST=2;
 // ---- Agency config. DEFAULT_AGENCY reproduces the Graduate School exactly. A deployment for another organisation ships ./agency.json (see
@@ -513,7 +513,9 @@ async function load(){
   KB = Array.isArray(KB) ? KB.filter(_okKb) : [];
   if(!KB.length) KB = AGENCY.builtinKb?FALLBACK_KB:[];
   // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
-  fetch('./programmes.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.programmes) && (d.programmes=d.programmes.filter(_okProg)).length){ PROGDOC=d; PROG=d.programmes; PROG_STATE='ok'; if(_PCTX_RESTORE && !PCTX) PCTX=PROG.find(p=>p.code===_PCTX_RESTORE)||null; _PCTX_RESTORE=''; } else PROG_STATE='failed'; }).catch(()=>{ PROG_STATE='failed'; });
+  // Another agency's pack without a catalogue (programmes.json is optional, docs/adopt.md): a 404 means 'none' - the programme notice is
+  // skipped and the question goes to that agency's manual. Our own site keeps 'failed' on a 404 (it always ships the catalogue).
+  fetch('./programmes.json').then(r=>{ if(r.status===404 && AGENCY.customised){ PROG_STATE='none'; return undefined; } return r.ok?r.json():null; }).then(d=>{ if(d===undefined) return; if(d && Array.isArray(d.programmes) && (d.programmes=d.programmes.filter(_okProg)).length){ PROGDOC=d; PROG=d.programmes; PROG_STATE='ok'; if(_PCTX_RESTORE && !PCTX) PCTX=PROG.find(p=>p.code===_PCTX_RESTORE)||null; _PCTX_RESTORE=''; } else PROG_STATE='failed'; }).catch(()=>{ PROG_STATE='failed'; });
   fetch('./system-links.json').then(r=>r.ok?r.json():null).then(d=>{ if(d && Array.isArray(d.links)) LINKS=d.links; }).catch(()=>{});
   ready=true; $('q').disabled=false; $('send').disabled=false;
   // kernel ready → replace the boot spinner with an inviting greeting
@@ -1952,7 +1954,7 @@ function _askCore(){
   // Programme path: "I want to apply to <programme>" → that programme's own page + status, not a
   // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
   // The 2 MB programme catalogue is still loading (or failed): a programme question would fall to a wrong generic answer. Say so instead.
-  if(!pinned && PROG_STATE!=='ok' && (hasStudyIntent(q) || _P_TOPIC.some(([,re])=>re.test(q)) || /เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร/.test(q))){
+  if(!pinned && PROG_STATE!=='ok' && PROG_STATE!=='none' && (hasStudyIntent(q) || _P_TOPIC.some(([,re])=>re.test(q)) || /เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร/.test(q))){
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">⏳ รายการหลักสูตรยังไม่พร้อม</span>
       <div class="ans">${PROG_STATE==='failed'?'โหลดรายการหลักสูตรทางการไม่สำเร็จครับ ลองรีเฟรชหน้านี้ หรือดูรายการหลักสูตรจากเว็บทางการโดยตรง':'รายการหลักสูตรทางการกำลังโหลดอยู่ครับ ลองถามอีกครั้งในอีกสักครู่'}</div>
