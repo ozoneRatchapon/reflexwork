@@ -4,6 +4,7 @@
 use reflex_wasm::route::branches::{is_overview_question, is_restart_phrase, personal_ask, wellbeing_kind};
 use reflex_wasm::route::text::norm_chat;
 use reflex_wasm::route::aspect::{follow_up_aspect, is_generic_fee_question};
+use reflex_wasm::route::programme::{english_programme_ask, is_finder_question, is_level_only_question};
 use reflex_wasm::route::study_intent::has_study_intent;
 use reflex_wasm::route::stuck::stuck_topic;
 use reflex_wasm::route::Personal;
@@ -32,7 +33,10 @@ fn text_functions_match_the_page() {
         let json_of = |p: Option<Personal>| p.map(|p| Value::from(match p { Personal::Other => "other", Personal::SelfRecord => "self" })).unwrap_or(Value::Null);
         // stuckTopic: null -> not stuck, "" -> stuck with no area named, otherwise the area key
         let stuck_key = |r: Option<Option<usize>>| match r { None => Value::Null, Some(None) => Value::from(""), Some(Some(i)) => Value::from(reflex_wasm::route::stuck::cat_key(i)) };
-        let raw: [(&str, Value, Value); 8] = [
+        let raw: [(&str, Value, Value); 11] = [
+            ("finder", c["finder"].clone(), is_finder_question(t).into()),
+            ("levelOnly", c["levelOnly"].clone(), is_level_only_question(t).into()),
+            ("enAsk", c["enAsk"].clone(), english_programme_ask(t).map(|(n, k)| serde_json::json!([n, k])).unwrap_or(Value::Null)),
             ("aspect", c["aspect"].clone(), follow_up_aspect(t).map(Value::from).unwrap_or(Value::Null)),
             ("genericFee", c["genericFee"].clone(), is_generic_fee_question(t).into()),
             ("study", c["study"].clone(), has_study_intent(t).into()),

@@ -4,6 +4,7 @@ pub mod aspect;
 pub mod branches;
 pub mod manual;
 mod patterns_src;
+pub mod programme;
 pub mod study_intent;
 pub mod stuck;
 mod stuck_src;

@@ -42,11 +42,13 @@
    (a) a ported branch on the page = the same branch in Rust; (b) any other branch on the page = `None` in Rust.
    Text functions are also checked one by one against the page's own code on 1,600+ strings: `benchmark/golden/route_text.json`
    (`node scripts/dump_route_text_golden.mjs`), `crates/reflex-wasm/tests/route_text.rs`.
-   - **Ported:** text preparation (`norm_chat`, `strip_lead_in`, Thai digits), `wellbeing`, `smalltalk`, `personal`, `stuck_pick`, `restart`, `overview`, `catalogue_not_ready`, `generic_fee`
-     (8 of 34 routes), plus `follow_up_aspect` / `is_generic_fee_question` (needed by the follow-up branch). `kb_search` now has a native twin `kb_rank` (lib.rs), used through `route::Manual`.
-   - **Next, in order:** the programme branches (`prog` = `Catalogue::resolve` after `isFinderQuestion` / `isLevelOnlyQuestion` / `englishProgrammeAsk`; sets `PCTX` to the card's programme or clears it, so
-     `decide_prefix(typed, &Ctx)` becomes `decide_route(typed, &mut Ctx)` here - restart / generic_fee / the pickers also clear the programme in focus), the programme branches (`Resolver` exists), `time_intent`, `followup` (needs `PCTX` as an input and an output),
-     `scope_*` (`scopeClarify`), the KB tier (`decide_tier` exists), then the not-found family (`english_off_corpus`, `intake`, `topic_picks`, `not_found`).
+   - **Ported (16 of 34 routes):** text preparation (`norm_chat`, `strip_lead_in`, Thai digits), then in the page's order: `wellbeing`, `smalltalk`, `personal`, `stuck_pick`,
+     `restart`, `overview`, `catalogue_not_ready`, `generic_fee`, `programme_card`, `programme_pick`, `field_fee`, `free_study`, `career`, `finder`, `followup`, `free_fee`.
+     `decide_prefix(typed, &mut Ctx)` now changes the programme in focus like the page (a card sets it; a picker, the finders, restart and generic_fee clear it).
+     Helpers: `kb_rank` (native twin of `kb_search`), `route::Manual`, `Catalogue::resolve` (strict + loose), `follow_up_aspect`, `is_generic_fee_question`, `is_finder_question`,
+     `is_level_only_question`, `english_programme_ask`, `is_career_question`, `is_tuition_question`.
+   - **Next, in order:** `time_intent` (`timeIntent` + `datedPicks`: needs today's date as an input), `scope_*` (`scopeClarify`), then the manual's tier (`decide_tier` exists;
+     advice_* and kb_act / disambiguate), then the not-found family (`not_a_question`, `other_script`, `english_off_corpus`, `intake`, `unsure_programme`, `tuition_finder_nomatch`, `topic_picks`, `not_found`).
    - The remaining term/year rewrite of `normTermYear` ("เทอม 1/2569") is not ported; the programme and time branches read it.
 2. **State:** `decide_route(typed, &mut Ctx)` where `Ctx` holds `pinned`, the programme in focus (`PCTX`) and the catalogue/manual state. The 14 recorded sessions
    in the contract are the test for it.
@@ -68,5 +70,5 @@
 - The contract is tied to the manual: rebuild it (`--write`) when `knowledge-index.json`, `programmes.json` or the decision order changes ON PURPOSE.
 
 ## Status
-- 2026-11-07: step 0 done. Step 1 in Rust: 8 of the 34 routes are ported (wellbeing, smalltalk, personal, stuck_pick, restart, overview, catalogue_not_ready, generic_fee); all 1,645 recorded single questions and 1,760 text cases (normChat, wellbeingKind, personalAsk, stuckTopic, isRestartPhrase, isOverviewQuestion, hasStudyIntent, followUpAspect, isGenericFeeQuestion) match the page.
+- 2026-11-07: step 0 done. Step 1 in Rust: 16 of the 34 routes are ported (everything up to and including free_fee); all 1,927-entry contract (1,859 single questions + 68 session turns replayed with the programme in focus carried over) and 2,022 text cases (normChat, wellbeingKind, personalAsk, stuckTopic, isRestartPhrase, isOverviewQuestion, hasStudyIntent, followUpAspect, isGenericFeeQuestion, isFinderQuestion, isLevelOnlyQuestion, englishProgrammeAsk) match the page.
 - Found by the differential test: the page's `normalize('NFC')` DOES change Thai text (it reorders a tone mark typed before a lower vowel); the port reproduces that reordering for Thai. NFC composition of other scripts (Latin e + U+0301) is not ported (documented in route/text.rs).

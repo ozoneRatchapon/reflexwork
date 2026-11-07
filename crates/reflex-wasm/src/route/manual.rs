@@ -75,6 +75,8 @@ pub struct Ctx<'a> {
     pub prog_state: ProgState,
     /// the programme the last card was about (`PCTX`), if any: follow-up questions refer to it
     pub programme_in_focus: Option<String>,
+    /// the programme catalogue, when this deployment has one and it is loaded (`prog_state == Ok`)
+    pub catalogue: Option<&'a crate::resolve::Catalogue>,
     pub manual: &'a Manual,
     pub config: Config,
 }

@@ -35,3 +35,16 @@ pub const PROGRAMME_CODE: Re = Re { src: r#"\d{4}[MDNC]\d{2}[GS]"#, flags: "i" }
 pub const GENERAL_WORDS: Re = Re { src: r#"มหิดล|บัณฑิตวิทยาลัย|ทั่วไป|ทุกหลักสูตร|mahidol"#, flags: "i" };
 pub const FEE_WORDS: Re = Re { src: r#"ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย|ค่าเรียน|เหมาจ่าย|tuition|fees?"#, flags: "" };
 pub const FEE_FILLER: Re = Re { src: r#"เท่าไหร่|เท่าไร|เท่าใด|กี่บาท|โดยทั่วไป|ทั่วไป|ปกติ|ปริญญา(?:โท|เอก)|ป\.?(?:โท|เอก)|โท|เอก|ระดับ|หลักสูตร|ไหม|มั้ย|มี|ครับ|ค่ะ|คะ|นะ|หน่อย|ขอ|อยากรู้|ของ|ที่นี่|ปี|ละ|ล่ะ|แล้ว|how much|is|the|what|are|for|master'?s?|phd|doctoral?"#, flags: "" };
+
+// Programme-path helpers (chatbot.html `_P_FINDQ`, `_P_LEVEL_FILL`, `_P_EN_ASK`, `_P_EN_FILL`), copied 2026-11-07.
+pub const FINDQ: Re = Re { src: r#"(?:เรียน|ศึกษาต่อ|ต่อ(?:โท|เอก)|สาขา|หลักสูตร|คณะ)\s*(?:อะไร|ไร|ไหน)\s*ดี|ไม่รู้จะเรียน|แนะนำ(?:หลักสูตร|สาขา|คณะ|ที่เรียน)|(?:มี|เปิด(?:รับ)?)\s*(?:หลักสูตร|สาขา|คณะ)\s*(?:อะไร|ไหน)(?:บ้าง)?|หลักสูตร(?:ทั้งหมด|อะไรบ้าง)|หลักสูตรที่เปิด(?:รับ)?(?:สมัคร)?(?:มี)?(?:อะไร)?บ้าง|what should i study|which (?:program|course)s?|list of programs?"#, flags: "i" };
+pub const LEVEL_FILL: Re = Re { src: r#"นานาชาติ|international|ภาคพิเศษ|special\s*program(?:me)?s?|ที่?เปิด(?:รับ)?(?:สมัคร)?|หลักสูตร|ระดับ|มี|อะไร|บ้าง|ไหน|ทั้งหมด|ครับ|ค่ะ|คะ|หน่อย|programs?|programmes?|courses?"#, flags: "i" };   // global in the page: used with replace_all
+pub const EN_FILL: Re = Re { src: r#"\b(?:is|are|it|the|a|an|for|of|to|in|on|when|what|which|date|dates|day|time|does|do|still|now|currently|open|apply|applications?|admission|accepting|interviews?|exams?|examination|schedule|deadline|results?)\b"#, flags: "i" };   // global in the page: used with replace_all
+pub const EN_ASK_SCHEDULE: Re = Re { src: r#"\binterviews?\b|\bexams?\b|\bexamination\b|\bschedule\b|\bdeadline\b|\bresults?\b"#, flags: "i" };
+pub const EN_ASK_STATUS: Re = Re { src: r#"\bopen\b|\bapply\b|\bapplications?\b|\baccepting\b"#, flags: "i" };
+
+// Fee / career branches (chatbot.html `_P_TUITION`, `_P_NONTUITION`, `_P_CAREER`, `_P_FREESTUDY`), copied 2026-11-07.
+pub const TUITION: Re = Re { src: r#"ค่าธรรมเนียมการศึกษา|ค่าเทอม|ค่าเล่าเรียน|ค่าเรียน|เหมาจ่าย|tuition"#, flags: "i" };
+pub const NONTUITION: Re = Re { src: r#"\b(?:exam(?:ination)?s?|tests?|toefl|ielts|toeic|mu\s?grad|application|transfer|late|fine|penalty)\b|สอบ|สมัคร|โอนเงิน|ค่าปรับ|ปรับ|ซื้อ|จ้าง|เบิก|ขนส่ง|ภาษี"#, flags: "i" };
+pub const CAREER: Re = Re { src: r#"ทำงานอะไร|งานอะไรดี|งานไหนดี|อาชีพ|สายงาน|ตำแหน่งงาน|อยากทำงาน|หางาน|เปลี่ยนสายงาน|(?:พัฒนา|เพิ่ม|เรียนรู้).{0,12}(?:skill|ทักษะ|สกิล)|(?:skill|ทักษะ|สกิล).{0,6}(?:อะไร|ไหนดี)|อยากทำ(?:งาน)?เกี่ยวกับ|อยากทำงานสาย|career"#, flags: "i" };
+pub const FREESTUDY: Re = Re { src: r#"(?:เรียน|ศึกษา|ปริญญา(?:โท|เอก)?|หลักสูตร|ป\.(?:โท|เอก)).{0,12}ฟรี|ฟรี.{0,8}(?:เรียน|ศึกษา)|ไม่เสียค่า(?:เรียน|ใช้จ่าย|เทอม)|(?:tuition|study|studying|degree|master'?s?|program(?:me)?)\b.{0,12}\bfree\b"#, flags: "i" };

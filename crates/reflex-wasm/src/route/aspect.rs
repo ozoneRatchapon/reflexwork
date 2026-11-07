@@ -1,5 +1,5 @@
 //! Fee questions and the "which aspect of the programme in focus is asked" reader: `followUpAspect`, `isGenericFeeQuestion`, `_P_FREEQ`.
-use super::patterns_src::{ASPECT_DOCS, ASPECT_ELIG, ASPECT_ENGLISH, ASPECT_SCHEDULE, ASPECT_STATUS, FEE_FILLER, FEE_WORDS, FREE_Q, GENERAL_WORDS, PROGRAMME_CODE};
+use super::patterns_src::{FREESTUDY, NONTUITION, TUITION, ASPECT_DOCS, ASPECT_ELIG, ASPECT_ENGLISH, ASPECT_SCHEDULE, ASPECT_STATUS, FEE_FILLER, FEE_WORDS, FREE_Q, GENERAL_WORDS, PROGRAMME_CODE};
 use crate::re::{compile, is_js_space};
 use crate::resolve::patterns::patterns;
 use regex_lite::Regex;
@@ -18,6 +18,9 @@ lazy_re!(programme_code, PROGRAMME_CODE);
 lazy_re!(general_words, GENERAL_WORDS);
 lazy_re!(fee_words, FEE_WORDS);
 lazy_re!(fee_filler, FEE_FILLER);
+lazy_re!(tuition, TUITION);
+lazy_re!(nontuition, NONTUITION);
+lazy_re!(free_study_words, FREESTUDY);
 
 fn aspects() -> &'static Vec<(&'static str, Regex)> {
     static R: OnceLock<Vec<(&'static str, Regex)>> = OnceLock::new();
@@ -69,4 +72,14 @@ pub fn is_generic_fee_question(text: &str) -> bool {
     let a = fee_words().replace_all(&t, "").into_owned();
     let b = fee_filler().replace_all(&a, "").into_owned();
     b.chars().filter(|c| !(is_js_space(*c) || matches!(c, '?' | '!' | '.' | ','))).count() == 0
+}
+
+/// `isTuitionQuestion`: the programme's own fee, not an exam / service fee (tuition words, or a fee word without an exam / application / transfer subject).
+pub fn is_tuition_question(q: &str) -> bool {
+    tuition().is_match(q) || (names_a_fee(q) && !nontuition().is_match(q))
+}
+
+/// `_P_FREESTUDY.test(q)`: "ฟรี" about studying ("เรียนฟรีไหม", "ปริญญาโทฟรี").
+pub fn mentions_free_study(q: &str) -> bool {
+    free_study_words().is_match(q)
 }

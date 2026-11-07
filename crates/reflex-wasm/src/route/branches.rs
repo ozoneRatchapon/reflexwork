@@ -1,10 +1,11 @@
 //! The first branches of the chat's decision order, in the order the page tries them (chatbot.html `_askCore`, 2026-11-07):
-//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee
+//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee  8-9 programme_card / programme_pick  10-15 field_fee, free_study, career, finder, followup, free_fee
 //! `decide_prefix` answers `Some(route)` when one of the ported branches fires and `None` ("continue with the branches not ported yet").
 //! The recorded contract (benchmark/golden/route.json, tests/golden_route.rs) checks this prefix exactly.
 
-use super::aspect::{asks_if_free, follow_up_aspect, is_generic_fee_question, names_a_fee};
+use super::aspect::{asks_if_free, follow_up_aspect, is_generic_fee_question, is_tuition_question, mentions_free_study, names_a_fee};
 use super::manual::{Ctx, ProgState};
+use super::programme::{is_career_question, is_finder_question, is_level_only_question, resolve_programme_branch, ProgrammeOutcome};
 use super::patterns_src as p;
 use super::study_intent::catalogue_notice;
 use super::stuck::stuck_fires;
@@ -108,7 +109,7 @@ pub fn is_overview_question(text: &str) -> bool {
 }
 
 /// The ported prefix of the decision order for one typed question. `pinned` = the user tapped a topic chip (it skips the personal / stuck paths).
-pub fn decide_prefix(typed: &str, ctx: &Ctx) -> Option<Route> {
+pub fn decide_prefix(typed: &str, ctx: &mut Ctx) -> Option<Route> {
     let pinned = ctx.pinned;
     let q = prepare(typed);
     if wellbeing_kind(&q).is_some() {
@@ -124,7 +125,10 @@ pub fn decide_prefix(typed: &str, ctx: &Ctx) -> Option<Route> {
         return Some(Route::StuckPick);
     }
     match (is_restart_phrase(&q), is_overview_question(&q)) {
-        (true, _) => return Some(Route::Restart),
+        (true, _) => {
+            ctx.programme_in_focus = None;   // `if(restart){ PCTX=null; PIN=null; }`
+            return Some(Route::Restart);
+        }
         (_, true) => return Some(Route::Overview),
         _ => {}
     }
@@ -136,7 +140,55 @@ pub fn decide_prefix(typed: &str, ctx: &Ctx) -> Option<Route> {
     if !pinned && ctx.prog_state == ProgState::Ok && names_a_fee(&q) && !asks_if_free(&q) && is_generic_fee_question(&q)
         && !(ctx.programme_in_focus.is_some() && follow_up_aspect(&q).is_some())
     {
+        ctx.programme_in_focus = None;   // `PCTX=null; renderFinder(...)`
         return Some(Route::GenericFee);
+    }
+    // 8-9: a staff answer that clearly matches wins over the programme resolver; otherwise the resolver gives a card or a picker (or the question goes on)
+    let staff_first = !pinned && ctx.manual.search(&q).first().is_some_and(|f| f.entry.staff && f.hit.s >= 6);
+    if ctx.prog_state == ProgState::Ok {
+        if let Some(cat) = ctx.catalogue {
+            match resolve_programme_branch(&q, cat, pinned || staff_first) {
+                Some(ProgrammeOutcome::Card(code)) => {
+                    ctx.programme_in_focus = Some(code);
+                    return Some(Route::ProgrammeCard);
+                }
+                Some(ProgrammeOutcome::Pick) => {
+                    ctx.programme_in_focus = None;   // a picker is on screen: a later "แล้วค่าเทอมล่ะ" must not refer to the programme from before it
+                    return Some(Route::ProgrammePick);
+                }
+                None => {}
+            }
+        }
+    }
+    if let (ProgState::Ok, Some(cat)) = (ctx.prog_state, ctx.catalogue) {
+        if !pinned && !staff_first {
+            // 10: a fee question that names a field but not one programme ("ค่าเทอมพยาบาล"): the programmes of that field, not a wrong-topic entry
+            if is_tuition_question(&q) && !asks_if_free(&q) && cat.resolve(&q, true).is_some_and(|r| !r.codes.is_empty()) {
+                ctx.programme_in_focus = None;
+                return Some(Route::FieldFee);
+            }
+            // 11: "...ฟรี" about studying: never confirm a free premise
+            if asks_if_free(&q) && mentions_free_study(&q) {
+                return Some(Route::FreeStudy);
+            }
+            // 12-13: career-first questions and finder questions open the facet finder
+            if is_career_question(&q) {
+                ctx.programme_in_focus = None;
+                return Some(Route::Career);
+            }
+            if is_finder_question(&q) || is_level_only_question(&q) {
+                ctx.programme_in_focus = None;
+                return Some(Route::Finder);
+            }
+        }
+        // 14: a follow-up about the programme just shown ("แล้วค่าเทอมล่ะ"), when the question names no programme or field of its own
+        if ctx.programme_in_focus.is_some() && !pinned && !staff_first && cat.resolve(&q, true).is_none() && follow_up_aspect(&q).is_some() {
+            return Some(Route::Followup);
+        }
+        // 15: a yes/no question with a premise about fees
+        if !pinned && asks_if_free(&q) && names_a_fee(&q) {
+            return Some(Route::FreeFee);
+        }
     }
     None
 }

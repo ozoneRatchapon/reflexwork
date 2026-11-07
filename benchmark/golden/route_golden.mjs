@@ -32,6 +32,16 @@ add('eval52', [...R('tests/kb_search.test.mjs').matchAll(/^\s*\['([^']+)',\s*(?:
 if (existsSync(join(root, 'benchmark/synth/questions_001.json'))) add('synth', JSON.parse(R('benchmark/synth/questions_001.json')).items.map(x => x.q));
 // sessions: the state that carries over (the programme in focus, a picked topic, the level) is what the single questions cannot reach
 const sessions = [
+  ['อยากสมัครจิตวิทยาคลินิก', 'แล้วทุนล่ะ'],
+  ['พยาบาลศาสตร์', 'เอกสารที่ใช้', 'เกณฑ์ภาษาอังกฤษ'],
+  ['ชีวสารสนเทศทางการแพทย์', 'แล้วค่าเทอมล่ะ', 'สอบวันไหน', 'เปิดรับไหม'],
+  ['2018DG00', 'ค่าเทอม', 'ทุนมีไหม'],
+  ['MPH', 'แล้วค่าเทอมสาธารณสุขล่ะ'],
+  ['จิตวิทยาคลินิก', 'แล้วที่มหิดลล่ะ'],
+  ['พยาบาลศาสตร์', 'ค่าเทอมเท่าไร'],
+  ['เรียนไรดี', 'แล้วค่าเทอมล่ะ'],
+  ['อยากสมัครเรียนจิตวิทยาคลินิก', 'เริ่มใหม่', 'แล้วค่าเทอมล่ะ'],
+  ['จิตวิทยาคลินิก', 'ค่าเทอมฟรีไหม', 'แล้วค่าเทอมล่ะ'],
   ['อยากสมัครเรียนจิตวิทยาคลินิก', 'แล้วค่าเทอมล่ะ', 'แล้วสอบสัมภาษณ์วันไหน'],
   ['ชีวสารสนเทศทางการแพทย์', 'แล้วค่าเทอมล่ะ', 'เริ่มใหม่', 'แล้วค่าเทอมล่ะ'],
   ['เรียนไรดี', 'ปริญญาโท', 'อยากทำเกี่ยวกับคอม'],
@@ -49,6 +59,13 @@ const sessions = [
 ];
 // branches the sets above never reach: probes written for them (a branch with no sample is a hole in the contract). Mode: ai_off (default) |
 // ai_on (the AI branches are on; the proxy is a dead port, so they fall back to the manual text) | nocat (programmes.json answers 500)
+// the programme path: every 12th question of the resolver's own golden (benchmark/golden/resolve.json: names, typos, codes, levels, topics) + finder / level-only / English asks
+const RESOLVE_PROBES = (() => { try { return JSON.parse(R('benchmark/golden/resolve.json')).cases.map(c => c.q).filter((_, i) => i % 12 === 0); } catch { return []; } })();
+const FEE_CAREER_PROBES = ['เรียนฟรีไหม', 'ปริญญาโทฟรีหรือเปล่า', 'ป.เอก เรียนฟรี', 'เรียนต่อโทฟรีมีไหม', 'free master degree', 'ทำงานอะไรดี', 'อยากทำเกี่ยวกับคอม', 'อาชีพที่เกี่ยวกับสาธารณสุข', 'งานอะไรดีหลังจบ', 'สายงานไหนเงินเดือนสูง', 'อยากพัฒนา skill อะไร',
+  'ค่าเทอมฟรีใช่ไหม', 'ค่าเล่าเรียนฟรีหรือเปล่า', 'tuition free?', 'ค่าเทอมวิศวกรรม', 'ค่าเทอมสาธารณสุข', 'tuition for nursing', 'ค่าเล่าเรียนเภสัช', 'ค่าธรรมเนียมการศึกษาแพทย์', 'ค่าเทอมการจัดการ', 'ค่าเทอมคอมพิวเตอร์', 'ค่าเทอมวิทยาศาสตร์'];
+const PROGRAMME_PROBES = ['เรียนอะไรดี', 'ไม่รู้จะเรียนอะไร', 'หลักสูตรไหนดี', 'อยากเรียนต่อ ไม่รู้เรียนอะไรดี', 'ปริญญาโท', 'ปริญญาเอก นานาชาติ', 'ประกาศนียบัตร', 'ป.โท ที่เปิดรับ', 'หลักสูตรปริญญาเอกทั้งหมด', 'master', 'phd programs', 'international programmes',
+  'when is the interview for clinical psychology', 'is nursing open for application', 'master of nursing science exam schedule', 'PhD in biochemistry deadline', 'what is the schedule for MSc computer science', 'apply for public health',
+  '2018DG00', '2018DG00 ค่าเทอม', 'ชีวสารสนเทศทางการแพทย์', 'สาธารณสุขศาสตร์', 'พยาบาลศาสตร์', 'วิศวกรรมชีวการแพทย์ ปริญญาเอก', 'MPH', 'ITM', 'จิตวิทยาคลินิก', 'อยากสมัครเรียนจิตวิทยา', 'ค่าเทอมจิตวิทยาคลินิก', 'ทุนพยาบาลศาสตร์', 'สอบสัมภาษณ์สาธารณสุข', 'เปิดรับสมัครวิศวกรรม', 'หลักสูตรเภสัช', 'วิทยาศาสตร์'];
 const PREFIX_PROBES = [   // the first branches of the order (wellbeing, smalltalk, personal, restart / overview) and the text preparation in front of them; the rows with no route of their own are the NEAR-MISSES that must not take one
   'อยากตาย', 'ไม่อยากมีชีวิตอยู่แล้ว', 'คิดฆ่าตัวตาย', 'ทำร้ายตัวเอง', 'โดนข่มขืน', 'ถูกคุกคามทางเพศ', 'I want to kill myself', 'self harm', 'suicidal thoughts',
   'เครียดมาก', 'ซึมเศร้า', 'ท้อมาก', 'ท้อ', 'ท้องถิ่น', 'ท้องฟ้า', 'ท้องเสีย', 'หมดไฟ', 'เหนื่อยมากเรียนไม่ไหว', 'นอนไม่หลับ', 'วิตกกังวลเรื่องสอบ', 'burn out', 'I feel depressed', 'overwhelmed with thesis', 'อยากเลิกเรียน', 'ไม่ไหวแล้ว',
@@ -66,7 +83,7 @@ const PREFIX_PROBES = [   // the first branches of the order (wellbeing, smallta
   'ตรวจ้ิ', 'ลงทะเบียนเมื่อไหร่ ๒๕๖๙', 'ลงทะเบียน ผลสอบของเพื่อน ๖๕๓๗๐๐๑', '   ขอบคุณครับ   ', '😀', 'สวัสดี 😀😀', '？', 'ตรวจบทคัดย่อ…', '~~~',
 ];
 const probes = [
-  ['ai_off', [...PREFIX_PROBES, 'ok', 'https://example.com', '1234', 'มีอะไรน่าสนใจบ้าง', 'ควรรู้อะไรบ้างก่อนเริ่ม', 'ขอดูผลการเรียนของฉัน', 'สถานะใบสมัครของฉันเป็นอย่างไร', '你好 请问学费多少', 'こんにちは', 'มีทุนไหม', 'มีหอพักไหม', 'ทุน']],
+  ['ai_off', [...PREFIX_PROBES, ...PROGRAMME_PROBES, ...FEE_CAREER_PROBES, ...RESOLVE_PROBES, 'ok', 'https://example.com', '1234', 'มีอะไรน่าสนใจบ้าง', 'ควรรู้อะไรบ้างก่อนเริ่ม', 'ขอดูผลการเรียนของฉัน', 'สถานะใบสมัครของฉันเป็นอย่างไร', '你好 请问学费多少', 'こんにちは', 'มีทุนไหม', 'มีหอพักไหม', 'ทุน']],
   ['ai_on', ['ช่วยแนะนำวิธีวางแผนส่งรูปเล่มให้ทันกำหนด', 'แนะนำหน่อยว่าควรเลือกเรียนอะไรดี', 'ควรเตรียมตัวสอบ TOEFL ยังไงดี', 'ช่วยแนะนำการจัดการเวลาทำวิทยานิพนธ์', 'ลองแนะนำวิธีขอทุนหน่อย']],   // understood_by_ai needs a WORKING /rewrite: not reachable without a mock proxy (known hole)
   ['nocat', ['อยากสมัครเรียนจิตวิทยา', 'ค่าเทอมหลักสูตรพยาบาล', 'หลักสูตรอะไรเปิดรับบ้าง', 'สมัครสอบ TOEFL', 'สมัครสอบ', 'สมัครเรียน', 'สมัครงาน', 'ป.โท', 'ปริญญาเอกสมัครยังไง', 'master program', 'apply for PhD', 'study abroad', 'ค่าเทอม', 'ทุน', 'หลักสูตรอะไรบ้าง', 'เรียนไรดี', 'ทำงานอะไรดี', 'เปิดรับสมัคร', 'พักการเรียน', 'ผลการเรียน', 'ตารางเรียน', 'ลาพัก', 'ส่งเล่มกี่วัน', 'คณะแพทย์', 'ต่อโท', 'ศึกษาต่อ', 'เข้าศึกษา', 'ทุนเรียนต่อ', 'ฝ่ายรับสมัครอยู่ไหน', 'ใบปริญญา', 'ลงทะเบียนเรียน', 'ติดปัญหา', 'สวัสดี', 'เครียดมาก', 'ขอสมัครสอบสมัครเรียน']],
 ];
@@ -95,6 +112,8 @@ const ev = async x => (await send('Runtime.evaluate', { expression: x, awaitProm
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const until = async (c, ms = 8000) => { for (let t = 0; t < ms; t += 40) { if (await ev(c)) return true; await wait(40); } return false; };
 await send('Page.enable'); await send('Runtime.enable');
+// the page keeps the chat and the programme in focus per TAB (sessionStorage) and restores them on load: without this, a session would start with whatever the previous one left behind
+await send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{sessionStorage.clear();localStorage.clear();}catch(e){}' });
 // ai=off + a dead kernel/proxy: no gap-log entry, no vote, no AI call; ?now pins nothing - date-dependent routes (time_intent) are decided by words, not by the clock
 const URLS = { ai_off: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off`, ai_on: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9`, nocat: `http://127.0.0.1:${SP}/chatbot.html?nocat=1&api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off` };
 let MODE = 'ai_off';
