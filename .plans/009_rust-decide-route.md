@@ -52,7 +52,8 @@ Progress: 25 of 34 route names ported. Left: items 22-25 (the not-found family a
 - [x] ROUTE SWITCH behind `?route=rust` (2026-11-07): every route site in `_askCore` asks `take(name, condition)`; with `?route=rust` the route is the one Rust chose (`RUST_TURN`), the branch bodies are unchanged. Verified: `route_golden.mjs --check --route rust`: 2199 checked, 0 differences; shadow 4418 same, 0 differ; e2e 81/81 (rust, js, rust+route=rust). DEFAULT IS NOW RUST (2026-11-07, source only: not committed, not deployed); `?route=js` = the JS conditions. Not switched yet: the AI-rewrite verdict (`understood`, async, still JS), and the data guards inside bodies (kept as safety checks).
 - [x] `?route=rust` is the default (e2e 56/56 with `?engine=rust` and `?engine=js&route=js`; golden every-5th sample 0 differences on the default page)
 - [ ] Remove the JS conditions and the `?route=js` fallback after a production soak (owner decision)
-- [ ] Commit + deploy the Pages change (not done: owner decision) contract identical on all entries (`node benchmark/golden/route_golden.mjs --check`), e2e 56/56, `demo_smoke` x4, `wasm_golden_check`
+- [x] Commit `38bec4c` on feature/modelless-npc (2026-11-07). Preview deployed: https://feature-modelless-npc.reflexwork.pages.dev (demo_smoke: all hard checks pass, 1 warning: no LLM on preview by design).
+- [ ] Production: merge to main + `submissions/deploy_pages.sh main` (owner decision; not done) contract identical on all entries (`node benchmark/golden/route_golden.mjs --check`), e2e 56/56, `demo_smoke` x4, `wasm_golden_check`
 - [ ] Delete the JS branch order from `chatbot.html`; flip the regex source of truth to Rust (`scripts/gen_rust_pattern_sources.mjs`)
 - [ ] LINE loads the same wasm (measure Workers cold start first)
 - [ ] Deploy (Pages main + any worker) after the above; NOT before
