@@ -33,7 +33,7 @@ const pct = (a, b) => b ? `${(100 * a / b).toFixed(1)}% (${a}/${b})` : '-';
 const kinds = ['para_th', 'para_en', 'near_miss', 'near_miss_other'];
 let md = `# Offline labelled questions: search + decision (${items.length} questions)\n\n`;
 md += `Questions: \`${qPath.replace(root + '/', '')}\` written by a local model (${doc.model}, ${doc.created}). Engine: the page's JS twin of the search and decideTier (= Rust).\n`;
-md += nRev ? `Human review: ${nRev} sampled questions, ${reviewed.filter(v => v === 'ok').length} ok, ${reviewed.filter(v => v === 'bad').length} bad label (dropped), ${reviewed.filter(v => v.startsWith('other:')).length} answered by another entry (re-labelled).\n\n`
+md += nRev ? `Spot-check sheet \`${rPath.split('/').pop()}\` (who filled it in is the sheet's name: *_claude = a second AI read, not a person): ${nRev} sampled questions, ${reviewed.filter(v => v === 'ok').length} ok, ${reviewed.filter(v => v === 'bad').length} bad label (dropped), ${reviewed.filter(v => v.startsWith('other:')).length} answered by another entry (re-labelled).\n\n`
   : `**No human review yet** - the labels are the model's; read every number as an estimate with unknown label noise (run review.mjs, fill the sheet).\n\n`;
 md += `| set | n | right entry 1st | 1st, duplicates count (Y / Y+partial) | in top 3 | answered (act) | answered with a WRONG entry |\n|---|---|---|---|---|---|---|\n`;
 for (const k of kinds) { const s = items.filter(x => x.kind === k); if (!s.length) continue;

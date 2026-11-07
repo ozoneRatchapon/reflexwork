@@ -20,6 +20,7 @@
 | `005_distill_unreviewed.md` | bge-m3 distilled into a trigram -> vector map (offline ridge, no model at run time; katgpt-canon idea) |
 | `006_answer_type_unreviewed.md` | answer-type match: does the entry contain the kind of value asked for |
 | `007_signals_unreviewed.md` | AUROC of model-free abstain signals, rank-fused |
+| `009_eval_claude_reviewed.md` | `001` re-run with `review_001_claude.tsv`: a second AI (Claude) read the 60 sampled rows. **3 of 60 labels were wrong (5%)**: a phone number the entry does not hold, a steps question for a time-plan entry, a "near-miss" the entry does answer (Certificate of Honor needs 8 skills). Dropping them moves no number by more than 0.2 points. It read each row against its own entry only: it did not search the whole manual for ANOTHER entry that answers a near-miss, and it is not the owner of the manual. A person should still fill `review_001.tsv`. |
 | `008_distance_gate_unreviewed.md` | corpus-distance gate (Reflex idea): useless against near-misses, weak (0.64) against off-corpus questions |
 
 What to take from katgpt-rs and why: `.plans/010_katgpt-adoption.md`.
