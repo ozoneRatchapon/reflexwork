@@ -59,5 +59,12 @@
 - Use `match` over if-chains.
 - Regex sources are still generated from chatbot.html (`scripts/gen_rust_pattern_sources.mjs`) until step 3 is done. After that, flip the direction: Rust becomes the source and JS is generated or deleted.
 
+## Step 0 - DONE 2026-11-07 (page-only, no behaviour change)
+- Every branch of `_askCore` names itself: `ROUTE_NAME = '...'` (35 labels). `_add` stamps each bot bubble with `data-route`. The start of an ask sets `'unrouted'`, so a branch nobody labelled shows up in the contract instead of hiding.
+- `benchmark/golden/route_golden.mjs`: records / checks the branch per question in a real headless Chrome (AI off or a dead proxy, kernel unreachable). `benchmark/golden/route.json` = the contract: ~1,450 single questions (the test sets + the generated questions), each after "เริ่มใหม่", plus 14 follow-up sessions where state carries over, plus probes for branches the sets never reach (modes: `ai_off`, `ai_on` with a dead proxy, `nocat` = programmes.json answers 500).
+- `tests/route_golden.test.mjs` re-checks every 12th entry in CI (`--check --limit 12`); the full check is `node benchmark/golden/route_golden.mjs --check`.
+- Known hole: `understood_by_ai` needs a WORKING `/rewrite`; not reachable without a mock proxy.
+- The contract is tied to the manual: rebuild it (`--write`) when `knowledge-index.json`, `programmes.json` or the decision order changes ON PURPOSE.
+
 ## Status
-- 2026-11-07: plan only. Nothing ported.
+- 2026-11-07: step 0 done (above). Steps 1-4 not started.

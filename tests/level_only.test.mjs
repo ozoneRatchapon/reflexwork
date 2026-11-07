@@ -16,5 +16,5 @@ const faq = JSON.parse(read('benchmark/field/faq_questions.json')).items.flatMap
 const no = ['สมัครปริญญาโท', 'ค่าเทอมปริญญาโท', 'ปริญญาโทใช้เวลากี่ปี', ...P.map(p => p.title), ...KB.map(e => e.title), ...faq];
 check('F26: level-only phrasings are recognised', yes.every(lo), yes.filter(q => !lo(q)).join(' | '));
 check(`F26: none of ${no.length} programme / KB / field questions is level-only`, !no.some(lo), no.filter(lo).slice(0, 4).join(' | '));
-check('F26: a level-only question skips the resolver and opens the finder', /isFinderQuestion\(q\) \|\| isLevelOnlyQuestion\(q\)\)\)\) \? null : resolveProgramme/.test(h) && /PROG\.length && \(isFinderQuestion\(q\) \|\| isLevelOnlyQuestion\(q\)\)\)\{ PCTX=null; renderFinder\(q, d, kstrip, '', true\)/.test(h));
+check('F26: a level-only question skips the resolver and opens the finder', /isFinderQuestion\(q\) \|\| isLevelOnlyQuestion\(q\)\)\)\) \? null : resolveProgramme/.test(h) && /PROG\.length && \(isFinderQuestion\(q\) \|\| isLevelOnlyQuestion\(q\)\)\)\{ PCTX=null; (?:ROUTE_NAME = '[a-z_]+'; )?renderFinder\(q, d, kstrip, '', true\)/.test(h));
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

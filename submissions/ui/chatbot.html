@@ -737,7 +737,10 @@ let turnN = 0, askSeq = 0;   // evidence-card counter; one number per question a
 // QA G35: a slow understand / AI reply used to label its evidence card with whatever was asked last. _askCore shadows add()
 // with one bound to its own question and number, so every bubble it adds (also from .then callbacks) carries them.
 function add(cls, html){ return _add(cls, html); }
+// The branch of _askCore that produced a bot bubble (data-route): the contract plan 009 moves into Rust. '' = not from a question (greeting).
+let ROUTE_NAME = '';
 function _add(cls, html, askedQ, askedN){ const d=document.createElement('div'); d.className='msg '+cls;
+  if(cls==='b') d.dataset.route = ROUTE_NAME;
   // The user's own bubble is TEXT, never HTML: typing <img onerror=...> must show those characters, not run them.
   if(cls==='u') d.textContent=html; else d.innerHTML=html;
   $('chat').appendChild(d);
@@ -1902,6 +1905,7 @@ function stripLeadIn(q){ const rest=String(q||'').replace(_LEADIN,'').trim(); re
 function _askCore(){
   if(!ready) return;
   const typed=$('q').value.trim(); if(!typed) return;
+  ROUTE_NAME = 'unrouted';   // every branch below names itself; a bubble that still says 'unrouted' is a branch nobody labelled
   const myTurn=++askSeq, add=(cls, html)=>_add(cls, html, typed, myTurn);   // QA G35: see _add
   $('chat').querySelectorAll('.msg.pending').forEach(e=>e.remove());   // QA F60: an older question's understand spinner ends here (its late reply is dropped)
   add('u', typed); $('q').value='';
@@ -1920,6 +1924,7 @@ function _askCore(){
     const lead = wb==='crisis'
       ? 'ขอบคุณที่บอกนะครับ เรื่องนี้สำคัญมาก ถ้าตอนนี้ไม่ปลอดภัยหรือกำลังคิดทำร้ายตัวเอง โปรดติดต่อบริการฉุกเฉิน (1669) หรือคนที่ไว้ใจให้มาอยู่ด้วยทันที ไม่ต้องอยู่คนเดียวนะครับ'
       : 'ฟังแล้วเป็นห่วงนะครับ ความรู้สึกแบบนี้เกิดขึ้นได้ และมีคนช่วยได้ ลองดูช่องทางให้คำปรึกษาด้านล่างได้เลยครับ';
+    ROUTE_NAME = 'wellbeing';
     add('b', `<span class="route auto">💚 ดูแลใจก่อน · ไม่เรียก AI</span>
       <div class="ans">${lead}${wbHit?`\n\n${kbBody(wbHit, q)}`:''}</div>
       ${wbHit?kbSteps(wbHit):''}
@@ -1932,6 +1937,7 @@ function _askCore(){
     MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
     renderMood(true);
     const moodTag = MOOD.valence>0.5 ? '😊' : '🙂';
+    ROUTE_NAME = 'smalltalk';
     add('b', `<span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">💬 คุยทั่วไป ${moodTag} · ไม่เรียก AI · 0 token</span>
       <div class="ans">${smalltalkReply(st)}</div>
       <div class="meta">kernel คัดว่าเป็นการทักทาย/สนทนา — ไม่ใช่คำถามคู่มือและไม่ใช่เคสเจ้าหน้าที่ จึงทักกลับและรอให้เล่าความต้องการก่อน (deterministic, ไม่เรียก AI)</div>`);
@@ -1963,6 +1969,7 @@ function _askCore(){
   if(pers){
     const gen = pers==='self' ? search(q).filter(r=>r.s>=3 && !r.e.staff).slice(0,2).map(r=>r.e.title) : [];
     const eth = (LINKS||[]).find(l=>l.id==='ethesis'), thesisy = /วิทยานิพนธ์|สารนิพนธ์|คำร้อง|บฑ\./.test(q), cid='pr'+(++fbN);
+    ROUTE_NAME = 'personal';
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(176,123,255,.16);color:#b07bff">🔒 ข้อมูลส่วนตัว — ดูให้ไม่ได้ · ไม่เรียก AI</span>
       <div class="ans">${pers==='other' ? VOICE.personalOther : VOICE.personalSelf+'\n'+VOICE.personalWhy}\n\n${VOICE.personalPrep}</div>
@@ -1979,6 +1986,7 @@ function _askCore(){
     if(c ? picks.length : areas.length){
       const chips = c ? picks.map(e=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}</span>`).join('')
                       : areas.map(x=>`<span class="dis" data-t="${_lEsc(x.asks)}">${_lEsc(x.chip)}</span>`).join('');
+      ROUTE_NAME = 'stuck_pick';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 ติดปัญหา${c?` · ${_lEsc(c.name)}`:''} → ถามกลับว่าเรื่องไหน · ไม่เรียก AI</span>
         <div class="ans">${c ? VOICE.stuckTopicLead.replace('{w}', _lEsc(c.name)) : VOICE.stuckLead}</div>
@@ -1997,6 +2005,7 @@ function _askCore(){
   const restart = isRestartPhrase(q);
   if(restart || isOverviewQuestion(q)){
     if(restart){ PCTX=null; PIN=null; }
+    ROUTE_NAME = restart ? 'restart' : 'overview';
     renderChooser(q, d, kstrip, '🧭 คำถามกว้าง · ไม่เรียก AI', restart?VOICE.restartLead:VOICE.overviewLead,
       starterEntries().map(e=>({e})), 'คำถามกว้างที่ไม่ระบุหัวข้อ → เสนอจุดเริ่มต้นจากคู่มือให้เลือก แทนการเดาคำตอบเดียว (deterministic, 0 token)');
     return;
@@ -2006,6 +2015,7 @@ function _askCore(){
   // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
   // The 2 MB programme catalogue is still loading (or failed): a programme question would fall to a wrong generic answer. Say so instead.
   if(!pinned && PROG_STATE!=='ok' && PROG_STATE!=='none' && (hasStudyIntent(q) || _P_TOPIC.some(([,re])=>re.test(q)) || /เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร/.test(q))){
+    ROUTE_NAME = 'catalogue_not_ready';
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">⏳ รายการหลักสูตรยังไม่พร้อม</span>
       <div class="ans">${PROG_STATE==='failed'?'โหลดรายการหลักสูตรทางการไม่สำเร็จครับ ลองรีเฟรชหน้านี้ หรือดูรายการหลักสูตรจากเว็บทางการโดยตรง':'รายการหลักสูตรทางการกำลังโหลดอยู่ครับ ลองถามอีกครั้งในอีกสักครู่'}</div>
@@ -2020,6 +2030,7 @@ function _askCore(){
   // ...but not a follow-up about the programme just shown ('แล้วค่าเทอมล่ะ' after a programme card): that is answered below for it
   if(!pinned && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q) && isGenericFeeQuestion(q) && !(PCTX && followUpAspect(q))){
     PCTX=null;
+    ROUTE_NAME = 'generic_fee';
     renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, null, true, 'ค่าเทอม ');
     return;
   }
@@ -2037,6 +2048,7 @@ function _askCore(){
     if(prog.kind==='one'){
       PCTX = prog.row;
       const c = programmeCard(prog.row, asOf, yr, prog.topic, q);
+      ROUTE_NAME = 'programme_card';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🎯 ตรงหลักสูตร — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
         <div class="ans">${prog.levelMissing?'ไม่พบหลักสูตรในระดับที่ระบุ — แสดงหลักสูตรที่ใกล้เคียงที่สุดแทนครับ\n\n':''}${c.html}</div>
@@ -2047,6 +2059,7 @@ function _askCore(){
       PCTX = null;   // a picker is on screen: a later 'แล้วค่าเทอมล่ะ' must not silently refer to the programme from before it
       const opts = prog.rows.map(p=>`<span class="dis" data-t="${{fee:'ค่าเทอม ',scholarship:'ทุน '}[prog.topic]||'สมัคร '}${_pEsc(p.code)}">${_pEsc(p.level)} · ${_pEsc(p.title)} · ${_pEsc(p.faculty)}${p.announcement?` · ${_pEsc(p.announcement.status)}`:''}</span>`).join('');
       const mid='prg'+(++fbN);
+      ROUTE_NAME = 'programme_pick';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🎯 ${prog.kind==='broad'?'คำกว้างเกินไป — ช่วยระบุให้เจาะจงขึ้น':'พบหลายหลักสูตร — เลือกอันที่ต้องการ'} · ไม่เรียก AI</span>
         <div class="ans">${prog.levelMissing?'ไม่พบหลักสูตรในระดับที่ระบุ — ':''}${prog.kind==='broad'?`คำนี้กว้างไปหน่อย พบ ${prog.total} หลักสูตร ช่วยระบุสาขาให้เจาะจงขึ้น (เช่น ชื่อสาขา หรือรหัสหลักสูตร) หรือเลือกจากตัวอย่างด้านล่างครับ`:`พบ ${prog.total} หลักสูตรที่ตรงกับที่ถาม — เลือกอันที่ต้องการได้เลยครับ`}</div>
@@ -2065,12 +2078,14 @@ function _askCore(){
     const nf = resolveProgramme(q, PROG, true);
     if(nf && nf.rows && nf.rows.length){
       PCTX=null;
+      ROUTE_NAME = 'field_fee';
       renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตร — เลือกหลักสูตรที่ต้องการเพื่อดูตารางค่าธรรมเนียมจากประกาศทางการ', true, nf.rows, true, 'ค่าเทอม ');
       return;
     }
   }
   // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
   if(!pinned && !staffFirst && PROG.length && _P_FREEQ.test(q) && _P_FREESTUDY.test(q)){   // QA F23: never confirm a 'free' premise; fees differ per programme
+    ROUTE_NAME = 'free_study';
     renderFinder(q, d, kstrip, isEnglish(q) ? VOICE.feePremiseEn : VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
   }
@@ -2078,9 +2093,10 @@ function _askCore(){
     PCTX=null; const area=careerArea(q);
     const intro=VOICE.careerIntro+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่างครับ)':'ครับ');
     const ext='<a class="golink alt" href="https://suggest-program.mahidol.ac.th/" target="_blank" rel="noopener">🧭 อยากเริ่มจากอาชีพและทักษะ? เครื่องมือแนะนำหลักสูตรของมหาวิทยาลัยมหิดล (เว็บแยก ภาษาอังกฤษ ไม่ได้ทำโดยระบบนี้) →</a>';
+    ROUTE_NAME = 'career';
     renderFinder(q, d, kstrip, intro, true, null, true, undefined, {career:true, topic:area}, ext); return;
   }
-  if(!pinned && !staffFirst && PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q))){ PCTX=null; renderFinder(q, d, kstrip, '', true); return; }
+  if(!pinned && !staffFirst && PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q))){ PCTX=null; ROUTE_NAME = 'finder'; renderFinder(q, d, kstrip, '', true); return; }
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
   // ...and only when the question names no programme/field of its own: 'ค่าเทอมสาธารณสุข' after a psychology card is NOT about the psychology card.
@@ -2088,6 +2104,7 @@ function _askCore(){
   if(aspect){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect, q), uid='fu'+(++fbN);
+    ROUTE_NAME = 'followup';
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">🔗 ถามต่อจากหลักสูตรก่อนหน้า — ตอบจากแคตตาล็อกทางการ · ไม่เรียก AI</span>
       <div class="ans">ตีความว่าถามเรื่อง<b>${_P_ASPECT_TH[aspect]}</b>ของ <b>${_pEsc(p.title)}</b> <span class="dis" id="${uid}">ไม่ใช่ — ถามแบบทั่วไป</span>\n\n${c.html}</div>
@@ -2102,6 +2119,7 @@ function _askCore(){
 
   // A yes/no question with a premise about fees ("...ฟรีใช่ไหม"): never confirm it. Fees differ per programme, so say that and open the fee finder.
   if(!pinned && PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
+    ROUTE_NAME = 'free_fee';
     renderFinder(q, d, kstrip, VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
   }
@@ -2113,6 +2131,7 @@ function _askCore(){
     const today=todayIso(), picks=datedPicks(KB, tIntent, today);
     if(picks.length){
       const lead = VOICE.timeLead.replace('{today}', _pDate(today)) + (tIntent!=='registration' ? VOICE.timeAdmissionsHint : '');
+      ROUTE_NAME = 'time_intent';
       renderChooser(q, d, kstrip, '📅 เทียบกับวันนี้ · ไม่เรียก AI', lead, picks,
         `คำถามเรื่อง "ตอนนี้/ยังทันไหม" → กำหนดการในคู่มือเรียงจากช่วงที่ใกล้วันนี้ (${_pEsc(today)}) ที่สุด (deterministic, 0 token)`);
       return;
@@ -2153,6 +2172,7 @@ function _askCore(){
       const what = scope.axis==='both' ? (en?'academic year and semester':'ปีการศึกษาและภาคเรียน') : scope.axis==='year' ? (en?'academic year':'ปีการศึกษา') : (en?'semester':'ภาคเรียน');
       const mid='scp'+(++fbN);
       const opts = scope.candidates.map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('');
+      ROUTE_NAME = 'scope_ask';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'Which one? (answer differs)':VOICE.askYearTerm} ${stageTag}</span>
         <div class="ans">${en?`The answer depends on the ${what}. Which do you mean?`:`เรื่องนี้คำตอบไม่เหมือนกันในแต่ละ${what}ครับ — หมายถึงอันไหน?`}</div>
@@ -2162,6 +2182,7 @@ function _askCore(){
     } else {
       const SL = AGENCY.scopeLinks || {};
       const link = (scope.category==='registration' ? SL.registration : scope.category==='admissions' ? SL.admissions : SL.other) || SL.other || (AGENCY.contact||{}).url || '';
+      ROUTE_NAME = scope.kind==='no_round' ? 'scope_no_round' : 'scope_no_year';
       if(scope.kind==='no_round') add('b', `${kstrip}
         <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🗓️ ${en?'No data for that round':'คู่มือยังไม่มีข้อมูลรอบนั้น'} ${stageTag}</span>
         <div class="ans">${en?`The knowledge base has the admission schedule for round ${scope.rounds.join(', ')} only, not round ${scope.round}. I won't substitute another round — please check the official page below, or type a programme name to see its own cut-off dates.`:VOICE.noRound.replace('{round}', scope.round).replace('{rounds}', scope.rounds.join(', '))}</div>
@@ -2190,6 +2211,7 @@ function _askCore(){
         // weak KB match on an advice question → abstain, hand to staff + gap log
         ai++;
         logGap(q);
+        ROUTE_NAME = 'advice_abstain';
         add('b', `${kstrip}
           <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 คู่มือยังไม่ครอบคลุมพอ — บันทึกส่งเจ้าหน้าที่/ทีมดูแลคู่มือแล้ว ${stageTag}</span>
           ${frustratedNote()}
@@ -2211,6 +2233,7 @@ function _askCore(){
       if(topScore >= 6 || ranked.slice(0,3).some(r=>r.e.staff)){   // a staff-written answer is shown as the staff wrote it (tag + date), never rephrased as 'AI from official data'
         saved+=COST;
         const srcH0 = kbSource(hit);
+        ROUTE_NAME = 'advice_strong';
         add('b', `${kstrip}
           <span class="route auto" style="background:rgba(34,197,139,.16);color:#22c58b">✅ ตอบจากคู่มือ (เรียบเรียงแบบ deterministic · ไม่เรียก AI) ${stageTag}</span>
           <div class="ans">${kbBody(hit, q)}</div>
@@ -2223,6 +2246,7 @@ function _askCore(){
       }
       const mid='hyb'+(++fbN);
       const srcH = kbSource(hit);
+      ROUTE_NAME = 'advice_hybrid';
       add('b', `${kstrip}
         <span class="route auto" id="${mid}r">✅ ตอบจากคู่มือ · กำลังให้ AI เรียบเรียงให้อ่านง่าย ${stageTag}</span>
         <div class="ans" id="${mid}">${kbBody(hit, q)}</div>
@@ -2253,6 +2277,7 @@ function _askCore(){
     // Deep link: a prominent button to the exact official page (not just a tiny
     // link) so a user who needs more than the summary lands on the right source.
     const src = kbSource(hit), steps = kbSteps(hit);
+    ROUTE_NAME = 'kb_act';
     add('b', `${kstrip}
       <span class="route auto">${hit.staff?'📝 ตอบจากคำตอบเจ้าหน้าที่':'✅ ตอบจากคู่มือทันที'} · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${kbBody(hit, q)}</div>
@@ -2266,6 +2291,7 @@ function _askCore(){
     auto++; saved+=COST;
     const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('');
     const mid='dis'+(++fbN);
+    ROUTE_NAME = 'disambiguate';
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ไม่แน่ใจว่าหมายถึงข้อไหน — เลือกได้เลย ${stageTag}</span>
       <div>คุณอาจหมายถึง (คิดซ้ำแล้วมีหลายข้อใกล้กัน):</div>
@@ -2286,6 +2312,7 @@ function _askCore(){
     // Thai to an English speaker. Honest hand-off instead of a wrong guess.
     if(isNotAQuestion(q)){
       ai--;   // not a question: neither answered nor handed off
+      ROUTE_NAME = 'not_a_question';
       add('b', `${kstrip}
         <span class="route auto">💬 ยังไม่ใช่คำถาม · ไม่เรียก AI ${stageTag}</span>
         <div class="ans">พิมพ์สิ่งที่อยากรู้ได้เลยครับ เช่น ส่งรูปเล่มภายในกี่วัน · Turnitin เกิน 25% ทำอย่างไร · ค่าเทอมหลักสูตรที่สนใจ<br><small>Tell me what you need, e.g. thesis deadline, Turnitin, fees.</small></div>
@@ -2295,6 +2322,7 @@ function _askCore(){
     }
     if(isOtherScript(q)){
       logGap(q);
+      ROUTE_NAME = 'other_script';
       add('b', `${kstrip}
         <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 ภาษาที่ระบบยังไม่รองรับ → เจ้าหน้าที่ ${stageTag}</span>
         <div class="ans">Sorry, I can answer in Thai or English only. Please ask again in Thai or English, or contact the Graduate School staff below.<br><small>ขออภัยครับ ตอบได้เฉพาะภาษาไทยหรืออังกฤษ</small></div>
@@ -2306,6 +2334,7 @@ function _askCore(){
     }
     if(isEnglish(q)){
       logGap(q);
+      ROUTE_NAME = 'english_off_corpus';
       add('b', `${kstrip}
         <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🌐 English question — not in the (Thai) knowledge base → staff / official FAQ ${stageTag}</span>
         <div class="ans">I couldn't find this in the verified knowledge base (it's maintained in Thai). I won't guess — I've <b>logged your question for the staff / KB team</b>, and here's the official English FAQ and how to reach a human in the meantime.</div>
@@ -2343,6 +2372,7 @@ function _askCore(){
       const itBtns = own ? _btn(own) + deskBtns : (deskBtns || _btn(AGENCY.contact));
       const who = own && ownName ? ownName : itName;
       const boxHead = issue.category==='login' ? `ปัญหาบัญชี/ล็อกอิน ติดต่อ${who}ได้โดยตรง` : `ระบบขัดข้องหรือข้อมูลค้าง แจ้ง${who}ได้โดยตรง`;
+      ROUTE_NAME = 'intake';
       add('b', `${kstrip}
         <span class="route auto" style="background:rgba(91,140,255,.16);color:#8fb0ff">🧭 คัดเป็นปัญหาเฉพาะบุคคล: ${issue.label} → ติดต่อเจ้าหน้าที่ ${stageTag}</span>
         <div class="ans">เรื่องนี้เป็นปัญหาเฉพาะบัญชี/ข้อมูลของคุณ ต้องให้เจ้าหน้าที่ดูให้ครับ 🙇 แชตนี้ส่งข้อมูลให้เจ้าหน้าที่เองไม่ได้ และไม่ต้องพิมพ์ข้อมูลส่วนตัวไว้ที่นี่ — เตรียมข้อมูลต่อไปนี้แล้วส่งให้เจ้าหน้าที่ทาง LINE อีเมล หรือบอกตอนโทรครับ:</div>
@@ -2363,6 +2393,7 @@ function _askCore(){
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
     const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
     if(PROG.length && (hasStudyIntent(q) || nearOk)){
+      ROUTE_NAME = 'unsure_programme';
       renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q), undefined, undefined, _line('admissions'));
       return;
     }
@@ -2370,6 +2401,7 @@ function _askCore(){
     // 'What is the fee for taking the TOEFL ITP?', 'MU GRAD Plus examination fees', 'ค่าใช้จ่ายอื่นๆ ที่มาพร้อมกับการซื้อวัสดุ' are other fees
     // and used to open the tuition finder (benchmark/rules/002).
     if(PROG.length && isTuitionQuestion(q)){
+      ROUTE_NAME = 'tuition_finder_nomatch';
       renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, nearP && nearP.rows, true, 'ค่าเทอม ');   // picking a programme here answers with ITS fee table
       return;
     }
@@ -2378,6 +2410,7 @@ function _askCore(){
     const tp = topicPicks(q);
     if(tp){
       const cid='tp'+(++fbN);
+      ROUTE_NAME = 'topic_picks';
       add('b', `${kstrip}
       <span class="route auto">📚 เจอหัวข้อในคู่มือที่มีคำว่า "${_lEsc(tp.core)}" · ไม่เรียก AI ${stageTag}</span>
       <div class="ans">${(tp.hits.length>1?VOICE.topicPick:VOICE.topicPickOne).replace('{w}', _lEsc(tp.core))}</div>
@@ -2397,6 +2430,7 @@ function _askCore(){
       // nothing close: offer the demo-safe starting questions (programme finder, fees, thesis) - not a random slice of the KB
       const picks = offer.length ? offer.map(e=>e.title) : AGENCY.examples.filter(e=>!e.ai).slice(0,4).map(e=>e.q);
       const cid = 'sg'+(++fbN);
+      ROUTE_NAME = 'not_found';
       add('b', `${kstrip}
       <span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">🤔 ${VOICE.notInManual} ${stageTag}</span>
       ${frustratedNote()}
@@ -2427,6 +2461,7 @@ function _askCore(){
       if(u.kind!=='one'){ showNotFound(u.kind==='many' ? u.entries : phraseHints(phrases)); return; }
       const hit = u.entry, uid='un'+(++fbN);
       ai--; auto++;   // QA G31: counted as not-found above; it was answered from the manual (the rewrite is an LLM call, so no 'saved')
+      ROUTE_NAME = 'understood_by_ai';
       add('b', `${kstrip}
       <span class="route auto">✅ ตอบจากคู่มือ · 🧠 AI ช่วยตีความคำถาม ${stageTag}</span>
       <div class="ans">${VOICE.understoodLead} <b>${_lEsc(hit.title)}</b> <span class="dis" id="${uid}">${VOICE.notThis}</span>\n\n${kbBody(hit, q)}</div>
