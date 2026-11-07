@@ -23,6 +23,12 @@ export class Resolver {
 export function answer_points(body: string): any;
 
 /**
+ * BLAKE3 of the UTF-8 bytes of `text`, as 64 hex chars. The page builds the answer receipt from it: the preimage (question, route, served
+ * entry id + content, hash of the whole manual) is assembled in JS, hashed here, so one implementation hashes everything in the browser.
+ */
+export function blake3_text(text: string): string;
+
+/**
  * `{kind: "personal", category, label}` for a personal/technical issue that needs staff, else `null` (port of `classifyIssue`).
  */
 export function classify_issue(text: string): any;
@@ -91,6 +97,7 @@ export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_resolver_free: (a: number, b: number) => void;
     readonly answer_points: (a: number, b: number) => number;
+    readonly blake3_text: (a: number, b: number, c: number) => void;
     readonly classify_issue: (a: number, b: number) => number;
     readonly classify_smalltalk: (a: number, b: number, c: number) => void;
     readonly decide_tier: (a: number, b: number, c: number) => number;

@@ -68,6 +68,9 @@ jobs:
       - name: Answer-type note (asked value kind missing from the entry)
         run: node tests/answer_type.test.mjs
 
+      - name: Answer receipt (wasm hash == independent JS BLAKE3, covers the whole manual)
+        run: node tests/receipt.test.mjs
+
       - name: KB recall eval on the built index
         run: node tests/kb_search.test.mjs
 

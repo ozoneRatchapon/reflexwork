@@ -411,7 +411,8 @@
 let WASM = {}, WASM_ERR = null;
 try{ WASM = await import('./wasm/reflex_wasm.js'); }catch(e){ WASM_ERR = e; console.warn('Reflex Kernel glue failed to load', e); }
 const init = typeof WASM.default==='function' ? WASM.default : async()=>{ throw WASM_ERR || new Error('reflex_wasm.js has no init'); };
-const route_task = WASM.route_task, wasm_kb_search = WASM.kb_search, wasm_classify = WASM.classify_smalltalk;   // the rest of the Rust exports: WASM.* (engine switch below)
+const route_task = WASM.route_task, wasm_kb_search = WASM.kb_search, wasm_classify = WASM.classify_smalltalk;
+const blake3_text = typeof WASM.blake3_text==='function' ? WASM.blake3_text : null;   // hashes the answer receipt (null on an older wasm: no receipt)   // the rest of the Rust exports: WASM.* (engine switch below)
 const $ = id => document.getElementById(id);
 let ready=false, KB=[], auto=0, ai=0, saved=0;
 let LINKS=[];   // system-links.json: named systems -> official URLs (optional)
@@ -1941,6 +1942,7 @@ function _askCore(){
   // The KERNEL decides the route — this is the real sigmoid gate running in WASM,
   // not a keyword lookup. We show its actual decision + reproducible proof.
   const d=route_task('DataQuery', q, 2048, Number(128));
+  CUR_ROUTE = d.route;   // the receipt of every answer shown for this question names it
   const us=((performance.now()-t0)*1000);   // browsers round performance.now() to 0.1 ms, so below that we say so instead of printing a fake '0 µs'
   const usLabel = us<100 ? '< 0.1 ms' : (us/1000).toFixed(1)+' ms';
   const complexity = (typeof d.gate_dim8_complexity==='number') ? d.gate_dim8_complexity.toFixed(3) : '—';
@@ -2536,13 +2538,39 @@ function updateRatio(){
 let fbN = 0;
 // one random id per rendered answer: lets the server count each user's vote once instead of once per question TEXT
 function newVoteId(){ try{ return crypto.randomUUID(); }catch(e){ return Array.from({length:4},()=>Math.random().toString(36).slice(2,10).padEnd(8,'0')).join('-'); } }
+// <receipt>
+// Answer receipt (2026-11-07): a hash that covers the ANSWER, not just the question. The older "proof" (BLAKE3 of question + route) does not
+// say which entry was served or what it said. receipt = BLAKE3(JSON [version, question, route, entry id, entry digest, manual root]) where
+//   entry digest = BLAKE3(id \n title \n answer) of the entry as served, manual root = BLAKE3 of the sorted "id:digest" lines of every entry
+// the page held at that moment. Anyone with the same knowledge-index.json recomputes it: scripts/verify_receipt.mjs. The AI's rephrasing
+// (when used) is NOT covered: it is not deterministic; the receipt covers the manual text it was built from.
+const RECEIPT_V = 'rw-receipt-v1';
+function entryDigest(e, h){ return h([e.id, e.title, e.answer].join('\n')); }
+function manualRoot(kb, h){ return h(kb.map(e=>e.id+':'+entryDigest(e, h)).sort().join('\n')); }
+function receiptOf(q, route, e, kb, h, root){
+  const digest = entryDigest(e, h), r = root || manualRoot(kb, h);
+  return { receipt: h(JSON.stringify([RECEIPT_V, q, route, e.id, digest, r])), digest, root: r };
+}
+let CUR_ROUTE = '', _ROOT = {key:'', v:''};
+function receiptUI(q, entryId){
+  if(!blake3_text || !entryId) return '';
+  const e = KB.find(x=>x.id===entryId); if(!e) return '';
+  try{
+    const key = KB.length+'|'+LIVE_N+'|'+LIVE_SEQ;   // the root changes when a staff answer goes live / is retracted
+    if(_ROOT.key!==key) _ROOT = {key, v:manualRoot(KB, blake3_text)};
+    const r = receiptOf(q, CUR_ROUTE, e, KB, blake3_text, _ROOT.v);
+    return `<div class="proof-full judge-only receipt">🧾 ใบรับรองคำตอบ (ครอบคลุมคำถาม + เส้นทาง + หัวข้อ + เนื้อหาที่แสดง + คู่มือทั้งชุด): <code>${r.receipt}</code><br>
+      <span class="proof-note">หัวข้อ <code>${_lEsc(e.id)}</code> · เนื้อหา <code>${r.digest.slice(0,16)}…</code> · คู่มือทั้งชุด <code>${r.root.slice(0,16)}…</code> (${KB.length} หัวข้อ) · ตรวจซ้ำด้วย <code>scripts/verify_receipt.mjs</code> · ข้อความที่ AI เรียบเรียง (ถ้ามี) ไม่ถูกครอบคลุม</span></div>`;
+  }catch(_){ return ''; }
+}
+// </receipt>
 function fbUI(q, proof, entryId){
   const id = 'fb'+(++fbN);
   // store the question so the 👍/👎 handler can send it as the reward signal.
   // entryId (when the answer came from a KB entry) lets the kernel decay THAT
   // entry's confidence on 👎 — learning which entries are weak.
   window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof, entryId, voteId:newVoteId()};
-  return `<div class="fb" id="${id}">
+  return receiptUI(q, entryId) + `<div class="fb" id="${id}">
       <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
       <button class="fb-b up" onclick="sendFeedback('${id}',1)">👍 ใช่</button>
       <button class="fb-b down" onclick="sendFeedback('${id}',-1)">👎 ไม่</button>

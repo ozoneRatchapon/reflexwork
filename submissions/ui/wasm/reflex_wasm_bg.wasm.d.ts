@@ -3,6 +3,7 @@
 export const memory: WebAssembly.Memory;
 export const __wbg_resolver_free: (a: number, b: number) => void;
 export const answer_points: (a: number, b: number) => number;
+export const blake3_text: (a: number, b: number, c: number) => void;
 export const classify_issue: (a: number, b: number) => number;
 export const classify_smalltalk: (a: number, b: number, c: number) => void;
 export const decide_tier: (a: number, b: number, c: number) => number;

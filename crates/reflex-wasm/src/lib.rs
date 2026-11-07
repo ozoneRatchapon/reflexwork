@@ -169,6 +169,13 @@ pub struct RouteOutput {
     pub gate_score: f32,
 }
 
+/// BLAKE3 of the UTF-8 bytes of `text`, as 64 hex chars. The page builds the answer receipt from it: the preimage (question, route, served
+/// entry id + content, hash of the whole manual) is assembled in JS, hashed here, so one implementation hashes everything in the browser.
+#[wasm_bindgen]
+pub fn blake3_text(text: &str) -> String {
+    hex_encode(&blake3_hex(text.as_bytes()))
+}
+
 /// Route one task entirely in the browser. Returns a JSON object with the
 /// decision + a reproducible BLAKE3 proof — no backend, no token cost on the
 /// fast path. Mirrors the native Rust kernel's decision exactly.
@@ -503,6 +510,14 @@ mod tests {
         let long = "parse this long scanned petition document ".repeat(40);
         let x = encode("DocumentParse", &long, 2048, 128);
         assert_eq!(route(&x), "McpSynthesize");
+    }
+
+    #[test]
+    fn blake3_text_matches_known_vectors() {
+        // the same strings hashed by integrations/kernel-worker/vendor/blake3.js (JS), so the page and the worker agree
+        assert_eq!(blake3_text(""), "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262");
+        assert_eq!(blake3_text("abc"), "6437b3ac38465133ffb63b75273a8db548c558465d79db03fd359c6cd5bd9d85");
+        assert_eq!(blake3_text("ค่าเทอม"), "056513f6f449905ab98cf0274fcf215922b1bf4a1b2e8525be3bf5c535030c23");
     }
 
     #[test]
