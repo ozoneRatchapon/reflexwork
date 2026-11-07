@@ -56,5 +56,5 @@ check('valid_to passed → "may be out of date" with the Thai date', /มีผ�
 check('valid_to today or later → no warning', validityTag({ valid_to: '2026-11-07' }, '2026-11-07') === '');
 check('valid_from in the future → "in force from"', /มีผลตั้งแต่ 1 ส\.ค\. 2570/.test(txt(validityTag({ valid_from: '2027-08-01' }, '2026-11-07'))));
 check('supersedes → names the older entry, escaped', /ฉบับนี้ใช้แทน: ค่าธรรมเนียม &lt;2568&gt;/.test(validityTag({ supersedes: [{ id: 'a', title: 'ค่าธรรมเนียม <2568>' }] }, '2026-11-07')));
-check('kbBody puts the label above the answer', /function kbBody\(hit, q\)\{ return validityTag\(hit\) \+ kbBodyCore\(hit, q\); \}/.test(html));
+check("kbBody puts the label above the answer", /function kbBody\(hit, q\)\{ return validityTag\(hit\) \+ typeMissNote\(hit, q\) \+ kbBodyCore\(hit, q\); \}/.test(html));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

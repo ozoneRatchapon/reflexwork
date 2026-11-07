@@ -10,7 +10,7 @@ const KBa = JSON.parse(R('submissions/ui/knowledge-index.json')), KB = new Map(K
 const search = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KBa);
 const at = R('benchmark/synth/answer_type.mjs');
 const { ASK, HAS } = new Function(at.match(/const TH_MON[\s\S]*?\n};\n[\s\S]*?const HAS = \{[\s\S]*?\n\};\n/)[0] + 'return {ASK, HAS};')();
-const typeOk = (q, e) => { const a = Object.keys(ASK).filter(k => ASK[k].test(q)); return a.length === 0 || a.some(k => HAS[k].test(`${e.title}\n${e.answer}`)) ? 1 : 0; };
+const typeOk = (q, e) => { let a = Object.keys(ASK).filter(k => ASK[k].test(q)); if (a.length > 1) a = a.filter(k => k !== 'quant'); return a.length === 0 || a.some(k => HAS[k].test(`${e.title}\n${e.answer}`)) ? 1 : 0; };
 const items = JSON.parse(R('benchmark/synth/questions_001.json')).items.filter(x => x.q && KB.has(x.source_id) && (x.kind === 'para_th' || x.kind === 'near_miss'));
 const rows = [];
 for (const x of items) { const r = search(x.q); if (!r[0] || r[0].e.id !== x.source_id) continue;   // only where the bot would pick the source entry

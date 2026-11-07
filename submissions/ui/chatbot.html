@@ -849,8 +849,39 @@ function validityTag(hit, today){
   if(sup.length) out.push(`🔁 ฉบับนี้ใช้แทน: ${sup.map(_pEsc).join(' · ')}`);
   return out.length ? `<span class="valid-tag">${out.join('<br>')}</span>\n` : '';
 }
+// <answer-type>
+// The question asks for a KIND of value (an amount, a duration, a date, a count) and the entry text holds none of that kind: the topic matched
+// but the fact asked for is not in it. The answer is still shown (it may help); the page says what is missing and offers staff. Lexical only,
+// no model. Measured on generated questions (benchmark/synth/006): flags 29.5% of near-misses at the cost of 3.2% of paraphrases.
+const _AT_MON='มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม|ม\\.ค\\.|ก\\.พ\\.|มี\\.ค\\.|เม\\.ย\\.|พ\\.ค\\.|มิ\\.ย\\.|ก\\.ค\\.|ส\\.ค\\.|ก\\.ย\\.|ต\\.ค\\.|พ\\.ย\\.|ธ\\.ค\\.';
+const _ASK_TYPE={
+  money:{re:/กี่บาท|ราคา|ค่าใช้จ่าย|ค่าธรรมเนียม|ค่า\S{0,25}(?:เท่า|กี่)|how much|fee|cost|price/i, th:'จำนวนเงิน', en:'amount'},
+  quant:{re:/เท่าไร|เท่าไหร่|เท่าใด/i, th:'ตัวเลขที่ถาม', en:'number'},   // a bare 'เท่าไร' (a score, a limit): any number in the entry will do
+  duration:{re:/กี่วัน|นานแค่ไหน|นานเท่าไ|ใช้เวลา|ระยะเวลา|กี่สัปดาห์|กี่เดือน|กี่ปี|how long|how many days|duration/i, th:'ระยะเวลา', en:'duration'},
+  when:{re:/เมื่อไร|เมื่อไหร่|วันไหน|วันที่เท่าไ|ช่วงไหน|ถึงวันไหน|กำหนดการ|เปิดรับ.*เมื่อ|หมดเขต|deadline|\bwhen\b|what date/i, th:'วันที่หรือกำหนดเวลา', en:'date or deadline'},
+  count:{re:/กี่(?:คน|ครั้ง|หน่วยกิต|ฉบับ|ชุด|รายวิชา|เล่ม|ทุน)|how many/i, th:'จำนวน', en:'number'}};
+const _HAS_TYPE={
+  quant:/\d/,
+  money:/\d[\d,]*\s*(?:บาท|baht|thb)|฿\s*\d/i,
+  duration:/\d+\s*(?:วัน|สัปดาห์|เดือน|ปี|ชั่วโมง|ชม\.|days?|weeks?|months?|years?|hours?)/i,
+  when:new RegExp('\\d{1,2}\\s*(?:'+_AT_MON+')|(?:'+_AT_MON+')\\s*\\d{2,4}|\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}|ภายใน\\s*\\d+|ก่อน\\s*\\d+|\\d+\\s*วัน(?:ทำการ)?|ภาค(?:ต้น|ปลาย|ฤดูร้อน)|ปฏิทินการศึกษา|กำหนดการ','i'),
+  count:/\d+\s*(?:คน|ครั้ง|หน่วยกิต|ฉบับ|ชุด|รายวิชา|เล่ม|ทุน)|ไม่เกิน\s*\d+/i};
+// the kinds the question asks for that the entry does not hold ([] = nothing missing, or the question asks for no kind)
+function missingTypes(q, hit){
+  q=String(q||''); let asked=Object.keys(_ASK_TYPE).filter(k=>_ASK_TYPE[k].re.test(q));
+  if(asked.length>1) asked=asked.filter(k=>k!=='quant');   // a bare 'เท่าไร' next to a specific kind is that kind
+  if(!asked.length || !hit) return [];
+  const body=`${hit.title||''}\n${hit.answer||''}`;
+  return asked.every(k=>!_HAS_TYPE[k].test(body)) ? asked : [];
+}
+function typeMissNote(hit, q){
+  const miss=missingTypes(q, hit); if(!miss.length) return '';
+  const en=isEnglish(q), what=miss.map(k=>_ASK_TYPE[k][en?'en':'th']).join(en?' / ':' / ');
+  return `<span class="valid-tag">${en ? `ℹ️ This topic does not state the ${_lEsc(what)} you asked about. If it does not answer you, ask staff.` : `ℹ️ หัวข้อนี้ไม่ได้ระบุ${_lEsc(what)}ที่ถามไว้ ถ้ายังไม่ตรงกับที่ต้องการ ถามเจ้าหน้าที่ได้ครับ`}</span>\n`;
+}
+// </answer-type>
 // Returns HTML (every piece goes through linkify, which escapes).
-function kbBody(hit, q){ return validityTag(hit) + kbBodyCore(hit, q); }
+function kbBody(hit, q){ return validityTag(hit) + typeMissNote(hit, q) + kbBodyCore(hit, q); }
 function kbBodyCore(hit, q){
   const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(_bkkIso(hit.approved_at)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
   if(hit.staff) return staffTag + staffBody(hit, q);
@@ -2146,6 +2177,7 @@ function _askCore(){
 
   if(verdict.action==='act'){
     const hit = verdict.entry;
+    if(!pinned && missingTypes(q, hit).length) logGap(q);   // the topic matched but not the fact asked for: staff see it in the gap list
     // Grounded hybrid for ADVICE questions: a raw KB dump reads wrong for
     // "แนะนำ/วางแผน/ยังไง". If KB matches weakly → ABSTAIN to staff (don't force
     // a wrong answer). If KB matches well enough → rephrase via local AI grounded

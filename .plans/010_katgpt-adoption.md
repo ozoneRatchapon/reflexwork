@@ -8,15 +8,15 @@ experiments here on the 1,056 generated questions (`benchmark/synth/`, labels **
 | idea (katgpt source) | result | file |
 |---|---|---|
 | distil bge-m3 into a trigram -> vector map, offline ridge (`katgpt-canon/src/source_adapter.rs`, `katgpt-core/src/linalg/ridge_solve.rs`) | Thai held-out 53.4% -> **62.9%** first-right with no model at run time (bge-m3 itself: 74.2%); English **worse** (43.9 -> 28.0%, only 1 English example per entry in training); hybrid (lexical if s>=4 else distilled): Thai 61.7%, eval52 84 -> 88%, FAQ 94.4 -> 93.0% | `005_distill_unreviewed.md` |
-| answer-type match (composed from `katgpt-extract/src/parsers/*`) | flags 29.5% of near-misses as "asks for a value the entry does not have" at a cost of 3.2% of Thai paraphrases | `006_answer_type_unreviewed.md` |
-| model-free abstain signals, rank-fused (`distance_abstain.rs` lesson: fuse on ranks) | best AUROC **0.60** (cos margin + answer-type) vs shipped score 0.53; bge-m3 0.85 | `007_signals_unreviewed.md` |
+| answer-type match (composed from `katgpt-extract/src/parsers/*`) | flags 26.5% of near-misses as "asks for a value the entry does not have" at a cost of 2.5% of Thai (7.2% of English) paraphrases. A first version with a bare "เท่าไร" counted as an amount flagged 29.5% / 3.2% but said "no amount" about score questions; fixed | `006_answer_type_unreviewed.md` |
+| model-free abstain signals, rank-fused (`distance_abstain.rs` lesson: fuse on ranks) | best AUROC **0.60** (cos margin + answer-type; 0.598) vs shipped score 0.53; bge-m3 0.85 | `007_signals_unreviewed.md` |
 
 Reading: model-free signals help a little; the separation problem is mostly solved only by a meaning-based signal. The distilled map
 is the one way found to get part of that without a model per question, and it needs more (and multilingual) training questions.
 
 ## Take (ranked)
 1. **Best-Belief Beta lower bound instead of the `entry_conf` EMA.** `katgpt-core/src/best_belief.rs`, katgpt Bench 010: 15-30% less selection regret when vote counts differ. Pure math, S. Score = 5% quantile of Beta(1+up, 1+down); explains itself ("at least 0.62 from 8 up / 1 down"). Reset counts when an entry's text changes (`calibration_staleness.rs` doctrine).
-2. **Answer-type match as an abstain / clarify rule.** S once Thai patterns are reviewed. Precise (3% cost) though it covers only factoid questions. Port the scanner DESIGN of `katgpt-extract/src/parsers` (ranked candidates, byte spans, abstain instead of clamp) with our own Thai grammar (Thai months, พ.ศ., Thai digits); the same parsers can make `groundedGuard` compare normalised values ("2 สัปดาห์" = "14 วัน").
+2. **Answer-type match as a note + gap-log rule.** DONE in the page 2026-11-07 (`missingTypes` / `typeMissNote`, `tests/answer_type.test.mjs`): the answer still shows, with "this topic does not state the [amount/duration/date/number] asked", and the question goes to the gap list. It appears on 6.2% of the answers the test pool gets (`benchmark/rules/note_rate.mjs`). Precise (2.5% cost) though it covers only factoid questions. Port the scanner DESIGN of `katgpt-extract/src/parsers` (ranked candidates, byte spans, abstain instead of clamp) with our own Thai grammar (Thai months, พ.ศ., Thai digits); the same parsers can make `groundedGuard` compare normalised values ("2 สัปดาห์" = "14 วัน").
 3. **Distilled trigram map (experiment -> maybe feature).**
    - Next run:
      - generate more English and a second prompt / model for a fair held-out set;

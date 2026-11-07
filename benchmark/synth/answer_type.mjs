@@ -12,19 +12,21 @@ const items = JSON.parse(R('benchmark/synth/questions_001.json')).items.filter(x
 const TH_MON = 'มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม|ม\\.ค\\.|ก\\.พ\\.|มี\\.ค\\.|เม\\.ย\\.|พ\\.ค\\.|มิ\\.ย\\.|ก\\.ค\\.|ส\\.ค\\.|ก\\.ย\\.|ต\\.ค\\.|พ\\.ย\\.|ธ\\.ค\\.';
 // what the question asks for
 const ASK = {
-  money: /เท่าไร|เท่าไหร่|กี่บาท|ราคา|ค่าใช้จ่าย|ค่าธรรมเนียม|ค่า\S{0,8}(?:เท่า|กี่)|how much|fee|cost|price/i,
+  money: /กี่บาท|ราคา|ค่าใช้จ่าย|ค่าธรรมเนียม|ค่า\S{0,25}(?:เท่า|กี่)|how much|fee|cost|price/i,
+  quant: /เท่าไร|เท่าไหร่|เท่าใด/i,
   duration: /กี่วัน|นานแค่ไหน|นานเท่าไ|ใช้เวลา|ระยะเวลา|กี่สัปดาห์|กี่เดือน|กี่ปี|how long|how many days|duration/i,
   when: /เมื่อไร|เมื่อไหร่|วันไหน|วันที่เท่าไ|ช่วงไหน|ถึงวันไหน|กำหนดการ|เปิดรับ.*เมื่อ|หมดเขต|deadline|\bwhen\b|what date/i,
   count: /กี่(?:คน|ครั้ง|หน่วยกิต|ฉบับ|ชุด|รายวิชา|เล่ม|ทุน)|how many/i,
 };
 // what the entry contains
 const HAS = {
+  quant: /\d/,
   money: /\d[\d,]*\s*(?:บาท|baht|thb)|฿\s*\d/i,
   duration: /\d+\s*(?:วัน|สัปดาห์|เดือน|ปี|ชั่วโมง|ชม\.|days?|weeks?|months?|years?|hours?)/i,
   when: new RegExp(`\\d{1,2}\\s*(?:${TH_MON})|(?:${TH_MON})\\s*\\d{2,4}|\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}|ภายใน\\s*\\d+|ก่อน\\s*\\d+|\\d+\\s*วัน(?:ทำการ)?|ภาค(?:ต้น|ปลาย|ฤดูร้อน)|ปฏิทินการศึกษา|กำหนดการ`, 'i'),
   count: /\d+\s*(?:คน|ครั้ง|หน่วยกิต|ฉบับ|ชุด|รายวิชา|เล่ม|ทุน)|ไม่เกิน\s*\d+/i,
 };
-const asks = q => Object.keys(ASK).filter(k => ASK[k].test(q));
+const asks = q => { const a = Object.keys(ASK).filter(k => ASK[k].test(q)); return a.length > 1 ? a.filter(k => k !== 'quant') : a; };
 const flagged = (q, e) => { const a = asks(q); return a.length > 0 && a.every(k => !HAS[k].test(`${e.title}\n${e.answer}`)); };
 const rows = {};
 for (const kind of ['para_th', 'para_en', 'near_miss']) {

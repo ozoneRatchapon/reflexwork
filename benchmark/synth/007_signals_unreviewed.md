@@ -8,6 +8,6 @@ n = 276 paraphrases vs 78 near-misses (unreviewed labels). 0.5 = no separation. 
 | score margin s1-s2 | 0.571 |
 | cosine c1 | 0.484 |
 | cosine margin c1-c2 | 0.569 |
-| answer-type match (0/1) | 0.596 |
-| rank fusion: c1 + answer-type | 0.584 |
-| rank fusion: c1 + cos margin + answer-type | 0.600 |
+| answer-type match (0/1) | 0.594 |
+| rank fusion: c1 + answer-type | 0.581 |
+| rank fusion: c1 + cos margin + answer-type | 0.598 |
