@@ -42,7 +42,7 @@ Progress: 25 of 34 route names ported. Left: items 22-25 (the not-found family a
 - [x] Text preparation: `norm_chat`, `strip_lead_in`, `norm_term_year`, exact Unicode tables
 - [x] Differentials against the page's own functions (`route_text.json`: ~2,265 texts; `dated_picks.json`; `scope.json`: 2,306 scopeClarify cases)
 - [x] `kb_rank` (native twin of `kb_search`), `route::Manual`, `Ctx` (programme in focus, today, catalogue state)
-- [ ] Contract probes: a branch with < 10 samples is not safe to trust. Thin today: `scope_no_round` 1, `scope_no_year` 4, `advice_abstain` 1, `advice_hybrid` 4, `intake` 11. The not-found family needs its own probes before it is ported
+- [~] Contract probes (2026-11-08): `scope_no_round` 1 -> 12 (done). Still thin: `scope_no_year` 4, `advice_abstain` 1 (needs a weak KB match that still passes the act verdict: none found in 8 advice probes), `advice_hybrid` 5, `free_fee` 3. `intake` 13 now. The not-found family needs its own probes before it is ported
 - [ ] Sessions replayed for the verdict routes (a turn on a route that is not ported cannot change state yet)
 - [ ] `PIN` (a tapped topic chip) in the contract: today `pinned` is always false in the tests
 
