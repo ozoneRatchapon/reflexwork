@@ -311,10 +311,14 @@ function renderConf(entries){
   if(!entries.length){ el.innerHTML = '<div class="empty">ยังไม่มีข้อมูล feedback — เมื่อผู้ใช้กด 👍/👎 จะมาโผล่ที่นี่</div>'; return; }
   el.innerHTML = entries.map(e=>{
     const pct = Math.round((Number(e.conf)||0)*100);
-    const col = pct<50?'#ff6b7a':pct<75?'#f6a93b':'#22c58b';
+    // 95% bounds from the vote counts (kernel /entry-conf, Best-Belief): red only when even the upper bound is low = confidently weak;
+    // green when even the lower bound is high; amber = not enough votes to say. An older kernel sends no bounds: colour by conf.
+    const hasB = Number.isFinite(Number(e.lo)) && Number.isFinite(Number(e.hi)), lo = Math.round(Number(e.lo)*100), hi = Math.round(Number(e.hi)*100);
+    const col = hasB ? (hi<50?'#ff6b7a':lo>=70?'#22c58b':'#f6a93b') : (pct<50?'#ff6b7a':pct<75?'#f6a93b':'#22c58b');
+    const verdict = hasB ? (hi<50?'ควรแก้ (มั่นใจ)':lo>=70?'ดี (มั่นใจ)':'ยังสรุปไม่ได้ โหวตยังน้อย') : '';
     return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)">
       <div style="flex:1"><span style="font-weight:600">${esc(e.id)}</span>
-        <span style="color:var(--muted);font-size:12px"> · 👍${Number(e.up)||0} 👎${Number(e.down)||0}</span></div>
+        <span style="color:var(--muted);font-size:12px"> · 👍${Number(e.up)||0} 👎${Number(e.down)||0}${hasB?` · ช่วงที่น่าจะเป็น ${lo}–${hi}% · ${verdict}`:''}</span></div>
       <div style="width:120px;height:8px;background:#0b1020;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${col}"></div></div>
       <div class="mono" style="width:46px;text-align:right;color:${col}">${pct}%</div>
     </div>`;

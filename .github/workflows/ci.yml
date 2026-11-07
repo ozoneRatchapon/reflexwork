@@ -62,6 +62,9 @@ jobs:
       - name: Tuition finder only for tuition questions (not exam / service fees)
         run: node tests/tuition_scope.test.mjs
 
+      - name: Vote bounds (Best-Belief) and the entries-to-fix order
+        run: node tests/vote_bounds.test.mjs
+
       - name: KB recall eval on the built index
         run: node tests/kb_search.test.mjs
 
