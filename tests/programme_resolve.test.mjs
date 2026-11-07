@@ -218,6 +218,12 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
   // ...while real programme questions phrased that way still resolve
   for (const [q, c] of [['มีสาขาเคมีไหม', '2129M03G'], ['จิตวิทยาคลินิกมีทุนไหม', '2022M04G'], ['ทุน เคมี มีไหม', '2129M03G'], ['เคมี ป.เอก', '2129D03G'],
     ['เคมี ป.โท', '2129M03G'], ['ฟิสิกส์ ป.เอก', '2118D03G'], ['ค่าเทอมเคมีต่อเทอม', '2129M03G'], ['ค่าเทอมเคมีภาคละเท่าไหร่', '2129M03G'], ['ค่าเทอมเคมีตลอดหลักสูตร', '2129M03G']]) expectIn(q, c);   // short name + level / fee qualifiers
+  // the level typed without the dot ('ป เอก' / 'ปเอก' / a bare 'เอก'), found 2026-11-07: 'วิศวะคอม ป เอก' was 'not understood' and
+  // 'วิศวกรรมคอมพิวเตอร์ ป เอก' opened the Master's card. As a word of its own only: 'วิชาเอก', 'โทร', 'ไปเอกสาร' are not levels.
+  for (const [q, c] of [['เคมี ป เอก', '2129D03G'], ['เคมี ปเอก', '2129D03G'], ['เคมี เอก', '2129D03G'], ['เคมี ป เอกครับ', '2129D03G'], ['เคมี ป โท', '2129M03G'], ['ฟิสิกส์ ป เอก', '2118D03G']]) {
+    const r = run(q); check(`level without the dot: ${q} -> ${c} only`, r && codes(r).includes(c) && codes(r).every(x => x[4] === c[4]), r ? `${r.kind} ${codes(r).join()}` : 'no match'); }
+  expectOne('ป เอก วิศวกรรมชีวการแพทย์', '3802D03G');
+  for (const q of ['วิชาเอกเลือกได้ไหม', 'เบอร์โทรบัณฑิตวิทยาลัย', 'ส่งไปเอกสารยังไง']) expectNone(q);
 }
 
 // --- (4) text from the web is untrusted: it must be escaped, links limited to the official site ------------------------
