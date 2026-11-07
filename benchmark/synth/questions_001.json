@@ -1,0 +1,7928 @@
+{
+ "model": "gemma4:26b",
+ "prompt_blake": "",
+ "created": "2026-11-07",
+ "items": [
+  {
+   "q": "ส่งบทคัดย่อให้ตรวจต้องรอนานแค่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "abstract_check_days",
+   "gold": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "q": "ระยะเวลาที่ผู้เชี่ยวชาญต่างประเทศใช้ตรวจ Abstract คือกี่วัน",
+   "kind": "para_th",
+   "source_id": "abstract_check_days",
+   "gold": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "q": "ถ้าส่งไฟล์ให้ศูนย์ภาษาแล้ว จะทราบผลตรวจภายในกี่วันทำการ",
+   "kind": "para_th",
+   "source_id": "abstract_check_days",
+   "gold": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "q": "การตรวจ Abstract หนึ่งรอบใช้เวลากี่วัน ไม่รวมวันหยุด",
+   "kind": "para_th",
+   "source_id": "abstract_check_days",
+   "gold": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "q": "How many working days does the abstract review process take?",
+   "kind": "para_en",
+   "source_id": "abstract_check_days",
+   "gold": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "q": "How long does it take for international experts to review my abstract?",
+   "kind": "para_en",
+   "source_id": "abstract_check_days",
+   "gold": [
+    "abstract_check_days"
+   ]
+  },
+  {
+   "q": "ต้องส่งไฟล์บทคัดย่อให้ศูนย์ภาษาภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "abstract_check_days",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมในการตรวจบทคัดย่อราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "abstract_check_days",
+   "gold": []
+  },
+  {
+   "q": "อาจารย์ส่งแก้บทคัดย่อมาให้ ต้องทำยังไงต่อครับ",
+   "kind": "para_th",
+   "source_id": "abstract_edit",
+   "gold": [
+    "abstract_edit"
+   ]
+  },
+  {
+   "q": "ถ้าได้รับอีเมลให้แก้ไขงานแล้ว ต้องกดตรงไหนในระบบเพื่อส่งกลับไปให้ศูนย์ภาษาตรวจใหม่",
+   "kind": "para_th",
+   "source_id": "abstract_edit",
+   "gold": [
+    "abstract_edit"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการส่งงานที่แก้ไขแล้วกลับไปให้อาจารย์ที่ปรึกษาและศูนย์ภาษาตรวจซ้ำ ทำยังไง",
+   "kind": "para_th",
+   "source_id": "abstract_edit",
+   "gold": [
+    "abstract_edit"
+   ]
+  },
+  {
+   "q": "แก้คำผิดตามคอมเมนต์ในช่องข้อเสนอแนะเสร็จแล้ว ต้องกดปุ่มไหนต่อ",
+   "kind": "para_th",
+   "source_id": "abstract_edit",
+   "gold": [
+    "abstract_edit"
+   ]
+  },
+  {
+   "q": "How can I resubmit my abstract after receiving revision comments?",
+   "kind": "para_en",
+   "source_id": "abstract_edit",
+   "gold": [
+    "abstract_edit"
+   ]
+  },
+  {
+   "q": "What is the process for submitting corrected work back to the language center?",
+   "kind": "para_en",
+   "source_id": "abstract_edit",
+   "gold": [
+    "abstract_edit"
+   ]
+  },
+  {
+   "q": "ถ้าหาอีเมลแจ้งแก้ไขไม่เจอ ต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "abstract_edit",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เวลากี่วันในการตรวจสอบภาษาหลังจากส่งแก้ไขไปแล้ว",
+   "kind": "near_miss",
+   "source_id": "abstract_edit",
+   "gold": []
+  },
+  {
+   "q": "จะไปโหลดคู่มือตรวจบทคัดย่อได้จากที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "abstract_manual",
+   "gold": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ดูวิธีการตรวจ abstract หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "abstract_manual",
+   "gold": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "q": "หาที่อ่านคู่มือการตรวจบทคัดย่อได้ที่เว็บไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "abstract_manual",
+   "gold": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "q": "ศูนย์ภาษา บัณฑิตวิทยาลัย มีคู่มือตรวจบทคัดย่อให้ดูไหม",
+   "kind": "para_th",
+   "source_id": "abstract_manual",
+   "gold": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "q": "Where can I find the abstract checking manual?",
+   "kind": "para_en",
+   "source_id": "abstract_manual",
+   "gold": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "q": "Where is the online guide for abstract review available?",
+   "kind": "para_en",
+   "source_id": "abstract_manual",
+   "gold": [
+    "abstract_manual"
+   ]
+  },
+  {
+   "q": "ต้องส่งบทคัดย่อให้ศูนย์ภาษาตรวจเมื่อไหร่",
+   "kind": "near_miss",
+   "source_id": "abstract_manual",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมในการตรวจบทคัดย่อราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "abstract_manual",
+   "gold": []
+  },
+  {
+   "q": "จะดูผลตรวจบทคัดย่อได้ที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "abstract_track",
+   "gold": [
+    "abstract_track"
+   ]
+  },
+  {
+   "q": "เช็คสถานะการส่งตรวจ abstract ได้ยังไง",
+   "kind": "para_th",
+   "source_id": "abstract_track",
+   "gold": [
+    "abstract_track"
+   ]
+  },
+  {
+   "q": "ต้องเข้าไปดูการอัปเดตการตรวจบทคัดย่อในระบบไหน",
+   "kind": "para_th",
+   "source_id": "abstract_track",
+   "gold": [
+    "abstract_track"
+   ]
+  },
+  {
+   "q": "อยากทราบวิธีติดตามสถานะการส่งตรวจบทคัดย่อออนไลน์",
+   "kind": "para_th",
+   "source_id": "abstract_track",
+   "gold": [
+    "abstract_track"
+   ]
+  },
+  {
+   "q": "How can I check my abstract submission status?",
+   "kind": "para_en",
+   "source_id": "abstract_track",
+   "gold": [
+    "abstract_track"
+   ]
+  },
+  {
+   "q": "Where can I track the status of my abstract review?",
+   "kind": "para_en",
+   "source_id": "abstract_track",
+   "gold": [
+    "abstract_track"
+   ]
+  },
+  {
+   "q": "ต้องใช้เวลากี่วันในการตรวจบทคัดย่อ",
+   "kind": "near_miss",
+   "source_id": "abstract_track",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการส่งตรวจบทคัดย่อราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "abstract_track",
+   "gold": []
+  },
+  {
+   "q": "เข้าใช้งานระบบไม่ได้ รหัสผ่านก็ถูกแล้ว แต่ยังติด error อยู่ ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "account_locked_it",
+   "gold": [
+    "account_locked_it"
+   ]
+  },
+  {
+   "q": "บัญชีโดนล็อก ติดต่อใครได้บ้าง ขอเบอร์กองไอทีหน่อย",
+   "kind": "para_th",
+   "source_id": "account_locked_it",
+   "gold": [
+    "account_locked_it"
+   ]
+  },
+  {
+   "q": "รีเซ็ตรหัสผ่านไปแล้วแต่ยัง login ไม่ได้เลย ต้องแจ้งข้อมูลอะไรบ้างในการให้เจ้าหน้าที่ช่วยเช็ค",
+   "kind": "para_th",
+   "source_id": "account_locked_it",
+   "gold": [
+    "account_locked_it"
+   ]
+  },
+  {
+   "q": "ถ้าเป็นอาจารย์แล้วระบบไม่อนุมัติเอกสาร ต้องติดต่อหน่วยงานไหนและต้องแจ้งข้อมูลอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "account_locked_it",
+   "gold": [
+    "account_locked_it"
+   ]
+  },
+  {
+   "q": "My account is locked, how can I contact IT support?",
+   "kind": "para_en",
+   "source_id": "account_locked_it",
+   "gold": [
+    "account_locked_it"
+   ]
+  },
+  {
+   "q": "I cannot verify my identity to log in, what information should I prepare for the IT department?",
+   "kind": "para_en",
+   "source_id": "account_locked_it",
+   "gold": [
+    "account_locked_it"
+   ]
+  },
+  {
+   "q": "ลืมรหัสผ่านอีเมลมหาวิทยาลัย ต้องกดเปลี่ยนรหัสที่หน้าเว็บไหน",
+   "kind": "near_miss",
+   "source_id": "account_locked_it",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะขอเพิ่มสิทธิ์การเข้าถึงโฟลเดอร์ใน Google Drive ของคณะ ต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "account_locked_it",
+   "gold": []
+  },
+  {
+   "q": "เข้าเว็บ e-Thesis ไม่ได้ รหัสผ่านอะไรก็ใช้ไม่ได้เลย ทำไงดีครับ",
+   "kind": "para_th",
+   "source_id": "account_login_problem",
+   "gold": [
+    "account_login_problem"
+   ]
+  },
+  {
+   "q": "ลืมพาสเวิร์ดอีเมลมหาวิทยาลัย ต้องไปเปลี่ยนที่ไหน",
+   "kind": "para_th",
+   "source_id": "account_login_problem",
+   "gold": [
+    "account_login_problem"
+   ]
+  },
+  {
+   "q": "แอป Student Card App มีปัญหา ล็อกอินไม่ได้ รบกวนขอเบอร์ติดต่อไอทีหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "account_login_problem",
+   "gold": [
+    "account_login_problem"
+   ]
+  },
+  {
+   "q": "รีเซ็ตรหัสผ่านใน account.mahidol.ac.th แล้ว แต่ยังขึ้น Server Error อยู่เลย ต้องติดต่อใคร",
+   "kind": "para_th",
+   "source_id": "account_login_problem",
+   "gold": [
+    "account_login_problem"
+   ]
+  },
+  {
+   "q": "I can't log in to WE Mahidol, what should I do?",
+   "kind": "para_en",
+   "source_id": "account_login_problem",
+   "gold": [
+    "account_login_problem"
+   ]
+  },
+  {
+   "q": "How to reset my university account password?",
+   "kind": "para_en",
+   "source_id": "account_login_problem",
+   "gold": [
+    "account_login_problem"
+   ]
+  },
+  {
+   "q": "ถ้าทำบัตรนักศึกษาหาย ต้องไปติดต่อที่ตึกไหนคะ",
+   "kind": "near_miss",
+   "source_id": "account_login_problem",
+   "gold": []
+  },
+  {
+   "q": "ขอขั้นตอนการสมัครเรียนระดับปริญญาโทหน่อยครับ",
+   "kind": "near_miss",
+   "source_id": "account_login_problem",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้คะแนน TOEIC หรือ IELTS ตอนยื่นใบสมัครเลยไหมครับ",
+   "kind": "para_th",
+   "source_id": "admission_english",
+   "gold": [
+    "admission_english"
+   ]
+  },
+  {
+   "q": "ถ้ายังไม่มีคะแนนภาษาอังกฤษจะสมัครเรียนได้หรือเปล่า",
+   "kind": "para_th",
+   "source_id": "admission_english",
+   "gold": [
+    "admission_english"
+   ]
+  },
+  {
+   "q": "อยากทราบว่าแต่ละสาขาวิชาใช้เกณฑ์ภาษาอังกฤษเหมือนกันไหม",
+   "kind": "para_th",
+   "source_id": "admission_english",
+   "gold": [
+    "admission_english"
+   ]
+  },
+  {
+   "q": "เช็กเงื่อนไขเรื่องคะแนนภาษาอังกฤษได้จากที่ไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "admission_english",
+   "gold": [
+    "admission_english"
+   ]
+  },
+  {
+   "q": "Do I need to submit English proficiency scores before applying?",
+   "kind": "para_en",
+   "source_id": "admission_english",
+   "gold": [
+    "admission_english"
+   ]
+  },
+  {
+   "q": "Is English score required at the time of application?",
+   "kind": "para_en",
+   "source_id": "admission_english",
+   "gold": [
+    "admission_english"
+   ]
+  },
+  {
+   "q": "ถ้าคะแนนภาษาอังกฤษไม่ถึงเกณฑ์ สามารถยื่นขอผ่อนผันได้ไหม",
+   "kind": "near_miss",
+   "source_id": "admission_english",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้คะแนนภาษาอังกฤษประเภทไหนในการสมัครเรียน",
+   "kind": "near_miss",
+   "source_id": "admission_english",
+   "gold": []
+  },
+  {
+   "q": "ต้องจ่ายค่าสมัครกี่บาท แล้วต้องเตรียมไฟล์อะไรส่งบ้าง",
+   "kind": "para_th",
+   "source_id": "admission_fee",
+   "gold": [
+    "admission_fee"
+   ]
+  },
+  {
+   "q": "อยากสมัครเรียนต้องใช้เอกสารอะไรบ้างครับ",
+   "kind": "para_th",
+   "source_id": "admission_fee",
+   "gold": [
+    "admission_fee"
+   ]
+  },
+  {
+   "q": "รายละเอียดค่าธรรมเนียมการสมัครและรายการเอกสารที่ต้องใช้มีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "admission_fee",
+   "gold": [
+    "admission_fee"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมรูปถ่ายกับพวกใบเกรดไว้สมัครเรียนไหม แล้วค่าธรรมเนียมเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "admission_fee",
+   "gold": [
+    "admission_fee"
+   ]
+  },
+  {
+   "q": "How much is the application fee and what documents are required?",
+   "kind": "para_en",
+   "source_id": "admission_fee",
+   "gold": [
+    "admission_fee"
+   ]
+  },
+  {
+   "q": "What are the necessary documents and the cost for applying?",
+   "kind": "para_en",
+   "source_id": "admission_fee",
+   "gold": [
+    "admission_fee"
+   ]
+  },
+  {
+   "q": "ต้องชำระค่าสมัครผ่านช่องทางไหนบ้าง",
+   "kind": "near_miss",
+   "source_id": "admission_fee",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะสมัครเรียนภาคพิเศษ ต้องใช้เอกสารอะไรเพิ่มเติมบ้าง",
+   "kind": "near_miss",
+   "source_id": "admission_fee",
+   "gold": []
+  },
+  {
+   "q": "อยากเรียนต่อต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "admission_how",
+   "gold": [
+    "admission_how"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการสมัครเรียนบัณฑิตวิทยาลัยมีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "admission_how",
+   "gold": [
+    "admission_how"
+   ]
+  },
+  {
+   "q": "ขอช่องทางสมัครเรียนหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "admission_how",
+   "gold": [
+    "admission_how"
+   ]
+  },
+  {
+   "q": "ต้องส่งเอกสารที่ไหนคะ ถ้าจะสมัครเรียน",
+   "kind": "para_th",
+   "source_id": "admission_how",
+   "gold": [
+    "admission_how"
+   ]
+  },
+  {
+   "q": "How can I apply for a graduate program?",
+   "kind": "para_en",
+   "source_id": "admission_how",
+   "gold": [
+    "admission_how"
+   ]
+  },
+  {
+   "q": "Where can I submit my application documents?",
+   "kind": "para_en",
+   "source_id": "admission_how",
+   "gold": [
+    "admission_how"
+   ]
+  },
+  {
+   "q": "ค่าเทอมของภาควิชาบริหารธุรกิจราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "admission_how",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้คะแนน IELTS เท่าไหร่ถึงจะสมัครได้",
+   "kind": "near_miss",
+   "source_id": "admission_how",
+   "gold": []
+  },
+  {
+   "q": "ตอนนี้อยู่ปีสุดท้าย จะสมัครเรียนต่อเลยได้ไหมครับ",
+   "kind": "para_th",
+   "source_id": "admission_last_term",
+   "gold": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "q": "ถ้ายังเรียนไม่จบเทอมนี้ จะใช้เกรดล่าสุดยื่นสมัครก่อนได้หรือเปล่า",
+   "kind": "para_th",
+   "source_id": "admission_last_term",
+   "gold": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "q": "ขอใบ Transcript ล่าสุดมาสมัครเรียนก่อนได้ไหม แล้วค่อยส่งใบจบตามไป",
+   "kind": "para_th",
+   "source_id": "admission_last_term",
+   "gold": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "q": "กำลังจะจบเทอมนี้ครับ สมัครเรียนภาคเรียนหน้าได้เลยไหม",
+   "kind": "para_th",
+   "source_id": "admission_last_term",
+   "gold": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "q": "Can I apply if I am currently in my final semester?",
+   "kind": "para_en",
+   "source_id": "admission_last_term",
+   "gold": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "q": "Is it possible to apply using my latest transcript before graduation?",
+   "kind": "para_en",
+   "source_id": "admission_last_term",
+   "gold": [
+    "admission_last_term"
+   ]
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการสมัครเรียนบัณฑิตวิทยาลัย",
+   "kind": "near_miss",
+   "source_id": "admission_last_term",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเรียนจบแล้ว ต้องรอให้ได้ใบปริญญาบัตรตัวจริงก่อนถึงจะสมัครได้ใช่ไหม",
+   "kind": "near_miss",
+   "source_id": "admission_last_term",
+   "gold": []
+  },
+  {
+   "q": "เกรดเฉลี่ยไม่ถึงเกณฑ์ที่คณะกำหนดเลยครับ มีโอกาสสมัครได้ไหม",
+   "kind": "para_th",
+   "source_id": "admission_low_grade",
+   "gold": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "q": "ถ้าคุณสมบัติส่วนตัวไม่ครบตามที่ระบุไว้ในประกาศ ต้องทำยังไงต่อดี",
+   "kind": "para_th",
+   "source_id": "admission_low_grade",
+   "gold": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "q": "อยากเรียนหลักสูตรนี้แต่คะแนน GPA ไม่ถึงพอจะมีทางแก้ไขไหมคะ",
+   "kind": "para_th",
+   "source_id": "admission_low_grade",
+   "gold": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "q": "กรณีที่เกรดไม่ผ่านเกณฑ์ขั้นต่ำของหลักสูตร จะมีขั้นตอนการพิจารณาอย่างไร",
+   "kind": "para_th",
+   "source_id": "admission_low_grade",
+   "gold": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "q": "What should I do if my GPA does not meet the minimum requirement?",
+   "kind": "para_en",
+   "source_id": "admission_low_grade",
+   "gold": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "q": "Is it possible to apply even if I don't meet all the entry qualifications?",
+   "kind": "para_en",
+   "source_id": "admission_low_grade",
+   "gold": [
+    "admission_low_grade"
+   ]
+  },
+  {
+   "q": "ถ้าเกรดไม่ถึง จะต้องทำเกรดเพิ่มให้ถึงก่อนสมัครเมื่อไหร่",
+   "kind": "near_miss",
+   "source_id": "admission_low_grade",
+   "gold": []
+  },
+  {
+   "q": "ประธานหลักสูตรจะใช้เกณฑ์อะไรในการพิจารณารับนักศึกษาที่เกรดไม่ถึง",
+   "kind": "near_miss",
+   "source_id": "admission_low_grade",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้ว่ามีคณะไหนเปิดรับบ้างครับ",
+   "kind": "para_th",
+   "source_id": "admission_programs",
+   "gold": [
+    "admission_programs"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ดูรายชื่อหลักสูตรที่กำลังเปิดรับสมัครหน่อย",
+   "kind": "para_th",
+   "source_id": "admission_programs",
+   "gold": [
+    "admission_programs"
+   ]
+  },
+  {
+   "q": "ปีนี้มีสาขาไหนเปิดสอนบ้างคะ",
+   "kind": "para_th",
+   "source_id": "admission_programs",
+   "gold": [
+    "admission_programs"
+   ]
+  },
+  {
+   "q": "จะเช็คประกาศรับสมัครของแต่ละสาขาได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "admission_programs",
+   "gold": [
+    "admission_programs"
+   ]
+  },
+  {
+   "q": "Which programs are currently open for admission?",
+   "kind": "para_en",
+   "source_id": "admission_programs",
+   "gold": [
+    "admission_programs"
+   ]
+  },
+  {
+   "q": "Where can I find the list of available courses?",
+   "kind": "para_en",
+   "source_id": "admission_programs",
+   "gold": [
+    "admission_programs"
+   ]
+  },
+  {
+   "q": "ต้องใช้คะแนน IELTS เท่าไหร่ถึงจะสมัครได้",
+   "kind": "near_miss",
+   "source_id": "admission_programs",
+   "gold": []
+  },
+  {
+   "q": "ค่าเทอมของแต่ละสาขาประมาณเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "admission_programs",
+   "gold": []
+  },
+  {
+   "q": "จะสมัครเรียนได้ช่วงไหนครับ",
+   "kind": "para_th",
+   "source_id": "admission_schedule",
+   "gold": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "q": "ขอทราบวันเปิดรับสมัครหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "admission_schedule",
+   "gold": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "q": "ต้องสมัครวันไหนถึงจะไม่พลาดรอบนี้",
+   "kind": "para_th",
+   "source_id": "admission_schedule",
+   "gold": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "q": "เช็ควันปิดรับสมัครได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "admission_schedule",
+   "gold": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "q": "When is the application period?",
+   "kind": "para_en",
+   "source_id": "admission_schedule",
+   "gold": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "q": "Where can I find the application deadline?",
+   "kind": "para_en",
+   "source_id": "admission_schedule",
+   "gold": [
+    "admission_schedule"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการสมัคร",
+   "kind": "near_miss",
+   "source_id": "admission_schedule",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการสมัครเรียนเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "admission_schedule",
+   "gold": []
+  },
+  {
+   "q": "คะแนนแบบ Best Scores คิดยังไงครับ",
+   "kind": "para_th",
+   "source_id": "best_scores",
+   "gold": [
+    "best_scores"
+   ]
+  },
+  {
+   "q": "การคำนวณคะแนนสอบที่ดีที่สุดต้องใช้กติกาแบบไหน",
+   "kind": "para_th",
+   "source_id": "best_scores",
+   "gold": [
+    "best_scores"
+   ]
+  },
+  {
+   "q": "ผลคะแนนสอบที่เอามาใช้ต้องมีอายุไม่เกินกี่ปี",
+   "kind": "para_th",
+   "source_id": "best_scores",
+   "gold": [
+    "best_scores"
+   ]
+  },
+  {
+   "q": "ถ้าจะใช้คะแนนพาร์ทที่สูงที่สุด ต้องดูเงื่อนไขเรื่องวันสอบยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "best_scores",
+   "gold": [
+    "best_scores"
+   ]
+  },
+  {
+   "q": "How is the Best Scores calculation performed?",
+   "kind": "para_en",
+   "source_id": "best_scores",
+   "gold": [
+    "best_scores"
+   ]
+  },
+  {
+   "q": "What is the validity period for using Best Scores?",
+   "kind": "para_en",
+   "source_id": "best_scores",
+   "gold": [
+    "best_scores"
+   ]
+  },
+  {
+   "q": "ถ้าคะแนนสอบหมดอายุแล้ว สามารถขอสอบใหม่เพื่อใช้คะแนนเดิมได้ไหม",
+   "kind": "near_miss",
+   "source_id": "best_scores",
+   "gold": []
+  },
+  {
+   "q": "การใช้คะแนน Best Scores มีค่าธรรมเนียมในการคำนวณเพิ่มหรือไม่",
+   "kind": "near_miss",
+   "source_id": "best_scores",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะเปลี่ยนชื่อใหม่ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "change_name",
+   "gold": [
+    "change_name"
+   ]
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการเปลี่ยนนามสกุลระหว่างเรียน",
+   "kind": "para_th",
+   "source_id": "change_name",
+   "gold": [
+    "change_name"
+   ]
+  },
+  {
+   "q": "อยากขอแก้ชื่อในระบบ ต้องส่งแบบฟอร์มไหนและส่งที่ไหน",
+   "kind": "para_th",
+   "source_id": "change_name",
+   "gold": [
+    "change_name"
+   ]
+  },
+  {
+   "q": "เปลี่ยนยศทหารต้องใช้หลักฐานอะไรและรอนานไหม",
+   "kind": "para_th",
+   "source_id": "change_name",
+   "gold": [
+    "change_name"
+   ]
+  },
+  {
+   "q": "How can I change my name or surname while studying?",
+   "kind": "para_en",
+   "source_id": "change_name",
+   "gold": [
+    "change_name"
+   ]
+  },
+  {
+   "q": "What is the process and required documents for a name change?",
+   "kind": "para_en",
+   "source_id": "change_name",
+   "gold": [
+    "change_name"
+   ]
+  },
+  {
+   "q": "ถ้าทำบัตรประชาชนหายต้องติดต่อที่ไหน",
+   "kind": "near_miss",
+   "source_id": "change_name",
+   "gold": []
+  },
+  {
+   "q": "การขอใบรับรองสถานภาพนักศึกษาต้องใช้ค่าธรรมเนียมเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "change_name",
+   "gold": []
+  },
+  {
+   "q": "อยากเปลี่ยนแผนการเรียนต้องเริ่มยังไงครับ",
+   "kind": "para_th",
+   "source_id": "change_study_plan",
+   "gold": [
+    "change_study_plan"
+   ]
+  },
+  {
+   "q": "รหัส 66 จะขอเปลี่ยนแผนการศึกษา มีขั้นตอนยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "change_study_plan",
+   "gold": [
+    "change_study_plan"
+   ]
+  },
+  {
+   "q": "ต้องใช้แบบฟอร์มไหนในการยื่นเรื่องเปลี่ยนแผนการเรียน",
+   "kind": "para_th",
+   "source_id": "change_study_plan",
+   "gold": [
+    "change_study_plan"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขออนุมัติเปลี่ยนแผนการศึกษาจากคณบดีต้องทำอย่างไร",
+   "kind": "para_th",
+   "source_id": "change_study_plan",
+   "gold": [
+    "change_study_plan"
+   ]
+  },
+  {
+   "q": "How can I request a change in my study plan?",
+   "kind": "para_en",
+   "source_id": "change_study_plan",
+   "gold": [
+    "change_study_plan"
+   ]
+  },
+  {
+   "q": "What is the process for changing my study plan for student ID 66?",
+   "kind": "para_en",
+   "source_id": "change_study_plan",
+   "gold": [
+    "change_study_plan"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอลาพักการศึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "change_study_plan",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมในการขอเปลี่ยนแผนการศึกษาคือเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "change_study_plan",
+   "gold": []
+  },
+  {
+   "q": "ถ้ามีเรื่องจะสอบถาม ติดต่อทางไหนได้บ้างครับ",
+   "kind": "para_th",
+   "source_id": "contact_line",
+   "gold": [
+    "contact_line"
+   ]
+  },
+  {
+   "q": "ขอไลน์ติดต่อเจ้าหน้าที่หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "contact_line",
+   "gold": [
+    "contact_line"
+   ]
+  },
+  {
+   "q": "เบอร์โทรศัพท์ติดต่อบัณฑิตวิทยาลัยคือเบอร์อะไร",
+   "kind": "para_th",
+   "source_id": "contact_line",
+   "gold": [
+    "contact_line"
+   ]
+  },
+  {
+   "q": "จะติดต่อเรื่องส่งรูปเล่มวิทยานิพนธ์ ต้องแอดไลน์ไหน",
+   "kind": "para_th",
+   "source_id": "contact_line",
+   "gold": [
+    "contact_line"
+   ]
+  },
+  {
+   "q": "How can I contact the Graduate School?",
+   "kind": "para_en",
+   "source_id": "contact_line",
+   "gold": [
+    "contact_line"
+   ]
+  },
+  {
+   "q": "What are the contact channels for the Language Center?",
+   "kind": "para_en",
+   "source_id": "contact_line",
+   "gold": [
+    "contact_line"
+   ]
+  },
+  {
+   "q": "บัณฑิตวิทยาลัยเปิดทำการกี่โมง",
+   "kind": "near_miss",
+   "source_id": "contact_line",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะเข้ามาติดต่อด้วยตัวเองที่สำนักงาน ต้องไปที่ตึกไหน",
+   "kind": "near_miss",
+   "source_id": "contact_line",
+   "gold": []
+  },
+  {
+   "q": "ส่งคะแนนภาษาอังกฤษต้องทำยังไงบ้างครับ",
+   "kind": "para_th",
+   "source_id": "english_submit_score",
+   "gold": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "q": "ถ้ามีคะแนน IELTS แล้วต้องส่งให้บัณฑิตวิทยาลัยทางไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "english_submit_score",
+   "gold": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "q": "อยากอัปโหลดไฟล์ PDF ผลสอบ TOEFL เข้าไปในระบบ ต้องไปที่เว็บไหน",
+   "kind": "para_th",
+   "source_id": "english_submit_score",
+   "gold": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "q": "แจ้งศูนย์ภาษาให้ส่งคะแนน MU ELT มาให้ได้ไหม",
+   "kind": "para_th",
+   "source_id": "english_submit_score",
+   "gold": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "q": "How can I submit my IELTS results?",
+   "kind": "para_en",
+   "source_id": "english_submit_score",
+   "gold": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "q": "What are the methods to submit TOEFL iBT scores?",
+   "kind": "para_en",
+   "source_id": "english_submit_score",
+   "gold": [
+    "english_submit_score"
+   ]
+  },
+  {
+   "q": "คะแนน TOEFL ที่ใช้ต้องมีอายุไม่เกินกี่ปี",
+   "kind": "near_miss",
+   "source_id": "english_submit_score",
+   "gold": []
+  },
+  {
+   "q": "ถ้าสอบไม่ผ่านเกณฑ์ภาษาอังกฤษ ต้องลงเรียนคอร์สเสริมที่ไหน",
+   "kind": "near_miss",
+   "source_id": "english_submit_score",
+   "gold": []
+  },
+  {
+   "q": "เป็นข้าราชการแล้วเรียนไม่จบตามกำหนด ต้องทำยังไงคะ",
+   "kind": "para_th",
+   "source_id": "extend_study_leave",
+   "gold": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "q": "จะขอขยายเวลาเรียนต่อ ต้องใช้แบบฟอร์มไหนแล้วส่งที่ไหน",
+   "kind": "para_th",
+   "source_id": "extend_study_leave",
+   "gold": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "q": "อยากให้บัณฑิตวิทยาลัยช่วยทำเรื่องแจ้งต้นสังกัดขอต่อเวลาเรียน ต้องยื่นเอกสารยังไง",
+   "kind": "para_th",
+   "source_id": "extend_study_leave",
+   "gold": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขอขยายเวลาศึกษาต่อสำหรับข้าราชการทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "extend_study_leave",
+   "gold": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "q": "How can I request an extension for my study period as a government official?",
+   "kind": "para_en",
+   "source_id": "extend_study_leave",
+   "gold": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "q": "Where should I submit the form for study period extension for civil servants?",
+   "kind": "para_en",
+   "source_id": "extend_study_leave",
+   "gold": [
+    "extend_study_leave"
+   ]
+  },
+  {
+   "q": "ถ้าลาพักการเรียนต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "extend_study_leave",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการขอจบการศึกษา",
+   "kind": "near_miss",
+   "source_id": "extend_study_leave",
+   "gold": []
+  },
+  {
+   "q": "จะติดต่อสอบถามเรื่องการสมัครเรียนได้ที่ไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": [
+    "gm_admissions_office_contacts"
+   ]
+  },
+  {
+   "q": "ขอเบอร์โทรศัพท์ติดต่อฝ่ายรับนักศึกษาหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": [
+    "gm_admissions_office_contacts"
+   ]
+  },
+  {
+   "q": "มีช่องทางไลน์หรืออีเมลสำหรับสอบถามข้อมูลไหม",
+   "kind": "para_th",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": [
+    "gm_admissions_office_contacts"
+   ]
+  },
+  {
+   "q": "ถ้ามีปัญหาเรื่องการสมัครเรียน ต้องติดต่อเบอร์ไหนหรือช่องทางใด",
+   "kind": "para_th",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": [
+    "gm_admissions_office_contacts"
+   ]
+  },
+  {
+   "q": "How can I contact the Graduate School admissions office?",
+   "kind": "para_en",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": [
+    "gm_admissions_office_contacts"
+   ]
+  },
+  {
+   "q": "Could you provide the contact information for admissions?",
+   "kind": "para_en",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": [
+    "gm_admissions_office_contacts"
+   ]
+  },
+  {
+   "q": "กำหนดการปิดรับสมัครภาคต้นปี 2569 คือวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการสมัครเรียนหลักสูตรนานาชาติ",
+   "kind": "near_miss",
+   "source_id": "gm_admissions_office_contacts",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมไฟล์อะไรบ้างตอนสมัครเรียนครับ",
+   "kind": "para_th",
+   "source_id": "gm_application_documents_upload",
+   "gold": [
+    "gm_application_documents_upload"
+   ]
+  },
+  {
+   "q": "หลักฐานการเรียนต้องเป็นภาษาอะไรถึงจะใช้ได้",
+   "kind": "para_th",
+   "source_id": "gm_application_documents_upload",
+   "gold": [
+    "gm_application_documents_upload"
+   ]
+  },
+  {
+   "q": "ถ้าเป็นคนไทยต้องใช้สำเนาบัตรประชาชนด้วยไหม",
+   "kind": "para_th",
+   "source_id": "gm_application_documents_upload",
+   "gold": [
+    "gm_application_documents_upload"
+   ]
+  },
+  {
+   "q": "พวก SOP หรือ CV ต้องอัปโหลดลงไปในระบบด้วยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_application_documents_upload",
+   "gold": [
+    "gm_application_documents_upload"
+   ]
+  },
+  {
+   "q": "What documents are required for the application process?",
+   "kind": "para_en",
+   "source_id": "gm_application_documents_upload",
+   "gold": [
+    "gm_application_documents_upload"
+   ]
+  },
+  {
+   "q": "Do I need to provide my transcript in English?",
+   "kind": "para_en",
+   "source_id": "gm_application_documents_upload",
+   "gold": [
+    "gm_application_documents_upload"
+   ]
+  },
+  {
+   "q": "ต้องอัปโหลดไฟล์เป็นนามสกุล .pdf หรือ .jpg เท่านั้นใช่ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_application_documents_upload",
+   "gold": []
+  },
+  {
+   "q": "กำหนดการปิดรับสมัครรอบแรกคือวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_application_documents_upload",
+   "gold": []
+  },
+  {
+   "q": "สมัครเรียนต้องจ่ายเงินกี่บาท",
+   "kind": "para_th",
+   "source_id": "gm_application_fee",
+   "gold": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "q": "ค่าสมัครแต่ละสาขาแพงไหมครับ",
+   "kind": "para_th",
+   "source_id": "gm_application_fee",
+   "gold": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "q": "ถ้าจะสมัครหลายๆ หลักสูตรพร้อมกันต้องเสียค่าธรรมเนียมเพิ่มยังไง",
+   "kind": "para_th",
+   "source_id": "gm_application_fee",
+   "gold": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "q": "เงิน 500 บาทที่ต้องจ่ายตอนสมัคร คือค่าเทอมหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_application_fee",
+   "gold": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "q": "How much is the application fee per program?",
+   "kind": "para_en",
+   "source_id": "gm_application_fee",
+   "gold": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "q": "Does the 500 baht fee cover tuition costs?",
+   "kind": "para_en",
+   "source_id": "gm_application_fee",
+   "gold": [
+    "gm_application_fee"
+   ]
+  },
+  {
+   "q": "ถ้าจ่ายค่าสมัครแล้ว สามารถผ่อนชำระได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_application_fee",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมแรกเข้าและค่าขึ้นทะเบียนนักศึกษาใหม่ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_application_fee",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการสมัครเรียนต่อ ป.โท ต้องทำยังไงบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_application_overview",
+   "gold": [
+    "gm_application_overview"
+   ]
+  },
+  {
+   "q": "อยากสมัครเรียนต้องเริ่มตรงไหน มีขั้นตอนอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_application_overview",
+   "gold": [
+    "gm_application_overview"
+   ]
+  },
+  {
+   "q": "ช่วยบอกวิธีการลงทะเบียนและส่งเอกสารสมัครเรียนหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_application_overview",
+   "gold": [
+    "gm_application_overview"
+   ]
+  },
+  {
+   "q": "ต้องทำยังไงบ้างถึงจะได้เป็นนักศึกษาใหม่ของบัณฑิตวิทยาลัย",
+   "kind": "para_th",
+   "source_id": "gm_application_overview",
+   "gold": [
+    "gm_application_overview"
+   ]
+  },
+  {
+   "q": "How can I apply for a graduate program?",
+   "kind": "para_en",
+   "source_id": "gm_application_overview",
+   "gold": [
+    "gm_application_overview"
+   ]
+  },
+  {
+   "q": "What is the application process for graduate school?",
+   "kind": "para_en",
+   "source_id": "gm_application_overview",
+   "gold": [
+    "gm_application_overview"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมการศึกษาของแต่ละหลักสูตรราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_application_overview",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้คะแนนสอบภาษาอังกฤษอะไรบ้างในการสมัคร",
+   "kind": "near_miss",
+   "source_id": "gm_application_overview",
+   "gold": []
+  },
+  {
+   "q": "จะเช็คค่าหอพักกับจำนวนห้องว่างได้ที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_dormitory_navigation",
+   "gold": [
+    "gm_dormitory_navigation"
+   ]
+  },
+  {
+   "q": "อยากรู้เรื่องหอพักมหิดลต้องเข้าไปดูในเว็บไหน",
+   "kind": "para_th",
+   "source_id": "gm_dormitory_navigation",
+   "gold": [
+    "gm_dormitory_navigation"
+   ]
+  },
+  {
+   "q": "ถ้าเป็นเด็กเก่าจะดูประกาศจ่ายเงินค่าหอภาคปลาย 67 ได้จากที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_dormitory_navigation",
+   "gold": [
+    "gm_dormitory_navigation"
+   ]
+  },
+  {
+   "q": "มีปัญหาเรื่องสิทธิการได้หอพัก ต้องติดต่อใครหรือดูที่ไหนดี",
+   "kind": "para_th",
+   "source_id": "gm_dormitory_navigation",
+   "gold": [
+    "gm_dormitory_navigation"
+   ]
+  },
+  {
+   "q": "Where can I find information about Mahidol dormitory?",
+   "kind": "para_en",
+   "source_id": "gm_dormitory_navigation",
+   "gold": [
+    "gm_dormitory_navigation"
+   ]
+  },
+  {
+   "q": "How to check the dormitory vacancy and room fees?",
+   "kind": "para_en",
+   "source_id": "gm_dormitory_navigation",
+   "gold": [
+    "gm_dormitory_navigation"
+   ]
+  },
+  {
+   "q": "หอพักมหิดลมีราคาค่าเช่าต่อเดือนเท่าไหร่บ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_dormitory_navigation",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการย้ายออกจากหอพักต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_dormitory_navigation",
+   "gold": []
+  },
+  {
+   "q": "จะเช็คคะแนนภาษาอังกฤษที่ต้องใช้ของแต่ละสาขาได้ที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_english_requirements_sources",
+   "gold": [
+    "gm_english_requirements_sources"
+   ]
+  },
+  {
+   "q": "ต้องส่งผลสอบภาษาอังกฤษยังไง แล้วมีแบบฟอร์มอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_english_requirements_sources",
+   "gold": [
+    "gm_english_requirements_sources"
+   ]
+  },
+  {
+   "q": "อยากทราบช่องทางการสมัครสอบภาษาอังกฤษของบัณฑิตวิทยาลัยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_english_requirements_sources",
+   "gold": [
+    "gm_english_requirements_sources"
+   ]
+  },
+  {
+   "q": "คะแนนสอบที่ได้ต้องเอาไปกรอกในระบบตรงไหน",
+   "kind": "para_th",
+   "source_id": "gm_english_requirements_sources",
+   "gold": [
+    "gm_english_requirements_sources"
+   ]
+  },
+  {
+   "q": "Where can I find the English proficiency requirements for my program?",
+   "kind": "para_en",
+   "source_id": "gm_english_requirements_sources",
+   "gold": [
+    "gm_english_requirements_sources"
+   ]
+  },
+  {
+   "q": "How do I submit my English test scores to the graduate school?",
+   "kind": "para_en",
+   "source_id": "gm_english_requirements_sources",
+   "gold": [
+    "gm_english_requirements_sources"
+   ]
+  },
+  {
+   "q": "ถ้าคะแนนภาษาอังกฤษไม่ถึงเกณฑ์ ต้องเรียนคอร์สเสริมที่ไหนครับ",
+   "kind": "near_miss",
+   "source_id": "gm_english_requirements_sources",
+   "gold": []
+  },
+  {
+   "q": "สอบภาษาอังกฤษเสร็จแล้ว ต้องรอประกาศผลกี่วันถึงจะขึ้นในระบบ",
+   "kind": "near_miss",
+   "source_id": "gm_english_requirements_sources",
+   "gold": []
+  },
+  {
+   "q": "ถ้าสอบติดแล้วไม่อยากเรียนต่อ ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "gm_forms_directory",
+   "gold": [
+    "gm_forms_directory"
+   ]
+  },
+  {
+   "q": "อยากขอยกเลิกสิทธิ์การเข้าเรียน ต้องไปกรอกฟอร์มที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_forms_directory",
+   "gold": [
+    "gm_forms_directory"
+   ]
+  },
+  {
+   "q": "ขอลิงก์คู่มือการสละสิทธิ์การเข้าศึกษาหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_forms_directory",
+   "gold": [
+    "gm_forms_directory"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการแจ้งความประสงค์ไม่ขอใช้สิทธิ์เรียนต่อบัณฑิตวิทยาลัยทำผ่านช่องทางไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "gm_forms_directory",
+   "gold": [
+    "gm_forms_directory"
+   ]
+  },
+  {
+   "q": "How can I withdraw my admission to Mahidol University?",
+   "kind": "para_en",
+   "source_id": "gm_forms_directory",
+   "gold": [
+    "gm_forms_directory"
+   ]
+  },
+  {
+   "q": "Where can I find the online form for waiving my study rights?",
+   "kind": "para_en",
+   "source_id": "gm_forms_directory",
+   "gold": [
+    "gm_forms_directory"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอลาพักการเรียนต้องทำเรื่องที่ไหน",
+   "kind": "near_miss",
+   "source_id": "gm_forms_directory",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการสมัครเรียนใหม่",
+   "kind": "near_miss",
+   "source_id": "gm_forms_directory",
+   "gold": []
+  },
+  {
+   "q": "ปี 2568 ภาคปลาย ต้องไปตรวจสุขภาพที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": [
+    "gm_health_check_cancellation_2568"
+   ]
+  },
+  {
+   "q": "เห็นประกาศเรื่องตรวจสุขภาพในเว็บ แต่ทำไมกดเข้าไปแล้วเป็นเรื่องยกเลิกประกาศครับ",
+   "kind": "para_th",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": [
+    "gm_health_check_cancellation_2568"
+   ]
+  },
+  {
+   "q": "สรุปว่านักศึกษาใหม่ปี 68 ไม่ต้องตรวจสุขภาพแล้วใช่ไหม",
+   "kind": "para_th",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": [
+    "gm_health_check_cancellation_2568"
+   ]
+  },
+  {
+   "q": "เอกสารที่เขียนว่าเรื่องตรวจสุขภาพปี 68 มันคือประกาศอะไรกันแน่",
+   "kind": "para_th",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": [
+    "gm_health_check_cancellation_2568"
+   ]
+  },
+  {
+   "q": "Do I need to undergo a health checkup for the second semester of academic year 2025?",
+   "kind": "para_en",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": [
+    "gm_health_check_cancellation_2568"
+   ]
+  },
+  {
+   "q": "Is the health examination announcement for the 2025 academic year cancelled?",
+   "kind": "para_en",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": [
+    "gm_health_check_cancellation_2568"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการตรวจสุขภาพที่โรงพยาบาล",
+   "kind": "near_miss",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเป็นหลักสูตรปริญญาเอก ต้องตรวจสุขภาพเหมือนปริญญาโทไหม",
+   "kind": "near_miss",
+   "source_id": "gm_health_check_cancellation_2568",
+   "gold": []
+  },
+  {
+   "q": "จะหาแบบฟอร์มขอเบิกค่าหมอฟันได้จากตรงไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_health_service_navigation",
+   "gold": [
+    "gm_health_service_navigation"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ดาวน์โหลดใบคำร้องขอเบิกค่ารักษาพยาบาลหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_health_service_navigation",
+   "gold": [
+    "gm_health_service_navigation"
+   ]
+  },
+  {
+   "q": "อยากเปลี่ยนหน่วยบริการสุขภาพต้องทำยังไง และหาเอกสารได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_health_service_navigation",
+   "gold": [
+    "gm_health_service_navigation"
+   ]
+  },
+  {
+   "q": "หน้าเว็บสวัสดิการมีข้อมูลเรื่องสิทธิการรักษาปี 2<0xA0>2566 ไหม",
+   "kind": "para_th",
+   "source_id": "gm_health_service_navigation",
+   "gold": [
+    "gm_health_service_navigation"
+   ]
+  },
+  {
+   "q": "Where can I find the medical reimbursement forms?",
+   "kind": "para_en",
+   "source_id": "gm_health_service_navigation",
+   "gold": [
+    "gm_health_service_navigation"
+   ]
+  },
+  {
+   "q": "How to check the healthcare service guidelines for students?",
+   "kind": "para_en",
+   "source_id": "gm_health_service_navigation",
+   "gold": [
+    "gm_health_service_navigation"
+   ]
+  },
+  {
+   "q": "ค่ารักษาพยาบาลที่คลินิกข้างนอกเบิกได้สูงสุดกี่บาท",
+   "kind": "near_miss",
+   "source_id": "gm_health_service_navigation",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเจ็บป่วยฉุกเฉินต้องไปโรงพยาบาลไหนถึงจะฟรี",
+   "kind": "near_miss",
+   "source_id": "gm_health_service_navigation",
+   "gold": []
+  },
+  {
+   "q": "เครียดเรื่องเรียนมากเลยครับ มีที่ไหนให้ปรึกษาเรื่องสุขภาพจิตบ้างไหม",
+   "kind": "para_th",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": [
+    "gm_mental_wellbeing_navigation"
+   ]
+  },
+  {
+   "q": "อยากรู้วิธีนัดหมายคุยกับนักจิตวิทยา ต้องทำยังไงคะ",
+   "kind": "para_th",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": [
+    "gm_mental_wellbeing_navigation"
+   ]
+  },
+  {
+   "q": "ขอเบอร์ติดต่อฝ่ายกิจการนักศึกษาหน่อยครับ พอดีมีเรื่องไม่สบายใจ",
+   "kind": "para_th",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": [
+    "gm_mental_wellbeing_navigation"
+   ]
+  },
+  {
+   "q": "ถ้าอยากหาที่ปรึกษาด้านสุขภาพใจ ดูรายละเอียดได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": [
+    "gm_mental_wellbeing_navigation"
+   ]
+  },
+  {
+   "q": "Where can I find mental health support services?",
+   "kind": "para_en",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": [
+    "gm_mental_wellbeing_navigation"
+   ]
+  },
+  {
+   "q": "How can I make an appointment for counseling?",
+   "kind": "para_en",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": [
+    "gm_mental_wellbeing_navigation"
+   ]
+  },
+  {
+   "q": "ถ้ามีอาการซึมเศร้าหนักมาก ต้องไปโรงพยาบาลไหนด่วนที่สุด",
+   "kind": "near_miss",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": []
+  },
+  {
+   "q": "ทางบัณฑิตวิทยาลัยมีบริการให้คำปรึกษาแบบตัวต่อตัวหรือผ่านออนไลน์บ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_mental_wellbeing_navigation",
+   "gold": []
+  },
+  {
+   "q": "จะหาประกาศผ่อนผันทหารของปี 2570 ได้จากที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": [
+    "gm_military_deferment_directory_2570"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ดูรายละเอียดเรื่องการขอผ่อนผันทหารปี 257ไปหน่อย",
+   "kind": "para_th",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": [
+    "gm_military_deferment_directory_2570"
+   ]
+  },
+  {
+   "q": "ปี 2570 ต้องส่งเอกสารผ่อนผันทหารเมื่อไหร่ แล้วใครมีสิทธิบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": [
+    "gm_military_deferment_directory_2570"
+   ]
+  },
+  {
+   "q": "เช็คเรื่องการผ่อนผันทหารประจำปี 2570 ได้ที่หน้าไหนของเว็บ",
+   "kind": "para_th",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": [
+    "gm_military_deferment_directory_2570"
+   ]
+  },
+  {
+   "q": "Where can I find the military deferment announcement for 2027?",
+   "kind": "para_en",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": [
+    "gm_military_deferment_directory_2570"
+   ]
+  },
+  {
+   "q": "How can I check the eligibility for military service exemption in 2027?",
+   "kind": "para_en",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": [
+    "gm_military_deferment_directory_2570"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการขอผ่อนผันทหาร",
+   "kind": "near_miss",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": []
+  },
+  {
+   "q": "ถ้าไม่ได้ทำเรื่องผ่อนผันทหารปี 2570 จะมีผลต่อการลงทะเบียนเรียนไหม",
+   "kind": "near_miss",
+   "source_id": "gm_military_deferment_directory_2570",
+   "gold": []
+  },
+  {
+   "q": "ตอนนี้มีคณะไหนเปิดรับสมัครบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_programme_availability",
+   "gold": [
+    "gm_programme_availability"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่าปีการศึกษา 2570 มีหลักสูตรไหนเปิดรับบ้าง ช่วยเช็คให้หน่อย",
+   "kind": "para_th",
+   "source_id": "gm_programme_availability",
+   "gold": [
+    "gm_programme_availability"
+   ]
+  },
+  {
+   "q": "ช่วยดูให้ทีว่าตอนนี้มีประกาศรับสมัครเรียนของระดับบัณฑิตศึกษาบ้างไหม",
+   "kind": "para_th",
+   "source_id": "gm_programme_availability",
+   "gold": [
+    "gm_programme_availability"
+   ]
+  },
+  {
+   "q": "อยากตรวจสอบรายชื่อหลักสูตรที่ยังเปิดรับสมัครอยู่ ต้องไปดูตรงไหนและมีเยอะไหม",
+   "kind": "para_th",
+   "source_id": "gm_programme_availability",
+   "gold": [
+    "gm_programme_availability"
+   ]
+  },
+  {
+   "q": "Which programs are currently open for applications?",
+   "kind": "para_en",
+   "source_id": "gm_programme_availability",
+   "gold": [
+    "gm_programme_availability"
+   ]
+  },
+  {
+   "q": "Are there any available courses for the 2027 academic year?",
+   "kind": "para_en",
+   "source_id": "gm_programme_availability",
+   "gold": [
+    "gm_programme_availability"
+   ]
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการสมัครเรียนหลักสูตรที่เปิดรับ",
+   "kind": "near_miss",
+   "source_id": "gm_programme_availability",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการศึกษาของแต่ละคณะราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_programme_availability",
+   "gold": []
+  },
+  {
+   "q": "ต้องจ่ายเงินค่าเทอมไม่เกินวันไหนครับ ถึงจะไม่โดนค่าปรับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569",
+   "gold": [
+    "gm_registration_2569"
+   ]
+  },
+  {
+   "q": "ลงทะเบียนเรียนเทอม 1/2569 ได้ตั้งแต่วันไหนถึงวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569",
+   "gold": [
+    "gm_registration_2569"
+   ]
+  },
+  {
+   "q": "ถ้าจ่ายค่าธรรมเนียมหลังสี่ทุ่มของวันสุดท้าย ต้องเสียเงินเพิ่มเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569",
+   "gold": [
+    "gm_registration_2569"
+   ]
+  },
+  {
+   "q": "ช่วงที่สามารถขอเพิ่มหรือถอนรายวิชาได้คือช่วงไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569",
+   "gold": [
+    "gm_registration_2569"
+   ]
+  },
+  {
+   "q": "What is the deadline for late registration for the first semester of 2026?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2569",
+   "gold": [
+    "gm_registration_2569"
+   ]
+  },
+  {
+   "q": "How much is the penalty fee for late payment?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2569",
+   "gold": [
+    "gm_registration_2569"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอลาพักการศึกษาต้องทำเรื่องภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2569",
+   "gold": []
+  },
+  {
+   "q": "การขอจบการศึกษาภาคต้นปี 2569 ต้องเตรียมเอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2569",
+   "gold": []
+  },
+  {
+   "q": "ลงทะเบียนเทอม 2 ปี 69 ได้ตั้งแต่วันไหนถึงวันไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": [
+    "gm_registration_2569_second_semester"
+   ]
+  },
+  {
+   "q": "ถ้าลืมจ่ายเงินค่าเทอมหลังจากวันที่ 31 ธันวาคม 69 ต้องเสียค่าปรับเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": [
+    "gm_registration_2569_second_semester"
+   ]
+  },
+  {
+   "q": "ช่วงที่สามารถขอเพิ่มหรือลดวิชาเรียนของภาคปลายปี 69 คือช่วงไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": [
+    "gm_registration_2569_second_semester"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอเงินคืนค่าหน่วยกิตจากการดรอปเรียน ต้องยื่นเรื่องภายในวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": [
+    "gm_registration_2569_second_semester"
+   ]
+  },
+  {
+   "q": "When is the deadline for tuition fee payment for the second semester of academic year 2026?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": [
+    "gm_registration_2569_second_semester"
+   ]
+  },
+  {
+   "q": "What is the period for late registration and course add/drop for the upcoming semester?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": [
+    "gm_registration_2569_second_semester"
+   ]
+  },
+  {
+   "q": "ถ้าต้องการขอลาพักการเรียนในภาคปลายปี 2569 ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการลงทะเบียนล่าช้าของภาคต้นปี 2569 ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2569_second_semester",
+   "gold": []
+  },
+  {
+   "q": "ลงทะเบียนเทอมซัมเมอร์ปี 69 วันไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_summer",
+   "gold": [
+    "gm_registration_2569_summer"
+   ]
+  },
+  {
+   "q": "ถ้าจ่ายเงินค่าเทอมไม่ทันวันที่ 27 พฤษภา 70 จะต้องเสียค่าปรับเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_summer",
+   "gold": [
+    "gm_registration_2569_summer"
+   ]
+  },
+  {
+   "q": "ช่วงเพิ่มลดวิชาของภาคฤดูร้อนปี 2569 เริ่มวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_summer",
+   "gold": [
+    "gm_registration_2569_summer"
+   ]
+  },
+  {
+   "q": "อยากขอเงินคืนค่าหน่วยกิตที่ลดไป ต้องยื่นเรื่องภายในวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2569_summer",
+   "gold": [
+    "gm_registration_2569_summer"
+   ]
+  },
+  {
+   "q": "When is the registration period for the summer semester 2026?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2569_summer",
+   "gold": [
+    "gm_registration_2569_summer"
+   ]
+  },
+  {
+   "q": "How much is the late registration fee for summer 2026?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2569_summer",
+   "gold": [
+    "gm_registration_2569_summer"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอลาพักการเรียนภาคฤดูร้อนปี 2569 ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2569_summer",
+   "gold": []
+  },
+  {
+   "q": "เกรดของภาคฤดูร้อนปี 2569 จะประกาศวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2569_summer",
+   "gold": []
+  },
+  {
+   "q": "ต้องจ่ายค่าเทอมภายในวันไหนถึงจะไม่โดนปรับ?",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_first",
+   "gold": [
+    "gm_registration_2570_first"
+   ]
+  },
+  {
+   "q": "ช่วงที่สามารถเพิ่มหรือลดวิชาเรียนได้คือช่วงไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_first",
+   "gold": [
+    "gm_registration_2570_first"
+   ]
+  },
+  {
+   "q": "ถ้าลงทะเบียนไม่ทันช่วงปกติ จะต้องเสียค่าปรับเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_first",
+   "gold": [
+    "gm_registration_2570_first"
+   ]
+  },
+  {
+   "q": "จะขอเงินคืนค่าหน่วยกิตที่ลดไป ต้องยื่นเรื่องภายในวันที่เท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_first",
+   "gold": [
+    "gm_registration_2570_first"
+   ]
+  },
+  {
+   "q": "When is the deadline for the regular registration period for the first semester of 2027?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2570_first",
+   "gold": [
+    "gm_registration_2570_first"
+   ]
+  },
+  {
+   "q": "How much is the late registration fee?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2570_first",
+   "gold": [
+    "gm_registration_2570_first"
+   ]
+  },
+  {
+   "q": "ถ้าต้องการขอลาพักการศึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2570_first",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการรักษาสถานภาพนิสิตราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2570_first",
+   "gold": []
+  },
+  {
+   "q": "ลงทะเบียนเทอม 2 ปี 70 ต้องทำช่วงไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_second",
+   "gold": [
+    "gm_registration_2570_second"
+   ]
+  },
+  {
+   "q": "ถ้าจะจ่ายค่าเทอมภาคปลายปี 70 วันสุดท้ายคือเมื่อไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_second",
+   "gold": [
+    "gm_registration_2570_second"
+   ]
+  },
+  {
+   "q": "ถ้าลงทะเบียนไม่ทันช่วงปกติ จะต้องเสียค่าปรับเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_second",
+   "gold": [
+    "gm_registration_2570_second"
+   ]
+  },
+  {
+   "q": "อยากขอเงินคืนค่าหน่วยกิตจากการดรอปวิชา ต้องยื่นเรื่องภายในวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_second",
+   "gold": [
+    "gm_registration_2570_second"
+   ]
+  },
+  {
+   "q": "What is the deadline for tuition fee payment for the second semester of 2027?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2570_second",
+   "gold": [
+    "gm_registration_2570_second"
+   ]
+  },
+  {
+   "q": "When is the Add/Drop period for the upcoming semester?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2570_second",
+   "gold": [
+    "gm_registration_2570_second"
+   ]
+  },
+  {
+   "q": "ภาคปลายปี 2570 ต้องเตรียมเอกสารอะไรบ้างในการลงทะเบียน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2570_second",
+   "gold": []
+  },
+  {
+   "q": "ถ้าลืมจ่ายค่าเทอมเกินกำหนด จะสามารถขอผ่อนชำระได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2570_second",
+   "gold": []
+  },
+  {
+   "q": "เทอมซัมเมอร์ปี 70 ต้องลงทะเบียนวันไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_summer",
+   "gold": [
+    "gm_registration_2570_summer"
+   ]
+  },
+  {
+   "q": "ถ้าจ่ายค่าเทอมไม่ทันวันที่ 25 พฤษภาคม 2571 จะต้องเสียค่าปรับเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_summer",
+   "gold": [
+    "gm_registration_2570_summer"
+   ]
+  },
+  {
+   "q": "อยากจะเพิ่มหรือลดวิชาเรียนช่วงฤดูร้อนปี 70 ต้องทำภายในวันที่เท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_summer",
+   "gold": [
+    "gm_registration_2570_summer"
+   ]
+  },
+  {
+   "q": "ถ้าลดวิชาไปแล้ว จะขอเงินคืนค่าหน่วยกิตได้ถึงวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_2570_summer",
+   "gold": [
+    "gm_registration_2570_summer"
+   ]
+  },
+  {
+   "q": "What is the registration period for the Summer 2027 semester?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2570_summer",
+   "gold": [
+    "gm_registration_2570_summer"
+   ]
+  },
+  {
+   "q": "How much is the late registration fee for the Summer 2027 term?",
+   "kind": "para_en",
+   "source_id": "gm_registration_2570_summer",
+   "gold": [
+    "gm_registration_2570_summer"
+   ]
+  },
+  {
+   "q": "ปีการศึกษา 2570 ภาคเรียนที่ 1 เริ่มเรียนวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2570_summer",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะขอลาพักการเรียนของภาคฤดูร้อนปี 2570 ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_2570_summer",
+   "gold": []
+  },
+  {
+   "q": "สอบผ่านวิทยานิพนธ์แล้วแต่ยังไม่ได้ตีพิมพ์ ต้องจ่ายค่าเทอมต่อไหมคะ",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense",
+   "gold": [
+    "gm_registration_after_defense"
+   ]
+  },
+  {
+   "q": "ถ้าสอบผ่านแล้วแต่รอขั้นตอนการเผยแพร่ผลงาน ต้องลงทะเบียนรักษาสภาพหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense",
+   "gold": [
+    "gm_registration_after_defense"
+   ]
+  },
+  {
+   "q": "นักศึกษาเก่า (ก่อนปี 67) ที่สอบผ่านแล้วแต่ยังไม่จบเพราะรอเผยแพร่ ต้องชำระค่าธรรมเนียมการศึกษาไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense",
+   "gold": [
+    "gm_registration_after_defense"
+   ]
+  },
+  {
+   "q": "สอบเสร็จแล้วแต่ยังไม่ได้ส่ง e-Thesis ยังต้องลงทะเบียนเรียนอยู่ไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense",
+   "gold": [
+    "gm_registration_after_defense"
+   ]
+  },
+  {
+   "q": "Do I need to pay tuition fees if I passed my thesis defense but am waiting for publication?",
+   "kind": "para_en",
+   "source_id": "gm_registration_after_defense",
+   "gold": [
+    "gm_registration_after_defense"
+   ]
+  },
+  {
+   "q": "Is registration required for students waiting for publication after passing the thesis examination?",
+   "kind": "para_en",
+   "source_id": "gm_registration_after_defense",
+   "gold": [
+    "gm_registration_after_defense"
+   ]
+  },
+  {
+   "q": "ต้องส่งรูปเล่มวิทยานิพนธ์ฉบับสมบูรณ์ภายในกี่วันหลังจากสอบผ่าน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_after_defense",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขออนุมัติปริญญาจากสภามหาวิทยาลัยต้องทำอย่างไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_registration_after_defense",
+   "gold": []
+  },
+  {
+   "q": "สอบผ่านวิทยานิพนธ์แล้ว ไม่ต้องจ่ายค่าเทอมภาคหน้าได้เลยไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": [
+    "gm_registration_after_defense_flat"
+   ]
+  },
+  {
+   "q": "ถ้าเรียนระบบเหมาจ่าย แล้วสอบผ่านแต่ยังรอประกาศผลในวารสาร ต้องจ่ายเงินต่อหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": [
+    "gm_registration_after_defense_flat"
+   ]
+  },
+  {
+   "q": "ส่งเล่ม e-Thesis เสร็จแล้ว ถือว่าไม่ต้องลงทะเบียนเรียนในเทอมถัดไปได้เลยใช่ไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": [
+    "gm_registration_after_defense_flat"
+   ]
+  },
+  {
+   "q": "อยากทราบเรื่องการรักษาสภาพนักศึกษา สำหรับคนที่ใช้ข้อบังคับปี 2567 ครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": [
+    "gm_registration_after_defense_flat"
+   ]
+  },
+  {
+   "q": "Do I need to continue paying tuition fees after passing my thesis defense?",
+   "kind": "para_en",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": [
+    "gm_registration_after_defense_flat"
+   ]
+  },
+  {
+   "q": "Does submitting the final e-Thesis exempt me from registration fees in the next semester?",
+   "kind": "para_en",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": [
+    "gm_registration_after_defense_flat"
+   ]
+  },
+  {
+   "q": "ถ้าสอบไม่ผ่านวิทยานิพนธ์ จะต้องชำระค่าธรรมเนียมรักษาสภาพเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการส่งรูปเล่ม e-Thesis หลังจากสอบผ่านต้องทำอย่างไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_registration_after_defense_flat",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเทอมหน้าไม่อยากลงทะเบียนเรียนแล้ว ต้องทำยังไงบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": [
+    "gm_registration_exemption_2570"
+   ]
+  },
+  {
+   "q": "เงื่อนไขการไม่ลงทะเบียนและไม่ชำระค่าเทอมในปี 2570 มีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": [
+    "gm_registration_exemption_2570"
+   ]
+  },
+  {
+   "q": "เรียนป.โท/ป.เอก ถ้าจะจบแบบไม่ลงทะเบียนต่อ ต้องสอบผ่านอะไรบ้างถึงจะผ่านเกณฑ์",
+   "kind": "para_th",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": [
+    "gm_registration_exemption_2570"
+   ]
+  },
+  {
+   "q": "กำหนดวันสุดท้ายที่ต้องดำเนินการสำหรับรอบปีการศึกษา 2570 คือวันไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": [
+    "gm_registration_exemption_2570"
+   ]
+  },
+  {
+   "q": "What are the requirements for not registering for the next semester in 2027?",
+   "kind": "para_en",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": [
+    "gm_registration_exemption_2570"
+   ]
+  },
+  {
+   "q": "What is the deadline for completing the process for the first semester of 2027?",
+   "kind": "para_en",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": [
+    "gm_registration_exemption_2570"
+   ]
+  },
+  {
+   "q": "ถ้าสอบตกวิชาภาษาอังกฤษ จะสามารถขอยกเว้นการลงทะเบียนในเทอมหน้าได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอลาพักการเรียนของบัณฑิตวิทยาลัยต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_exemption_2570",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้ค่าเทอมปี 67 ของหลักสูตรชีววิทยา คณะวิทยาศาสตร์ ต้องดูตรงไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": [
+    "gm_registration_fee_navigation"
+   ]
+  },
+  {
+   "q": "ค่าเทอมของนักศึกษาภาคพิเศษต่างจากภาคปกติไหม แล้วต้องเช็คข้อมูลยังไง",
+   "kind": "para_th",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": [
+    "gm_registration_fee_navigation"
+   ]
+  },
+  {
+   "q": "ค่าสมัครเรียนกับค่าเทอมที่ต้องจ่ายเทอมแรกคือยอดเดียวกันหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": [
+    "gm_registration_fee_navigation"
+   ]
+  },
+  {
+   "q": "จะเช็คค่าธรรมเนียมการศึกษาของหลักสูตรนานาชาติ ต้องดูประกาศของปีไหนและใช้ของคณะอื่นแทนได้ไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": [
+    "gm_registration_fee_navigation"
+   ]
+  },
+  {
+   "q": "How can I check the tuition fees for my specific program and faculty?",
+   "kind": "para_en",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": [
+    "gm_registration_fee_navigation"
+   ]
+  },
+  {
+   "q": "Is the tuition fee the same for all international students and local students?",
+   "kind": "para_en",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": [
+    "gm_registration_fee_navigation"
+   ]
+  },
+  {
+   "q": "ถ้าจ่ายค่าเทอมล่าช้าจะมีค่าปรับวันละเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": []
+  },
+  {
+   "q": "สามารถขอผ่อนชำระค่าเล่าเรียนเป็นงวดๆ ได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_registration_fee_navigation",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเรียนไม่ไหวแล้วจะขอลดวิชาเพื่อเอาเงินคืนได้ไหมครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_flat_refund",
+   "gold": [
+    "gm_registration_flat_refund"
+   ]
+  },
+  {
+   "q": "ลาออกจากหลักสูตรแบบเหมาจ่ายยังไงถึงจะได้เงินคืนบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_registration_flat_refund",
+   "gold": [
+    "gm_registration_flat_refund"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอคืนเงินค่าเทอมต้องยื่นเรื่องภายในกี่วันหลังจากปิดช่วงเพิ่มลดวิชา",
+   "kind": "para_th",
+   "source_id": "gm_registration_flat_refund",
+   "gold": [
+    "gm_registration_flat_refund"
+   ]
+  },
+  {
+   "q": "นักศึกษาภาคเหมาจ่ายถ้าลาออกจะได้เงินคืนกี่เปอร์เซ็นต์",
+   "kind": "para_th",
+   "source_id": "gm_registration_flat_refund",
+   "gold": [
+    "gm_registration_flat_refund"
+   ]
+  },
+  {
+   "q": "How much refund can I get if I resign from the program?",
+   "kind": "para_en",
+   "source_id": "gm_registration_flat_refund",
+   "gold": [
+    "gm_registration_flat_refund"
+   ]
+  },
+  {
+   "q": "Is it possible to get a refund for dropping a course under the lump-sum payment system?",
+   "kind": "para_en",
+   "source_id": "gm_registration_flat_refund",
+   "gold": [
+    "gm_registration_flat_refund"
+   ]
+  },
+  {
+   "q": "ถ้าลาออกกลางภาคเรียนจะได้เงินคืนเต็มจำนวนไหม",
+   "kind": "near_miss",
+   "source_id": "gm_registration_flat_refund",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการยื่นคำร้องขอลาออกต้องใช้เอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_registration_flat_refund",
+   "gold": []
+  },
+  {
+   "q": "อยากลาพักการเรียนต้องใช้ใบอะไรคะ",
+   "kind": "para_th",
+   "source_id": "gm_registration_forms",
+   "gold": [
+    "gm_registration_forms"
+   ]
+  },
+  {
+   "q": "ขอเบอร์ติดต่อเจ้าหน้าที่เรื่องการขอคืนเงินหน่อยครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_forms",
+   "gold": [
+    "gm_registration_forms"
+   ]
+  },
+  {
+   "q": "ถ้าลงทะเบียนไม่ทันกำหนด ต้องกรอกแบบฟอร์มไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_forms",
+   "gold": [
+    "gm_registration_forms"
+   ]
+  },
+  {
+   "q": "หาแบบฟอร์มขอผ่อนผันค่าเทอมไม่เจอ เข้าไปโหลดตรงไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "gm_registration_forms",
+   "gold": [
+    "gm_registration_forms"
+   ]
+  },
+  {
+   "q": "Where can I download the resignation form?",
+   "kind": "para_en",
+   "source_id": "gm_registration_forms",
+   "gold": [
+    "gm_registration_forms"
+   ]
+  },
+  {
+   "q": "I need the RA-08 form for tuition refund.",
+   "kind": "para_en",
+   "source_id": "gm_registration_forms",
+   "gold": [
+    "gm_registration_forms"
+   ]
+  },
+  {
+   "q": "ต้องส่งแบบฟอร์มลาพักการศึกษาที่ตึกไหน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_forms",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอเปลี่ยนระดับการศึกษาต้องใช้เอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_registration_forms",
+   "gold": []
+  },
+  {
+   "q": "จะเช็ควันรับปริญญาและกำหนดส่งงานทะเบียนต้องไปดูที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_graduation",
+   "gold": [
+    "gm_registration_graduation"
+   ]
+  },
+  {
+   "q": "ส่งเล่ม e-Thesis เสร็จแล้วถือว่าจบการศึกษาเลยไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_graduation",
+   "gold": [
+    "gm_registration_graduation"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่าสถานะคำร้องขอจบของตัวเองตอนนี้ถึงไหนแล้ว ดูในเว็บได้เลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_registration_graduation",
+   "gold": [
+    "gm_registration_graduation"
+   ]
+  },
+  {
+   "q": "ขอช่องทางเข้าไปดูคู่มือการขอจบ บฑ.5 หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_registration_graduation",
+   "gold": [
+    "gm_registration_graduation"
+   ]
+  },
+  {
+   "q": "Where can I find the information regarding graduation requirements and deadlines?",
+   "kind": "para_en",
+   "source_id": "gm_registration_graduation",
+   "gold": [
+    "gm_registration_graduation"
+   ]
+  },
+  {
+   "q": "Can I track my individual graduation application status through the online system?",
+   "kind": "para_en",
+   "source_id": "gm_registration_graduation",
+   "gold": [
+    "gm_registration_graduation"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการสมัครเรียนต่อปริญญาเอก",
+   "kind": "near_miss",
+   "source_id": "gm_registration_graduation",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอแก้ไขชื่อในใบปริญญาบัตรต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_graduation",
+   "gold": []
+  },
+  {
+   "q": "จะขอลาพักการเรียนต้องดูระเบียบฉบับไหนคะ",
+   "kind": "para_th",
+   "source_id": "gm_registration_payment_rules",
+   "gold": [
+    "gm_registration_payment_rules"
+   ]
+  },
+  {
+   "q": "ถ้าหนูเข้าเรียนปี 67 ต้องใช้กฎการชำระเงินอันไหน",
+   "kind": "para_th",
+   "source_id": "gm_registration_payment_rules",
+   "gold": [
+    "gm_registration_payment_rules"
+   ]
+  },
+  {
+   "q": "อยากรู้เรื่องการคืนเงินค่าเทอม ต้องเช็คข้อมูลจากตรงไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_registration_payment_rules",
+   "gold": [
+    "gm_registration_payment_rules"
+   ]
+  },
+  {
+   "q": "กฎการลงทะเบียนที่แก้ไขใหม่ มันยกเลิกฉบับเก่าไปเลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_registration_payment_rules",
+   "gold": [
+    "gm_registration_payment_rules"
+   ]
+  },
+  {
+   "q": "Which tuition fee regulation should I follow for my studies?",
+   "kind": "para_en",
+   "source_id": "gm_registration_payment_rules",
+   "gold": [
+    "gm_registration_payment_rules"
+   ]
+  },
+  {
+   "q": "How can I check the rules for maintaining student status?",
+   "kind": "para_en",
+   "source_id": "gm_registration_payment_rules",
+   "gold": [
+    "gm_registration_payment_rules"
+   ]
+  },
+  {
+   "q": "ถ้าไม่จ่ายค่าเทอมตามกำหนดจะโดนตัดชื่อออกเมื่อไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_registration_payment_rules",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอลาออกจากการเป็นนักศึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_payment_rules",
+   "gold": []
+  },
+  {
+   "q": "จะขอใบเกรดออนไลน์ต้องไปที่เว็บไหนคะ",
+   "kind": "para_th",
+   "source_id": "gm_registration_proof",
+   "gold": [
+    "gm_registration_proof"
+   ]
+  },
+  {
+   "q": "ใช้รหัสเดียวกับ e-Registration ล็อกอินขอ Transcript ได้เลยไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_proof",
+   "gold": [
+    "gm_registration_proof"
+   ]
+  },
+  {
+   "q": "อยากได้คู่มือการขอเอกสารการศึกษา มีไฟล์ PDF ให้โหลดไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_proof",
+   "gold": [
+    "gm_registration_proof"
+   ]
+  },
+  {
+   "q": "ถ้าเป็นคนนอกที่ไม่ได้เป็นนักศึกษา จะขอหลักฐานการศึกษาผ่านระบบนี้ได้ยังไง",
+   "kind": "para_th",
+   "source_id": "gm_registration_proof",
+   "gold": [
+    "gm_registration_proof"
+   ]
+  },
+  {
+   "q": "How can I request my transcript online?",
+   "kind": "para_en",
+   "source_id": "gm_registration_proof",
+   "gold": [
+    "gm_registration_proof"
+   ]
+  },
+  {
+   "q": "Where can I find the manual for requesting educational documents?",
+   "kind": "para_en",
+   "source_id": "gm_registration_proof",
+   "gold": [
+    "gm_registration_proof"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมในการขอ Transcript ออนไลน์ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_registration_proof",
+   "gold": []
+  },
+  {
+   "q": "ปกติแล้วหลังจากกดขอไปแล้ว จะได้รับเอกสารภายในกี่วัน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_proof",
+   "gold": []
+  },
+  {
+   "q": "จะขอใบ Transcript หรือหนังสือรับรองต้องติดต่อที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_services",
+   "gold": [
+    "gm_registration_services"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่างานทะเบียนดูแลเรื่องการขอจบการศึกษาด้วยไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_services",
+   "gold": [
+    "gm_registration_services"
+   ]
+  },
+  {
+   "q": "ไลน์ติดต่อเจ้าหน้าที่ทะเบียนเบอร์อะไร หรือแอดไลน์ไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "gm_registration_services",
+   "gold": [
+    "gm_registration_services"
+   ]
+  },
+  {
+   "q": "มีลิงก์รวมบริการพวกตารางสอนกับปฏิทินการศึกษาไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_services",
+   "gold": [
+    "gm_registration_services"
+   ]
+  },
+  {
+   "q": "How can I contact the registration office?",
+   "kind": "para_en",
+   "source_id": "gm_registration_services",
+   "gold": [
+    "gm_registration_services"
+   ]
+  },
+  {
+   "q": "Where can I find the student service system and registration rules?",
+   "kind": "para_en",
+   "source_id": "gm_registration_services",
+   "gold": [
+    "gm_registration_services"
+   ]
+  },
+  {
+   "q": "ถ้าจะแจ้งเปลี่ยนที่อยู่จัดส่งเอกสารต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_services",
+   "gold": []
+  },
+  {
+   "q": "ค่าเทอมเทอมนี้ต้องจ่ายภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_registration_services",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้ว่าเกรดเท่าไหร่ถึงจะเอามาเทียบโอนวิชาได้ ต้องดูตรงไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_registration_transfer",
+   "gold": [
+    "gm_registration_transfer"
+   ]
+  },
+  {
+   "q": "ถ้าจะไปลงเรียนวิชาที่มหิดลแต่ไม่ได้เป็นนักศึกษาที่นี่ ต้องใช้แบบฟอร์มอะไร",
+   "kind": "para_th",
+   "source_id": "gm_registration_transfer",
+   "gold": [
+    "gm_registration_transfer"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ประกาศเรื่องการโอนหน่วยกิตล่าสุดหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_registration_transfer",
+   "gold": [
+    "gm_registration_transfer"
+   ]
+  },
+  {
+   "q": "การเรียนข้ามสถาบันกับเรื่องการเทียบโอนหน่วยกิตเหมือนกันไหม",
+   "kind": "para_th",
+   "source_id": "gm_registration_transfer",
+   "gold": [
+    "gm_registration_transfer"
+   ]
+  },
+  {
+   "q": "How can I check the criteria for credit transfer?",
+   "kind": "para_en",
+   "source_id": "gm_registration_transfer",
+   "gold": [
+    "gm_registration_transfer"
+   ]
+  },
+  {
+   "q": "Which form should I use for cross-institution study if I am not a Mahidol student?",
+   "kind": "para_en",
+   "source_id": "gm_registration_transfer",
+   "gold": [
+    "gm_registration_transfer"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขอจบการศึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_registration_transfer",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเกรดไม่ถึงเกณฑ์ที่กำหนด สามารถยื่นอุทธรณ์เพื่อขอเทียบโอนได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_registration_transfer",
+   "gold": []
+  },
+  {
+   "q": "ประกาศ 2018DG00 ปี 2570 ใช้กับหลักสูตรไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": [
+    "gm_sample_2018DG00_2570_documents"
+   ]
+  },
+  {
+   "q": "เอกสารการคัดเลือกของปี 2570 บังคับใช้กับทุกคณะเลยไหม",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": [
+    "gm_sample_2018DG00_2570_documents"
+   ]
+  },
+  {
+   "q": "อยากทราบว่าเกณฑ์การเลือกเอกสารฉบับนี้ครอบคลุมถึงปริญญาโทด้วยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": [
+    "gm_sample_2018DG00_2570_documents"
+   ]
+  },
+  {
+   "q": "หลักสูตร ป.เอก ชีวเคมีและชีววิทยาโมเลกุลทางการแพทย์ ต้องใช้เอกสารตามประกาศ 2018DG00 ไหม",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": [
+    "gm_sample_2018DG00_2570_documents"
+   ]
+  },
+  {
+   "q": "Which specific programs are covered under announcement 2018DG00?",
+   "kind": "para_en",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": [
+    "gm_sample_2018DG00_2570_documents"
+   ]
+  },
+  {
+   "q": "Does the 2018DG00 document selection criteria apply to all graduate programs?",
+   "kind": "para_en",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": [
+    "gm_sample_2018DG00_2570_documents"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการยื่นเอกสารคัดเลือกของหลักสูตรชีวเคมีต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": []
+  },
+  {
+   "q": "ประกาศ 2018DG00 มีกำหนดการวันสุดท้ายเมื่อไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_sample_2018DG00_2570_documents",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้ว่าประกาศฉบับนี้ใช้เป็นเกณฑ์มาตรฐานของทุกหลักสูตรในบัณฑิตวิทยาลัยเลยมั้ย",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": [
+    "gm_sample_2018DG00_2570_eligibility"
+   ]
+  },
+  {
+   "q": "ถ้าเรียนจบ ป.ตรี มา จะต้องดูเงื่อนไขการรับสมัครในหน้าไหนของประกาศนี้",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": [
+    "gm_sample_2018DG00_2570_eligibility"
+   ]
+  },
+  {
+   "q": "เกรดเฉลี่ย (GPA) เป็นตัวตัดสินหลักในการรับเข้าเรียนเลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": [
+    "gm_sample_2018DG00_2570_eligibility"
+   ]
+  },
+  {
+   "q": "หลักสูตรชีวเคมีฯ ที่ยกตัวอย่างมานี้ เป็นหลักสูตรภาคภาษาไทยหรือนานาชาติ",
+   "kind": "para_th",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": [
+    "gm_sample_2018DG00_2570_eligibility"
+   ]
+  },
+  {
+   "q": "Does this recruitment announcement apply to all graduate programs?",
+   "kind": "para_en",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": [
+    "gm_sample_2018DG00_2570_eligibility"
+   ]
+  },
+  {
+   "q": "Which plan should I look at if I already have a Master's degree?",
+   "kind": "para_en",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": [
+    "gm_sample_2018DG00_2570_eligibility"
+   ]
+  },
+  {
+   "q": "ต้องใช้คะแนน IELTS เท่าไหร่ถึงจะสมัครหลักสูตรนี้ได้",
+   "kind": "near_miss",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": []
+  },
+  {
+   "q": "กำหนดการปิดรับสมัครของปีการศึกษา 2570 คือวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_sample_2018DG00_2570_eligibility",
+   "gold": []
+  },
+  {
+   "q": "ต้องจ่ายเงินค่าสมัครภายในวันไหนถึงจะไม่หลุดรอบแรกปี 70",
+   "kind": "para_th",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": [
+    "gm_schedule_2570_round1"
+   ]
+  },
+  {
+   "q": "ประกาศรายชื่อคนสอบผ่านเมื่อไหร่ครับ",
+   "kind": "para_th",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": [
+    "gm_schedule_2570_round1"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการรายงานตัวและจ่ายค่าเทอมงวดแรกต้องทำช่วงวันที่เท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": [
+    "gm_schedule_2570_round1"
+   ]
+  },
+  {
+   "q": "ถ้าสมัครรอบ 1 ปี 2570 จะรู้ผลว่าติดไหมวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": [
+    "gm_schedule_2570_round1"
+   ]
+  },
+  {
+   "q": "When is the deadline to complete the application payment for the first round of 2027?",
+   "kind": "para_en",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": [
+    "gm_schedule_2570_round1"
+   ]
+  },
+  {
+   "q": "What are the dates for registration and tuition fee payment for new students?",
+   "kind": "para_en",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": [
+    "gm_schedule_2570_round1"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมการสมัครเรียนรอบที่ 1 ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการสมัครเรียนปี 2570",
+   "kind": "near_miss",
+   "source_id": "gm_schedule_2570_round1",
+   "gold": []
+  },
+  {
+   "q": "อยากหาทุนวิทยานิพนธ์ต้องเข้าไปดูที่เมนูไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_scholarship_directory",
+   "gold": [
+    "gm_scholarship_directory"
+   ]
+  },
+  {
+   "q": "ถ้าจะเช็คพวกเงินรางวัลวิจัยต้องทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_scholarship_directory",
+   "gold": [
+    "gm_scholarship_directory"
+   ]
+  },
+  {
+   "q": "จะรู้ได้ไงว่าทุนไหนยังเปิดรับสมัครอยู่บ้างตอนนี้",
+   "kind": "para_th",
+   "source_id": "gm_scholarship_directory",
+   "gold": [
+    "gm_scholarship_directory"
+   ]
+  },
+  {
+   "q": "ช่วยบอกหน่อยว่าต้องดูรายละเอียดทุนจากตรงไหนถึงจะชัวร์",
+   "kind": "para_th",
+   "source_id": "gm_scholarship_directory",
+   "gold": [
+    "gm_scholarship_directory"
+   ]
+  },
+  {
+   "q": "How can I find available scholarships and thesis awards?",
+   "kind": "para_en",
+   "source_id": "gm_scholarship_directory",
+   "gold": [
+    "gm_scholarship_directory"
+   ]
+  },
+  {
+   "q": "Where can I check the details for specific scholarship announcements?",
+   "kind": "para_en",
+   "source_id": "gm_scholarship_directory",
+   "gold": [
+    "gm_scholarship_directory"
+   ]
+  },
+  {
+   "q": "มีทุนอะไรบ้างที่เปิดรับสมัครในปีการศึกษานี้",
+   "kind": "near_miss",
+   "source_id": "gm_scholarship_directory",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการขอทุนวิทยานิพนธ์",
+   "kind": "near_miss",
+   "source_id": "gm_scholarship_directory",
+   "gold": []
+  },
+  {
+   "q": "ต้องสอบข้อเขียนไหมครับ เข้าเรียนยังไง",
+   "kind": "para_th",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": [
+    "gm_selection_and_new_student_reporting"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่าแต่ละสาขาเขามีเกณฑ์คัดเลือกยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": [
+    "gm_selection_and_new_student_reporting"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการคัดเลือกคนเข้าเรียนต้องดูจากตรงไหน",
+   "kind": "para_th",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": [
+    "gm_selection_and_new_student_reporting"
+   ]
+  },
+  {
+   "q": "การเข้าเรียนต้องมีการสัมภาษณ์หรือสอบข้อเขียนหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": [
+    "gm_selection_and_new_student_reporting"
+   ]
+  },
+  {
+   "q": "How is the selection process conducted?",
+   "kind": "para_en",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": [
+    "gm_selection_and_new_student_reporting"
+   ]
+  },
+  {
+   "q": "Do I need to take a written exam for all programs?",
+   "kind": "para_en",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": [
+    "gm_selection_and_new_student_reporting"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการรายงานตัว",
+   "kind": "near_miss",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": []
+  },
+  {
+   "q": "ต้องจ่ายค่าเทอมภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_selection_and_new_student_reporting",
+   "gold": []
+  },
+  {
+   "q": "งานกิจการนักศึกษามีบริการอะไรให้บ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_service_overview",
+   "gold": [
+    "gm_service_overview"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่ามีสวัสดิการหรือทุนการศึกษาอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_service_overview",
+   "gold": [
+    "gm_service_overview"
+   ]
+  },
+  {
+   "q": "ติดต่อเรื่องตรวจสุขภาพหรือปรึกษาปัญหาสุขภาพใจได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_service_overview",
+   "gold": [
+    "gm_service_overview"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขึ้นทะเบียนบัณฑิตกับซ้อมรับปริญญาต้องดูที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_service_overview",
+   "gold": [
+    "gm_service_overview"
+   ]
+  },
+  {
+   "q": "What services are available at the Student Affairs office?",
+   "kind": "para_en",
+   "source_id": "gm_service_overview",
+   "gold": [
+    "gm_service_overview"
+   ]
+  },
+  {
+   "q": "Where can I find information about student scholarships and soft skills training?",
+   "kind": "para_en",
+   "source_id": "gm_service_overview",
+   "gold": [
+    "gm_service_overview"
+   ]
+  },
+  {
+   "q": "ต้องลงทะเบียนเรียนวิชาโทในช่วงเดือนไหน",
+   "kind": "near_miss",
+   "source_id": "gm_service_overview",
+   "gold": []
+  },
+  {
+   "q": "เกณฑ์การขอทุนวิทยานิพนธ์ต้องใช้เกรดเฉลี่ยเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_service_overview",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเข้าอบรม 4 ชั่วโมง จะได้กี่ทักษะครับ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": [
+    "gm_softskills_activity_hours"
+   ]
+  },
+  {
+   "q": "อยากรู้เรื่องการเก็บชั่วโมงแบบ Series Skills ต้องทำยังไงถึงจะได้ครบ 4 ทักษะ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": [
+    "gm_softskills_activity_hours"
+   ]
+  },
+  {
+   "q": "กิจกรรมที่จัดให้ 10 ชั่วโมง จะได้ 2 ทักษะเลยไหม หรือมีเงื่อนไขอะไรเพิ่มหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": [
+    "gm_softskills_activity_hours"
+   ]
+  },
+  {
+   "q": "ต้องสะสมให้ครบ 12 ชั่วโมงถึงจะเรียนจบได้ใช่ไหม",
+   "kind": "para_th",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": [
+    "gm_softskills_activity_hours"
+   ]
+  },
+  {
+   "q": "How many skills can I earn from a 3-hour workshop?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": [
+    "gm_softskills_activity_hours"
+   ]
+  },
+  {
+   "q": "What is the requirement for completing a Series Skills set to get 4 skills?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": [
+    "gm_softskills_activity_hours"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอจบการศึกษา ต้องมีชั่วโมงกิจกรรมรวมทั้งหมดกี่ชั่วโมง",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": []
+  },
+  {
+   "q": "สามารถนำกิจกรรมภายนอกมหาวิทยาลัยมานับเป็น Soft Skills ได้หรือไม่",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_activity_hours",
+   "gold": []
+  },
+  {
+   "q": "ต้องเก็บทักษะด้านไหนบ้างถึงจะได้ใบ Certificate of Honor",
+   "kind": "para_th",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": [
+    "gm_softskills_eight_domains"
+   ]
+  },
+  {
+   "q": "พวกทักษะ Soft Skills ตามระเบียบใหม่ปี 69 มีอะไรบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": [
+    "gm_softskills_eight_domains"
+   ]
+  },
+  {
+   "q": "ถ้าเรียนพวกโปรแกรม SPSS หรือ EndNote ไปแล้ว นับเป็น Digital Literacy ตามประกาศไหม",
+   "kind": "para_th",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": [
+    "gm_softskills_eight_domains"
+   ]
+  },
+  {
+   "q": "การสะสมทักษะ Soft Skills ให้ครบ 8 ด้าน จำเป็นต้องทำเพื่อใช้ในการเรียนจบหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": [
+    "gm_softskills_eight_domains"
+   ]
+  },
+  {
+   "q": "What are the required soft skills according to the 2026 announcement?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": [
+    "gm_softskills_eight_domains"
+   ]
+  },
+  {
+   "q": "Does completing all 8 soft skills affect my graduation requirements?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": [
+    "gm_softskills_eight_domains"
+   ]
+  },
+  {
+   "q": "เกณฑ์การขอจบการศึกษาของบัณฑิตวิทยาลัยมีอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": []
+  },
+  {
+   "q": "ต้องอบรมโปรแกรม Turnitin กี่ชั่วโมงถึงจะผ่านเกณฑ์",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_eight_domains",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเคยผ่าน Soft Skills มาบ้างแล้ว ต้องเริ่มเก็บใหม่หมดเลยไหมคะ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_existing_results",
+   "gold": [
+    "gm_softskills_existing_results"
+   ]
+  },
+  {
+   "q": "พวกคำขอเทียบเคียงที่ยื่นไปตามระเบียบเก่า ยังใช้ได้อยู่หรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_softskills_existing_results",
+   "gold": [
+    "gm_softskills_existing_results"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่าผลประเมินทักษะที่สะสมไว้ก่อนหน้านี้ จะนับรวมกับประกาศปี 69 ด้วยไหม",
+   "kind": "para_th",
+   "source_id": "gm_softskills_existing_results",
+   "gold": [
+    "gm_softskills_existing_results"
+   ]
+  },
+  {
+   "q": "ถ้ากำลังรอผลเทียบเคียงอยู่ จะต้องทำเรื่องใหม่ตามประกาศฉบับใหม่หรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_softskills_existing_results",
+   "gold": [
+    "gm_softskills_existing_results"
+   ]
+  },
+  {
+   "q": "Do my previously earned Soft Skills credits still count under the 2026 announcement?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_existing_results",
+   "gold": [
+    "gm_softskills_existing_results"
+   ]
+  },
+  {
+   "q": "What happens to my pending equivalency requests from the 2024 regulation?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_existing_results",
+   "gold": [
+    "gm_softskills_existing_results"
+   ]
+  },
+  {
+   "q": "ต้องเก็บให้ครบกี่ทักษะถึงจะได้ใบ Certificate of Honor",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_existing_results",
+   "gold": []
+  },
+  {
+   "q": "ถ้าผลการประเมินไม่ผ่าน จะต้องทำอย่างไรต่อ",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_existing_results",
+   "gold": []
+  },
+  {
+   "q": "เรียนออนไลน์ใน MUCE กี่ชั่วโมงถึงจะนับเป็น 1 ทักษะครับ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": [
+    "gm_softskills_muce_equivalence"
+   ]
+  },
+  {
+   "q": "ถ้าได้ certificate จาก MUCE มาแล้ว ต้องทำยังไงต่อถึงจะได้ Soft Skills",
+   "kind": "para_th",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": [
+    "gm_softskills_muce_equivalence"
+   ]
+  },
+  {
+   "q": "อยากรู้เกณฑ์การเทียบเคียงทักษะ ถ้าเข้าเรียนกิจกรรมไม่ถึงชั่วโมงต้องเก็บกี่ครั้ง",
+   "kind": "para_th",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": [
+    "gm_softskills_muce_equivalence"
+   ]
+  },
+  {
+   "q": "มีเวลาส่งใบเซอร์ MUCE เข้าไปในระบบได้นานแค่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": [
+    "gm_softskills_muce_equivalence"
+   ]
+  },
+  {
+   "q": "How can I convert MUCE online courses into Soft Skills credits?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": [
+    "gm_softskills_muce_equivalence"
+   ]
+  },
+  {
+   "q": "What is the requirement for MUCE certificate validity for skill equivalence?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": [
+    "gm_softskills_muce_equivalence"
+   ]
+  },
+  {
+   "q": "ถ้าเรียนจบจากคอร์สของ Coursera หรือ Udemy สามารถนำมาเทียบเป็น Soft Skills ได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขออนุมัติ Soft Skills หลังจากส่ง Certificate เข้าไปในระบบทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_muce_equivalence",
+   "gold": []
+  },
+  {
+   "q": "อยากดูว่าตอนนี้เก็บ Soft Skills ผ่านไปกี่อันแล้ว ดูตรงไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": [
+    "gm_softskills_profile_channels"
+   ]
+  },
+  {
+   "q": "มีลิสต์กิจกรรมน่าสนใจให้เลือกสมัครที่ไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": [
+    "gm_softskills_profile_channels"
+   ]
+  },
+  {
+   "q": "ถ้ากิจกรรมที่ทำไปมันไม่ขึ้นในระบบ ต้องแจ้งเรื่องที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": [
+    "gm_softskills_profile_channels"
+   ]
+  },
+  {
+   "q": "จะเข้าไปเรียนคอร์สออนไลน์ของ MUCE ได้ยังไง",
+   "kind": "para_th",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": [
+    "gm_softskills_profile_channels"
+   ]
+  },
+  {
+   "q": "Where can I check my Soft Skills progress?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": [
+    "gm_softskills_profile_channels"
+   ]
+  },
+  {
+   "q": "How to report missing activity records?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": [
+    "gm_softskills_profile_channels"
+   ]
+  },
+  {
+   "q": "ต้องเก็บกี่ทักษะถึงจะเรียนจบตามเกณฑ์ใหม่ปี 2569",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": []
+  },
+  {
+   "q": "ถ้าลืมรหัสผ่านเข้าระบบ Student Service System ต้องทำยังไง",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_profile_channels",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะเอาโครงการที่เคยทำไปเทียบ Soft Skills ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": [
+    "gm_softskills_programme_equivalence"
+   ]
+  },
+  {
+   "q": "โครงการที่ผ่านการอนุมัติมาแล้ว นำมานับชั่วโมง Soft Skills ได้นานแค่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": [
+    "gm_softskills_programme_equivalence"
+   ]
+  },
+  {
+   "q": "การส่ง Reflection Writing เพื่อเทียบกิจกรรม ต้องระวังเรื่องอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": [
+    "gm_softskills_programme_equivalence"
+   ]
+  },
+  {
+   "q": "อาจารย์ต้องเป็นคนตรวจชิ้นงานเราใช่ไหมครับ หรือแค่เซ็นชื่อก็ผ่านเลย",
+   "kind": "para_th",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": [
+    "gm_softskills_programme_equivalence"
+   ]
+  },
+  {
+   "q": "How can a program credit its existing projects towards Soft Skills?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": [
+    "gm_softskills_programme_equivalence"
+   ]
+  },
+  {
+   "q": "What are the requirements for submitting work like reflection writing for credit?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": [
+    "gm_softskills_programme_equivalence"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอเพิ่มชั่วโมง Soft Skills จากการไปอบรมต่างประเทศต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": []
+  },
+  {
+   "q": "ระบบ Soft Skills Online มีปัญหาเข้าใช้งานไม่ได้ ต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_programme_equivalence",
+   "gold": []
+  },
+  {
+   "q": "ต้องเก็บชั่วโมง Soft Skills ให้ครบถึงจะเรียนจบไหมคะ",
+   "kind": "para_th",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": [
+    "gm_softskills_voluntary_2569"
+   ]
+  },
+  {
+   "q": "ถ้าผ่านครบ 8 ทักษะแล้วจะได้อะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": [
+    "gm_softskills_voluntary_2569"
+   ]
+  },
+  {
+   "q": "ประกาศฉบับใหม่ปี 2569 เรื่องการเข้ากิจกรรมเสริมทักษะ เปลี่ยนแปลงจากเดิมยังไง",
+   "kind": "para_th",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": [
+    "gm_softskills_voluntary_2569"
+   ]
+  },
+  {
+   "q": "เห็นในเว็บเก่าบอกว่าต้องผ่าน 4 ทักษะ สรุปตอนนี้ต้องทำยังไงกันแน่",
+   "kind": "para_th",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": [
+    "gm_softskills_voluntary_2569"
+   ]
+  },
+  {
+   "q": "Is completing Soft Skills training a requirement for graduation?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": [
+    "gm_softskills_voluntary_2569"
+   ]
+  },
+  {
+   "q": "Will I receive any recognition if I complete all 8 soft skills modules?",
+   "kind": "para_en",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": [
+    "gm_softskills_voluntary_2569"
+   ]
+  },
+  {
+   "q": "ถ้าไม่เข้าร่วมกิจกรรม Soft Skills เลย จะมีผลต่อเกรดเฉลี่ยไหม",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": []
+  },
+  {
+   "q": "เกณฑ์การประเมินว่าผ่านหรือไม่ผ่านในแต่ละทักษะดูได้จากตรงไหน",
+   "kind": "near_miss",
+   "source_id": "gm_softskills_voluntary_2569",
+   "gold": []
+  },
+  {
+   "q": "จะติดต่อสอบถามเรื่องการเก็บชั่วโมง Soft Skills ได้ที่ช่องทางไหนคะ",
+   "kind": "para_th",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": [
+    "gm_student_affairs_contacts"
+   ]
+  },
+  {
+   "q": "มีไลน์กลุ่มหรือไลน์แอดสำหรับแจ้งปัญหาเรื่องการบันทึกกิจกรรมไหม",
+   "kind": "para_th",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": [
+    "gm_student_affairs_contacts"
+   ]
+  },
+  {
+   "q": "ถ้าจะปรึกษาเรื่องงานกิจการนักศึกษาต้องติดต่อใคร",
+   "kind": "para_th",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": [
+    "gm_student_affairs_contacts"
+   ]
+  },
+  {
+   "q": "พอดีเจอปัญหาตอนบันทึกผลกิจกรรมในเว็บ Soft Skills ต้องแจ้งที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": [
+    "gm_student_affairs_contacts"
+   ]
+  },
+  {
+   "q": "How can I contact the student affairs team via LINE?",
+   "kind": "para_en",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": [
+    "gm_student_affairs_contacts"
+   ]
+  },
+  {
+   "q": "Where should I report a problem with the Soft Skills activity recording system?",
+   "kind": "para_en",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": [
+    "gm_student_affairs_contacts"
+   ]
+  },
+  {
+   "q": "เบอร์โทรศัพท์สายตรงของเจ้าหน้าที่ฝ่ายพัฒนาศักยภาพทุนมนุษย์คือเบอร์อะไร",
+   "kind": "near_miss",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": []
+  },
+  {
+   "q": "เวลาทำการของหน่วยงานกิจการนักศึกษาเปิดกี่โมงถึงกี่โมง",
+   "kind": "near_miss",
+   "source_id": "gm_student_affairs_contacts",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้เรื่องเงินช่วยเหลือนักศึกษาของบัณฑิตวิทยาลัย ต้องไปดูรายละเอียดที่ไหนคะ",
+   "kind": "para_th",
+   "source_id": "gm_student_support_directory",
+   "gold": [
+    "gm_student_support_directory"
+   ]
+  },
+  {
+   "q": "มีเงินสงเคราะห์ให้นักศึกษาไหม แล้วต้องเตรียมเอกสารอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_student_support_directory",
+   "gold": [
+    "gm_student_support_directory"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอความช่วยเหลือทางการเงินเป็นกรณีพิเศษ ต้องทำยังไง",
+   "kind": "para_th",
+   "source_id": "gm_student_support_directory",
+   "gold": [
+    "gm_student_support_directory"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ระเบียบการจ่ายเงินสงเคราะห์ฉบับล่าสุดหน่อยครับ",
+   "kind": "para_th",
+   "source_id": "gm_student_support_directory",
+   "gold": [
+    "gm_student_support_directory"
+   ]
+  },
+  {
+   "q": "Where can I find the criteria for student welfare payments?",
+   "kind": "para_en",
+   "source_id": "gm_student_support_directory",
+   "gold": [
+    "gm_student_support_directory"
+   ]
+  },
+  {
+   "q": "How can I apply for financial assistance for individual cases?",
+   "kind": "para_en",
+   "source_id": "gm_student_support_directory",
+   "gold": [
+    "gm_student_support_directory"
+   ]
+  },
+  {
+   "q": "มีทุนการศึกษาเต็มจำนวนสำหรับนักศึกษาปริญญาโทไหม",
+   "kind": "near_miss",
+   "source_id": "gm_student_support_directory",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะขอหนังสือรับรองสถานภาพนักศึกษา ต้องติดต่อที่ไหน",
+   "kind": "near_miss",
+   "source_id": "gm_student_support_directory",
+   "gold": []
+  },
+  {
+   "q": "จะไปโหลดเทมเพลตเล่มจบได้จากทางไหนครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": [
+    "gm_thesis_submission_01_template"
+   ]
+  },
+  {
+   "q": "ขอทราบแหล่งดาวน์โหลดรูปแบบการจัดหน้าวิทยานิพนธ์แบบอิเล็กทรอนิกส์หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": [
+    "gm_thesis_submission_01_template"
+   ]
+  },
+  {
+   "q": "อยากดูตัวอย่างการจัดเล่มอิเล็กทรอนิกส์ ต้องเข้าไปดูที่เมนูไหนของงานบริการการศึกษา",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": [
+    "gm_thesis_submission_01_template"
+   ]
+  },
+  {
+   "q": "ประกาศเรื่องการจัดรูปเล่มอิเล็กทรอนิกส์ฉบับใหม่ ดูได้ที่ไหน และเริ่มใช้เมื่อไหร่",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": [
+    "gm_thesis_submission_01_template"
+   ]
+  },
+  {
+   "q": "Where can I find the electronic thesis template?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": [
+    "gm_thesis_submission_01_template"
+   ]
+  },
+  {
+   "q": "Where is the guideline for electronic thesis formatting located?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": [
+    "gm_thesis_submission_01_template"
+   ]
+  },
+  {
+   "q": "ต้องส่งเล่มอิเล็กทรอนิกส์ภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการตรวจความถูกต้องของรูปเล่มต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_01_template",
+   "gold": []
+  },
+  {
+   "q": "ทำวิทยานิพนธ์ต้องเขียนทั้งหมดกี่บทครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": [
+    "gm_thesis_submission_02_chapters"
+   ]
+  },
+  {
+   "q": "สารนิพนธ์กับ IS ต้องแบ่งเป็นกี่บท มีโครงสร้างยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": [
+    "gm_thesis_submission_02_chapters"
+   ]
+  },
+  {
+   "q": "ถ้าจะทำเล่มแบบตีพิมพ์ผลงาน ต้องมีหัวข้ออะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": [
+    "gm_thesis_submission_02_chapters"
+   ]
+  },
+  {
+   "q": "ไม่แน่ใจว่างานตัวเองต้องมีกี่บทดี ควรไปถามใคร",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": [
+    "gm_thesis_submission_02_chapters"
+   ]
+  },
+  {
+   "q": "How many chapters are required for a traditional thesis?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": [
+    "gm_thesis_submission_02_chapters"
+   ]
+  },
+  {
+   "q": "What is the structure for an independent study (IS)?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": [
+    "gm_thesis_submission_02_chapters"
+   ]
+  },
+  {
+   "q": "ต้องส่งเล่มวิทยานิพนธ์ภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอสอบป้องกันวิทยานิพนธ์ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_02_chapters",
+   "gold": []
+  },
+  {
+   "q": "ถ้าทำเล่มเป็นภาษาอังกฤษ ต้องมีบทคัดย่อภาษาไทยด้วยหรือเปล่าครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": [
+    "gm_thesis_submission_03_abstract"
+   ]
+  },
+  {
+   "q": "ช่วยเช็คหน่อยว่า Keywords ในเล่มวิทยานิพนธ์ใส่ได้สูงสุดกี่คำ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": [
+    "gm_thesis_submission_03_abstract"
+   ]
+  },
+  {
+   "q": "เรียนถามเรื่องการเขียนบทคัดย่อครับ ถ้าเป็นหลักสูตรนานาชาติต้องทำกี่ภาษา",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": [
+    "gm_thesis_submission_03_abstract"
+   ]
+  },
+  {
+   "q": "ต้องเขียนบทคัดย่อยาวแค่ไหน แล้วคำสำคัญห้ามเกินกี่คำครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": [
+    "gm_thesis_submission_03_abstract"
+   ]
+  },
+  {
+   "q": "Do I need to include a Thai abstract if my thesis is written in English?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": [
+    "gm_thesis_submission_03_abstract"
+   ]
+  },
+  {
+   "q": "What is the maximum number of keywords allowed and the length limit for the abstract?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": [
+    "gm_thesis_submission_03_abstract"
+   ]
+  },
+  {
+   "q": "ต้องส่งเล่มวิทยานิพนธ์ฉบับสมบูรณ์ภายในวันที่เท่าไหร่ของปีการศึกษา",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": []
+  },
+  {
+   "q": "การจัดรูปแบบฟอนต์และขนาดตัวอักษรในบทที่ 1 ต้องใช้ขนาดเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_03_abstract",
+   "gold": []
+  },
+  {
+   "q": "ต้องเขียนอ้างอิงแบบไหนคะ APA หรือ Vancouver ดี?",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": [
+    "gm_thesis_submission_04_references"
+   ]
+  },
+  {
+   "q": "อาจารย์ที่ปรึกษาบอกให้ใช้รูปแบบการอ้างอิงแบบหนึ่ง แต่ในเว็บมีตัวอย่างหลายแบบ สรุปต้องยึดตามอะไร?",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": [
+    "gm_thesis_submission_04_references"
+   ]
+  },
+  {
+   "q": "การทำเล่มวิทยานิพนธ์ต้องใช้ระบบนาม-ปี หรือเลขลำดับเหมือนกันทั้งเล่มไหม?",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": [
+    "gm_thesis_submission_04_references"
+   ]
+  },
+  {
+   "q": "ถ้าจะใช้การอ้างอิงแบบเชิงอรรถ สามารถทำได้หรือไม่?",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": [
+    "gm_thesis_submission_04_references"
+   ]
+  },
+  {
+   "q": "Which citation style should I use for my thesis, APA or Vancouver?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": [
+    "gm_thesis_submission_04_references"
+   ]
+  },
+  {
+   "q": "Is there a mandatory citation format prescribed by the graduate school?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": [
+    "gm_thesis_submission_04_references"
+   ]
+  },
+  {
+   "q": "ถ้าต้องการส่งบทความไปตีพิมพ์ในวารสารต่างประเทศ ต้องใช้รูปแบบการเขียนบรรณานุกรมอย่างไร?",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": []
+  },
+  {
+   "q": "มีตัวอย่างการเขียนอ้างอิงแบบ APA 7th edition ให้ดาวน์โหลดไหม?",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_04_references",
+   "gold": []
+  },
+  {
+   "q": "หน้าลงนาม 1 กับหน้าลงนาม 2 ต้องเอาไปเทียบกับเอกสารใบไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": [
+    "gm_thesis_submission_05_committee_names"
+   ]
+  },
+  {
+   "q": "ถ้าตำแหน่งทางวิชาการในหน้าลงนามไม่ตรงกับคำสั่งเดิม ต้องทำยังไง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": [
+    "gm_thesis_submission_05_committee_names"
+   ]
+  },
+  {
+   "q": "วิธีเช็ครายชื่อกรรมการในหน้า ก กับหน้า ข ต้องดูคู่กับแบบฟอร์มอะไร",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": [
+    "gm_thesis_submission_05_committee_names"
+   ]
+  },
+  {
+   "q": "ถ้าข้อมูลส่วนตัวหรือชื่อกรรมการในหน้าลงนามไม่ตรงกับคำสั่ง ต้องติดต่อใคร",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": [
+    "gm_thesis_submission_05_committee_names"
+   ]
+  },
+  {
+   "q": "Which documents should I use to verify the committee names on the signature pages?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": [
+    "gm_thesis_submission_05_committee_names"
+   ]
+  },
+  {
+   "q": "What should I do if the academic titles in the signature page are different from the original order?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": [
+    "gm_thesis_submission_05_committee_names"
+   ]
+  },
+  {
+   "q": "ถ้าต้องการขอเปลี่ยนตัวกรรมการในคณะ ต้องยื่นเรื่องที่ไหน",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เอกสาร บฑ.1 กี่ชุดในการยื่นเรื่องจบการศึกษา",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_05_committee_names",
+   "gold": []
+  },
+  {
+   "q": "ถ้าใช้ ChatGPT ช่วยเขียนงานวิจัย ต้องเขียนบอกไว้ตรงไหนของเล่มคะ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": [
+    "gm_thesis_submission_06_ai_disclosure"
+   ]
+  },
+  {
+   "q": "ใช้ AI ช่วยแปลภาษาหรือสรุปข้อมูล ต้องระบุรายละเอียดไว้ในส่วนไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": [
+    "gm_thesis_submission_06_ai_disclosure"
+   ]
+  },
+  {
+   "q": "การใช้ AI ช่วยทำวิจัยถือว่าผิดกฎไหม แล้วต้องแจ้งข้อมูลอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": [
+    "gm_thesis_submission_06_ai_disclosure"
+   ]
+  },
+  {
+   "q": "สรุปแล้ว AI สามารถช่วยเขียนบทวิเคราะห์หรือสรุปผลการวิจัยให้เราได้เลยไหม",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": [
+    "gm_thesis_submission_06_ai_disclosure"
+   ]
+  },
+  {
+   "q": "How should I disclose the use of AI tools in my thesis?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": [
+    "gm_thesis_submission_06_ai_disclosure"
+   ]
+  },
+  {
+   "q": "Is it permissible to use AI for generating research conclusions?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": [
+    "gm_thesis_submission_06_ai_disclosure"
+   ]
+  },
+  {
+   "q": "ถ้าตรวจพบว่าใช้ AI ในปริมาณมาก จะโดนลงโทษทางวินัยอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": []
+  },
+  {
+   "q": "มีรายชื่อเครื่องมือ AI ตัวไหนบ้างที่มหาวิทยาลัยอนุญาตให้ใช้ได้",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_06_ai_disclosure",
+   "gold": []
+  },
+  {
+   "q": "ชื่อวิทยานิพนธ์ในเล่มกับในระบบ บฑ.1 ไม่เหมือนกัน ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": [
+    "gm_thesis_submission_07_title_change"
+   ]
+  },
+  {
+   "q": "อยากขอเปลี่ยนชื่อเรื่อง ต้องใช้แบบฟอร์มไหน และรอนานไหม",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": [
+    "gm_thesis_submission_07_title_change"
+   ]
+  },
+  {
+   "q": "ถ้าชื่อเรื่องไม่ตรงกับ บฑ.1 ต้องยื่น บฑ.49 ก่อนส่งเล่มไหม",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": [
+    "gm_thesis_submission_07_title_change"
+   ]
+  },
+  {
+   "q": "ถ้ากำลังรออนุมัติเปลี่ยนชื่อเรื่องอยู่ จะถือว่าวันส่งเล่มถูกเลื่อนออกไปให้โดยอัตโนมัติเลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": [
+    "gm_thesis_submission_07_title_change"
+   ]
+  },
+  {
+   "q": "What should I do if my thesis title does not match บฑ.1?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": [
+    "gm_thesis_submission_07_title_change"
+   ]
+  },
+  {
+   "q": "How long does the process of requesting a title change take?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": [
+    "gm_thesis_submission_07_title_change"
+   ]
+  },
+  {
+   "q": "ถ้าส่งเล่มช้ากว่ากำหนดจะต้องเสียค่าปรับวันละเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการยื่น บฑ.49 ต้องเตรียมเอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_07_title_change",
+   "gold": []
+  },
+  {
+   "q": "ถ้าค่า Turnitin พุ่งไป 30% จะยังส่งเล่มผ่านได้ไหมครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": [
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "q": "ต้องเช็คความซ้ำซ้อนตรงส่วนไหนบ้างของวิทยานิพจน์",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": [
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "q": "กรณีเปอร์เซ็นต์ความซ้ำซ้อนเกินเกณฑ์ ต้องทำเรื่องยังไงต่อ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": [
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "q": "รายการอ้างอิงกับภาคผนวกต้องเอามานับรวมในค่า Turnitin ด้วยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": [
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "q": "What should I do if my Turnitin similarity index is higher than 25%?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": [
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "q": "Which parts of the thesis need to be checked for similarity?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": [
+    "gm_thesis_submission_08_turnitin"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมในการตรวจ Turnitin ของบัณฑิตวิทยาลัยราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เวลาตรวจความซ้ำซ้อนกี่วันทำการถึงจะทราบผล",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_08_turnitin",
+   "gold": []
+  },
+  {
+   "q": "ต้องทำไฟล์ PDF ส่งยังไงบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": [
+    "gm_thesis_submission_09_pdf_file"
+   ]
+  },
+  {
+   "q": "ขนาดไฟล์ใหญ่สุดไม่เกินเท่าไหร่ถึงจะอัปโหลดผ่าน",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": [
+    "gm_thesis_submission_09_pdf_file"
+   ]
+  },
+  {
+   "q": "ไฟล์ PDF ที่ส่งต้องตั้งค่าฟอนต์กับรูปแบบไฟล์แบบไหน",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": [
+    "gm_thesis_submission_09_pdf_file"
+   ]
+  },
+  {
+   "q": "ส่งรูปเล่มฉบับสมบูรณ์เป็นไฟล์เดียวหรือแยกไฟล์ได้ครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": [
+    "gm_thesis_submission_09_pdf_file"
+   ]
+  },
+  {
+   "q": "What are the requirements for the final thesis PDF file?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": [
+    "gm_thesis_submission_09_pdf_file"
+   ]
+  },
+  {
+   "q": "Is there a maximum file size limit for PDF submission?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": [
+    "gm_thesis_submission_09_pdf_file"
+   ]
+  },
+  {
+   "q": "ต้องส่งเล่มฉบับสมบูรณ์ภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": []
+  },
+  {
+   "q": "ต้องพิมพ์กี่ชุดและส่งที่ตึกไหน",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_09_pdf_file",
+   "gold": []
+  },
+  {
+   "q": "สอบผ่านแล้วต้องส่งเล่มภายในกี่วันครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": [
+    "gm_thesis_submission_10_deadline"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการส่งเล่มฉบับสมบูรณ์ต้องทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": [
+    "gm_thesis_submission_10_deadline"
+   ]
+  },
+  {
+   "q": "ถ้าสอบผ่านแบบมีเงื่อนไข ต้องเริ่มนับวันส่งเล่มจากวันไหน",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": [
+    "gm_thesis_submission_10_deadline"
+   ]
+  },
+  {
+   "q": "ต้องรอให้เซ็นชื่อในหน้าลงนามให้ครบก่อนค่อยส่งไฟล์ PDF หรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": [
+    "gm_thesis_submission_10_deadline"
+   ]
+  },
+  {
+   "q": "What is the deadline for submitting the final thesis?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": [
+    "gm_thesis_submission_10_deadline"
+   ]
+  },
+  {
+   "q": "How can I submit my electronic thesis after passing the exam?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": [
+    "gm_thesis_submission_10_deadline"
+   ]
+  },
+  {
+   "q": "ต้องแนบรายงาน Turnitin กี่เปอร์เซ็นต์ถึงจะผ่านการตรวจสอบ",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมในการส่งเล่มฉบับสมบูรณ์ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_10_deadline",
+   "gold": []
+  },
+  {
+   "q": "ถ้าสอบผ่านแบบมีเงื่อนไข ต้องเริ่มนับวันส่งเล่มตั้งแต่วันไหนคะ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": [
+    "gm_thesis_submission_11_conditional_pass"
+   ]
+  },
+  {
+   "q": "นับวันส่งรูปเล่มยังไง ถ้าอาจารย์ให้กลับไปแก้เล่มก่อน",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": [
+    "gm_thesis_submission_11_conditional_pass"
+   ]
+  },
+  {
+   "q": "วันที่ประธานเซ็น บฑ.4 คือวันเริ่มนับ 21 วันใช่ไหมครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": [
+    "gm_thesis_submission_11_conditional_pass"
+   ]
+  },
+  {
+   "q": "ต้องดูวันที่ตรงไหนว่าเริ่มนับกำหนดส่งเล่มวันแรก",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": [
+    "gm_thesis_submission_11_conditional_pass"
+   ]
+  },
+  {
+   "q": "When does the 21-day deadline for submitting the thesis start if I passed with conditions?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": [
+    "gm_thesis_submission_11_conditional_pass"
+   ]
+  },
+  {
+   "q": "How can I check the official passing date for my thesis submission countdown?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": [
+    "gm_thesis_submission_11_conditional_pass"
+   ]
+  },
+  {
+   "q": "ถ้าแก้ไขงานไม่ทันภายใน 45 วัน จะต้องทำเรื่องขอขยายเวลาอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": []
+  },
+  {
+   "q": "การขอเปลี่ยนประธานกรรมการสอบต้องใช้เอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_11_conditional_pass",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมไฟล์อะไรบ้างตอนส่งเล่มจบในระบบ e-Thesis",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": [
+    "gm_thesis_submission_12_upload_documents"
+   ]
+  },
+  {
+   "q": "ส่ง e-Thesis ต้องแนบรายงาน Turnitin ด้วยไหม แล้วต้องมีรายละเอียดอะไรในรายงานบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": [
+    "gm_thesis_submission_12_upload_documents"
+   ]
+  },
+  {
+   "q": "หน้าอนุมัติกับหน้าเสนออาจารย์ต้องเซ็นชื่อให้เรียบร้อยก่อนอัปโหลดเลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": [
+    "gm_thesis_submission_12_upload_documents"
+   ]
+  },
+  {
+   "q": "อัปโหลดไฟล์เสร็จแล้วถือว่าส่งเรียบร้อยแล้วใช่ไหม ต้องทำยังไงต่อ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": [
+    "gm_thesis_submission_12_upload_documents"
+   ]
+  },
+  {
+   "q": "What documents are required for the e-Thesis submission process?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": [
+    "gm_thesis_submission_12_upload_documents"
+   ]
+  },
+  {
+   "q": "Does the Turnitin report need to show the similarity index and submission ID?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": [
+    "gm_thesis_submission_12_upload_documents"
+   ]
+  },
+  {
+   "q": "ต้องจ่ายค่าธรรมเนียมการส่ง e-Thesis เท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": []
+  },
+  {
+   "q": "ถ้าส่งเอกสารผิดพลาด สามารถกลับไปแก้ไขไฟล์เดิมได้ภายในกี่วัน",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_12_upload_documents",
+   "gold": []
+  },
+  {
+   "q": "ตรวจเล่มเสร็จเมื่อไหร่ครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": [
+    "gm_thesis_submission_13_review_time"
+   ]
+  },
+  {
+   "q": "ส่งเล่มไปแล้วต้องรอกี่วันถึงจะรู้ผล",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": [
+    "gm_thesis_submission_13_review_time"
+   ]
+  },
+  {
+   "q": "นับวันตรวจจากตอนไหน เริ่มนับจากวันที่เราอัปโหลดไฟล์เลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": [
+    "gm_thesis_submission_13_review_time"
+   ]
+  },
+  {
+   "q": "ถ้าประธานหลักสูตรอนุมัติในระบบแล้ว จะต้องรอเจ้าหน้าที่ตรวจอีกนานไหม",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": [
+    "gm_thesis_submission_13_review_time"
+   ]
+  },
+  {
+   "q": "How long does the thesis format checking process take?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": [
+    "gm_thesis_submission_13_review_time"
+   ]
+  },
+  {
+   "q": "When will I receive the results after the program chair approves my submission?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": [
+    "gm_thesis_submission_13_review_time"
+   ]
+  },
+  {
+   "q": "ถ้าตรวจเล่มไม่ผ่าน ต้องเสียค่าปรับเพิ่มไหม",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": []
+  },
+  {
+   "q": "สามารถเช็คคิวการตรวจของเพื่อนในระบบได้ไหมว่าถึงคิวหรือยัง",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_13_review_time",
+   "gold": []
+  },
+  {
+   "q": "ต้องเอาใบเซ็นชื่อเล่มวิทยานิพนธ์ไปส่งที่คณะไหมครับ",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": [
+    "gm_thesis_submission_14_signoff"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการส่งหน้าลงนามในระบบ e-Thesis Submission ทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": [
+    "gm_thesis_submission_14_signoff"
+   ]
+  },
+  {
+   "q": "ลายเซ็นคณบดีบัณฑิตวิทยาลัยต้องเก็บมาเองหรือให้เจ้าหน้าที่จัดการให้",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": [
+    "gm_thesis_submission_14_signoff"
+   ]
+  },
+  {
+   "q": "ถ้าอัปโหลดไฟล์หน้าลงนามผิดในระบบ ต้องทำยังไง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": [
+    "gm_thesis_submission_14_signoff"
+   ]
+  },
+  {
+   "q": "Do I need to submit the hard copy of the signature page?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": [
+    "gm_thesis_submission_14_signoff"
+   ]
+  },
+  {
+   "q": "How can I submit my signature page via e-Thesis Submission?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": [
+    "gm_thesis_submission_14_signoff"
+   ]
+  },
+  {
+   "q": "ต้องแก้ไขเล่มวิทยานิพนธ์อย่างไรหลังจากที่กรรมการสั่งแก้",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการส่งเล่มฉบับสมบูรณ์ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_14_signoff",
+   "gold": []
+  },
+  {
+   "q": "ต้องเซ็นชื่อด้วยปากกาเท่านั้นหรือเปล่าครับ หรือใช้แบบดิจิทัลได้",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": [
+    "gm_thesis_submission_15_signature_types"
+   ]
+  },
+  {
+   "q": "ถ้าจะเซ็นชื่อแบบผสมกันระหว่างลายเซ็นจริงกับอิเล็กทรอนิกส์ มีเงื่อนไขยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": [
+    "gm_thesis_submission_15_signature_types"
+   ]
+  },
+  {
+   "q": "หน้าลงนามในเล่มวิทยานิพนธ์ใช้ลายเซ็นแบบไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": [
+    "gm_thesis_submission_15_signature_types"
+   ]
+  },
+  {
+   "q": "ส่งไฟล์ PDF ที่มีลายเซ็นแล้วไปตรวจครั้งแรกได้เลยไหม",
+   "kind": "para_th",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": [
+    "gm_thesis_submission_15_signature_types"
+   ]
+  },
+  {
+   "q": "Can I use an electronic signature for the approval page?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": [
+    "gm_thesis_submission_15_signature_types"
+   ]
+  },
+  {
+   "q": "What are the permitted types of signatures for the final thesis version?",
+   "kind": "para_en",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": [
+    "gm_thesis_submission_15_signature_types"
+   ]
+  },
+  {
+   "q": "ถ้าลายเซ็นอิเล็กทรอนิกส์ไม่ชัดเจน ต้องแก้ไขอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้ปากกาสีอะไรในการลงนามในหน้าอนุมัติ",
+   "kind": "near_miss",
+   "source_id": "gm_thesis_submission_15_signature_types",
+   "gold": []
+  },
+  {
+   "q": "ขอดูตารางเวลารถ Shuttle Bus หน่อยครับ",
+   "kind": "para_th",
+   "source_id": "gm_travel_navigation",
+   "gold": [
+    "gm_travel_navigation"
+   ]
+  },
+  {
+   "q": "จะเช็คเส้นทาง Salaya Link ได้จากเว็บไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "gm_travel_navigation",
+   "gold": [
+    "gm_travel_navigation"
+   ]
+  },
+  {
+   "q": "รถ Shuttle Bus ระหว่างวิทยาเขตวิ่งกี่โมงและราคาเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "gm_travel_navigation",
+   "gold": [
+    "gm_travel_navigation"
+   ]
+  },
+  {
+   "q": "อยากรู้ตารางเดินรถ Salaya Link ต้องไปดูที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_travel_navigation",
+   "gold": [
+    "gm_travel_navigation"
+   ]
+  },
+  {
+   "q": "Where can I find the shuttle bus timetable?",
+   "kind": "para_en",
+   "source_id": "gm_travel_navigation",
+   "gold": [
+    "gm_travel_navigation"
+   ]
+  },
+  {
+   "q": "How to check the Salaya Link schedule?",
+   "kind": "para_en",
+   "source_id": "gm_travel_navigation",
+   "gold": [
+    "gm_travel_navigation"
+   ]
+  },
+  {
+   "q": "รถ Shuttle Bus มีจุดจอดตรงไหนบ้าง",
+   "kind": "near_miss",
+   "source_id": "gm_travel_navigation",
+   "gold": []
+  },
+  {
+   "q": "ถ้าลืมบัตรนักศึกษาจะขึ้นรถ Salaya Link ได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_travel_navigation",
+   "gold": []
+  },
+  {
+   "q": "จะเช็คค่าเทอมต้องดูตรงไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": [
+    "gm_tuition_fee_sources"
+   ]
+  },
+  {
+   "q": "ต้องตรวจสอบข้อมูลอะไรบ้างก่อนจะสรุปยอดเงินที่ต้องจ่าย",
+   "kind": "para_th",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": [
+    "gm_tuition_fee_sources"
+   ]
+  },
+  {
+   "q": "หาประกาศค่าธรรมเนียมการศึกษาของแต่ละคณะได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": [
+    "gm_tuition_fee_sources"
+   ]
+  },
+  {
+   "q": "ถ้าจะดูค่าใช้จ่ายของหลักสูตรเฉพาะทาง ต้องระวังเรื่องอะไรเป็นพิเศษ",
+   "kind": "para_th",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": [
+    "gm_tuition_fee_sources"
+   ]
+  },
+  {
+   "q": "How can I check the tuition fees for my program?",
+   "kind": "para_en",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": [
+    "gm_tuition_fee_sources"
+   ]
+  },
+  {
+   "q": "What information should I verify before calculating my total expenses?",
+   "kind": "para_en",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": [
+    "gm_tuition_fee_sources"
+   ]
+  },
+  {
+   "q": "ถ้าจ่ายค่าเทอมช้าจะมีค่าปรับวันละเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": []
+  },
+  {
+   "q": "สามารถขอผ่อนชำระค่าธรรมเนียมการศึกษาได้ไหม",
+   "kind": "near_miss",
+   "source_id": "gm_tuition_fee_sources",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้ว่ามีสวัสดิการอะไรให้บ้างครับ",
+   "kind": "para_th",
+   "source_id": "gm_welfare_directory",
+   "gold": [
+    "gm_welfare_directory"
+   ]
+  },
+  {
+   "q": "มีเรื่องการเบิกค่ารักษาพยาบาลกับหอพักไหม",
+   "kind": "para_th",
+   "source_id": "gm_welfare_directory",
+   "gold": [
+    "gm_welfare_directory"
+   ]
+  },
+  {
+   "q": "ขอแบบฟอร์มเรื่องการเดินทางและเงินสงเคราะห์หน่อย",
+   "kind": "para_th",
+   "source_id": "gm_welfare_directory",
+   "gold": [
+    "gm_welfare_directory"
+   ]
+  },
+  {
+   "q": "รายละเอียดเรื่องการผ่อนผันทหารหาดูได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "gm_welfare_directory",
+   "gold": [
+    "gm_welfare_directory"
+   ]
+  },
+  {
+   "q": "What student benefits are available?",
+   "kind": "para_en",
+   "source_id": "gm_welfare_directory",
+   "gold": [
+    "gm_welfare_directory"
+   ]
+  },
+  {
+   "q": "Where can I find information about medical welfare and dormitory?",
+   "kind": "para_en",
+   "source_id": "gm_welfare_directory",
+   "gold": [
+    "gm_welfare_directory"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขอทุนการศึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "gm_welfare_directory",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะขอใบรับรองสถานภาพนักศึกษาต้องติดต่อที่ไหน",
+   "kind": "near_miss",
+   "source_id": "gm_welfare_directory",
+   "gold": []
+  },
+  {
+   "q": "จองเรียนภาษาอังกฤษ GRID ยังไงครับ",
+   "kind": "para_th",
+   "source_id": "grid_booking",
+   "gold": [
+    "grid_booking"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการลงทะเบียนวิชา GRID ต้องไปที่เมนูไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "grid_booking",
+   "gold": [
+    "grid_booking"
+   ]
+  },
+  {
+   "q": "อยากเช็คว่าจองวิชาภาษาอังกฤษไปวันไหน ดูได้ตรงไหนคะ",
+   "kind": "para_th",
+   "source_id": "grid_booking",
+   "gold": [
+    "grid_booking"
+   ]
+  },
+  {
+   "q": "ขอวิธีเข้าใช้งานระบบเพื่อจองคอร์ส GRID หน่อย",
+   "kind": "para_th",
+   "source_id": "grid_booking",
+   "gold": [
+    "grid_booking"
+   ]
+  },
+  {
+   "q": "How can I book a GRID English course?",
+   "kind": "para_en",
+   "source_id": "grid_booking",
+   "gold": [
+    "grid_booking"
+   ]
+  },
+  {
+   "q": "Where can I check my GRID course booking history?",
+   "kind": "para_en",
+   "source_id": "grid_booking",
+   "gold": [
+    "grid_booking"
+   ]
+  },
+  {
+   "q": "วิชาภาษาอังกฤษ GRID เริ่มเรียนเทอมไหนครับ",
+   "kind": "near_miss",
+   "source_id": "grid_booking",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจองวิชา GRID ผิด จะยกเลิกการจองได้อย่างไร",
+   "kind": "near_miss",
+   "source_id": "grid_booking",
+   "gold": []
+  },
+  {
+   "q": "ต้องเรียนภาษาอังกฤษกี่วิชาถึงจะผ่านเกณฑ์คะแนนครับ",
+   "kind": "para_th",
+   "source_id": "grid_count",
+   "gold": [
+    "grid_count"
+   ]
+  },
+  {
+   "q": "เช็กจำนวนวิชา GRID ที่ต้องลงเรียนได้ที่ไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "grid_count",
+   "gold": [
+    "grid_count"
+   ]
+  },
+  {
+   "q": "รหัสนักศึกษานี้ต้องเรียน GRID กี่ตัวครับ",
+   "kind": "para_th",
+   "source_id": "grid_count",
+   "gold": [
+    "grid_count"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่า ป.เอก ต้องเรียนภาษาอังกฤษกี่รายวิชา ต้องติดต่อใคร",
+   "kind": "para_th",
+   "source_id": "grid_count",
+   "gold": [
+    "grid_count"
+   ]
+  },
+  {
+   "q": "How many GRID courses do I need to take?",
+   "kind": "para_en",
+   "source_id": "grid_count",
+   "gold": [
+    "grid_count"
+   ]
+  },
+  {
+   "q": "Where can I check the number of required GRID subjects?",
+   "kind": "para_en",
+   "source_id": "grid_count",
+   "gold": [
+    "grid_count"
+   ]
+  },
+  {
+   "q": "วิชาภาษาอังกฤษ GRID มีเนื้อหาเกี่ยวกับอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "grid_count",
+   "gold": []
+  },
+  {
+   "q": "ถ้าสอบผ่านเกณฑ์ภาษาอังกฤษแล้ว ต้องยื่นเอกสารที่ไหน",
+   "kind": "near_miss",
+   "source_id": "grid_count",
+   "gold": []
+  },
+  {
+   "q": "วิชา GRID 530 ต้องจ่ายเงินกี่บาทแล้วต้องเข้าเรียนกี่ชั่วโมงครับ",
+   "kind": "para_th",
+   "source_id": "grid_credits_price",
+   "gold": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "q": "อยากทราบค่าหน่วยกิตของพวกวิชา GRID 514 ถึง 517 ราคาเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "grid_credits_price",
+   "gold": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "q": "เรียน GRID 537 ใช้เวลากี่ชั่วโมง แล้วราคา 8,000 นี่คือกี่หน่วยกิต",
+   "kind": "para_th",
+   "source_id": "grid_credits_price",
+   "gold": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "q": "ค่าเรียนวิชา GRID 530/531/532/533 ถ้าลง 3 หน่วยกิต ต้องจ่ายรวมเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "grid_credits_price",
+   "gold": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "q": "How much is the tuition fee for GRID 537 and how many hours does it take?",
+   "kind": "para_en",
+   "source_id": "grid_credits_price",
+   "gold": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "q": "What are the credits and costs for GRID 514/515/516/517 courses?",
+   "kind": "para_en",
+   "source_id": "grid_credits_price",
+   "gold": [
+    "grid_credits_price"
+   ]
+  },
+  {
+   "q": "วิชา GRID 530 ต้องลงทะเบียนเรียนช่วงเดือนไหน",
+   "kind": "near_miss",
+   "source_id": "grid_credits_price",
+   "gold": []
+  },
+  {
+   "q": "มีเกณฑ์การตัดเกรดของวิชา GRID 537 อย่างไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "grid_credits_price",
+   "gold": []
+  },
+  {
+   "q": "เรียน GRID ต้องเข้าเรียนที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "grid_online",
+   "gold": [
+    "grid_online"
+   ]
+  },
+  {
+   "q": "คอร์ส GRID เรียนผ่านช่องทางไหน",
+   "kind": "para_th",
+   "source_id": "grid_online",
+   "gold": [
+    "grid_online"
+   ]
+  },
+  {
+   "q": "รายละเอียดการเข้าห้องเรียนออนไลน์ของ GRID ดูได้จากไหน",
+   "kind": "para_th",
+   "source_id": "grid_online",
+   "gold": [
+    "grid_online"
+   ]
+  },
+  {
+   "q": "อาจารย์จะส่งลิงก์เข้าเรียนให้ตอนไหน",
+   "kind": "para_th",
+   "source_id": "grid_online",
+   "gold": [
+    "grid_online"
+   ]
+  },
+  {
+   "q": "Is the GRID course conducted online?",
+   "kind": "para_en",
+   "source_id": "grid_online",
+   "gold": [
+    "grid_online"
+   ]
+  },
+  {
+   "q": "How can I access the GRID online classroom?",
+   "kind": "para_en",
+   "source_id": "grid_online",
+   "gold": [
+    "grid_online"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมการเรียน GRID ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "grid_online",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมโปรแกรมอะไรบ้างถึงจะเรียน GRID ได้",
+   "kind": "near_miss",
+   "source_id": "grid_online",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจองวิชา GRID ไม่ได้ต้องทำไงครับ",
+   "kind": "para_th",
+   "source_id": "grid_system_down",
+   "gold": [
+    "grid_system_down"
+   ]
+  },
+  {
+   "q": "ระบบ GRID เข้าไม่ได้ แจ้งเรื่องที่ไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "grid_system_down",
+   "gold": [
+    "grid_system_down"
+   ]
+  },
+  {
+   "q": "ขอวิธีแจ้งจองวิชา GRID กรณีระบบล่มหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "grid_system_down",
+   "gold": [
+    "grid_system_down"
+   ]
+  },
+  {
+   "q": "ไลน์แจ้งจอง GRID ต้องส่งข้อมูลอะไรไปบ้าง",
+   "kind": "para_th",
+   "source_id": "grid_system_down",
+   "gold": [
+    "grid_system_down"
+   ]
+  },
+  {
+   "q": "What should I do if the GRID course registration system is down?",
+   "kind": "para_en",
+   "source_id": "grid_system_down",
+   "gold": [
+    "grid_system_down"
+   ]
+  },
+  {
+   "q": "How to report issues with GRID course booking via LINE?",
+   "kind": "para_en",
+   "source_id": "grid_system_down",
+   "gold": [
+    "grid_system_down"
+   ]
+  },
+  {
+   "q": "ถ้าลืมรหัสผ่านเข้าระบบ GRID ต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "grid_system_down",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการจองวิชา GRID ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "grid_system_down",
+   "gold": []
+  },
+  {
+   "q": "กรรมการตรวจรับพัสดุต้องมีทั้งหมดกี่คนครับ",
+   "kind": "para_th",
+   "source_id": "inspect_committee",
+   "gold": [
+    "inspect_committee"
+   ]
+  },
+  {
+   "q": "จำนวนกรรมการตรวจรับพัสดุตามกฎหมายต้องมีอย่างน้อยกี่คน",
+   "kind": "para_th",
+   "source_id": "inspect_committee",
+   "gold": [
+    "inspect_committee"
+   ]
+  },
+  {
+   "q": "การตั้งคณะกรรมการตรวจรับพัสดุ ต้องมีประธานกับกรรมการกี่ท่าน",
+   "kind": "para_th",
+   "source_id": "inspect_committee",
+   "gold": [
+    "inspect_committee"
+   ]
+  },
+  {
+   "q": "อยากทราบจำนวนองค์ประชุมของคณะกรรมการตรวจรับพัสดุครับ",
+   "kind": "para_th",
+   "source_id": "inspect_committee",
+   "gold": [
+    "inspect_committee"
+   ]
+  },
+  {
+   "q": "How many members should be in the inspection committee?",
+   "kind": "para_en",
+   "source_id": "inspect_committee",
+   "gold": [
+    "inspect_committee"
+   ]
+  },
+  {
+   "q": "What is the minimum number of members required for the procurement inspection committee?",
+   "kind": "para_en",
+   "source_id": "inspect_committee",
+   "gold": [
+    "inspect_committee"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการแต่งตั้งคณะกรรมการตรวจรับพัสดุต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "inspect_committee",
+   "gold": []
+  },
+  {
+   "q": "คุณสมบัติของประธานกรรมการตรวจรับพัสดุต้องเป็นใคร",
+   "kind": "near_miss",
+   "source_id": "inspect_committee",
+   "gold": []
+  },
+  {
+   "q": "จะไปเอา account เน็ตได้จากทางไหนครับ",
+   "kind": "para_th",
+   "source_id": "internet_account",
+   "gold": [
+    "internet_account"
+   ]
+  },
+  {
+   "q": "จ่ายค่าเทอมเสร็จแล้วต้องรอกี่วันถึงจะใช้เน็ตได้",
+   "kind": "para_th",
+   "source_id": "internet_account",
+   "gold": [
+    "internet_account"
+   ]
+  },
+  {
+   "q": "ขอวิธีดาวน์โหลด user สำหรับใช้งานอินเทอร์เน็ตหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "internet_account",
+   "gold": [
+    "internet_account"
+   ]
+  },
+  {
+   "q": "หลังจากชำระเงินแล้ว ระบบจะเปิดให้ใช้งานอินเทอร์เน็ตได้เมื่อไหร่",
+   "kind": "para_th",
+   "source_id": "internet_account",
+   "gold": [
+    "internet_account"
+   ]
+  },
+  {
+   "q": "Where can I download my internet account details?",
+   "kind": "para_en",
+   "source_id": "internet_account",
+   "gold": [
+    "internet_account"
+   ]
+  },
+  {
+   "q": "How long does it take to activate my internet access after payment?",
+   "kind": "para_en",
+   "source_id": "internet_account",
+   "gold": [
+    "internet_account"
+   ]
+  },
+  {
+   "q": "ลืมรหัสผ่าน Internet Account ต้องทำยังไงครับ",
+   "kind": "near_miss",
+   "source_id": "internet_account",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการใช้งานอินเทอร์เน็ตราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "internet_account",
+   "gold": []
+  },
+  {
+   "q": "จะเช็ครายชื่อคนมีสิทธิ์สัมภาษณ์ได้ที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "interview_list",
+   "gold": [
+    "interview_list"
+   ]
+  },
+  {
+   "q": "ประกาศชื่อผู้ผ่านเข้ารอบสัมภาษณ์ดูตรงไหน",
+   "kind": "para_th",
+   "source_id": "interview_list",
+   "gold": [
+    "interview_list"
+   ]
+  },
+  {
+   "q": "อยากทราบช่องทางดูรายชื่อผู้มีสิทธิ์สอบสัมภาษณ์ค่ะ",
+   "kind": "para_th",
+   "source_id": "interview_list",
+   "gold": [
+    "interview_list"
+   ]
+  },
+  {
+   "q": "ถ้าจะดูว่าเราสอบผ่านสัมภาษณ์ไหม ต้องเข้าไปดูที่หน้าไหนของเว็บ",
+   "kind": "para_th",
+   "source_id": "interview_list",
+   "gold": [
+    "interview_list"
+   ]
+  },
+  {
+   "q": "Where can I find the list of candidates for the interview?",
+   "kind": "para_en",
+   "source_id": "interview_list",
+   "gold": [
+    "interview_list"
+   ]
+  },
+  {
+   "q": "How to check the interview shortlist on the website?",
+   "kind": "para_en",
+   "source_id": "interview_list",
+   "gold": [
+    "interview_list"
+   ]
+  },
+  {
+   "q": "ถ้าติดปัญหาเรื่องเอกสารการสมัครต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "interview_list",
+   "gold": []
+  },
+  {
+   "q": "วันสอบสัมภาษณ์เริ่มกี่โมงและต้องเตรียมตัวอย่างไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "interview_list",
+   "gold": []
+  },
+  {
+   "q": "ส่งเอกสารเบิกเงินไม่ทัน 30 วันต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "late_reimburse",
+   "gold": [
+    "late_reimburse"
+   ]
+  },
+  {
+   "q": "กรณีเบิกจ่ายงบประมาณเกินกำหนด 1 เดือน ต้องเตรียมตัวอย่างไรบ้าง",
+   "kind": "para_th",
+   "source_id": "late_reimburse",
+   "gold": [
+    "late_reimburse"
+   ]
+  },
+  {
+   "q": "ถ้าลืมส่งเรื่องเบิกจ่ายจนเลยกำหนด 30 วัน ต้องทำเรื่องเสนอใคร",
+   "kind": "para_th",
+   "source_id": "late_reimburse",
+   "gold": [
+    "late_reimburse"
+   ]
+  },
+  {
+   "q": "ต้องเขียนหนังสือชี้แจงไหมถ้าส่งเบิกเงินล่าช้า",
+   "kind": "para_th",
+   "source_id": "late_reimburse",
+   "gold": [
+    "late_reimburse"
+   ]
+  },
+  {
+   "q": "What should I do if my reimbursement request is more than 30 days late?",
+   "kind": "para_en",
+   "source_id": "late_reimburse",
+   "gold": [
+    "late_reimburse"
+   ]
+  },
+  {
+   "q": "How to handle late payment submission exceeding 30 days?",
+   "kind": "para_en",
+   "source_id": "late_reimburse",
+   "gold": [
+    "late_reimburse"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการเบิกค่าใช้จ่ายในการเดินทางไปต่างประเทศทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "late_reimburse",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเอกสารใบเสร็จหายต้องขอสำเนาใหม่ที่ไหน",
+   "kind": "near_miss",
+   "source_id": "late_reimburse",
+   "gold": []
+  },
+  {
+   "q": "อยากลาพักการเรียนต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "leave_of_absence",
+   "gold": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขอพักการศึกษาต้องส่งเอกสารที่ไหน",
+   "kind": "para_th",
+   "source_id": "leave_of_absence",
+   "gold": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "q": "ถ้าจะลาพักการศึกษา ต้องจ่ายเงินค่าอะไรบ้างและต้องทำอะไรต่อ",
+   "kind": "para_th",
+   "source_id": "leave_of_absence",
+   "gold": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "q": "ขออนุญาตลาพักการเรียน ต้องยื่นแบบฟอร์มอะไรและผ่านระบบไหน",
+   "kind": "para_th",
+   "source_id": "leave_of_absence",
+   "gold": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "q": "How can I apply for a leave of absence?",
+   "kind": "para_en",
+   "source_id": "leave_of_absence",
+   "gold": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "q": "What is the process for voluntary suspension of studies?",
+   "kind": "para_en",
+   "source_id": "leave_of_absence",
+   "gold": [
+    "leave_of_absence"
+   ]
+  },
+  {
+   "q": "ลาพักการศึกษาได้นานที่สุดกี่ภาคการศึกษา",
+   "kind": "near_miss",
+   "source_id": "leave_of_absence",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะขอลาออกจากการเป็นนักศึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "leave_of_absence",
+   "gold": []
+  },
+  {
+   "q": "อยากเปลี่ยนวันสอบ MU GRAD Plus ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "mugrad_change_round",
+   "gold": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอย้ายรอบสอบต้องแจ้งที่ไหน แล้วต้องแจ้งล่วงหน้านานเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "mugrad_change_round",
+   "gold": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "q": "ขอเลื่อนรอบสอบภาษาอังกฤษต้องเขียนบันทึกข้อความส่งไปที่ไหน",
+   "kind": "para_th",
+   "source_id": "mugrad_change_round",
+   "gold": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "q": "ถ้าที่นั่งในรอบใหม่เต็ม จะยังสามารถขอย้ายรอบสอบได้ไหม",
+   "kind": "para_th",
+   "source_id": "mugrad_change_round",
+   "gold": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "q": "How can I reschedule my MU GRAD Plus exam?",
+   "kind": "para_en",
+   "source_id": "mugrad_change_round",
+   "gold": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "q": "What is the procedure for changing my exam date?",
+   "kind": "para_en",
+   "source_id": "mugrad_change_round",
+   "gold": [
+    "mugrad_change_round"
+   ]
+  },
+  {
+   "q": "ถ้าสอบไม่ผ่าน สามารถสมัครสอบซ่อมได้เมื่อไหร่",
+   "kind": "near_miss",
+   "source_id": "mugrad_change_round",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมในการขอเปลี่ยนรอบสอบราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "mugrad_change_round",
+   "gold": []
+  },
+  {
+   "q": "จ่ายเงินค่าสมัครไปแล้ว ต้องรอนานไหมกว่าสถานะจะขึ้นว่าจ่ายแล้ว",
+   "kind": "para_th",
+   "source_id": "mugrad_payment_check",
+   "gold": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "q": "จะรู้ได้ยังไงว่ายอดเงินที่โอนไปเข้าในระบบหรือยัง",
+   "kind": "para_th",
+   "source_id": "mugrad_payment_check",
+   "gold": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "q": "ถ้าชำระเงิน MU GRAD Plus เรียบร้อยแล้ว ต้องเข้าไปดูตรงไหน",
+   "kind": "para_th",
+   "source_id": "mugrad_payment_check",
+   "gold": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "q": "เช็กยอดชำระเงินสำเร็จได้ช่วงกี่โมง",
+   "kind": "para_th",
+   "source_id": "mugrad_payment_check",
+   "gold": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "q": "How can I check my payment status for MU GRAD Plus?",
+   "kind": "para_en",
+   "source_id": "mugrad_payment_check",
+   "gold": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "q": "When will my payment status be updated to completed?",
+   "kind": "para_en",
+   "source_id": "mugrad_payment_check",
+   "gold": [
+    "mugrad_payment_check"
+   ]
+  },
+  {
+   "q": "ถ้าลืมใบแจ้งชำระเงินต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "mugrad_payment_check",
+   "gold": []
+  },
+  {
+   "q": "สามารถชำระเงินผ่านแอปธนาคารไหนได้บ้าง",
+   "kind": "near_miss",
+   "source_id": "mugrad_payment_check",
+   "gold": []
+  },
+  {
+   "q": "ค่าสอบ MU GRAD Plus ราคาเท่าไหร่ครับ",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fee",
+   "gold": [
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "q": "อยากสอบ MU GRAD TEST ต้องจ่ายเงินกี่บาท",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fee",
+   "gold": [
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "q": "ขอทราบรายละเอียดราคาค่าสอบ Speaking Section หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fee",
+   "gold": [
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "q": "สรุปแล้วแต่ละประเภทการสอบมีค่าธรรมเนียมเท่าไหร่บ้าง",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fee",
+   "gold": [
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "q": "How much is the MU GRAD Plus exam fee?",
+   "kind": "para_en",
+   "source_id": "mugrad_plus_fee",
+   "gold": [
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "q": "What are the testing fees for MU GRAD TEST?",
+   "kind": "para_en",
+   "source_id": "mugrad_plus_fee",
+   "gold": [
+    "mugrad_plus_fee"
+   ]
+  },
+  {
+   "q": "ต้องจองวันสอบ MU GRAD Plus ล่วงหน้ากี่วัน",
+   "kind": "near_miss",
+   "source_id": "mugrad_plus_fee",
+   "gold": []
+  },
+  {
+   "q": "ผลสอบ MU GRAD TEST จะประกาศเมื่อไหร่",
+   "kind": "near_miss",
+   "source_id": "mugrad_plus_fee",
+   "gold": []
+  },
+  {
+   "q": "สอบ MU GRAD Plus มีคะแนนเต็มกี่คะแนนครับ",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": [
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "q": "อยากทราบคะแนนสูงสุดของ MU GRAD Plus และ MU GRAD TEST ครับ",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": [
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "q": "พาร์ท Speaking กับ Writing สอบเต็มเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": [
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "q": "คะแนนเต็มทั้งหมดของการสอบชุดนี้มีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": [
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "q": "What is the maximum score for MU GRAD Plus?",
+   "kind": "para_en",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": [
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "q": "How many points are available for the writing and speaking sections?",
+   "kind": "para_en",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": [
+    "mugrad_plus_fullscore"
+   ]
+  },
+  {
+   "q": "เกณฑ์การผ่านคะแนนของ MU GRAD Plus ต้องได้เท่าไหร่ถึงจะผ่าน",
+   "kind": "near_miss",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": []
+  },
+  {
+   "q": "ต้องสอบ MU GRAD Plus กี่ครั้งถึงจะใช้ยื่นจบได้",
+   "kind": "near_miss",
+   "source_id": "mugrad_plus_fullscore",
+   "gold": []
+  },
+  {
+   "q": "จะรู้ผลสอบ MU GRAD Plus ได้ตอนไหนครับ",
+   "kind": "para_th",
+   "source_id": "mugrad_result_days",
+   "gold": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "q": "เช็คคะแนนสอบที่ผ่านไปแล้วได้ยังไง",
+   "kind": "para_th",
+   "source_id": "mugrad_result_days",
+   "gold": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "q": "ต้องรอประมาณกี่วันถึงจะประกาศคะแนน MU GRAD Plus",
+   "kind": "para_th",
+   "source_id": "mugrad_result_days",
+   "gold": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "q": "เข้าไปดูคะแนนสอบตรงไหนของระบบรับสมัคร",
+   "kind": "para_th",
+   "source_id": "mugrad_result_days",
+   "gold": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "q": "When will the MU GRAD Plus results be announced?",
+   "kind": "para_en",
+   "source_id": "mugrad_result_days",
+   "gold": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "q": "How can I check my exam scores?",
+   "kind": "para_en",
+   "source_id": "mugrad_result_days",
+   "gold": [
+    "mugrad_result_days"
+   ]
+  },
+  {
+   "q": "ผลสอบ MU GRAD Plus ต้องจ่ายค่าธรรมเนียมเพิ่มไหม",
+   "kind": "near_miss",
+   "source_id": "mugrad_result_days",
+   "gold": []
+  },
+  {
+   "q": "ถ้าลืมรหัสผ่านเข้าหน้า View Scores ต้องทำยังไง",
+   "kind": "near_miss",
+   "source_id": "mugrad_result_days",
+   "gold": []
+  },
+  {
+   "q": "จะดูเลขที่นั่งสอบได้ที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "mugrad_seat",
+   "gold": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "q": "เช็กที่นั่งสอบ MU GRAD Plus ยังไง",
+   "kind": "para_th",
+   "source_id": "mugrad_seat",
+   "gold": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "q": "ต้องล็อกอินไปเมนูไหนเพื่อดูที่นั่งสอบ",
+   "kind": "para_th",
+   "source_id": "mugrad_seat",
+   "gold": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "q": "ที่นั่งสอบจะประกาศให้ทราบเมื่อไหร่",
+   "kind": "para_th",
+   "source_id": "mugrad_seat",
+   "gold": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "q": "How can I check my exam seat number?",
+   "kind": "para_en",
+   "source_id": "mugrad_seat",
+   "gold": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "q": "Where can I find the exam location for MU GRAD Plus?",
+   "kind": "para_en",
+   "source_id": "mugrad_seat",
+   "gold": [
+    "mugrad_seat"
+   ]
+  },
+  {
+   "q": "ตารางสอบ MU GRAD Plus ออกวันไหน",
+   "kind": "near_miss",
+   "source_id": "mugrad_seat",
+   "gold": []
+  },
+  {
+   "q": "ถ้าลืมรหัสผ่านเข้าระบบรับสมัครต้องทำยังไง",
+   "kind": "near_miss",
+   "source_id": "mugrad_seat",
+   "gold": []
+  },
+  {
+   "q": "อยากได้ใบแจ้งคะแนนภาษาอังกฤษแบบเป็นทางการต้องทำไงครับ",
+   "kind": "para_th",
+   "source_id": "official_score",
+   "gold": [
+    "official_score"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการขอผลคะแนน English Proficiency มีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "official_score",
+   "gold": [
+    "official_score"
+   ]
+  },
+  {
+   "q": "ส่งเมลไปที่ gradlc@mahidol.ac.th เพื่อขอผลคะแนนภาษาอังกฤษได้เลยไหม",
+   "kind": "para_th",
+   "source_id": "official_score",
+   "gold": [
+    "official_score"
+   ]
+  },
+  {
+   "q": "ต้องกรอกฟอร์ม บฑ.19 เพื่อขอคะแนนภาษาอังกฤษใช่ไหมคะ",
+   "kind": "para_th",
+   "source_id": "official_score",
+   "gold": [
+    "official_score"
+   ]
+  },
+  {
+   "q": "How can I request my official English proficiency score?",
+   "kind": "para_en",
+   "source_id": "official_score",
+   "gold": [
+    "official_score"
+   ]
+  },
+  {
+   "q": "What is the procedure to get my English test results via email?",
+   "kind": "para_en",
+   "source_id": "official_score",
+   "gold": [
+    "official_score"
+   ]
+  },
+  {
+   "q": "ถ้าคะแนนภาษาอังกฤษไม่ผ่านเกณฑ์ต้องทำอย่างไรต่อ",
+   "kind": "near_miss",
+   "source_id": "official_score",
+   "gold": []
+  },
+  {
+   "q": "สามารถเข้าไปรับใบผลคะแนนด้วยตัวเองที่สำนักงานได้ไหม",
+   "kind": "near_miss",
+   "source_id": "official_score",
+   "gold": []
+  },
+  {
+   "q": "การจัดซื้อจัดจ้างของบัณฑิตวิทยาลัยมีแบบไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "purchase_methods",
+   "gold": [
+    "purchase_methods"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่าขั้นตอนการหาพัสดุของที่นี่ทำยังไงได้บ้าง",
+   "kind": "para_th",
+   "source_id": "purchase_methods",
+   "gold": [
+    "purchase_methods"
+   ]
+  },
+  {
+   "q": "วิธีซื้อของหรือจ้างงานของบัณฑิตวิทยาลัยมีกี่รูปแบบ",
+   "kind": "para_th",
+   "source_id": "purchase_methods",
+   "gold": [
+    "purchase_methods"
+   ]
+  },
+  {
+   "q": "ตามกฎหมายปี 60 บัณฑิตวิทยาลัยสามารถใช้วิธีการจัดซื้อแบบไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "purchase_methods",
+   "gold": [
+    "purchase_methods"
+   ]
+  },
+  {
+   "q": "What are the procurement methods for the Graduate School?",
+   "kind": "para_en",
+   "source_id": "purchase_methods",
+   "gold": [
+    "purchase_methods"
+   ]
+  },
+  {
+   "q": "How many ways can the Graduate School conduct purchasing?",
+   "kind": "para_en",
+   "source_id": "purchase_methods",
+   "gold": [
+    "purchase_methods"
+   ]
+  },
+  {
+   "q": "เกณฑ์การตัดสินผู้ชนะในการประมูลงานของบัณฑิตวิทยาลัยคืออะไร",
+   "kind": "near_miss",
+   "source_id": "purchase_methods",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการยื่นเสนอราคาจัดซื้อจัดจ้าง",
+   "kind": "near_miss",
+   "source_id": "purchase_methods",
+   "gold": []
+  },
+  {
+   "q": "ใบเสร็จที่ไม่มีตัวอักษรกำกับจำนวนเงินเอามาเบิกเงินได้ไหมครับ",
+   "kind": "para_th",
+   "source_id": "receipt_incomplete",
+   "gold": [
+    "receipt_incomplete"
+   ]
+  },
+  {
+   "q": "ถ้าใบเสร็จรับเงินเขียนแค่ตัวเลขไม่มีตัวหนังสือ ต้องทำยังไงถึงจะเบิกได้",
+   "kind": "para_th",
+   "source_id": "receipt_incomplete",
+   "gold": [
+    "receipt_incomplete"
+   ]
+  },
+  {
+   "q": "กรณีใบเสร็จไม่สมบูรณ์เพราะขาดจำนวนเงินตัวอักษร ต้องใช้เอกสารอะไรแทน",
+   "kind": "para_th",
+   "source_id": "receipt_incomplete",
+   "gold": [
+    "receipt_incomplete"
+   ]
+  },
+  {
+   "q": "อยากทราบขั้นตอนการเบิกจ่ายกรณีใบเสร็จรับเงินระบุจำนวนเงินไม่ครบถ้วนตามระเบียบ",
+   "kind": "para_th",
+   "source_id": "receipt_incomplete",
+   "gold": [
+    "receipt_incomplete"
+   ]
+  },
+  {
+   "q": "Can I use a receipt without the amount in words for reimbursement?",
+   "kind": "para_en",
+   "source_id": "receipt_incomplete",
+   "gold": [
+    "receipt_incomplete"
+   ]
+  },
+  {
+   "q": "What should I do if the receipt does not include the amount in words?",
+   "kind": "para_en",
+   "source_id": "receipt_incomplete",
+   "gold": [
+    "receipt_incomplete"
+   ]
+  },
+  {
+   "q": "ถ้าใบเสร็จหายต้องไปขอคัดสำเนาใหม่ที่ไหนครับ",
+   "kind": "near_miss",
+   "source_id": "receipt_incomplete",
+   "gold": []
+  },
+  {
+   "q": "การเบิกค่าเดินทางไปต่างจังหวัดต้องใช้เอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "receipt_incomplete",
+   "gold": []
+  },
+  {
+   "q": "งานวิจัยของหนูไม่ได้ทำในคนหรือสัตว์เลย ต้องไปขอจริยธรรมที่ไหนคะ",
+   "kind": "para_th",
+   "source_id": "research_ethics",
+   "gold": [
+    "research_ethics"
+   ]
+  },
+  {
+   "q": "ถ้างานวิจัยเราไม่เกี่ยวข้องกับคนหรือสัตว์ ต้องทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "research_ethics",
+   "gold": [
+    "research_ethics"
+   ]
+  },
+  {
+   "q": "อยากทราบขั้นตอนการประเมินกรณีงานวิจัยไม่เข้าข่ายการวิจัยในคนหรือสัตว์ค่ะ",
+   "kind": "para_th",
+   "source_id": "research_ethics",
+   "gold": [
+    "research_ethics"
+   ]
+  },
+  {
+   "q": "ต้องติดต่อเบอร์ไหนถ้าจะส่งแบบประเมินจริยธรรมการวิจัยกรณีที่ไม่ใช่การวิจัยในคนหรือสัตว์",
+   "kind": "para_th",
+   "source_id": "research_ethics",
+   "gold": [
+    "research_ethics"
+   ]
+  },
+  {
+   "q": "What should I do if my research does not involve human or animal subjects?",
+   "kind": "para_en",
+   "source_id": "research_ethics",
+   "gold": [
+    "research_ethics"
+   ]
+  },
+  {
+   "q": "How can I submit an assessment for research that is not involving humans or animals?",
+   "kind": "para_en",
+   "source_id": "research_ethics",
+   "gold": [
+    "research_ethics"
+   ]
+  },
+  {
+   "q": "ถ้างานวิจัยเกี่ยวข้องกับสัตว์ต้องติดต่อคณะกรรมการชุดไหน",
+   "kind": "near_miss",
+   "source_id": "research_ethics",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมในการยื่นขอจริยธรรมการวิจัยในคนราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "research_ethics",
+   "gold": []
+  },
+  {
+   "q": "ถ้าอาจารย์ต่างชาติไม่มีบัญชีไทย ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "research_no_bank",
+   "gold": [
+    "research_no_bank"
+   ]
+  },
+  {
+   "q": "การโอนเงินค่าตอบแทนไปต่างประเทศต้องใช้สำเนาสมุดบัญชีไหม",
+   "kind": "para_th",
+   "source_id": "research_no_bank",
+   "gold": [
+    "research_no_bank"
+   ]
+  },
+  {
+   "q": "อยากทราบขั้นตอนการจ่ายเงินให้กรรมการจากต่างประเทศที่ไม่มีธนาคารในไทย",
+   "kind": "para_th",
+   "source_id": "research_no_bank",
+   "gold": [
+    "research_no_bank"
+   ]
+  },
+  {
+   "q": "ต้องกรอกข้อมูลอะไรบ้างถ้าจะให้โอนเงินเข้าบัญชีธนาคารต่างประเทศ",
+   "kind": "para_th",
+   "source_id": "research_no_bank",
+   "gold": [
+    "research_no_bank"
+   ]
+  },
+  {
+   "q": "How to process payment for foreign committee members without a Thai bank account?",
+   "kind": "para_en",
+   "source_id": "research_no_bank",
+   "gold": [
+    "research_no_bank"
+   ]
+  },
+  {
+   "q": "Do I need to attach a bank book copy for overseas wire transfers?",
+   "kind": "para_en",
+   "source_id": "research_no_bank",
+   "gold": [
+    "research_no_bank"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมการโอนเงินไปต่างประเทศใครเป็นคนจ่าย",
+   "kind": "near_miss",
+   "source_id": "research_no_bank",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการเชิญกรรมการต่างชาติมาเป็นกรรมการสอบ",
+   "kind": "near_miss",
+   "source_id": "research_no_bank",
+   "gold": []
+  },
+  {
+   "q": "ถ้าเป็นคนนอก มหาวิทยาลัย ต้องทำยังไงถึงจะขอใช้เครื่องมือวิจัยได้คะ",
+   "kind": "para_th",
+   "source_id": "research_tool",
+   "gold": [
+    "research_tool"
+   ]
+  },
+  {
+   "q": "อยากใช้เครื่องมือวิจัย ต้องส่งหนังสือไปที่ไหน",
+   "kind": "para_th",
+   "source_id": "research_tool",
+   "gold": [
+    "research_tool"
+   ]
+  },
+  {
+   "q": "นักศึกษา มหิดล มีขั้นตอนขอใช้เครื่องมือยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "research_tool",
+   "gold": [
+    "research_tool"
+   ]
+  },
+  {
+   "q": "ต้องติดต่อใครเรื่องทำเรื่องขอใช้เครื่องมือวิจัยผ่าน e-document",
+   "kind": "para_th",
+   "source_id": "research_tool",
+   "gold": [
+    "research_tool"
+   ]
+  },
+  {
+   "q": "How can external researchers request to use research tools?",
+   "kind": "para_en",
+   "source_id": "research_tool",
+   "gold": [
+    "research_tool"
+   ]
+  },
+  {
+   "q": "What is the procedure for Mahidol students to use research equipment?",
+   "kind": "para_en",
+   "source_id": "research_tool",
+   "gold": [
+    "research_tool"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมในการขอใช้เครื่องมือวิจัยราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "research_tool",
+   "gold": []
+  },
+  {
+   "q": "เครื่องมือวิจัยชิ้นไหนบ้างที่เปิดให้บุคคลภายนอกใช้งานได้",
+   "kind": "near_miss",
+   "source_id": "research_tool",
+   "gold": []
+  },
+  {
+   "q": "เป็นข้าราชการลาเรียนอยู่ อยากให้ทำหนังสือส่งตัวกลับที่ทำงานต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "return_to_work",
+   "gold": [
+    "return_to_work"
+   ]
+  },
+  {
+   "q": "ขอแบบฟอร์ม บฑ.24 สำหรับส่งตัวกลับต้นสังกัดได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "return_to_work",
+   "gold": [
+    "return_to_work"
+   ]
+  },
+  {
+   "q": "ต้องยื่นเรื่องขอหนังสือส่งตัวกลับไปทำงานที่หน่วยงานเดิมผ่านช่องทางไหนคะ",
+   "kind": "para_th",
+   "source_id": "return_to_work",
+   "gold": [
+    "return_to_work"
+   ]
+  },
+  {
+   "q": "พนักงานรัฐวิสาหกิจที่ลาศึกษาต่อจะขอหนังสือส่งตัวกลับไปปฏิบัติงานต้องใช้เอกสารอะไรและยื่นที่ไหน",
+   "kind": "para_th",
+   "source_id": "return_to_work",
+   "gold": [
+    "return_to_work"
+   ]
+  },
+  {
+   "q": "How can I request a letter to return to my workplace?",
+   "kind": "para_en",
+   "source_id": "return_to_work",
+   "gold": [
+    "return_to_work"
+   ]
+  },
+  {
+   "q": "Where can I submit the request for a return-to-work letter via e-document?",
+   "kind": "para_en",
+   "source_id": "return_to_work",
+   "gold": [
+    "return_to_work"
+   ]
+  },
+  {
+   "q": "ถ้าลาพักการเรียนต้องทำเรื่องขอหนังสือส่งตัวกลับยังไง",
+   "kind": "near_miss",
+   "source_id": "return_to_work",
+   "gold": []
+  },
+  {
+   "q": "การขอหนังสือรับรองสถานภาพนักศึกษาต้องยื่นผ่านระบบไหน",
+   "kind": "near_miss",
+   "source_id": "return_to_work",
+   "gold": []
+  },
+  {
+   "q": "จะสมัครทุนการศึกษาได้ที่ไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "scholarship_apply",
+   "gold": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการสมัครทุนต้องทำยังไง มีช่องทางไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "scholarship_apply",
+   "gold": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "q": "อยากดูรายละเอียดพวกพวกรางวัลต่างๆ ต้องเข้าไปดูที่เว็บไหน",
+   "kind": "para_th",
+   "source_id": "scholarship_apply",
+   "gold": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "q": "สมัครทุนผ่านเน็ตได้ไหม หรือต้องไปยื่นเอกสารที่คณะ",
+   "kind": "para_th",
+   "source_id": "scholarship_apply",
+   "gold": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "q": "How can I apply for scholarships?",
+   "kind": "para_en",
+   "source_id": "scholarship_apply",
+   "gold": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "q": "Where can I find the application methods for awards?",
+   "kind": "para_en",
+   "source_id": "scholarship_apply",
+   "gold": [
+    "scholarship_apply"
+   ]
+  },
+  {
+   "q": "ทุนการศึกษาปีนี้มีทุนอะไรน่าสนใจบ้าง",
+   "kind": "near_miss",
+   "source_id": "scholarship_apply",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการสมัครทุน",
+   "kind": "near_miss",
+   "source_id": "scholarship_apply",
+   "gold": []
+  },
+  {
+   "q": "ถ้าจะส่งพวกเอกสารสัญญาต้องไปที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "scholarship_docs",
+   "gold": [
+    "scholarship_docs"
+   ]
+  },
+  {
+   "q": "พวกเอกสารที่ไม่ต้องใช้ตัวจริง ส่งทางไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "scholarship_docs",
+   "gold": [
+    "scholarship_docs"
+   ]
+  },
+  {
+   "q": "จะส่งเรื่องทุนการศึกษา ต้องไปยื่นที่อาคารไหน",
+   "kind": "para_th",
+   "source_id": "scholarship_docs",
+   "gold": [
+    "scholarship_docs"
+   ]
+  },
+  {
+   "q": "ขอวิธีส่งเอกสารการเงินหน่อยครับ ต้องไปที่ศาลายาเลยไหม",
+   "kind": "para_th",
+   "source_id": "scholarship_docs",
+   "gold": [
+    "scholarship_docs"
+   ]
+  },
+  {
+   "q": "How can I submit documents for scholarships?",
+   "kind": "para_en",
+   "source_id": "scholarship_docs",
+   "gold": [
+    "scholarship_docs"
+   ]
+  },
+  {
+   "q": "Where should I send my financial contract documents?",
+   "kind": "para_en",
+   "source_id": "scholarship_docs",
+   "gold": [
+    "scholarship_docs"
+   ]
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการขอทุนรางวัล",
+   "kind": "near_miss",
+   "source_id": "scholarship_docs",
+   "gold": []
+  },
+  {
+   "q": "ระบบ e-Document ปิดปรับปรุงตอนกี่โมง",
+   "kind": "near_miss",
+   "source_id": "scholarship_docs",
+   "gold": []
+  },
+  {
+   "q": "เงินทุนรายเดือนเข้าวันไหนครับ",
+   "kind": "para_th",
+   "source_id": "scholarship_monthly",
+   "gold": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "q": "จะได้รับเงินค่าใช้จ่ายรายเดือนช่วงเวลาไหน",
+   "kind": "para_th",
+   "source_id": "scholarship_monthly",
+   "gold": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "q": "เงินโอนเข้าบัญชีวันสุดท้ายของเดือนเลยใช่ไหม",
+   "kind": "para_th",
+   "source_id": "scholarship_monthly",
+   "gold": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "q": "อยากทราบกำหนดการโอนเงินทุนรายเดือน",
+   "kind": "para_th",
+   "source_id": "scholarship_monthly",
+   "gold": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "q": "When will I receive my monthly stipend?",
+   "kind": "para_en",
+   "source_id": "scholarship_monthly",
+   "gold": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "q": "What is the payment date for the monthly allowance?",
+   "kind": "para_en",
+   "source_id": "scholarship_monthly",
+   "gold": [
+    "scholarship_monthly"
+   ]
+  },
+  {
+   "q": "ถ้าเงินไม่เข้าบัญชีในวันสุดท้ายของเดือนต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "scholarship_monthly",
+   "gold": []
+  },
+  {
+   "q": "เงินทุนที่ได้รับมีจำนวนเท่าไหร่ต่อเดือน",
+   "kind": "near_miss",
+   "source_id": "scholarship_monthly",
+   "gold": []
+  },
+  {
+   "q": "อยากรู้ว่าที่นี่มีทุนอะไรให้บ้างครับ",
+   "kind": "para_th",
+   "source_id": "scholarship_types",
+   "gold": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "q": "มีทุนการศึกษาประเภทไหนให้เลือกรับบ้าง",
+   "kind": "para_th",
+   "source_id": "scholarship_types",
+   "gold": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "q": "รายละเอียดพวกทุนตอนเริ่มเรียนกับทุนตอนเรียนจบมีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "scholarship_types",
+   "gold": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "q": "ขอทราบประเภทของทุนสนับสนุนการศึกษาของบัณฑิตวิทยาลัยหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "scholarship_types",
+   "gold": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "q": "What types of scholarships are available?",
+   "kind": "para_en",
+   "source_id": "scholarship_types",
+   "gold": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "q": "Are there any scholarships for graduate students?",
+   "kind": "para_en",
+   "source_id": "scholarship_types",
+   "gold": [
+    "scholarship_types"
+   ]
+  },
+  {
+   "q": "จะสมัครทุนการศึกษาต้องใช้เอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "scholarship_types",
+   "gold": []
+  },
+  {
+   "q": "ทุนประเภทไหนให้เงินสนับสนุนรายเดือน",
+   "kind": "near_miss",
+   "source_id": "scholarship_types",
+   "gold": []
+  },
+  {
+   "q": "อาจารย์พิเศษต้องมีคุณสมบัติยังไงบ้างครับ",
+   "kind": "para_th",
+   "source_id": "special_teacher",
+   "gold": [
+    "special_teacher"
+   ]
+  },
+  {
+   "q": "ถ้าจะเชิญอาจารย์มาสอนพิเศษ ต้องดูจากวุฒิการศึกษาและผลงานวิชาการยังไง",
+   "kind": "para_th",
+   "source_id": "special_teacher",
+   "gold": [
+    "special_teacher"
+   ]
+  },
+  {
+   "q": "เกณฑ์การเป็นอาจารย์พิเศษของระดับ ป.โท กับ ป.เอก ต่างกันตรงไหน",
+   "kind": "para_th",
+   "source_id": "special_teacher",
+   "gold": [
+    "special_teacher"
+   ]
+  },
+  {
+   "q": "ต้องมีผลงานวิชาการย้อนหลังกี่ปีถึงจะมาเป็นอาจารย์พิเศษได้",
+   "kind": "para_th",
+   "source_id": "special_teacher",
+   "gold": [
+    "special_teacher"
+   ]
+  },
+  {
+   "q": "What are the requirements for a guest lecturer?",
+   "kind": "para_en",
+   "source_id": "special_teacher",
+   "gold": [
+    "special_teacher"
+   ]
+  },
+  {
+   "q": "What are the qualifications for part-time instructors in Master's and Doctoral programs?",
+   "kind": "para_en",
+   "source_id": "special_teacher",
+   "gold": [
+    "special_teacher"
+   ]
+  },
+  {
+   "q": "อาจารย์พิเศษจะได้รับค่าตอบแทนชั่วโมงละเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "special_teacher",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการยื่นเอกสารขออนุมัติแต่งตั้งอาจารย์พิเศษต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "special_teacher",
+   "gold": []
+  },
+  {
+   "q": "อยากเปลี่ยนที่อยู่ทำงานในใบเซอร์ MAP-C ต้องทำไงครับ",
+   "kind": "para_th",
+   "source_id": "suspend_general",
+   "gold": [
+    "suspend_general"
+   ]
+  },
+  {
+   "q": "ถ้าที่อยู่บริษัทในหนังสือรับรองผิด แก้ไขตรงไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "suspend_general",
+   "gold": [
+    "suspend_general"
+   ]
+  },
+  {
+   "q": "วิธีอัปเดตข้อมูล Workplace ในระบบ MAP-2021",
+   "kind": "para_th",
+   "source_id": "suspend_general",
+   "gold": [
+    "suspend_general"
+   ]
+  },
+  {
+   "q": "ขอโหลดใบรับรองใหม่หลังจากแก้ที่อยู่แล้ว ต้องทำยังไง",
+   "kind": "para_th",
+   "source_id": "suspend_general",
+   "gold": [
+    "suspend_general"
+   ]
+  },
+  {
+   "q": "How can I update my workplace address in the MAP-C certificate?",
+   "kind": "para_en",
+   "source_id": "suspend_general",
+   "gold": [
+    "suspend_general"
+   ]
+  },
+  {
+   "q": "Where do I edit my profile to change the address on my certificate?",
+   "kind": "para_en",
+   "source_id": "suspend_general",
+   "gold": [
+    "suspend_general"
+   ]
+  },
+  {
+   "q": "ถ้าลืมรหัสผ่านเข้าใช้งานระบบ MAP-2021 ต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "suspend_general",
+   "gold": []
+  },
+  {
+   "q": "สามารถเปลี่ยนชื่อ-นามสกุล ในหนังสือรับรอง MAP-C ได้หรือไม่",
+   "kind": "near_miss",
+   "source_id": "suspend_general",
+   "gold": []
+  },
+  {
+   "q": "อาจารย์เข้าเว็บ Thesis Online Advisor ไม่ได้เลยครับ ต้องทำไงดี",
+   "kind": "para_th",
+   "source_id": "thesis_advisor_login",
+   "gold": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "q": "ลืมรหัสผ่านเข้าเข้าระบบอาจารย์ ต้องกดตรงไหนคะ",
+   "kind": "para_th",
+   "source_id": "thesis_advisor_login",
+   "gold": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "q": "ถ้าล้างแคชกับคุกกี้แล้วยังล็อกอินเข้า Thesis Online Advisor ไม่ได้ ต้องแจ้งใคร",
+   "kind": "para_th",
+   "source_id": "thesis_advisor_login",
+   "gold": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "q": "รหัสผ่านถูกแล้วแต่ยังเข้าหน้า Advisor ไม่ได้เลย รบกวนช่วยดูให้หน่อยครับ",
+   "kind": "para_th",
+   "source_id": "thesis_advisor_login",
+   "gold": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "q": "How can I fix login issues for Thesis Online Advisor?",
+   "kind": "para_en",
+   "source_id": "thesis_advisor_login",
+   "gold": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "q": "I cannot access the Thesis Online Advisor system. What should I do?",
+   "kind": "para_en",
+   "source_id": "thesis_advisor_login",
+   "gold": [
+    "thesis_advisor_login"
+   ]
+  },
+  {
+   "q": "ถ้าลืมรหัสผ่านระบบ Thesis Online Advisor ต้องติดต่อเจ้าหน้าที่ที่เบอร์ไหน",
+   "kind": "near_miss",
+   "source_id": "thesis_advisor_login",
+   "gold": []
+  },
+  {
+   "q": "จะขอเปลี่ยน Username ในระบบ Thesis Online Advisor ได้อย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_advisor_login",
+   "gold": []
+  },
+  {
+   "q": "อยากเปลี่ยนหัวข้อวิทยานิพนธ์ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "thesis_change_topic",
+   "gold": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "q": "การยื่น บฑ.49 ต้องไปที่คณะหรือทำออนไลน์ได้เลย",
+   "kind": "para_th",
+   "source_id": "thesis_change_topic",
+   "gold": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "q": "ขอเปลี่ยนหัวข้อสารนิพนธ์ต้องใช้แบบฟอร์มไหน",
+   "kind": "para_th",
+   "source_id": "thesis_change_topic",
+   "gold": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "q": "ช่องทางการยื่นคำร้องขอเปลี่ยนหัวข้อวิจัย",
+   "kind": "para_th",
+   "source_id": "thesis_change_topic",
+   "gold": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "q": "How can I request a change of my thesis topic?",
+   "kind": "para_en",
+   "source_id": "thesis_change_topic",
+   "gold": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "q": "Where can I submit the บฑ.49 form online?",
+   "kind": "para_en",
+   "source_id": "thesis_change_topic",
+   "gold": [
+    "thesis_change_topic"
+   ]
+  },
+  {
+   "q": "ถ้าเปลี่ยนหัวข้อวิทยานิพนธ์แล้ว ต้องจ่ายค่าธรรมเนียมเพิ่มไหม",
+   "kind": "near_miss",
+   "source_id": "thesis_change_topic",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอขยายเวลาการส่งเล่มวิทยานิพนธ์ทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_change_topic",
+   "gold": []
+  },
+  {
+   "q": "เช็คยังไงว่าหน้าเสนอเรื่องกับหน้าอนุมัติอัปโหลดเสร็จหรือยัง",
+   "kind": "para_th",
+   "source_id": "thesis_check_signoff",
+   "gold": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "q": "ถ้าจะดูว่าเอกสารผ่านหรือยังต้องไปที่เมนูไหนใน e-thesis",
+   "kind": "para_th",
+   "source_id": "thesis_check_signoff",
+   "gold": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "q": "ตรวจสอบสถานะการส่งหน้าเซ็นชื่อได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "thesis_check_signoff",
+   "gold": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "q": "อยากรู้ว่าหน้าเซ็นเอกสารอัปโหลดเรียบร้อยหรือยัง ต้องกดดูตรงไหน",
+   "kind": "para_th",
+   "source_id": "thesis_check_signoff",
+   "gold": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "q": "How can I check the upload status of my signature pages?",
+   "kind": "para_en",
+   "source_id": "thesis_check_signoff",
+   "gold": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "q": "Where can I preview the uploaded approval pages in the e-thesis system?",
+   "kind": "para_en",
+   "source_id": "thesis_check_signoff",
+   "gold": [
+    "thesis_check_signoff"
+   ]
+  },
+  {
+   "q": "ถ้าเอกสารมีข้อผิดพลาด ต้องแก้ไขและอัปโหลดใหม่ยังไง",
+   "kind": "near_miss",
+   "source_id": "thesis_check_signoff",
+   "gold": []
+  },
+  {
+   "q": "สามารถมารับต้นฉบับคืนได้ที่ตึกไหน และต้องใช้เอกสารอะไรบ้าง",
+   "kind": "near_miss",
+   "source_id": "thesis_check_signoff",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้คำว่าอะไรตรงหน้าท้ายเล่ม วิทยานิพนธ์สายวิทย์กับสายสังคมต่างกันไหม",
+   "kind": "para_th",
+   "source_id": "thesis_citation",
+   "gold": [
+    "thesis_citation"
+   ]
+  },
+  {
+   "q": "ถ้าจะเขียนอ้างอิงแบบ Vancouver กับ APA ต้องเรียงลำดับยังไง",
+   "kind": "para_th",
+   "source_id": "thesis_citation",
+   "gold": [
+    "thesis_citation"
+   ]
+  },
+  {
+   "q": "สรุปแล้วในเล่มต้องใช้ระบบอ้างอิงแบบเดียวกันทั้งเล่มเลยหรือเปล่า",
+   "kind": "para_th",
+   "source_id": "thesis_citation",
+   "gold": [
+    "thesis_citation"
+   ]
+  },
+  {
+   "q": "อยากรู้วิธีการเขียนอ้างอิงแบบเชิงอรรถ มีรายละเอียดเพิ่มเติมดูได้ที่ไหน",
+   "kind": "para_th",
+   "source_id": "thesis_citation",
+   "gold": [
+    "thesis_citation"
+   ]
+  },
+  {
+   "q": "What are the different citation styles available for my thesis?",
+   "kind": "para_en",
+   "source_id": "thesis_citation",
+   "gold": [
+    "thesis_citation"
+   ]
+  },
+  {
+   "q": "Should I use 'References' or 'Bibliography' for social science research?",
+   "kind": "para_en",
+   "source_id": "thesis_citation",
+   "gold": [
+    "thesis_citation"
+   ]
+  },
+  {
+   "q": "รูปแบบการตั้งชื่อหัวข้อวิทยานิพนธ์ที่ถูกต้องต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_citation",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้ฟอนต์ขนาดเท่าไหร่ในการพิมพ์เนื้อหาในเล่ม",
+   "kind": "near_miss",
+   "source_id": "thesis_citation",
+   "gold": []
+  },
+  {
+   "q": "กรรมการสอบวิทยานิพนธ์จะได้เงินค่าตอบแทนทางไหนครับ",
+   "kind": "para_th",
+   "source_id": "thesis_committee_pay",
+   "gold": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการจ่ายเงินค่าตอบแทนกรรมการสอบต้องทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_committee_pay",
+   "gold": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "q": "อยากทราบเรื่องการเบิกเงินค่ากรรมการสอบวิทยานิพนธ์ครับ",
+   "kind": "para_th",
+   "source_id": "thesis_committee_pay",
+   "gold": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "q": "หลักฐานที่ต้องใช้ในการเบิกค่าตอบแทนกรรมการสอบมีอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_committee_pay",
+   "gold": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "q": "How is the thesis examination committee fee paid?",
+   "kind": "para_en",
+   "source_id": "thesis_committee_pay",
+   "gold": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "q": "What is the process for reimbursement of the thesis committee members?",
+   "kind": "para_en",
+   "source_id": "thesis_committee_pay",
+   "gold": [
+    "thesis_committee_pay"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างเพื่อขอจบการศึกษา",
+   "kind": "near_miss",
+   "source_id": "thesis_committee_pay",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการสอบวิทยานิพนธ์ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "thesis_committee_pay",
+   "gold": []
+  },
+  {
+   "q": "เช็คกรรมการวิทยานิพนธ์ยังไงว่าผ่านเกณฑ์",
+   "kind": "para_th",
+   "source_id": "thesis_committee_qual",
+   "gold": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "q": "การแต่งตั้ง บฑ.1 ใช้เกณฑ์ปีไหนในการตรวจสอบ",
+   "kind": "para_th",
+   "source_id": "thesis_committee_qual",
+   "gold": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "q": "บัณฑิตวิทยาลัยใช้ข้อบังคับอะไรตรวจคุณสมบัติคณะกรรมการที่ปรึกษา",
+   "kind": "para_th",
+   "source_id": "thesis_committee_qual",
+   "gold": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "q": "อยากทราบเรื่องเกณฑ์การตรวจคุณสมบัติคณะกรรมการในแบบฟอร์ม บฑ.1 ค่ะ",
+   "kind": "para_th",
+   "source_id": "thesis_committee_qual",
+   "gold": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "q": "What criteria are used to verify the thesis advisory committee?",
+   "kind": "para_en",
+   "source_id": "thesis_committee_qual",
+   "gold": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "q": "Which regulations apply to the qualification check for บฑ.1?",
+   "kind": "para_en",
+   "source_id": "thesis_committee_qual",
+   "gold": [
+    "thesis_committee_qual"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการยื่น บฑ.1",
+   "kind": "near_miss",
+   "source_id": "thesis_committee_qual",
+   "gold": []
+  },
+  {
+   "q": "จำนวนคณะกรรมการที่ปรึกษาต้องมีอย่างน้อยกี่ท่าน",
+   "kind": "near_miss",
+   "source_id": "thesis_committee_qual",
+   "gold": []
+  },
+  {
+   "q": "ต้องอัปโหลดไฟล์อะไรบ้างตอนส่งเล่มจบใน e-Thesis",
+   "kind": "para_th",
+   "source_id": "thesis_ethesis_files",
+   "gold": [
+    "thesis_ethesis_files"
+   ]
+  },
+  {
+   "q": "ส่งงานในระบบ e-Thesis ต้องใช้ไฟล์ PDF กี่ไฟล์ แล้วมีรายละเอียดอะไรบ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_ethesis_files",
+   "gold": [
+    "thesis_ethesis_files"
+   ]
+  },
+  {
+   "q": "รายงาน Turnitin ต้องแคปหน้าไหนมาส่งบ้างครับ",
+   "kind": "para_th",
+   "source_id": "thesis_ethesis_files",
+   "gold": [
+    "thesis_ethesis_files"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการส่งไฟล์รูปเล่มสมบูรณ์ในระบบต้องทำยังไง",
+   "kind": "para_th",
+   "source_id": "thesis_ethesis_files",
+   "gold": [
+    "thesis_ethesis_files"
+   ]
+  },
+  {
+   "q": "What files are required for the e-Thesis Submission system?",
+   "kind": "para_en",
+   "source_id": "thesis_ethesis_files",
+   "gold": [
+    "thesis_ethesis_files"
+   ]
+  },
+  {
+   "q": "How can I check my submission status in e-Thesis?",
+   "kind": "para_en",
+   "source_id": "thesis_ethesis_files",
+   "gold": [
+    "thesis_ethesis_files"
+   ]
+  },
+  {
+   "q": "ต้องแก้ไขไฟล์ PDF ยังไงถ้าขนาดไฟล์ใหญ่เกินไป",
+   "kind": "near_miss",
+   "source_id": "thesis_ethesis_files",
+   "gold": []
+  },
+  {
+   "q": "ถ้าผล Turnitin ค่า Similarity สูงเกินไป ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_ethesis_files",
+   "gold": []
+  },
+  {
+   "q": "ถ้าไปเก็บข้อมูลที่ต่างประเทศ ต้องขอจริยธรรมจากที่นี่ใหม่ไหม",
+   "kind": "para_th",
+   "source_id": "thesis_foreign_ethics",
+   "gold": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "q": "ใช้ใบรับรองจริยธรรมจากมหาวิทยาลัยต่างประเทศได้หรือเปล่าครับ",
+   "kind": "para_th",
+   "source_id": "thesis_foreign_ethics",
+   "gold": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "q": "กรณีไม่ได้ทำวิจัยในไทย ใช้เอกสารจากหน่วยงานต้นสังกัดที่ต่างประเทศแทนได้ไหม",
+   "kind": "para_th",
+   "source_id": "thesis_foreign_ethics",
+   "gold": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "q": "ขอใบรับรองจริยธรรมการวิจัยในคนจากต่างประเทศมาใช้ยื่นที่บัณฑิตวิทยาลัยได้ไหม",
+   "kind": "para_th",
+   "source_id": "thesis_foreign_ethics",
+   "gold": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "q": "Can I use ethical approval from my home university abroad?",
+   "kind": "para_en",
+   "source_id": "thesis_foreign_ethics",
+   "gold": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "q": "Is foreign ethical certification acceptable for research conducted outside Thailand?",
+   "kind": "para_en",
+   "source_id": "thesis_foreign_ethics",
+   "gold": [
+    "thesis_foreign_ethics"
+   ]
+  },
+  {
+   "q": "นักศึกษาต่างชาติสามารถขอเอกสารรับรองจริยธรรมจากทางมหาวิทยาลัยได้ไหม",
+   "kind": "near_miss",
+   "source_id": "thesis_foreign_ethics",
+   "gold": []
+  },
+  {
+   "q": "ต้องใช้เอกสารอะไรบ้างในการขอจริยธรรมการวิจัยในคน",
+   "kind": "near_miss",
+   "source_id": "thesis_foreign_ethics",
+   "gold": []
+  },
+  {
+   "q": "ถ้าไม่ได้ใช้เน็ตมหาลัย จะเข้าใช้ระบบจัดรูปเล่มได้ไหมครับ",
+   "kind": "para_th",
+   "source_id": "thesis_format_system",
+   "gold": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "q": "ต้องทำยังไงถึงจะใช้งาน Thesis Format ได้",
+   "kind": "para_th",
+   "source_id": "thesis_format_system",
+   "gold": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "q": "เข้าเว็บ Thesis Format แล้วหน้าจอไม่ขึ้น ต้องแก้ยังไง",
+   "kind": "para_th",
+   "source_id": "thesis_format_system",
+   "gold": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "q": "อยากจัด Format วิทยานิพนธ์ ต้องต่อเน็ตแบบไหน",
+   "kind": "para_th",
+   "source_id": "thesis_format_system",
+   "gold": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "q": "How can I access the Thesis Format system from home?",
+   "kind": "para_en",
+   "source_id": "thesis_format_system",
+   "gold": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "q": "What should I do before using the Thesis Format system?",
+   "kind": "para_en",
+   "source_id": "thesis_format_system",
+   "gold": [
+    "thesis_format_system"
+   ]
+  },
+  {
+   "q": "ระบบ Thesis Format มีขั้นตอนการส่งเล่มฉบับสมบูรณ์อย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_format_system",
+   "gold": []
+  },
+  {
+   "q": "ถ้าไฟล์วิทยานิพนธ์มีขนาดใหญ่เกินไป จะอัปโหลดขึ้นระบบได้ไหม",
+   "kind": "near_miss",
+   "source_id": "thesis_format_system",
+   "gold": []
+  },
+  {
+   "q": "จะไปโหลดแบบฟอร์มทำเล่มวิทยานิพนธ์ได้จากที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "thesis_forms_where",
+   "gold": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "q": "ขอลิงก์ดาวน์โหลดแบบฟอร์มการค้นคว้าอิสระหน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "thesis_forms_where",
+   "gold": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "q": "หาไฟล์แบบฟอร์มเกี่ยวกับสารนิพนธ์ได้ที่เมนูไหนของเว็บ",
+   "kind": "para_th",
+   "source_id": "thesis_forms_where",
+   "gold": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "q": "อยากได้แบบฟอร์มทำ Thesis ต้องเข้าไปดูตรงไหนของเว็บไซต์บัณฑิตวิทยาลัย",
+   "kind": "para_th",
+   "source_id": "thesis_forms_where",
+   "gold": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "q": "Where can I download thesis forms?",
+   "kind": "para_en",
+   "source_id": "thesis_forms_where",
+   "gold": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "q": "How to find independent study templates on the website?",
+   "kind": "para_en",
+   "source_id": "thesis_forms_where",
+   "gold": [
+    "thesis_forms_where"
+   ]
+  },
+  {
+   "q": "ต้องส่งเล่มวิทยานิพนธ์ฉบับสมบูรณ์ภายในวันไหน",
+   "kind": "near_miss",
+   "source_id": "thesis_forms_where",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมการสอบป้องกันวิทยานิพนธ์ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "thesis_forms_where",
+   "gold": []
+  },
+  {
+   "q": "ถ้าส่งเล่มช้าต้องจ่ายค่าปรับยังไงครับ",
+   "kind": "para_th",
+   "source_id": "thesis_late_penalty",
+   "gold": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "q": "วิธีเช็คว่าต้องเสียค่าปรับส่งเล่มไหม ดูจากตรงไหน",
+   "kind": "para_th",
+   "source_id": "thesis_late_penalty",
+   "gold": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "q": "ส่งไฟล์เล่มวิทยานิพนธ์เกินกำหนด ต้องโดนปรับเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "thesis_late_penalty",
+   "gold": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "q": "การนับวันส่งเล่มเพื่อคำนวณค่าปรับนับจากวันไหน",
+   "kind": "para_th",
+   "source_id": "thesis_late_penalty",
+   "gold": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "q": "How is the late submission fine calculated?",
+   "kind": "para_en",
+   "source_id": "thesis_late_penalty",
+   "gold": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "q": "What is the criteria for late thesis submission penalty?",
+   "kind": "para_en",
+   "source_id": "thesis_late_penalty",
+   "gold": [
+    "thesis_late_penalty"
+   ]
+  },
+  {
+   "q": "ค่าปรับส่งเล่มล่าช้าคิดเป็นอัตราวันละกี่บาท",
+   "kind": "near_miss",
+   "source_id": "thesis_late_penalty",
+   "gold": []
+  },
+  {
+   "q": "ถ้าอาจารย์ยังไม่อนุมัติในระบบ จะถือว่าส่งเล่มผ่านหรือยัง",
+   "kind": "near_miss",
+   "source_id": "thesis_late_penalty",
+   "gold": []
+  },
+  {
+   "q": "ถ้ายังไม่มีอาจารย์ที่ปรึกษา ต้องให้ใครเซ็น บฑ.42 ครับ",
+   "kind": "para_th",
+   "source_id": "thesis_progress_bd42",
+   "gold": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "q": "กรณียังไม่ได้แต่งตั้งอาจารย์ที่ปรึกษา ใครเป็นคนอนุมัติรายงานความก้าวหน้าวิทยานิพนธ์",
+   "kind": "para_th",
+   "source_id": "thesis_progress_bd42",
+   "gold": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "q": "ลงทะเบียนวิทยานิพนธ์ไปแล้วแต่ยังไม่มีที่ปรึกษา ต้องส่ง บฑ.42 ให้ใครตรวจ",
+   "kind": "para_th",
+   "source_id": "thesis_progress_bd42",
+   "gold": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "q": "การประเมินความก้าวหน้า บฑ.42 ถ้าไม่มีอาจารย์ที่ปรึกษา ใครมีอำนาจอนุมัติ",
+   "kind": "para_th",
+   "source_id": "thesis_progress_bd42",
+   "gold": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "q": "Who approves the thesis progress report (BorThor 42) if I don't have an advisor yet?",
+   "kind": "para_en",
+   "source_id": "thesis_progress_bd42",
+   "gold": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "q": "Who is the approver for thesis progress evaluation in the absence of an advisor?",
+   "kind": "para_en",
+   "source_id": "thesis_progress_bd42",
+   "gold": [
+    "thesis_progress_bd42"
+   ]
+  },
+  {
+   "q": "ถ้ามีอาจารย์ที่ปรึกษาแล้ว ต้องให้ใครเป็นคนอนุมัติ บฑ.42",
+   "kind": "near_miss",
+   "source_id": "thesis_progress_bd42",
+   "gold": []
+  },
+  {
+   "q": "ขั้นตอนการขอแต่งตั้งอาจารย์ที่ปรึกษาต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_progress_bd42",
+   "gold": []
+  },
+  {
+   "q": "อาจารย์ต้องเซ็นชื่อแบบไหนถึงจะผ่านครับ",
+   "kind": "para_th",
+   "source_id": "thesis_signature",
+   "gold": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "q": "ถ้าจะเซ็นชื่อในไฟล์ PDF ต้องใช้วิธีไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_signature",
+   "gold": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "q": "หน้าเสนอและหน้าอนุมัติส่งเป็นเล่มจริงหรือส่งทางไหน",
+   "kind": "para_th",
+   "source_id": "thesis_signature",
+   "gold": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "q": "ถ้าอาจารย์บางท่านเซ็นสด บางท่านเซ็นดิจิทัล ต้องเรียงลำดับการเซ็นยังไง",
+   "kind": "para_th",
+   "source_id": "thesis_signature",
+   "gold": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "q": "What are the acceptable methods for signing the signature pages?",
+   "kind": "para_en",
+   "source_id": "thesis_signature",
+   "gold": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "q": "How should I submit the sign-off pages after August 17, 2026?",
+   "kind": "para_en",
+   "source_id": "thesis_signature",
+   "gold": [
+    "thesis_signature"
+   ]
+  },
+  {
+   "q": "ต้องแก้ไขไฟล์ PDF ยังไงถ้าลายเซ็นไม่ชัดเจน",
+   "kind": "near_miss",
+   "source_id": "thesis_signature",
+   "gold": []
+  },
+  {
+   "q": "ถ้าอาจารย์ไม่อยู่ สามารถให้เจ้าหน้าที่เซ็นแทนได้ไหม",
+   "kind": "near_miss",
+   "source_id": "thesis_signature",
+   "gold": []
+  },
+  {
+   "q": "สอบผ่านแล้วต้องส่งเล่มวิทยานิพนธ์เมื่อไหร่ครับ",
+   "kind": "para_th",
+   "source_id": "thesis_submit_days",
+   "gold": [
+    "thesis_submit_days"
+   ]
+  },
+  {
+   "q": "มีกำหนดส่งเล่ม e-Thesis ภายในกี่วันถึงจะไม่โดนค่าปรับ",
+   "kind": "para_th",
+   "source_id": "thesis_submit_days",
+   "gold": [
+    "thesis_submit_days"
+   ]
+  },
+  {
+   "q": "ถ้าส่งไฟล์เล่มวิทยานิพนธ์ช้ากว่า 21 วันหลังจากสอบผ่าน จะต้องเสียค่าปรับไหม",
+   "kind": "para_th",
+   "source_id": "thesis_submit_days",
+   "gold": [
+    "thesis_submit_days"
+   ]
+  },
+  {
+   "q": "การนับวันส่งเล่มล่าช้าเริ่มนับจากตอนไหน",
+   "kind": "para_th",
+   "source_id": "thesis_submit_days",
+   "gold": [
+    "thesis_submit_days"
+   ]
+  },
+  {
+   "q": "What is the deadline for submitting the final thesis after passing the defense?",
+   "kind": "para_en",
+   "source_id": "thesis_submit_days",
+   "gold": [
+    "thesis_submit_days"
+   ]
+  },
+  {
+   "q": "How many days do I have to upload my thesis to the e-Thesis system without getting a fine?",
+   "kind": "para_en",
+   "source_id": "thesis_submit_days",
+   "gold": [
+    "thesis_submit_days"
+   ]
+  },
+  {
+   "q": "ถ้าอาจารย์ที่ปรึกษาไม่กดอนุมัติในระบบ ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "thesis_submit_days",
+   "gold": []
+  },
+  {
+   "q": "ค่าปรับการส่งเล่มวิทยานิพนธ์ล่าช้าคิดเป็นวันละกี่บาท",
+   "kind": "near_miss",
+   "source_id": "thesis_submit_days",
+   "gold": []
+  },
+  {
+   "q": "ต้องส่งเล่มวิทยานิพนธ์ยังไงครับ",
+   "kind": "para_th",
+   "source_id": "thesis_submit_steps",
+   "gold": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "q": "ส่งไฟล์จบการศึกษาผ่านช่องทางไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_submit_steps",
+   "gold": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "q": "ขอขั้นตอนการอัปโหลดไฟล์ e-Thesis หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "thesis_submit_steps",
+   "gold": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "q": "เช็คว่าส่งเล่มไปถึงไหนแล้ว ต้องดูตรงไหนของระบบ",
+   "kind": "para_th",
+   "source_id": "thesis_submit_steps",
+   "gold": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "q": "How can I submit my thesis digitally?",
+   "kind": "para_en",
+   "source_id": "thesis_submit_steps",
+   "gold": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "q": "Where can I track my thesis submission status?",
+   "kind": "para_en",
+   "source_id": "thesis_submit_steps",
+   "gold": [
+    "thesis_submit_steps"
+   ]
+  },
+  {
+   "q": "ต้องจ่ายค่าธรรมเนียมการส่งเล่มวิทยานิพนธ์เท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "thesis_submit_steps",
+   "gold": []
+  },
+  {
+   "q": "ต้องพิมพ์เล่มกระดาษมาส่งที่บัณฑิตวิทยาลัยกี่ชุด",
+   "kind": "near_miss",
+   "source_id": "thesis_submit_steps",
+   "gold": []
+  },
+  {
+   "q": "ทำยังไงไม่ให้ทำเล่มวิทยานิพนธ์ไม่ทันวันจบครับ",
+   "kind": "para_th",
+   "source_id": "thesis_time_plan",
+   "gold": [
+    "thesis_time_plan"
+   ]
+  },
+  {
+   "q": "มีเทคนิคการแบ่งขั้นตอนการทำวิจัยยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_time_plan",
+   "gold": [
+    "thesis_time_plan"
+   ]
+  },
+  {
+   "q": "ต้องเตรียมตัวยังไงบ้างหลังจากสอบผ่านวิทยานิพนธ์แล้ว",
+   "kind": "para_th",
+   "source_id": "thesis_time_plan",
+   "gold": [
+    "thesis_time_plan"
+   ]
+  },
+  {
+   "q": "ถ้าจะส่งรูปเล่ม ต้องเผื่อเวลาตรวจ Turnitin กับจัดรูปแบบนานแค่ไหน",
+   "kind": "para_th",
+   "source_id": "thesis_time_plan",
+   "gold": [
+    "thesis_time_plan"
+   ]
+  },
+  {
+   "q": "How can I manage my thesis timeline to meet the deadline?",
+   "kind": "para_en",
+   "source_id": "thesis_time_plan",
+   "gold": [
+    "thesis_time_plan"
+   ]
+  },
+  {
+   "q": "What are the steps for thesis completion and submission?",
+   "kind": "para_en",
+   "source_id": "thesis_time_plan",
+   "gold": [
+    "thesis_time_plan"
+   ]
+  },
+  {
+   "q": "ต้องจ่ายค่าธรรมเนียมการจบการศึกษาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "thesis_time_plan",
+   "gold": []
+  },
+  {
+   "q": "อาจารย์ที่ปรึกษาจะตรวจงานให้ภายในกี่วัน",
+   "kind": "near_miss",
+   "source_id": "thesis_time_plan",
+   "gold": []
+  },
+  {
+   "q": "จะรู้ได้ยังไงว่าเราต้องทำหัวข้อวิทยานิพนธ์เรื่องอะไร",
+   "kind": "para_th",
+   "source_id": "thesis_topic_process",
+   "gold": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "q": "ขั้นตอนการเลือกหัวข้อ IS หรือ Thesis มีวิธีไหนบ้าง",
+   "kind": "para_th",
+   "source_id": "thesis_topic_process",
+   "gold": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอหนังสือเชิญกรรมการสอบ ต้องไปทำเรื่องที่ไหน",
+   "kind": "para_th",
+   "source_id": "thesis_topic_process",
+   "gold": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "q": "การหาหัวข้อวิจัยต้องผ่านการอนุมัติจากใคร",
+   "kind": "para_th",
+   "source_id": "thesis_topic_process",
+   "gold": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "q": "How can I obtain a thesis topic?",
+   "kind": "para_en",
+   "source_id": "thesis_topic_process",
+   "gold": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "q": "How to request an invitation letter for examiners via e-Form?",
+   "kind": "para_en",
+   "source_id": "thesis_topic_process",
+   "gold": [
+    "thesis_topic_process"
+   ]
+  },
+  {
+   "q": "ต้องจ่ายค่าธรรมเนียมการสอบวิทยานิพนธ์เท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "thesis_topic_process",
+   "gold": []
+  },
+  {
+   "q": "ระยะเวลาในการทำค้นคว้าอิสระต้องใช้เวลากี่เทอม",
+   "kind": "near_miss",
+   "source_id": "thesis_topic_process",
+   "gold": []
+  },
+  {
+   "q": "ต้องส่งรายงาน Turnitin แค่หน้าไหนบ้างครับ",
+   "kind": "para_th",
+   "source_id": "thesis_turnitin",
+   "gold": [
+    "thesis_turnitin"
+   ]
+  },
+  {
+   "q": "ส่ง Turnitin Report ยังไงให้ถูกต้อง",
+   "kind": "para_th",
+   "source_id": "thesis_turnitin",
+   "gold": [
+    "thesis_turnitin"
+   ]
+  },
+  {
+   "q": "ถ้าอยากรู้ว่าต้องส่งข้อมูลอะไรบ้างใน Turnitin Report ต้องดูตรงไหน",
+   "kind": "para_th",
+   "source_id": "thesis_turnitin",
+   "gold": [
+    "thesis_turnitin"
+   ]
+  },
+  {
+   "q": "ขอเบอร์ติดต่อสอบถามเรื่อง Turnitin หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "thesis_turnitin",
+   "gold": [
+    "thesis_turnitin"
+   ]
+  },
+  {
+   "q": "Which pages of the Turnitin report should I submit?",
+   "kind": "para_en",
+   "source_id": "thesis_turnitin",
+   "gold": [
+    "thesis_turnitin"
+   ]
+  },
+  {
+   "q": "How can I contact someone regarding Turnimitin inquiries?",
+   "kind": "para_en",
+   "source_id": "thesis_turnitin",
+   "gold": [
+    "thesis_turnitin"
+   ]
+  },
+  {
+   "q": "ค่า Similarity Index เท่าไหร่ถึงจะผ่านเกณฑ์ของบัณฑิตวิทยาลัย",
+   "kind": "near_miss",
+   "source_id": "thesis_turnitin",
+   "gold": []
+  },
+  {
+   "q": "ต้องจ่ายเงินค่าบริการ Turnitin เพิ่มเติมไหม",
+   "kind": "near_miss",
+   "source_id": "thesis_turnitin",
+   "gold": []
+  },
+  {
+   "q": "สอบ TOEFL ITP ต้องจ่ายเงินกี่บาทครับ",
+   "kind": "para_th",
+   "source_id": "toefl_itp_fee",
+   "gold": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมสอบ TOEFL ITP ของคนทั่วไปกับนักศึกษาต่างกันยังไง",
+   "kind": "para_th",
+   "source_id": "toefl_itp_fee",
+   "gold": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "q": "อยากสมัครสอบ TOEFL ITP ต้องเตรียมเงินไปเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "toefl_itp_fee",
+   "gold": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "q": "ราคาค่าสอบ TOEFL ITP สำหรับนักศึกษาป.โท คือกี่บาท",
+   "kind": "para_th",
+   "source_id": "toefl_itp_fee",
+   "gold": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "q": "How much is the TOEFL ITP exam fee?",
+   "kind": "para_en",
+   "source_id": "toefl_itp_fee",
+   "gold": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "q": "What is the registration cost for TOEFL ITP?",
+   "kind": "para_en",
+   "source_id": "toefl_itp_fee",
+   "gold": [
+    "toefl_itp_fee"
+   ]
+  },
+  {
+   "q": "สมัครสอบ TOEFL ITP ได้ที่ไหนครับ",
+   "kind": "near_miss",
+   "source_id": "toefl_itp_fee",
+   "gold": []
+  },
+  {
+   "q": "ต้องเตรียมเอกสารอะไรบ้างในการสมัครสอบ TOEFL ITP",
+   "kind": "near_miss",
+   "source_id": "toefl_itp_fee",
+   "gold": []
+  },
+  {
+   "q": "จะไปเอาคะแนน TOEFL ITP ได้ที่ไหนครับ",
+   "kind": "para_th",
+   "source_id": "toefl_itp_result",
+   "gold": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "q": "อยากทราบขั้นตอนการรับคะแนน TOEFL ITP ต้องทำยังไงบ้าง",
+   "kind": "para_th",
+   "source_id": "toefl_itp_result",
+   "gold": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "q": "ถ้าจะนัดรับผลสอบ TOEFL ต้องติดต่อใคร",
+   "kind": "para_th",
+   "source_id": "toefl_itp_result",
+   "gold": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "q": "ขอเบอร์ติดต่อหรือไลน์สำหรับนัดรับคะแนน TOEFL ITP หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "toefl_itp_result",
+   "gold": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "q": "How can I collect my TOEFL ITP score report?",
+   "kind": "para_en",
+   "source_id": "toefl_itp_result",
+   "gold": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "q": "Where should I go to pick up my TOEFL ITP results?",
+   "kind": "para_en",
+   "source_id": "toefl_itp_result",
+   "gold": [
+    "toefl_itp_result"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมในการขอใบรายงานผล TOEFL ITP ราคาเท่าไหร่",
+   "kind": "near_miss",
+   "source_id": "toefl_itp_result",
+   "gold": []
+  },
+  {
+   "q": "ถ้าไม่สะดวกมารับเอง สามารถให้ส่งผลคะแนนทางไปรษณีย์ได้ไหม",
+   "kind": "near_miss",
+   "source_id": "toefl_itp_result",
+   "gold": []
+  },
+  {
+   "q": "อยากเปลี่ยนที่อยู่บนใบเซอร์ต้องทำยังไงครับ",
+   "kind": "para_th",
+   "source_id": "transcript_general",
+   "gold": [
+    "transcript_general"
+   ]
+  },
+  {
+   "q": "ถ้าที่อยู่ในหนังสือรับรองผิด แก้ไขตรงไหนได้บ้าง",
+   "kind": "para_th",
+   "source_id": "transcript_general",
+   "gold": [
+    "transcript_general"
+   ]
+  },
+  {
+   "q": "วิธีอัปเดตข้อมูล Workplace ในระบบ MAP-2021 ทำยังไง",
+   "kind": "para_th",
+   "source_id": "transcript_general",
+   "gold": [
+    "transcript_general"
+   ]
+  },
+  {
+   "q": "ขอวิธีแก้ไขที่อยู่สำหรับคนเรียน MAP-C หน่อยค่ะ",
+   "kind": "para_th",
+   "source_id": "transcript_general",
+   "gold": [
+    "transcript_general"
+   ]
+  },
+  {
+   "q": "How can I update my address on the certificate?",
+   "kind": "para_en",
+   "source_id": "transcript_general",
+   "gold": [
+    "transcript_general"
+   ]
+  },
+  {
+   "q": "Where can I edit my workplace information in MAP-2021?",
+   "kind": "para_en",
+   "source_id": "transcript_general",
+   "gold": [
+    "transcript_general"
+   ]
+  },
+  {
+   "q": "ถ้าจะขอเปลี่ยนชื่อ-นามสกุล ในหนังสือรับรอง ต้องติดต่อใคร",
+   "kind": "near_miss",
+   "source_id": "transcript_general",
+   "gold": []
+  },
+  {
+   "q": "ลืมรหัสผ่านเข้าใช้งานระบบ MAP-2021 ต้องทำอย่างไร",
+   "kind": "near_miss",
+   "source_id": "transcript_general",
+   "gold": []
+  },
+  {
+   "q": "ค่าธรรมเนียมโอนเงินข้ามธนาคารคิดยังไงครับ",
+   "kind": "para_th",
+   "source_id": "transfer_fee",
+   "gold": [
+    "transfer_fee"
+   ]
+  },
+  {
+   "q": "ถ้าจะโอนเงินไปต่างประเทศต้องเสียค่าธรรมเนียมเท่าไหร่",
+   "kind": "para_th",
+   "source_id": "transfer_fee",
+   "gold": [
+    "transfer_fee"
+   ]
+  },
+  {
+   "q": "โอนผ่านแอปธนาคารอื่นมีค่าบริการไหม",
+   "kind": "para_th",
+   "source_id": "transfer_fee",
+   "gold": [
+    "transfer_fee"
+   ]
+  },
+  {
+   "q": "ค่าธรรมเนียมการโอนเงินออนไลน์แพงไหม",
+   "kind": "para_th",
+   "source_id": "transfer_fee",
+   "gold": [
+    "transfer_fee"
+   ]
+  },
+  {
+   "q": "How much is the fee for interbank online transfer?",
+   "kind": "para_en",
+   "source_id": "transfer_fee",
+   "gold": [
+    "transfer_fee"
+   ]
+  },
+  {
+   "q": "What are the charges for international money transfers?",
+   "kind": "para_en",
+   "source_id": "transfer_fee",
+   "gold": [
+    "transfer_fee"
+   ]
+  },
+  {
+   "q": "ถ้าโอนเงินภายในธนาคารเดียวกันเสียค่าธรรมเนียมกี่บาท",
+   "kind": "near_miss",
+   "source_id": "transfer_fee",
+   "gold": []
+  },
+  {
+   "q": "สามารถชำระค่าเทอมผ่านช่องทางไหนได้บ้าง",
+   "kind": "near_miss",
+   "source_id": "transfer_fee",
+   "gold": []
+  }
+ ],
+ "prompt_sha256": "4dbace6ed2a4ee5a"
+}

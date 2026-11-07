@@ -17,7 +17,7 @@ import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
 import { readableText } from '../_shared/answer_points.mjs';
 import { decide } from '../_shared/rethink.mjs';
-import { classifyIssue, intakePrompt, isAdvice, groundedPrompt } from '../_shared/intake.mjs';
+import { classifyIssue, intakePrompt, isAdvice, groundedPrompt, groundedContext } from '../_shared/intake.mjs';
 import { createMood, classifySmalltalk, smalltalkReply } from '../_shared/smalltalk.mjs';
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
@@ -222,9 +222,10 @@ async function processEvents(raw, env) {
         // entries only (facts stay from KB). Factual questions keep the exact
         // FastPath answer (numbers must not be rephrased), 0 token.
         if (isAdvice(text)) {
-          const ground = groundedPrompt(text, (searchKB(text).map(r => r.e)));
+          const near = searchKB(text).map(r => r.e);
           const bag = { LLM_PROXY, ...(env || {}) };
-          const r = await askTeam(ground, bag).catch(() => ({ ok: false }));
+          // QA F12: question + manual context separately, so the proxy grounds and guards the answer (see askTeam)
+          const r = await askTeam(text, bag, { context: groundedContext(near), prompt: groundedPrompt(text, near) }).catch(() => ({ ok: false }));
           if (r.ok && r.text) {
             answer = `${r.text}${src}`;
             footer = footerFor(env, `\n\n🤖 AI ช่วยเรียบเรียงจากคู่มือ · อ้างอิง: ${pick.entry.title}`, `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`);

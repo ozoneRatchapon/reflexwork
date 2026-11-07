@@ -1,6 +1,6 @@
 // Robustness of the chat front door in submissions/ui/chatbot.html: sloppy typing, and never ending on "no answer".
 // Run: node tests/chat_robust.test.mjs   (exit 0 = pass, 1 = fail)
-//   - normChat: elongated Thai letters / zero-width characters are cleaned before matching, nothing else is touched
+//   - normChat: elongated Thai letters / zero-width characters are cleaned before matching; trailing ?!.~, emoji and fullwidth ASCII are folded (F28); nothing else is touched
 //   - hasStudyIntent + resolveProgramme: a study-ish question we cannot resolve is routed to the finder, not to staff
 //   - starterEntries: the "try these" chips for a question we did not understand always answer when tapped
 import { readFileSync, existsSync } from 'node:fs';
@@ -23,6 +23,12 @@ check('elongated Thai letters, zero-width characters and extra spaces are cleane
 const keep = ['ค่าสมัคร 10000 บาท', 'www.mahidol.ac.th', 'WWW test', 'ทำไมถึงเป็นอย่างนั้น', 'กก', 'ๆ', '5555', 'MU GRAD Plus'];
 check('digits, Latin letters and ordinary Thai words are never altered', keep.every(k => normChat(k) === k), keep.filter(k => normChat(k) !== k).map(k => `${k} -> ${normChat(k)}`).join(' ; '));
 check('null / undefined / empty are safe', normChat(null) === '' && normChat(undefined) === '' && normChat('') === '');
+// QA F28: harmless suffixes and fullwidth input read the same as the plain question
+const f28 = [['ค่าเทอม ศาสนศึกษา???', 'ค่าเทอม ศาสนศึกษา'], ['ค่าเทอม เภสัชวิทยา 🙏', 'ค่าเทอม เภสัชวิทยา'], ['ศาสนศึกษา ครับ 🙏🏽', 'ศาสนศึกษา ครับ'],
+  ['ปีการศึกษา ２๕๖๙', 'ปีการศึกษา 2๕๖๙'], ['ลงทะเบียน　ภาคต้น！', 'ลงทะเบียน ภาคต้น'], ['ทำไม?!~ ', 'ทำไม'], ['ป.โท ค่าเทอม 2569...', 'ป.โท ค่าเทอม 2569'], ['M.Sc. 2+2=4', 'M.Sc. 2+2=4']];
+const badF = f28.filter(([i, o]) => normChat(i) !== o).map(([i, o]) => `${i} -> ${normChat(i)} (want ${o})`);
+check('trailing ?!.~, emoji (with skin tones) and fullwidth ASCII are folded; inner punctuation stays (F28)', badF.length === 0, badF.join(' ; '));
+check('a message that is only punctuation or emoji normalises to empty (the caller then keeps what was typed)', normChat('???') === '' && normChat('🙏') === '');
 
 // --- study-ish but unresolvable -> finder (the caller does that when the KB also finds nothing) --------------------------------
 const yes = ['เรียนราย', 'เรียนรายยย', 'อยากเรียนต่อ', 'สนใจสมัครแต่ไม่รู้สาขา', 'อยากเรียนโท', 'มีหลักสูตรอะไร', 'ปริญญาเอกมีไหม', 'want to study abroad program'];

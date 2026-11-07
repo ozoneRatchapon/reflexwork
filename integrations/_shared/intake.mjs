@@ -35,25 +35,25 @@ const CATEGORIES = [
     category: 'login',
     label: 'เข้าระบบ/ล็อกอินไม่ได้',
     // login / password / account verification problems (TH + EN, incl. app names)
-    re: /ล็อก ?อิน|เข้าระบบ(?:ไม่ได้)?|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset|account|server ?error|we ?mahidol|student ?card/i,
+    re: /ล็อก ?อิน|เข้า ?(?:สู่ ?)?ระบบ(?:ไม่ได้)?|เข้า ?บัญชี|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset.{0,8}(?:password|รหัส)|account.{0,12}(?:locked|ล็อก|ไม่ได้)|server ?error|we ?mahidol|student ?card/i,
   },
   {
     category: 'data_stuck',
     label: 'ข้อมูล/สถานะค้างในระบบ',
     // data not updating / stuck records / status mismatch
-    re: /(?:ข้อมูล|รายชื่อ|สถานะ|ชื่อ).{0,12}(?:ค้าง|ไม่อัปเดต|ไม่อัพเดต|ไม่ขึ้น|หาย|ไม่ตรง|ผิด)|ยังมีรายชื่อ|ติดอยู่ในระบบ|stuck|not ?updat|pending.*(?:system|ระบบ)/i,
+    re: /(?:ข้อมูล|รายชื่อ|สถานะ|ชื่อ).{0,12}(?:ค้าง|ไม่อัปเดต|ไม่อัพเดต|ไม่ขึ้น|หาย|ไม่ตรง|ผิด)|(?:รหัส ?(?:นักศึกษา|นศ)|ผล ?(?:สอบ|การเรียน)|เกรด|คะแนน).{0,12}ไม่ขึ้น|ยังมีรายชื่อ|ติดอยู่ในระบบ|stuck|not ?updat|pending.*(?:system|ระบบ)/i,
   },
   {
     category: 'system_error',
     label: 'ระบบขัดข้อง/ใช้งานไม่ได้',
     // generic "the system is broken / can't do X in the system"
-    re: /ระบบ.{0,16}(?:error|ขัดข้อง|ล่ม|พัง|ใช้ ?ไม่ ?ได้|มีปัญหา|ไม่ทำงาน|ไม่ได้)|กดไม่ได้|(?:ใส่|กรอก|เลือก|เพิ่ม)(?:ชื่อ)?.{0,12}ไม่ได้|บันทึกไม่ได้|อัปโหลดไม่ได้|system ?(?:error|down|broken)/i,
+    re: /ระบบ.{0,16}(?:error|ขัดข้อง|ล่ม|พัง|ใช้ ?ไม่ ?ได้|มีปัญหา|ไม่ทำงาน|ไม่ได้)|กดไม่ได้|(?:ใส่|กรอก|เลือก|เพิ่ม)(?:ชื่อ)?.{0,12}ไม่ได้|บันทึกไม่ได้|อัปโหลดไม่ได้|กด ?(?:ส่ง|ยืนยัน|บันทึก)?.{0,10}ไม่(?:ไป|ขึ้น|ทำงาน)|(?:ระบบ|หน้า ?(?:เว็บ|จอ)) ?ค้าง|system ?(?:error|down|broken)/i,
   },
 ];
 
 // Negative guard: a few phrasings LOOK personal but are really FAQ knowledge
 // questions the KB should answer. Keep them on the FastPath, not intake.
-const NOT_PERSONAL = /กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ/i;
+const NOT_PERSONAL = /กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ|ทวิภาค|ไตรภาค|ระบบการศึกษา|ระบบภาค|เรียนระบบ|เพราะเต็ม|ที่นั่งเต็ม|รอบเต็ม|เต็มแล้ว|ใบปริญญา|ปริญญาบัตร|ใบรับรอง|ใบแสดงผล|transcript|ดาวน์โหลด|download/i;
 
 /**
  * Classify a message as a personal/technical issue (needs a human + intake),
@@ -97,9 +97,13 @@ export function isAdvice(q) {
 // Build the grounded-hybrid instruction: the model rephrases from KB entries
 // ONLY, never inventing facts. Used when askTeam has no separate context param —
 // the grounding is embedded in the prompt text itself.
+// The manual excerpt itself (the top 3 entries), for a backend that takes it as a separate `context` - our LLM proxy then runs its
+// grounded path and groundedGuard on the answer (QA F12). Same text the web page sends.
+export function groundedContext(entries) {
+  return (entries || []).slice(0, 3).map((e, i) => `[${i + 1}] ${e.title}\n${e.answer}`).join('\n\n');
+}
 export function groundedPrompt(question, entries) {
-  const ctx = (entries || []).slice(0, 3)
-    .map((e, i) => `[${i + 1}] ${e.title}\n${e.answer}`).join('\n\n');
+  const ctx = groundedContext(entries);
   return `ตอบคำถามนี้ให้ผู้ใช้ทำตามได้จริง: "${question}"\n\n`
     + `กฎข้อเท็จจริง (เข้มงวด): ใช้ข้อเท็จจริงจาก "ข้อมูลคู่มือ" ด้านล่างเท่านั้น — ห้ามเพิ่มหรือเดา `
     + `ตัวเลข วัน เบอร์ติดต่อ ชื่อหน่วยงาน หรือข้อเท็จจริงใด ๆ ที่ไม่มีในนั้น. ถ้าไม่พอ ให้บอกว่าคู่มือ`

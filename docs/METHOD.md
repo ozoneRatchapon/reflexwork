@@ -46,6 +46,8 @@ Weights are **hand-seeded priors**, not fitted: `w[8]=4.0, w[0]=1.5, w[1]=1.2, w
 
 **Fingerprint, not proof.** Browser: `BLAKE3(input ‖ route ‖ category)`; native: `BLAKE3(H(task) ‖ H(policy snapshot) ‖ H(decision))`. Both let anyone recompute the same digest from the same inputs (replay / tamper-evidence). Neither proves the decision was *correct*, and the browser variant does not commit to the weights. **Replay holds within one implementation only:** the browser WASM, the edge worker (`integrations/kernel-worker`, a JS port) and the native kernel build the digest differently (`input‖route‖category` vs `input|route` vs a three-hash composite). Measured on identical inputs, the browser and the edge worker produce the **same gate score (equal to 6 decimals) but different fingerprints** — so a digest from one cannot be replayed on the other.
 
+**Answer receipt (2026-11-07).** The fingerprint above does not cover the answer. The page now also shows (judge view, under any answer taken from a manual entry) `receipt = BLAKE3(JSON[v1, question, route, entry id, entry digest, manual root])`, where the entry digest hashes the entry as served and the manual root hashes every `id:digest` line of the manual the page held. It is produced by the wasm export `blake3_text` and recomputed by `scripts/verify_receipt.mjs` with an independent JS BLAKE3 (`tests/receipt.test.mjs`: wasm == JS on all 132 entries; any change to the question, route, served entry, or ANY other entry changes it). It shows that an answer matches *this version of the manual*; it does not show the manual is right, does not cover the AI's rephrasing, and is neither signed nor stored server-side.
+
 ### 3.2 KB retrieval (`_jsSearch` ≡ `kb_search`; lockstep 52/52 tested)
 
 ```
@@ -72,7 +74,7 @@ score = cov + 1[h=n] + 0.3·1[h ⊇ n] − min(0.2, ||h|−|n||/200);  also: who
 pool = candidates within 0.15 of the best, filtered by level / international / special if the question says so
 |pool| = 1 → card ·  2–12 → picker (≤ 6 shown) ·  > 12 → "too broad, narrow it" ·  loose mode → always a picker, never a card
 ```
-Data are the Graduate School's own pages (379 programmes, 230 with a 2570 announcement), stored verbatim, stamped with the fetch date; status is a snapshot, not live. A fee/scholarship/other-topic question naming a programme is answered from that programme's own announcement; the follow-up layer ("แล้วค่าเทอมล่ะ") binds a short aspect question to the last single programme shown and always says how it was read (with an undo).
+Data are the Graduate School's own pages (379 programmes, 239 with a 2570 announcement - 9 of them only per major, e.g. one announcement per nursing / dentistry major; fetched 2026-11-04), stored verbatim, stamped with the fetch date; status is a snapshot, not live. A fee/scholarship/other-topic question naming a programme is answered from that programme's own announcement; the follow-up layer ("แล้วค่าเทอมล่ะ") binds a short aspect question to the last single programme shown and always says how it was read (with an undo).
 
 ### 3.4 Link layer
 
@@ -87,34 +89,34 @@ Plain text in, escaped HTML out; only (a) `http(s)` URLs on `mahidol.ac.th | lin
 | C | independent FAQ queries from another university team's own logs, 440-doc corpus | 31 | `benchmark/gradmahidol` | **no** (corpus is another team's; script only) |
 | D | latency per layer, real WASM | — | `benchmark/compare/latency.mjs` | yes (machine-dependent) |
 
-Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 44/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
+Metrics. *Ranking:* recall@1/@3, MRR with Wilson 95 % CIs; paired bootstrap (4,000 resamples, fixed seed) and exact McNemar for differences. *Confidence:* selective prediction — errors among the *k* most confident answers at the coverage the page really has (k = 43/52 answered by `decideTier`), AURC (area under the risk–coverage curve, ties handled in expectation), AUROC; an off-corpus query that gets answered counts as an error. Baselines receive the better of two confidence definitions (top score or top-1 margin). *Programme names:* "right name", "exact code", **wrong card** (one programme with a different name shown as the answer — the harmful error), "no card", mean programmes shown.
 
-## 5. Results (runs 002–004; `benchmark/compare/results/`; run 004 at commit `149f87f` is the current scoring rule — A2, E and F below are from it)
+## 5. Results (runs 002–005; `benchmark/compare/results/`; run 005 at commit `6f314ff` is the current KB + scoring rule — A1 and A2 below are from it; E and F are from run 004, and the shipped off-corpus rates are unchanged in 005)
 
 **A1 — ranking** (50 labelled queries)
 
 | method | recall@1 (95 % CI) | recall@3 | MRR |
 |---|---|---|---|
-| **ours** | **84 %** (71–92) | 96 % | 0.90 |
-| cosine only (ablation) | 84 % | 96 % | 0.90 |
-| lexical overlap only (ablation) | 78 % | 94 % | 0.86 |
-| BM25 over char-trigrams | 78 % | 96 % | 0.87 |
+| **ours** | **86 %** (74–93) | 96 % | 0.91 |
+| cosine only (ablation) | 86 % | 96 % | 0.91 |
+| lexical overlap only (ablation) | 78 % | 96 % | 0.86 |
+| BM25 over char-trigrams | 80 % | 98 % | 0.88 |
 | BM25 over whitespace words | 42 % (29–56) | 50 % | 0.47 |
 
-Paired, ours − baseline: vs overlap **+6 pp** [0, 14], p = 0.25 · vs BM25-char3 **+6 pp** [0, 14], p = 0.25 · vs BM25-word **+42 pp** [28, 56], p < 0.001. By kind (ours): exact 9/10, paraphrase 14/15, typo 7/10, English 12/15.
+Paired, ours − baseline: vs overlap **+8 pp** [2, 16], p = 0.125 · vs BM25-char3 **+6 pp** [0, 14], p = 0.25 · vs BM25-word **+44 pp** [30, 58], p < 0.001. By kind (ours): exact 9/10, paraphrase 15/15, typo 7/10, English 12/15.
 
 **A2 — confidence** (when is it safe to answer without an LLM?)
 
 | method | wrong among the 44 answered / most-confident | AURC ↓ | AUROC ↑ |
 |---|---|---|---|
-| ours (hand-set score; since 2026-11-03 with the cosine floor on the overlap lift) | **4 (9 %)** | 0.05 | 0.86 |
-| cosine only | 5 | 0.05 | 0.86 |
-| BM25-char3 | 7 | 0.06 | 0.91 |
+| ours (hand-set score; since 2026-11-03 with the cosine floor on the overlap lift) | **3 (7 %)** | 0.05 | 0.86 |
+| cosine only | 5 | 0.05 | 0.84 |
+| BM25-char3 | 5 | 0.05 | 0.94 |
 | lexical overlap only | 8 | 0.08 | 0.85 |
 | BM25-word | 23 | 0.24 | 0.99* |
-| ours, weights **fitted** (logistic, leave-one-out) | 6 | 0.07 | 0.81 |
+| ours, weights **fitted** (logistic, leave-one-out) | 5 | 0.05 | 0.84 |
 
-Before the floor, `ours` made 5 errors among 45 answers (AURC 0.06, AUROC 0.84). With 52 queries one error fewer than cosine-only is **within noise**; the honest reading is "on par with cosine alone, no longer worse".
+Before the floor, `ours` made 5 errors among 45 answers (AURC 0.06, AUROC 0.84); run 004 (floor, before the 2026-11-04 KB aliases) had 4 among 44. With 52 queries two errors fewer than cosine-only is **within noise**; the honest reading is "on par with cosine alone, no longer worse".
 
 \*AUROC measures separation, not accuracy; BM25-word separates its many errors well but makes them — read it with AURC.
 
@@ -124,12 +126,12 @@ Before the floor, `ours` made 5 errors among 45 answers (AURC 0.06, AUROC 0.84).
 |---|---|---|---|---|---|
 | official name + level | 100 % / 100 % | **0** | 0 | 100 % / 91 % | 0 |
 | bare name | 100 % / 99 % | **0** | 0 | 98 % / 52 % | 6 |
-| one letter dropped | 96 % / 95 % | **0** | 10 (3 %) | 99 % / 59 % | 2 |
+| one letter dropped | 97 % / 96 % | **0** | 10 (3 %) | 99 % / 59 % | 2 |
 | no tone marks | 100 % / 100 % | **0** | 0 | 97 % / 54 % | 6 |
 | elongated ending | 100 % / 99 % | **0** | 0 | 98 % / 52 % | 6 |
 | English title | 100 % / 100 % | **0** | 0 | 100 % / 96 % | 0 |
 
-Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosine ≥ 0.6 (fixed, untuned), else a picker of its top 6. It never abstains. Its "exact" is low because it shows one card where several programmes share a name (level / plan / faculty); ours asks which one (mean 1.6–2.8 programmes shown).
+Baseline = char-trigram TF-IDF with the *same* input cleaning; one card if cosine ≥ 0.6 (fixed, untuned), else a picker of its top 6. It never abstains. Its "exact" is low because it shows one card where several programmes share a name (level / plan / faculty); ours asks which one (mean 1.1–2.8 programmes shown).
 
 **C — independent corpus (not reproducible here):** FAQ-only (62 docs, 31 queries) recall@1 94 %, @3 100 %, 5/5 off-corpus rejected; full 440-doc corpus with a separate namespace for the 378 programme templates 87 % / 97 % (`benchmark/gradmahidol/RESULTS.md`). This is the least tuned evidence we have — but it is 31 queries and the corpus is not in the repo.
 
@@ -170,7 +172,7 @@ Cause (inspected): the lexical-overlap rule in `_cosToScore` (`ov ≥ 8 ∧ lead
 | It works in English | **understands, but answers in Thai**; refuses honestly when nothing matches; mixed Thai–English works as well as Thai (§5 E) |
 | The kernel gate decides whether an LLM is needed | **false in the web chat today** (§3.1: `g ≤ 0.451` always) |
 | The system learns from users' 👍/👎 | **partly, and only since 2026-11-03**: before that every click threw `ReferenceError` in the page, so no web vote reached the server (4 votes on record, all from curl). Now votes arrive. Until the vote-id fix (§8.6) the server de-duplicated them by the replay hash, identical for everyone who asks the same sentence, so each distinct question string could move the policy only once; from that fix each vote counts once per answer shown. Effect of votes on answer quality: not measured, and a script can still mint vote ids (only the per-IP rate limit brakes that) |
-| "87 % fast path" | **not a quality metric** (§3.1); use A2: 44/52 answered unaided, 4 of them wrong |
+| "87 % fast path" | **not a quality metric** (§3.1); use A2: 44/52 answered unaided, 3 of them wrong |
 
 ## 7. Threats to validity
 

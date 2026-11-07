@@ -85,6 +85,12 @@ has(r, 'ตีความว่าถามเรื่อง', 'ค่าธ�
 // 2b) answer first: a follow-up about one thing leads with that thing (stage step 2 from 2026-11-03)
 r = await ask('แล้วสอบสัมภาษณ์วันไหน');
 has(r, 'ตีความว่าถามเรื่องกำหนดการ', 'สอบสัมภาษณ์: รอบ') && r.text.indexOf('สอบสัมภาษณ์: รอบ') < r.text.indexOf('สถานะบนเว็บบัณฑิตวิทยาลัย') ? ok('2b. "แล้วสอบสัมภาษณ์วันไหน" -> the interview dates come first, the rest folded', `${r.ms} ms`) : bad('2b. answer-first follow-up', r.text.slice(0, 120));
+// 2c) THE PITCH PROGRAMME (docs/pitching/10-pitch-script-5min.md): open now, not past its cut-offs, and its announcement carries fee amounts.
+//     The earlier demo programme (clinical psychology) is closed and has no fee rates - a bad opener. If this fails the catalogue changed: pick again.
+r = await ask('อยากสมัครเรียนชีวสารสนเทศทางการแพทย์');
+has(r, 'ชีวสารสนเทศทางการแพทย์', '🟢 สถานะบนเว็บบัณฑิตวิทยาลัย: กำลังเปิดรับสมัคร') && !has(r, 'ปิดรับสมัครแล้ว') ? ok('2c. pitch programme "ชีวสารสนเทศทางการแพทย์" -> OPEN card', `${r.ms} ms`) : bad('2c. pitch programme is not open any more - choose another (see the script)', r.text.slice(0, 160));
+r = await ask('แล้วค่าเทอมล่ะ');
+has(r, 'ตีความว่าถามเรื่องค่าธรรมเนียมของ', 'ชีวสารสนเทศ') && /\d{1,3},\d{3}/.test(r.text) && !has(r, 'ยังไม่ระบุอัตรา') ? ok('2d. pitch programme -> "แล้วค่าเทอมล่ะ" shows real fee amounts', `${r.ms} ms`) : bad('2d. pitch programme fee follow-up shows no amounts', r.text.slice(0, 160));
 // 3) fees of a programme
 r = await ask('ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก');
 has(r, 'เหมาจ่าย', 'บาท/ภาคการศึกษา') ? ok('3. fee table of one programme (Thai and international students)', `${r.ms} ms`) : bad('3. fee table', r.text.slice(0, 100));
@@ -110,8 +116,10 @@ else (REQUIRE_LLM ? bad : soft)('8. the LLM did NOT answer - the page showed the
 // 9) the meter and the thumbs
 const m0 = await ev(`document.getElementById('ratio-pct').textContent`);
 await ev(`(()=>{ const b=[...document.querySelectorAll('.fb-b')].filter(x=>/ไม่/.test(x.innerText)).pop(); if(b) b.click(); return !!b; })()`); await wait(1200);
-const m1 = await ev(`({pct:document.getElementById('ratio-pct').textContent, note:document.getElementById('ratio-note').textContent})`);
-/^\d+% \(\d+\/\d+\)$/.test(m0) && m1.pct === m0 && /ความพอใจ/.test(m1.note) ? ok(`9. meter is a count (${m0}) and a 👎 vote does not move it`) : bad('9. meter / thumbs', `${m0} -> ${m1.pct} | ${m1.note.slice(0, 60)}`);
+const m1 = await ev(`({pct:document.getElementById('ratio-pct').textContent, note:document.getElementById('ratio-note').textContent, fb:([...document.querySelectorAll('.fb')].pop()||{innerText:''}).innerText})`);
+// The kernel API is a dead port here, so the vote cannot be delivered: the meter stays a plain count and the page says the vote failed
+// (QA F39: it used to claim "the kernel learned" anyway). Against a live kernel the note would show the satisfaction score instead.
+/^\d+% \(\d+\/\d+\)$/.test(m0) && m1.pct === m0 && (/ความพอใจ/.test(m1.note) || /ไม่สำเร็จ/.test(m1.fb)) ? ok(`9. meter is a count (${m0}); a 👎 vote does not move it and a failed vote says so`) : bad('9. meter / thumbs', `${m0} -> ${m1.pct} | ${m1.fb.slice(0, 60)} | ${m1.note.slice(0, 60)}`);
 // 9a) career-first question: narrows the official list by an area of interest, never predicts jobs/pay, points to the university's own tool
 r = await ask('อยากทำเกี่ยวกับคอม');
 const carHtml = await ev(`document.querySelector('#chat .msg.b:last-child').innerHTML`);

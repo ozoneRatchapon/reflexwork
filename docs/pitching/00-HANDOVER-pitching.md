@@ -83,7 +83,7 @@
 - `docs/pre-demo-checklist.md` — เช็กลิสต์ก่อนขึ้นเวที (local AI, endpoints, fallback)
 - `docs/production-hardening-runbook.md` — staff auth, tunnel token, D1 backup
 - `submissions/demo-video-script.md` — สคริปต์วิดีโอ 5 นาที (โครง Problem→Impact)
-- `submissions/slides.html` — เด็คส่งรอบแรก 19 สไลด์ (live ที่ /slides.html)
+- `submissions/ui/slides.html` — เด็คส่งรอบแรก 19 สไลด์ (live ที่ /slides.html; ต้นฉบับที่ส่ง = git tag `submission-2026-10-31`) · **ทุกเวอร์ชัน: `submissions/archive/README.md`**
 - `.kiro/specs/distributable-kernel/` — federated corpus = คำตอบ "scale ทั้งมหาวิทยาลัย"
 
 ## กฎที่ห้ามลืม (จาก product steering)

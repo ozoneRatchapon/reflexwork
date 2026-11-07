@@ -1,5 +1,5 @@
 //! The programme-matching regexes of the page, compiled once (see `crate::re` for how JS syntax is translated).
-use super::patterns_src::{ASKS, DEGREE, FUNC, INTENT, LEAD, LEVELS, OTHER, QUAL, TAIL, TOPICS};
+use super::patterns_src::{ASKS, DEGREE, FUNC, INTENT, LEAD, LEVELS, OTHER, PAREN, QUAL, TAIL, TOPICS};
 use crate::re::{compile, compile_src};
 use regex_lite::Regex;
 use std::sync::OnceLock;
@@ -25,6 +25,8 @@ pub struct Patterns {
     pub tail: Regex,
     pub degree: Regex,
     pub qual: Regex,
+    /// `_P_PAREN`: the "(หลักสูตร)" or "()" a pasted title leaves once the qualifier words are gone.
+    pub paren: Regex,
     pub other: Regex,
     pub intent: Regex,
     pub func: Regex,
@@ -32,6 +34,8 @@ pub struct Patterns {
     pub asks: Vec<(&'static str, Regex)>,
     /// `(?:มี)?(?:topic|ask)` for each of TOPICS then ASKS: removed from the text before the programme name is read.
     pub strip: Vec<Regex>,
+    /// The same without the leading มี, which can end the name itself ("เคมีสอบข้อเขียน"): the second reading tried.
+    pub strip_keep_mi: Vec<Regex>,
     pub levels: Vec<(char, Regex)>,
     pub intl: Regex,
     pub special: Regex,
@@ -50,18 +54,21 @@ pub const ALIASES: [(&str, [&str; 2]); 2] = [
 fn build() -> Patterns {
     let topics: Vec<_> = TOPICS.iter().map(|(k, r)| (*k, compile(r))).collect();
     let asks: Vec<_> = ASKS.iter().map(|(k, r)| (*k, compile(r))).collect();
-    let strip = TOPICS.iter().chain(ASKS.iter()).map(|(_, r)| compile_src(&format!("(?:มี)?(?:{})", r.src), "i")).collect();
+    let strip_with = |mi: &str| TOPICS.iter().chain(ASKS.iter()).map(|(_, r)| compile_src(&format!("{mi}(?:{})", r.src), "i")).collect();
+    let (strip, strip_keep_mi) = (strip_with("(?:มี)?"), strip_with(""));
     Patterns {
         lead: compile_lead(),
         tail: compile(&TAIL),
         degree: compile(&DEGREE),
         qual: compile(&QUAL),
+        paren: compile(&PAREN),
         other: compile(&OTHER),
         intent: compile(&INTENT),
         func: compile(&FUNC),
         topics,
         asks,
         strip,
+        strip_keep_mi,
         levels: LEVELS.iter().map(|(k, r)| (*k, compile(r))).collect(),
         intl: compile_src("นานาชาติ|international", "i"),
         special: compile_src("ภาคพิเศษ|special program", "i"),

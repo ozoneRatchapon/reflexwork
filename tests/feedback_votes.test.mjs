@@ -45,7 +45,7 @@ const uid = n => `aaaaaaaa-bbbb-cccc-dddd-${String(n).padStart(12, '0')}`;
   const a = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(1) }), b = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(2) }), c = await vote(env, { ...SAME_SENTENCE, reward: 1, vote_id: uid(3) });
   const e = env.DB._.entry.thesis_submit_days;
   check('three different users, same sentence, same hash: all three votes count', a.accepted && b.accepted && c.accepted && e.down === 2 && e.up === 1, JSON.stringify(e));
-  check('...and the entry confidence moved accordingly (two 👎 then a 👍 from 1.0)', Math.abs(e.conf - (0.85 * (0.85 * 0.85 + 0.15 * 0) + 0.15 * 1)) < 1e-9, String(e.conf));
+  check('...and the entry confidence is the Beta posterior mean of its counts (1 up, 2 down -> 2/5), whatever the vote order', Math.abs(e.conf - 2 / 5) < 1e-9, String(e.conf));
 }
 { const env = { DB: fakeDB() };
   const a = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(7) }), b = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(7) });
@@ -69,7 +69,8 @@ const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 's
 const grab = re => { const m = html.match(re); if (!m) throw new Error('not found in chatbot.html: ' + re); return m[0]; };
 const src = [grab(/function newVoteId\(\)\{[^\n]*\n/), grab(/function fbUI\(q, proof, entryId\)\{[\s\S]*?\n\}\n/), grab(/async function sendFeedback\(id, reward\)\{[\s\S]*?\n\}\n/)].join('\n');
 const sent = [];
-const ctx = { window: {}, fbN: 0, KERNEL_API: 'https://k.test', BANDIT: { reward() {} }, updateRatio() {}, document: { getElementById: () => ({ innerHTML: '' }) },
+// fbUI now prepends the answer receipt (receiptUI, tested in tests/receipt.test.mjs); the vote logic here does not depend on it
+const ctx = { window: {}, fbN: 0, receiptUI: () => '', KERNEL_API: 'https://k.test', BANDIT: { reward() {} }, updateRatio() {}, document: { getElementById: () => ({ innerHTML: '' }) },
   fetch: async (url, init) => { sent.push(JSON.parse(init.body)); return { json: async () => ({ policy_version: 3 }) }; } };
 const page = new Function(...Object.keys(ctx), src + '\nreturn { fbUI, sendFeedback };')(...Object.values(ctx));
 page.fbUI('ส่งเล่มกี่วัน', 'HASH', 'thesis_submit_days'); page.fbUI('ส่งเล่มกี่วัน', 'HASH', 'thesis_submit_days');

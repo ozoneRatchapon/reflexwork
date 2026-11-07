@@ -1,0 +1,15 @@
+# Cloudflare Pages response headers (QA F65). A full Content-Security-Policy would need hashes for every inline script, so it is
+# not set yet; these are the safe ones. The staff dashboard (approve / retract buttons, staff token in localStorage) must never be
+# framed by another site (clickjacking).
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+
+/dashboard.html
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+
+/dashboard
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'

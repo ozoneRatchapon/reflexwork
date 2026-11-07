@@ -12,7 +12,7 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 const src = page.match(/function _pScheduleData\(lines\)\{[\s\S]*?\nfunction _pSchedule\(lines\)\{[^\n]*\}\n/);   // data + view + the composition
 check('_pSchedule source found', !!src);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const _pSchedule = new Function('_pEsc', src[0] + 'return _pSchedule;')(esc);
+const _pSchedule = new Function('_pEsc', page.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + src[0] + 'return _pSchedule;')(esc);
 const S = P.map(p => p.announcement && p.announcement.sections && p.announcement.sections['กำหนดการสอบคัดเลือก']).filter(Boolean);
 let tables = 0, lists = 0, lost = [];
 const dateRe = /\d{1,2} [ก-๙]{1,4}\.(?:[ก-๙]{1,2}\.)? ?\d{4}/g;

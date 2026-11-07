@@ -51,6 +51,70 @@ export class Resolver {
 if (Symbol.dispose) Resolver.prototype[Symbol.dispose] = Resolver.prototype.free;
 
 /**
+ * The whole chat decision order (plan 009). Built from the page's manual rows and programme rows (or null when there is no
+ * catalogue), then asked one question at a time. `decide` returns the route name or `null` (= the page's "not found" path).
+ */
+export class Router {
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        RouterFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_router_free(ptr, 0);
+    }
+    /**
+     * `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+     * @param {string} q
+     * @param {any} state
+     * @param {any} rewrite
+     * @returns {any}
+     */
+    decide(q, state, rewrite) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            const ptr0 = passStringToWasm0(q, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.router_decide(retptr, this.__wbg_ptr, ptr0, len0, addHeapObject(state), addHeapObject(rewrite));
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return takeObject(r0);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+     * @param {any} kb
+     * @param {any} programmes
+     */
+    constructor(kb, programmes) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.router_new(retptr, addHeapObject(kb), addHeapObject(programmes));
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            this.__wbg_ptr = r0 >>> 0;
+            RouterFinalization.register(this, this.__wbg_ptr, this);
+            return this;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+}
+if (Symbol.dispose) Router.prototype[Symbol.dispose] = Router.prototype.free;
+
+/**
  * The manual's own words cut into short points (port of chatbot.html `answerPoints`).
  * @param {string} body
  * @returns {any}
@@ -60,6 +124,31 @@ export function answer_points(body) {
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.answer_points(ptr0, len0);
     return takeObject(ret);
+}
+
+/**
+ * BLAKE3 of the UTF-8 bytes of `text`, as 64 hex chars. The page builds the answer receipt from it: the preimage (question, route, served
+ * entry id + content, hash of the whole manual) is assembled in JS, hashed here, so one implementation hashes everything in the browser.
+ * @param {string} text
+ * @returns {string}
+ */
+export function blake3_text(text) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(text, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.blake3_text(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred2_0 = r0;
+        deferred2_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export4(deferred2_0, deferred2_1, 1);
+    }
 }
 
 /**
@@ -263,6 +352,10 @@ function __wbg_get_imports() {
             const ret = typeof(getObject(arg0)) === 'function';
             return ret;
         },
+        __wbg___wbindgen_is_null_52ff4ec04186736f: function(arg0) {
+            const ret = getObject(arg0) === null;
+            return ret;
+        },
         __wbg___wbindgen_is_object_63322ec0cd6ea4ef: function(arg0) {
             const val = getObject(arg0);
             const ret = typeof(val) === 'object' && val !== null;
@@ -414,6 +507,9 @@ function __wbg_get_imports() {
 const ResolverFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_resolver_free(ptr >>> 0, 1));
+const RouterFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_router_free(ptr >>> 0, 1));
 
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);

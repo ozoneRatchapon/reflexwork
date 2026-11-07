@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><title>ReflexWork - ชีตเกณฑ์กรรมการ (A4)</title>
+<style>
+@page{size:A4;margin:9mm}
+*{box-sizing:border-box}body{font:9pt/1.36 -apple-system,"Segoe UI","Noto Sans Thai",sans-serif;color:#111;margin:0}
+h1{font-size:12.5pt;margin:0 0 1.5mm}h2{font-size:9.4pt;margin:2mm 0 .8mm;border-bottom:1px solid #999;padding-bottom:.4mm}
+table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:.5mm 1.3mm;vertical-align:top;text-align:left}
+th{background:#eee}ul{margin:.3mm 0;padding-left:4.2mm}li{margin:0}small{color:#555}.n{font-weight:700}
+.warn td:first-child{color:#a00;font-weight:700}
+</style></head><body>
+<h1>ReflexWork · เกณฑ์รอบ 2 (100 คะแนน) → สิ่งที่ต้องอธิบาย <small>7 พ.ย. 2569 · 5 นาที + ตอบ 5 นาที · แหล่ง: docs/pitching/00-HANDOVER-pitching.md</small></h1>
+
+<h2>1. เกณฑ์ น้ำหนัก และสิ่งที่ต้องพูด</h2>
+<table>
+<tr><th>เกณฑ์</th><th>คะแนน</th><th>พูดอะไร (เปิดด้วยข้อนี้)</th><th>อย่าพูดว่า</th></tr>
+<tr><td><b>Impact / คุณค่าต่อมหาวิทยาลัย</b></td><td class="n">25</td><td>ลดงานซ้ำ ~80% ออกจาก LLM · ตรวจสอบย้อนหลังได้ 100% (PDPA) · ใช้ภาษาธุรกิจ/ผู้บริหารก่อนศัพท์เทคนิค</td><td>"AI ฉลาดขึ้น" (ไม่มีตัวเลขรองรับ)</td></tr>
+<tr><td><b>Implementation Readiness</b></td><td class="n">20</td><td>ใช้งานจริงบน production แล้ว · ยิงสดได้ · มี production-hardening · มี roadmap ขยายระบบ</td><td>"พร้อมรองรับผู้ใช้จำนวนมาก" (ยังไม่เคยทดสอบโหลด)</td></tr>
+<tr><td>AI + Kiro อย่างมีประสิทธิภาพ</td><td class="n">15</td><td>spec-driven (3 specs) · WASM kernel · LLM ที่ยึดกับเอกสาร (grounded) · hooks/CI</td><td>ระบุบทบาท Kiro เกินจริง (ต้องยืนยันกับคุณณภัทรก่อน)</td></tr>
+<tr><td>นวัตกรรม / ความคิดสร้างสรรค์</td><td class="n">15</td><td>"คัดก่อนเรียก AI = 0 token" · หลักฐาน BLAKE3 ตรวจสอบได้ (System One)</td><td>"ไม่มีคู่แข่ง"</td></tr>
+<tr><td><b>คุณภาพ Prototype + การสาธิต</b></td><td class="n">15</td><td>เดโมสด 3 ช่วง · วิดีโอ 46 วินาทีสำรองถ้าเน็ตล่ม · แท็บ <code>?ai=off</code> สำรอง</td><td>"ไม่แก้สด" ถ้าสะดุด ให้ข้ามไปขั้นถัดไป</td></tr>
+<tr><td>การนำเสนอ + ตอบคำถาม</td><td class="n">10</td><td>สคริปต์ 5 นาที (จบที่ 4:45) · Q&amp;A bank (ไฟล์ 40)</td><td>คำตอบที่ไม่รู้ ให้บอกว่า "ไม่เดา" แล้วจดไว้</td></tr>
+</table>
+<small>Impact 25 + Readiness 20 = <b>45</b> คะแนน มาเป็นอันดับแรก · กรรมการ 7 ท่านมาจากผู้บริหาร วิชาการ และอุตสาหกรรม</small>
+
+<h2>2. ข้อจำกัดที่ต้องพูดก่อนกรรมการถาม</h2>
+<ul>
+<li>อังกฤษถูกต้อง <span class="n">49%</span> (35/71) · ไทยถูกต้องสูงกว่า</li>
+<li>FAQ ที่คู่มือยังไม่มี <span class="n">14</span> ข้อ · ในจำนวนนี้ไทยตอบผิดหัวข้อ <span class="n">10</span> ข้อ (ยังไม่เผยแพร่ ไม่อยู่ใน live manual)</li>
+<li><span class="n">94%</span> คือ อัตราที่ระบบจับคู่ได้ ไม่ใช่อัตราตอบคำถามใหม่ได้ถูกต้อง</li>
+<li>ตอบเองได้ <span class="n">44/52</span> ข้อ · ผิด <span class="n">3</span> ข้อ</li>
+<li>ยังไม่มีการทดสอบโหลด · ยังไม่มีผู้ใช้จริงเป็นวงกว้าง · ความจุ โควตา Cloudflare และ Gemini ยังไม่ได้วัด</li>
+</ul>
+
+<h2>3. คำถามกรรมการที่น่าจะถาม</h2>
+<table>
+<tr><th>คำถาม</th><th>ตอบสั้นๆ</th></tr>
+<tr><td>ใช้ผู้ใช้จริงกี่คน / ผลตอบรับ?</td><td>ยังไม่มีผู้ใช้จริงวงกว้าง · ระบุตามจริง แล้วเสนอ pilot</td></tr>
+<tr><td>รองรับคนพร้อมกันได้เท่าไร?</td><td>ยังไม่ได้วัด · ไม่เคยทดสอบโหลด</td></tr>
+<tr><td>ข้อมูลส่วนบุคคล (PDPA) ทำอย่างไร?</td><td>ตรวจสอบย้อนหลังได้ด้วย BLAKE3 · ขอบเขตคำถามส่วนตัวสำหรับ LINE ยังไม่ได้สร้าง (ต้องบอกตรงๆ)</td></tr>
+<tr><td>ใครเป็นเจ้าของคำตอบ / ความถูกต้อง?</td><td>เจ้าหน้าที่ตรวจสอบก่อนเผยแพร่ · ระบบไม่เดาเมื่อไม่มีในคู่มือ</td></tr>
+<tr><td>Kiro ช่วยอะไรจริง?</td><td>spec-driven 3 specs · ต้องยืนยันรายละเอียดกับทีมก่อนพูด</td></tr>
+</table>
+
+<h2>4. ลำดับความสำคัญเมื่อเวลาจำกัด</h2>
+<ol style="margin:.3mm 0;padding-left:4.2mm">
+<li>Impact และ Readiness (45 คะแนน) — พูดก่อนและพูดให้ชัด</li>
+<li>เดโมสดที่เสถียร + วิดีโอสำรอง (15)</li>
+<li>ข้อจำกัดที่พูดเอง (ป้องกันการเสียคะแนนจากคำถาม)</li>
+<li>Kiro และนวัตกรรม (30 รวม) — เล่าสั้นๆ ตามที่ตรวจแล้วเท่านั้น</li>
+</ol>
+</body></html>

@@ -5,11 +5,14 @@
 // KB rebuilds do not break the contract.
 //   node scripts/golden_dump.mjs            write benchmark/golden/*.json from the current data + JS
 //   node scripts/golden_dump.mjs --check    re-run the JS on the FROZEN inputs and fail on any difference (used by the test)
+//   node scripts/golden_dump.mjs --keep-inputs [name …]   rewrite only the OUTPUTS from the frozen inputs (a deliberate logic change):
+//                                           without names, every file; plain write mode re-derives inputs from today's KB as well
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadChatbotFns, loadSearch, loadUnderstand, loadIntake, root } from './lib/chatbot_fns.mjs';
 const F = loadChatbotFns(), DIR = join(root, 'benchmark/golden'), CHECK = process.argv.includes('--check');
-const SLOT_QS = ['ส่งเล่มภายในกี่วัน', 'ค่าธรรมเนียมเท่าไหร่', 'turnitin เกินกี่ %', 'ทำยังไง'];
+// the last three pin the QA F17 rules: "นานเท่าไร" asks a duration; a deadline question naming a fee asks a date, unless it asks the amount
+const SLOT_QS = ['ส่งเล่มภายในกี่วัน', 'ค่าธรรมเนียมเท่าไหร่', 'turnitin เกินกี่ %', 'ทำยังไง', 'ใช้เวลานานเท่าไร', 'วันสุดท้ายชำระค่าธรรมเนียมวันไหน', 'ค่าปรับวันสุดท้ายเท่าไหร่'];
 const lines = f => readFileSync(join(root, f), 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
 
 // --- outputs from inputs (the contract) ---
@@ -100,13 +103,15 @@ function inputs() {
 }
 const OUT = { answer_points: outPoints, schedule_fee: outProg, resolve: outResolve, decide_tier: outTier, understand: outUnderstand, intake: outIntake };
 let bad = 0;
+const frozen = (name, saved) => name === 'resolve' ? { catalogue: saved.catalogue, questions: saved.cases.map(c => c.q) }
+  : saved.map(({ points, slot, schedule, fee, out, ...rest }) => rest);   // understand: phrases + frozen results stay
+const KEEP = process.argv.includes('--keep-inputs'), only = process.argv.slice(2).filter(a => !a.startsWith('--'));
 if (CHECK) {
   for (const [name, fn] of Object.entries(OUT)) {
     const file = join(DIR, `${name}.json`);
     if (!existsSync(file)) { console.log(`✗ ${name}: missing ${file}`); bad++; continue; }
     const saved = JSON.parse(readFileSync(file, 'utf8'));
-    const input = name === 'resolve' ? { catalogue: saved.catalogue, questions: saved.cases.map(c => c.q) }
-      : saved.map(({ points, slot, schedule, fee, out, ...rest }) => rest);   // understand: phrases + frozen results stay
+    const input = frozen(name, saved);
     const now = fn(input), a = JSON.stringify(now), b = JSON.stringify(saved);
     const n = name === 'resolve' ? saved.cases.length : saved.length;
     if (a === b) console.log(`✓ ${name}: ${n} cases match`); else { bad++;
@@ -116,9 +121,10 @@ if (CHECK) {
   }
   process.exit(bad ? 1 : 0);
 }
-const inp = inputs();
+const inp = KEEP ? null : inputs();
 for (const [name, fn] of Object.entries(OUT)) {
-  const data = fn(inp[name]);
+  if (KEEP && only.length && !only.includes(name)) continue;
+  const data = fn(KEEP ? frozen(name, JSON.parse(readFileSync(join(DIR, `${name}.json`), 'utf8'))) : inp[name]);
   // one case per line: reviewable diffs, and a Rust test can stream it
   const body = name === 'resolve'
     ? `{"catalogue":[\n${data.catalogue.map(x => JSON.stringify(x)).join(',\n')}\n],"cases":[\n${data.cases.map(x => JSON.stringify(x)).join(',\n')}\n]}\n`

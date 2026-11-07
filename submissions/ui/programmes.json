@@ -1,5 +1,5 @@
 {
-"fetched_at": "2026-11-02",
+"fetched_at": "2026-11-04",
 "year": "2570",
 "source": "https://graduate.mahidol.ac.th",
 "count": 379,
@@ -18,6 +18,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MEDICAL BIOCHEMISTRY AND MOLECULAR BIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -120,6 +121,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL BIOCHEMISTRY AND MOLECULAR BIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -202,6 +204,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN IMMUNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -304,6 +307,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN IMMUNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -396,6 +400,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN CLINICAL PSYCHOLOGY",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -479,6 +484,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL AND MOLECULAR MICROBIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -568,6 +574,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL PHYSIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -658,6 +665,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN TRANSFUSION SCIENCE",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -681,6 +689,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL PHYSICS",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -760,6 +769,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PHARMACOLOGY AND NEW DRUG DEVELOPMENT (INTERNATIONAL PROGRAM)",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -867,6 +877,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PHARMACOLOGY AND NEW DRUG DEVELOPMENT (INTERNATIONAL PROGRAM)",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -952,6 +963,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MEDICAL AND MOLECULAR MICROBIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1104,6 +1116,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1203,6 +1216,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL BIOINFORMATICS (INTERNATIONAL PROGRAM)",
 "intake": "7 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1291,6 +1305,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1380,6 +1395,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PROSTHETICS AND ORTHOTICS (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1496,6 +1512,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PROSTHETICS AND ORTHOTICS (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1644,6 +1661,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN DERMATOLOGIC SURGERY (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1730,6 +1748,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN DERMATOLOGIC SURGERY (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1811,6 +1830,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN ORTHOPAEDIC SURGERY",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -1917,6 +1937,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2053,6 +2074,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MICROBIOLOGY AND IMMUNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2163,6 +2185,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MICROBIOLOGY AND IMMUNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2254,6 +2277,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN BIOCHEMISTRY (INTERNATIONAL PROGRAM)",
 "intake": "4 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2365,6 +2389,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN BIOCHEMISTRY (INTERNATIONAL PROGRAM)",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2466,6 +2491,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN BIORESOURCES AND ENVIRONMENTAL BIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2567,6 +2593,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PATHOBIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2654,6 +2681,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PHARMACOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2758,6 +2786,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PHARMACOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2849,6 +2878,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN EXERCISE PHYSIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -2940,6 +2970,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN POLYMER SCIENCE AND TECHNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3051,6 +3082,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN POLYMER SCIENCE AND TECHNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3141,6 +3173,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PHYSIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3234,6 +3267,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PHYSIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3331,6 +3365,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN BIOTECHNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3435,6 +3470,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN BIOTECHNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3530,6 +3566,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PHYSICS (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3621,6 +3658,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PHYSICS (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3713,6 +3751,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN TOXICOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3791,6 +3830,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN BIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -3902,6 +3942,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MATHEMATICS (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4000,6 +4041,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN FORENSIC SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4084,6 +4126,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MATERIALS SCIENCE AND ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4183,6 +4226,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MATERIALS SCIENCE AND ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4269,6 +4313,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN CHEMISTRY (INTERNATIONAL PROGRAM)",
 "intake": "11 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4367,6 +4412,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN CHEMISTRY (INTERNATIONAL PROGRAM)",
 "intake": "25 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4500,6 +4546,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN APPLIED CLINICAL PATHOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4608,6 +4655,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN APPLIED CLINICAL PATHOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4699,6 +4747,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4774,6 +4823,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN PEDIATRIC NURSING",
 "intake": "14 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4860,6 +4910,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -4936,6 +4987,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN ADULT AND GERONTOLOGICAL NURSING",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5018,6 +5070,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN COMMUNITY NURSE PRACTITIONER",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -5041,6 +5094,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5131,6 +5185,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN PSYCHIATRIC AND MENTAL HEALTH NURSING",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5224,6 +5279,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL PHYSICS",
 "intake": "11 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5307,8 +5363,38 @@
 "kind": "thai",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=2222M03G",
-"announce_id": "2222MG00",
-"announcement": null
+"announce_id": "2222MG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2222MG01&lang=th&y=2570",
+"status": "ปิดรับสมัครแล้ว",
+"title_en": "MASTER OF SCIENCE PROGRAM IN COMMUNICATION SCIENCES AND DISORDERS",
+"intake": "",
+"major": "แก้ไขการพูด",
+"apply_url": "",
+"notice": [
+"หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
+"จำนวนอาจารย์สาขาแก้ไขการพูดไม่เพียงพอต่อการเปิดรับนักศึกษาใหม่"
+],
+"sections": {},
+"page_sha256": "7cb494a53fc0f92a58b84e42375aa000c74b9961325914cfadf0d178ef61d615"
+},
+"sub_announcements": [
+{
+"id": "2222MG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2222MG01&lang=th&y=2570",
+"status": "ปิดรับสมัครแล้ว",
+"major": "แก้ไขการพูด",
+"apply_url": ""
+},
+{
+"id": "2222MG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2222MG02&lang=th&y=2570",
+"status": "ปิดรับสมัครแล้ว",
+"major": "แก้ไขการได้ยิน",
+"apply_url": ""
+}
+]
 },
 {
 "code": "2224D04G",
@@ -5334,6 +5420,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN GERONTOLOGICAL NURSE PRACTITIONER",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5423,6 +5510,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -5446,6 +5534,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN TRANSLATIONAL MEDICINE (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5559,6 +5648,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN TRANSLATIONAL MEDICINE (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5641,8 +5731,120 @@
 "kind": "international",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=2228M03G",
-"announce_id": "2228MG00",
-"announcement": null
+"announce_id": "2228MG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2228MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "MASTER OF NURSING SCIENCE PROGRAM (INTERNATIONAL PROGRAM)",
+"intake": "3 คน",
+"major": "วิชาเอกการพยาบาลเด็ก",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"1) Holding a Bachelor's degree in nursing which is accredited by Thailand Nursing and Midwifery Council (TNMC) or other oraganizations in each country",
+"2) Have a cumulative GPA of not less than 2.50.",
+"3) Hold a valid registered nurse license in his/her own country.",
+"4) Have at least one year of working experience as a professional nurse/nurse instructor after completion of undergraduate study until registered for the program.",
+"5) Have an English Proficiency Examination score as the requirement of the Faculty of Graduate Studies.",
+"6) Qualifications different from item 2) to item 5) may be considered by the Program Administrative Committee and the Dean of the Faculty of Graduate Studies.",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 | รอบ 3 | รอบ 4",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 1 จ. 30 พ.ย. 2569 | รอบ 2 อา. 31 ม.ค. 2570 | รอบ 3 พ. 31 มี.ค. 2570 | รอบ 4 จ. 31 พ.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 1 อ. 15 ธ.ค. 2569 | รอบ 2 จ. 15 ก.พ. 2570 | รอบ 3 ศ. 16 เม.ย. 2570 | รอบ 4 อ. 15 มิ.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 1 อ. 22 ธ.ค. 2569 | รอบ 2 พ. 17 ก.พ. 2570 | รอบ 3 อ. 20 เม.ย. 2570 | รอบ 4 ศ. 18 มิ.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 1 พ. 13 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 1 พ. 13 ม.ค. - พฤ. 21 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. - พฤ. 15 ก.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 1 จ. 25 ม.ค. 2570 | รอบ 2 จ. 16 มี.ค. 2570 | รอบ 3 ศ. 21 พ.ค. 2570 | รอบ 4 พฤ. 22 ก.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)",
+"หนังสือรับรองประสบการณ์การทำงาน (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"สำเนาใบประกอบวิชาชีพ (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Statement of Purpose (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"สำเนาทะเบียนบ้าน (ถ้ามี) (สำหรับผู้สมัครชาวไทย)",
+"CV (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)"
+],
+"ทุนการศึกษาของหลักสูตร": [
+"-"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 50,000 | 37,500 | 60,000",
+"นักศึกษาต่างชาติ",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 55,000 | 37,500 | 60,000",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "e82a17e02318c5e3edf4354bb57f6cb2f76cd37b55c7368162458ed6b8356047"
+},
+"sub_announcements": [
+{
+"id": "2228MG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2228MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลเด็ก",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2228MG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2228MG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลผู้ใหญ่และผู้สูงอายุ",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2228MG03",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2228MG03&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลสุขภาพชุมชน",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2228MG04",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2228MG04&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลจิตเวชและสุขภาพจิต",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2228MG05",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2228MG05&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการผดุงครรภ์",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "2229M03G",
@@ -5668,6 +5870,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN OCCUPATIONAL HEALTH AND TOXICOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5750,6 +5953,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN DATA SCIENCE FOR HEALTHCARE AND CLINICAL INFORMATICS (INTERNATIONAL PROGRAM)",
 "intake": "3 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5841,6 +6045,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN DATA SCIENCE FOR HEALTHCARE AND CLINICAL INFORMATICS (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -5931,6 +6136,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PARAMEDICINE",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6036,6 +6242,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6144,6 +6351,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [],
 "sections": {},
@@ -6164,6 +6372,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "GRADUATE DIPLOMA PROGRAM IN ORGAN DONATION MANAGEMENT",
 "intake": "25 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6239,6 +6448,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN GENETIC COUNSELING",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6322,6 +6532,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN NURSING SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6416,6 +6627,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN BIOSTATISTICS",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6490,6 +6702,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN ENVIRONMENTAL TECHNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "7 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6586,6 +6799,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ENVIRONMENTAL TECHNOLOGY",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6677,6 +6891,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN OCCUPATIONAL HEALTH AND SAFETY (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6818,6 +7033,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -6905,6 +7121,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PUBLIC HEALTH INFECTIOUS DISEASES AND EPIDEMIOLOGY",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7012,6 +7229,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ENVIRONMENTAL HEALTH",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -7035,6 +7253,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7121,6 +7340,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN HEALTH INFORMATICS (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7210,6 +7430,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -7233,6 +7454,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PUBLIC HEALTH MICROBIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "9 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7311,6 +7533,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF PUBLIC HEALTH PROGRAM",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7391,6 +7614,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7471,6 +7695,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF PUBLIC HEALTH PROGRAM (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7558,8 +7783,97 @@
 "kind": "thai",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=2328M05G",
-"announce_id": "2328MG00",
-"announcement": null
+"announce_id": "2328MG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2328MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "MASTER OF SCIENCE PROGRAM IN PUBLIC HEALTH",
+"intake": "10 คน",
+"major": "การพัฒนาและจัดการระบบสุขภาพชุมชน",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)",
+"แผน 2 แบบวิชาชีพ"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"แผน ๑.๒ แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)",
+"(๑) สำเร็จการศึกษาหลักสูตรปริญญาตรีหรือเทียบเท่า สาขาวิชาสาธารณสุขศาสตร์ หรือสาขาอื่นที่เกี่ยวข้อง",
+"(๒) คุณสมบัติอื่น ๆ เป็นไปตามที่บัณฑิตวิทยาลัยกำหนด",
+"(๓) ผู้ที่มีคุณสมบัติต่างจากที่กำหนดในข้อ (๒) อาจได้รับการพิจารณาให้เข้าศึกษาตามดุลยพินิจของคณะกรรมการบริหารหลักสูตรและคณบดีบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล",
+"แผน ๒ วิชาชีพ",
+"(๑) สำเร็จการศึกษาหลักสูตรปริญญาตรีหรือเทียบเท่า สาขาวิชาสาธารณสุขศาสตร์ หรือสาขาวิชาที่เกี่ยวข้อง",
+"(๒) มีประสบการณ์การทำงานที่เกี่ยวข้องกับการสาธารณสุข สุขภาพ การพัฒนาสุขภาวะชุมชน และอื่น ๆ ที่เกี่ยวข้อง ไม่น้อยกว่า ๑ ปี",
+"(๓) คุณสมบัติอื่น ๆ เป็นไปตามที่บัณฑิตวิทยาลัยกำหนด",
+"(๔) ผู้ที่มีคุณสมบัติต่างจากที่กำหนดในข้อ (๓) อาจได้รับการพิจารณาให้เข้าศึกษาตามดุลยพินิจของคณะกรรมการบริหารหลักสูตรและคณบดีบัณฑิตวิทยาลัย",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 | รอบ 3 | รอบ 4",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 1 จ. 30 พ.ย. 2569 | รอบ 2 อา. 31 ม.ค. 2570 | รอบ 3 พ. 31 มี.ค. 2570 | รอบ 4 จ. 31 พ.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 1 อ. 15 ธ.ค. 2569 | รอบ 2 จ. 15 ก.พ. 2570 | รอบ 3 ศ. 16 เม.ย. 2570 | รอบ 4 อ. 15 มิ.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 1 พฤ. 17 ธ.ค. 2569 | รอบ 2 อ. 16 ก.พ. 2570 | รอบ 3 จ. 19 เม.ย. 2570 | รอบ 4 พ. 16 มิ.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 1 พ. 13 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 1 พ. 13 ม.ค. - พฤ. 21 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. - พฤ. 15 ก.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 1 จ. 25 ม.ค. 2570 | รอบ 2 จ. 16 มี.ค. 2570 | รอบ 3 ศ. 21 พ.ค. 2570 | รอบ 4 พฤ. 22 ก.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)"
+],
+"ทุนการศึกษาของหลักสูตร": [
+"ทุนสนับสนุนการทำวิทยานิพนธ์บางส่วน"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 1 ปี (2 ภาคการศึกษา) | 40,000 | 0 | 4,000",
+"แผน 2 แบบวิชาชีพ | 1 ปี (2 ภาคการศึกษา) | 50,000 | 0 | 4,000",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "ec1098a975b3f4c412c441d0d39b81a2717cad4bdc2ee877cf179e7b1939a858"
+},
+"sub_announcements": [
+{
+"id": "2328MG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2328MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "การพัฒนาและจัดการระบบสุขภาพชุมชน",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2328MG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2328MG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "สุขภาพครอบครัวและการจัดการ",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "2328M05S",
@@ -7568,8 +7882,97 @@
 "kind": "thai",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=2328M05S",
-"announce_id": "2328MS00",
-"announcement": null
+"announce_id": "2328MS01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2328MS01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "",
+"intake": "15 คน",
+"major": "การพัฒนาและจัดการระบบสุขภาพชุมชน",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)",
+"แผน 2 แบบวิชาชีพ"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"แผน ๑.๒ แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)",
+"(๑) สำเร็จการศึกษาหลักสูตรปริญญาตรีหรือเทียบเท่า สาขาวิชาสาธารณสุขศาสตร์ หรือสาขาอื่นที่เกี่ยวข้อง",
+"(๒) คุณสมบัติอื่น ๆ เป็นไปตามที่บัณฑิตวิทยาลัยกำหนด",
+"(๓) ผู้ที่มีคุณสมบัติต่างจากที่กำหนดในข้อ (๒) อาจได้รับการพิจารณาให้เข้าศึกษาตามดุลยพินิจของคณะกรรมการบริหารหลักสูตรและคณบดีบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล",
+"แผน ๒ วิชาชีพ",
+"(๑) สำเร็จการศึกษาหลักสูตรปริญญาตรีหรือเทียบเท่า สาขาวิชาสาธารณสุขศาสตร์ หรือสาขาวิชาที่เกี่ยวข้อง",
+"(๒) มีประสบการณ์การทำงานที่เกี่ยวข้องกับการสาธารณสุข สุขภาพ การพัฒนาสุขภาวะชุมชน และอื่น ๆ ที่เกี่ยวข้อง ไม่น้อยกว่า ๑ ปี",
+"(๓) คุณสมบัติอื่น ๆ เป็นไปตามที่บัณฑิตวิทยาลัยกำหนด",
+"(๔) ผู้ที่มีคุณสมบัติต่างจากที่กำหนดในข้อ (๓) อาจได้รับการพิจารณาให้เข้าศึกษาตามดุลยพินิจของคณะกรรมการบริหารหลักสูตรและคณบดีบัณฑิตวิทยาลัย",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 | รอบ 3 | รอบ 4",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 1 จ. 30 พ.ย. 2569 | รอบ 2 อา. 31 ม.ค. 2570 | รอบ 3 พ. 31 มี.ค. 2570 | รอบ 4 จ. 31 พ.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 1 อ. 15 ธ.ค. 2569 | รอบ 2 จ. 15 ก.พ. 2570 | รอบ 3 ศ. 16 เม.ย. 2570 | รอบ 4 อ. 15 มิ.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 1 พฤ. 17 ธ.ค. 2569 | รอบ 2 อ. 16 ก.พ. 2570 | รอบ 3 จ. 19 เม.ย. 2570 | รอบ 4 พ. 16 มิ.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 1 พ. 13 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 1 พ. 13 ม.ค. - พฤ. 21 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. - พฤ. 15 ก.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 1 จ. 25 ม.ค. 2570 | รอบ 2 จ. 16 มี.ค. 2570 | รอบ 3 ศ. 21 พ.ค. 2570 | รอบ 4 พฤ. 22 ก.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)"
+],
+"ทุนการศึกษาของหลักสูตร": [
+"ทุนสนับสนุนการทำวิทยานิพนธ์บางส่วน"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 1 ปี (2 ภาคการศึกษา) | 50,000 | 0 | 4,000",
+"แผน 2 แบบวิชาชีพ | 1 ปี (2 ภาคการศึกษา) | 60,000 | 0 | 4,000",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "591f40b9772070ba0d5dda22f678d4f9011e4133453987e8752bf9ea3a229d75"
+},
+"sub_announcements": [
+{
+"id": "2328MS01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2328MS01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "การพัฒนาและจัดการระบบสุขภาพชุมชน",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2328MS02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2328MS02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "สุขภาพครอบครัวและการจัดการ",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "2329D03G",
@@ -7578,8 +7981,146 @@
 "kind": "international",
 "level": "ปริญญาเอก",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=2329D03G",
-"announce_id": "2329DG00",
-"announcement": null
+"announce_id": "2329DG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "DOCTOR OF PUBLIC HEALTH PROGRAM (INTERNATIONAL PROGRAM)",
+"intake": "7 คน",
+"major": "วิชาเอกวิทยาการระบาด",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"ปริญญาเอก แบบ 1.1 (ทำเฉพาะวิทยานิพนธ์ สำหรับผู้จบปริญญาโทแล้วเข้าศึกษาต่อปริญญาเอก)",
+"ปริญญาเอก แบบ 2.1 (ศึกษารายวิชาและทำวิทยานิพนธ์ สำหรับผู้จบปริญญาโทแล้วเข้าศึกษาต่อปริญญาเอก)"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"Plan 1 Research only",
+"Plan 1.1 For students with Master's Degree",
+"The applicants must have the following qualifications:",
+"1) Hold a Master of Public Health, Master of Science (Public Health) or equivalent degree majoring in family and reproductive health, infectious diseases, epidemiology, health education and health promotion, nutrition, public health administration, health sciences or other related majors from academic institutes accredited by the Office of the Permanent Secretary, Ministry of Higher Education, Science, Research and Innovation",
+"2) Must have at least three years of mid-level management experience in a relevant public health or professional health field/organization after completing a Master degree program in clause 1",
+"3) Have to be the first author or corresponding author of at least one research article published in an international - peer reviewed journal",
+"4) Have a minimum grade point average of 3.50 in a previous master's degree or equivalent degree",
+"5) Have an English Proficiency Examination score as the Requirement of the Faculty of Graduate Studies",
+"6) Persons who have different qualifications specified in clause 4 and clause 5, may be considered for admission into a program at the discretion of the Program Administrative Committee and the Dean of the Faculty of Graduate Studies",
+"Plan 2 Coursework and research",
+"Plan 2.1 For students with Master's Degree",
+"The applicants must have the following qualifications:",
+"1) Hold a Master of Public Health, Master of Science (Public Health) or equivalent degree majoring in family and reproductive health, infectious diseases, epidemiology, health education and health promotion, nutrition, public health administration, health sciences or other related majors from academic institutes accredited by the Office of the Permanent Secretary, Ministry of Higher Education, Science, Research and Innovation",
+"2) Have a minimum grade point average of 3.50",
+"3) Have an English Proficiency Examination score as the Requirement of Faculty of Graduate Studies",
+"4) Have at least five years work experience in public health or other related fields after completing a Bachelor degree program or have at least one year work experience in public health or other related fields after completing a Master degree program",
+"5) Persons who have different qualifications specified in clauses 2 to 4 may be considered for admission into the program at the discretion of the Program Administrative Committee and the Dean of the Faculty of Graduate Studies",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ต้องมี ผลคะแนนภาษาอังกฤษตามเกณฑ์ขั้นต่ำที่รับเข้าศึกษาจึงจะสมัครได้ (กรณีไม่มีผลคะแนน / มีผลคะแนนไม่ถึงเกณฑ์ขึ้นอยู่กับการพิจารณาของหลักสูตร)",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น | ภาคปลาย",
+"รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 | รอบ 3 | รอบ 4 | รอบภาคปลาย",
+"(เปิดรับสมัคร พฤ. 1 ก.ค. 2570)",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 1 จ. 30 พ.ย. 2569 | รอบ 2 อา. 31 ม.ค. 2570 | รอบ 3 พ. 31 มี.ค. 2570 | รอบ 4 จ. 31 พ.ค. 2570 | รอบภาคปลาย พฤ. 30 ก.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 1 อ. 15 ธ.ค. 2569 | รอบ 2 จ. 15 ก.พ. 2570 | รอบ 3 ศ. 16 เม.ย. 2570 | รอบ 4 อ. 15 มิ.ย. 2570 | รอบภาคปลาย ศ. 15 ก.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 1 พ. 23 ธ.ค. 2569 | รอบ 2 ศ. 19 ก.พ. 2570 | รอบ 3 ศ. 23 เม.ย. 2570 | รอบ 4 ศ. 18 มิ.ย. 2570 | รอบภาคปลาย พฤ. 21 ต.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 1 พ. 13 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. 2570 | รอบภาคปลาย อ. 9 พ.ย. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 1 พ. 13 ม.ค. - พฤ. 21 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. - พฤ. 15 ก.ค. 2570 | รอบภาคปลาย อ. 9 พ.ย. - อ. 16 พ.ย. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 1 จ. 25 ม.ค. 2570 | รอบ 2 จ. 16 มี.ค. 2570 | รอบ 3 ศ. 21 พ.ค. 2570 | รอบ 4 พฤ. 22 ก.ค. 2570 | รอบภาคปลาย ศ. 19 พ.ย. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)",
+"หนังสือรับรองประสบการณ์การทำงาน (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"สำเนาใบประกอบวิชาชีพ (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Statement of Purpose (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Research Proposal (approximately 3000 words) (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Curriculum Vitae (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แบบ 1.1 (ทำเฉพาะวิทยานิพนธ์ สำหรับผู้จบปริญญาโทแล้วเข้าศึกษาต่อปริญญาเอก) | 3 ปี (6 ภาคการศึกษา) | 70,000 | 300,000 | 0",
+"แบบ 2.1 (ศึกษารายวิชาและทำวิทยานิพนธ์ สำหรับผู้จบปริญญาโทแล้วเข้าศึกษาต่อปริญญาเอก) | 3 ปี (6 ภาคการศึกษา) | 80,000 | 300,000 | 70,000",
+"นักศึกษาต่างชาติ",
+"แบบ 1.1 (ทำเฉพาะวิทยานิพนธ์ สำหรับผู้จบปริญญาโทแล้วเข้าศึกษาต่อปริญญาเอก) | 3 ปี (6 ภาคการศึกษา) | 80,000 | 300,000 | 0",
+"แบบ 2.1 (ศึกษารายวิชาและทำวิทยานิพนธ์ สำหรับผู้จบปริญญาโทแล้วเข้าศึกษาต่อปริญญาเอก) | 3 ปี (6 ภาคการศึกษา) | 90,000 | 300,000 | 70,000",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "3319f10cac408e2980a6cc954ca5f3e305fbac651de874d3dba20ed54c01f36c"
+},
+"sub_announcements": [
+{
+"id": "2329DG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกวิทยาการระบาด",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2329DG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกครอบครัวและอนามัยการเจริญพันธุ์",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2329DG03",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG03&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกสุขภาพโลก",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2329DG04",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG04&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกสุขศึกษาและส่งเสริมสุขภาพ",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2329DG05",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG05&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกปรสิตวิทยาและกีฏวิทยา",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2329DG06",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG06&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกบริหารสาธารณสุข",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2329DG07",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2329DG07&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกโภชนาการสาธารณสุข",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "2330M02S",
@@ -7595,6 +8136,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7675,6 +8217,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN OCCUPATIONAL HEALTH NURSE PRACTITIONER",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7795,6 +8338,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7881,6 +8425,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PUBLIC HEALTH ADMINISTRATION",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -7904,6 +8449,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -7984,6 +8530,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PUBLIC HEALTH ADMINISTRATION",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -8007,6 +8554,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "25 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8114,6 +8662,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN TECHNOLOGY OF ENVIRONMENTAL MANAGEMENT",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8201,6 +8750,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8291,6 +8841,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN APPROPRIATE TECHNOLOGY, CLIMATE CHANGE AND SUSTAINABILITY",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8373,6 +8924,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8455,6 +9007,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8530,6 +9083,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN ENVIRONMENT AND RESOURCE STUDIES (INTERNATIONAL PROGRAM)",
 "intake": "4 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8616,6 +9170,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8705,6 +9260,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ENVIRONMENTAL MANAGEMENT AND TECHNOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8824,6 +9380,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF EDUCATION PROGRAM IN EDUCATIONAL MANAGEMENT (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -8917,6 +9474,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9008,6 +9566,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9101,6 +9660,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN ENVIRONMENTAL SOCIAL SCIENCES",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9181,6 +9741,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9257,6 +9818,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MEDICAL AND PUBLIC HEALTH SOCIAL SCIENCES",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9356,6 +9918,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF ARTS PROGRAM IN MEDICAL AND PUBLIC HEALTH SOCIAL SCIENCES",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -9379,6 +9942,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9491,6 +10055,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9583,6 +10148,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9663,6 +10229,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN HEALTH SOCIAL SCIENCES (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9762,6 +10329,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN HEALTH SOCIAL SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9841,6 +10409,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF PUBLIC ADMINISTRATION PROGRAM IN PUBLIC POLICY AND PUBLIC MANAGEMENT",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -9926,6 +10495,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "40 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10009,6 +10579,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10084,6 +10655,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PUBLIC ADMINISTRATION PROGRAM IN PUBLIC POLICY AND PUBLIC MANAGEMENT",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10161,6 +10733,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10238,6 +10811,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN ENVIRONMENTAL SOCIAL SCIENCES",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10318,6 +10892,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10395,6 +10970,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN CRIMINOLOGY AND CRIMINAL JUSTICE (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10471,6 +11047,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10558,6 +11135,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10636,6 +11214,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10735,6 +11314,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -10758,6 +11338,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE IN PHARMACY PROGRAM IN CLINICAL PHARMACY (INTERNATIONAL PROGRAM)",
 "intake": "4 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10852,6 +11433,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -10952,6 +11534,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN INTERDISCIPLINARY OF PHARMACEUTICAL SCIENCES FOR HEALTH PRODUCTS AND DRUGS DISCOVERY AND DEVELOPMENT (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11052,6 +11635,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "50 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11137,6 +11721,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN INTERDISCIPLINARY OF PHARMACEUTICAL SCIENCES FOR HEALTH PRODUCTS AND DRUGS DISCOVERY AND DEVELOPMENT (INTERNATIONAL PROGRAM)",
 "intake": "50 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11232,6 +11817,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN CLINICAL PHARMACY (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11339,6 +11925,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN PEDIATRIC NURSING",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11445,6 +12032,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN PSYCHIATRIC NURSING AND MENTAL HEALTH",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -11468,6 +12056,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11562,6 +12151,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF NURSING SCIENCE PROGRAM IN MIDWIFERY",
 "intake": "14 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11670,8 +12260,122 @@
 "kind": "international",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=2813M03G",
-"announce_id": "2813MG00",
-"announcement": null
+"announce_id": "2813MG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2813MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "MASTER OF NURSING SCIENCE PROGRAM (INTERNATIONAL PROGRAM)",
+"intake": "5 คน",
+"major": "วิชาเอกการพยาบาลผู้ใหญ่และผู้สูงอายุ",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"แผน 1.1 แบบวิชาการ (ทำวิทยานิพนธ์อย่างเดียว)",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"Plan 1.1 Academic (Research only) Applicant",
+"1) Hold a bachelor's degree in nursing (or equivalent) from academic",
+"institutes. For a Thai nursing education institute, it must be accredited by Thailand Nursing and Midwifery Council;",
+"2) Currently hold a license for registered nurse in their own country;",
+"3) Have working experience in related to nursing profession prior to admission to the Program at least one year;",
+"4) Have research experience endorsed by the head or supervisor of the research project, or have research publication at least one paper related to nursing profession;",
+"5) Trained in a four-month nursing specialty program or equivalent approved",
+"by Thailand Nursing and Midwifery Council or other organizations in their",
+"own country or endorsed by the head or director of the institute;",
+"6) Other requirements shall follow those that specified by the Faculty of Graduate Studies;",
+"7) Qualifications different from 5) and 6) may be considered by the Program",
+"Administrative Committee and the Dean of the Faculty of Graduate",
+"Studies.",
+"Plan 1.2 Academic (Course work and research) Applicant",
+"1) Hold a bachelor's degree in nursing (or equivalent) from academic",
+"institutes. For a Thai nursing education institute, it must be accredited by Thailand Nursing and Midwifery Council;",
+"2) Currently hold a license for registered nurse in their own country;",
+"3) Have working experience in related to nursing profession prior to admission to the Program at least one year;",
+"4) Other requirements shall follow those that specified by the Faculty of",
+"Graduate Studies;",
+"5) Qualifications different from 4)may be considered by the Program Administrative Committee and the Dean of the Faculty of Graduate Studies.",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 | รอบ 3 | รอบ 4",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 1 จ. 30 พ.ย. 2569 | รอบ 2 อา. 31 ม.ค. 2570 | รอบ 3 พ. 31 มี.ค. 2570 | รอบ 4 จ. 31 พ.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 1 อ. 15 ธ.ค. 2569 | รอบ 2 จ. 15 ก.พ. 2570 | รอบ 3 ศ. 16 เม.ย. 2570 | รอบ 4 อ. 15 มิ.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 1 อ. 22 ธ.ค. 2569 | รอบ 2 อ. 23 ก.พ. 2570 | รอบ 3 อ. 20 เม.ย. 2570 | รอบ 4 พฤ. 17 มิ.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 1 พ. 13 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 1 พ. 13 ม.ค. - พฤ. 21 ม.ค. 2570 | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570 | รอบ 4 พฤ. 8 ก.ค. - พฤ. 15 ก.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 1 จ. 25 ม.ค. 2570 | รอบ 2 จ. 16 มี.ค. 2570 | รอบ 3 ศ. 21 พ.ค. 2570 | รอบ 4 พฤ. 22 ก.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)",
+"หนังสือรับรองประสบการณ์การทำงาน (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"สำเนาใบประกอบวิชาชีพ (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Statement of Purpose (สำหรับผู้สมัครชาวไทยและต่างชาติ)"
+],
+"ทุนการศึกษาของหลักสูตร": [
+"2026 Mahidol Postgraduate Scholarships, Research/Research Supplies Scholarships"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แผน 1.1 แบบวิชาการ (ทำวิทยานิพนธ์อย่างเดียว) | 2 ปี (4 ภาคการศึกษา) | 40,000 | 150,000 | 0",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 50,000 | 150,000 | 0",
+"นักศึกษาต่างชาติ",
+"แผน 1.1 แบบวิชาการ (ทำวิทยานิพนธ์อย่างเดียว) | 2 ปี (4 ภาคการศึกษา) | 50,000 | 150,000 | 0",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 60,000 | 150,000 | 0",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "5c25bce6ca938a2c6cd08b36216e74ef3ff3ef0e8b03512f2850996f530dc349"
+},
+"sub_announcements": [
+{
+"id": "2813MG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2813MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลผู้ใหญ่และผู้สูงอายุ",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2813MG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2813MG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลเด็ก",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "2813MG03",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=2813MG03&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการพยาบาลจิตเวชและสุขภาพจิต",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "2901D02G",
@@ -11687,6 +12391,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN POPULATION AND SOCIAL RESEARCH",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11830,6 +12535,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11904,6 +12610,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN OPERATIVE DENTISTRY",
 "intake": "3 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -11982,6 +12689,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ADVANCED GENERAL DENTISTRY",
 "intake": "4 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12053,6 +12761,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "GRADUATE DIPLOMA IN CLINICAL SCIENCE PROGRAM IN MAXILLOFACIAL PROSTHODONTICS AND REHABILITATION (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12134,6 +12843,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ORTHODONTICS (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12231,6 +12941,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN ORAL BIOLOGY AND INTEGRATIVE BIOMEDICAL SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "2 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12341,6 +13052,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ORAL BIOLOGY AND INTEGRATIVE BIOMEDICAL SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12431,6 +13143,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN DENTAL BIOMATERIALS SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "4 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12515,8 +13228,108 @@
 "kind": "thai",
 "level": "ประกาศนียบัตรบัณฑิต",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=3319C03G",
-"announce_id": "3319CG00",
-"announcement": null
+"announce_id": "3319CG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319CG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "GRADUATE DIPLOMA IN CLINICAL SCIENCE PROGRAM IN DENTISTRY",
+"intake": "4 คน",
+"major": "วิชาเอกปริทันตวิทยา",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"ไม่พบแผนการศึกษาที่เปิดรับสมัคร"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"1. สำเร็จการศึกษาระดับทันตแพทยศาสตรบัณฑิต จากสถาบันอุดมศึกษาที่กระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรมรับรอง",
+"2. ได้แต้มระดับคะแนนเฉลี่ยสะสมไม่ต่ำกว่า 2.50",
+"3. มีผลคะแนนภาษาอังกฤษผ่านตามเกณฑ์ของบัณฑิตวิทยาลัย มหาวิทยาลัยมหิดล",
+"4. ขึ้นทะเบียนและได้รับอนุญาตให้เป็นผู้ประกอบวิชาชีพทันตกรรม",
+"5. มีประสบการณ์ในการประกอบวิชาชีพทันตกรรมอย่างน้อย 1 ปี",
+"6. ผู้ที่มีคุณสมบัติต่างจากที่กําหนดใน 1 ถึง 5 อาจได้รับการพิจารณาให้สมัครเข้าศึกษาได้ โดยให้อยู่ในดุลยพินิจของคณะกรรมการบริหารหลักสูตร และคณบดีบัณฑิตวิทยาลัย"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบข้อเขียนวิชาเฉพาะของหลักสูตร",
+"ปริทันตวิทยา",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 2",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 2 อา. 31 ม.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 2 จ. 15 ก.พ. 2570",
+"สอบข้อเขียน | รอบ 2 ศ. 19 ก.พ. 2570",
+"สอบสัมภาษณ์ | รอบ 2 ศ. 19 ก.พ. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 2 ศ. 5 มี.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 2 จ. 16 มี.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)",
+"สำเนาใบประกอบวิชาชีพ (สำหรับผู้สมัครชาวไทย)"
+],
+"ทุนการศึกษาของหลักสูตร": [
+"-"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"1 ปี (2 ภาคการศึกษา) | 30,000 | 12,000 | 0",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "4e10f134965f8a364fb872ade7887eb64df838f139a5a8eaca59dab5d2067160"
+},
+"sub_announcements": [
+{
+"id": "3319CG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319CG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกปริทันตวิทยา",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319CG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319CG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกทันตกรรมทั่วไปขั้นสูง",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319CG03",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319CG03&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกวิทยาระบบบดเคี้ยว",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319CG04",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319CG04&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกศัลยศาสตร์ช่องปากและแม็กซิลโลเฟเซียล",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "3319M04G",
@@ -12525,8 +13338,139 @@
 "kind": "international",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=3319M04G",
-"announce_id": "3319MG00",
-"announcement": null
+"announce_id": "3319MG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "MASTER OF SCIENCE PROGRAM IN DENTISTRY (INTERNATIONAL PROGRAM)",
+"intake": "2 คน",
+"major": "วิชาเอกทันตกรรมทั่วไปขั้นสูง",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"1. Must be a graduate with a D.D.S. or equivalent degree from higher education institutions that are accredited by the Office of the Ministry of Higher Education, Science, Research and Innovation",
+"2. Must have dental license from the Thai Dental Council or any other license that the Program committee considers equivalent",
+"3. Have a cumulative GPA of at least 2.50",
+"4. Must have at least one year working experience in dental practice",
+"5. Must have an English Proficiency Examination score as set by the requirement of the Faculty of Graduate Studies, Mahidol University.",
+"6. Those whose qualification are not comply with criteria 2 to 5 may be considered for admission to study at the discretion of the Program Administrative Committee and Dean of The Faculty of Graduate Studies.",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 3",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 3 พ. 31 มี.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 3 ศ. 16 เม.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 3 ศ. 23 เม.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 3 อ. 11 พ.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 3 ศ. 21 พ.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)",
+"หนังสือรับรองประสบการณ์การทำงาน (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"สำเนาใบประกอบวิชาชีพ (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Statement of Purpose (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"A recommendation letter (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"รูปถ่าย (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"English Proficiency Score (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 40,000 | 170,000 | 0",
+"นักศึกษาต่างชาติ",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 70,000 | 170,000 | 0",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "962152599d76e3a81ac108af1a063c0a796e6ae786960585724855a9f5c2eb38"
+},
+"sub_announcements": [
+{
+"id": "3319MG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกทันตกรรมทั่วไปขั้นสูง",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319MG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกทันตกรรมชุมชน",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319MG03",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG03&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกวิทยาเอ็นโดดอนต์",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319MG04",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG04&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกการประดิษฐ์ใบหน้าขากรรไกร",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319MG05",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG05&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกรังสีวิทยาช่องปากและแม็กซิลโลเฟเชียล",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319MG06",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG06&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกศัลยศาสตร์ช่องปากและแม็กซิลโลเฟเชียล",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "3319MG07",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG07&lang=th&y=2570",
+"status": "ปิดรับสมัครแล้ว",
+"major": "วิชาเอกเวชศาสตร์ช่องปาก",
+"apply_url": ""
+},
+{
+"id": "3319MG08",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=3319MG08&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิชาเอกทันตกรรมเด็ก",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "3321M03G",
@@ -12542,6 +13486,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN IMPLANT DENTISTRY (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12628,6 +13573,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN GERIATRIC DENTISTRY",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12717,6 +13663,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12832,6 +13779,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "50 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -12920,6 +13868,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN BIOMEDICAL ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "13 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13046,6 +13995,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN BIOMEDICAL ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13155,6 +14105,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13245,6 +14196,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN SMART INDUSTRIAL ENGINEERING",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13334,6 +14286,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN CIVIL ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13435,6 +14388,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN INTEGRATED CHEMICAL ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13552,6 +14506,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN INTEGRATED CHEMICAL ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13633,6 +14588,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MECHANICAL ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13747,6 +14703,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN MECHANICAL ENGINEERING",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13837,6 +14794,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -13926,6 +14884,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN LOGISTICS AND ENGINEERING MANAGEMENT (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14013,6 +14972,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14104,6 +15064,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN ELECTRICAL AND ELECTRONIC ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14202,6 +15163,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN INFORMATION TECHNOLOGY MANAGEMENT",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14323,6 +15285,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14414,6 +15377,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14503,6 +15467,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN RAIL SYSTEMS ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14592,6 +15557,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14681,6 +15647,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ENGINEERING PROGRAM IN RAIL SYSTEMS ENGINEERING (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14770,6 +15737,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -14990,6 +15958,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN SPORTS SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15090,6 +16059,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN NURSING SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "18 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15189,6 +16159,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN TROPICAL MEDICINE (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15300,6 +16271,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN TROPICAL MEDICINE (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15386,6 +16358,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF CLINICAL TROPICAL MEDICINE PROGRAM IN TROPICAL PEDIATRICS (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15491,6 +16464,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF CLINICAL TROPICAL MEDICINE (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15586,6 +16560,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "GRADUATE DIPLOMA PROGRAM IN TROPICAL MEDICINE AND HYGIENE (INTERNATIONAL PROGRAM)",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15666,6 +16641,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "GRADUATE DIPLOMA PROGRAM IN BIOMEDICAL AND HEALTH INFORMATICS (INTERNATIONAL PROGRAM)",
 "intake": "7 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15750,6 +16726,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN BIOMEDICAL AND HEALTH INFORMATICS (INTERNATIONAL PROGRAM)",
 "intake": "25 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15842,6 +16819,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN SCHOOL HEALTH (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -15931,6 +16909,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN HUMAN DEVELOPMENT",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16023,6 +17002,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16115,6 +17095,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN INNOVATION FOR CHILD DEVELOPMENT AND PROTECTION",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16197,6 +17178,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16379,6 +17361,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN NUTRITION",
 "intake": "2 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16462,6 +17445,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "",
 "intake": "",
+"major": "",
 "apply_url": "",
 "notice": [
 "หลักสูตรฯ ไม่เปิดรับ นักศึกษาสำหรับรอบนี้ เนื่องจาก",
@@ -16485,6 +17469,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN NUTRITION",
 "intake": "3 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16567,6 +17552,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PLANT SCIENCES (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16649,6 +17635,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MEDICAL EPIDEMIOLOGY (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16731,6 +17718,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MOLECULAR MEDICINE (INTERNATIONAL PROGRAM)",
 "intake": "3 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16877,6 +17865,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "GRADUATE DIPLOMA PROGRAM IN CLINICAL VETERINARY SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "6 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -16946,8 +17935,132 @@
 "kind": "international",
 "level": "ปริญญาโท",
 "detail_url": "https://graduate.mahidol.ac.th/thai/prospective-students/?p=curriculum&id=6703M03G",
-"announce_id": "6703MG00",
-"announcement": null
+"announce_id": "6703MG01",
+"announcement": {
+"year": "2570",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=6703MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"title_en": "MASTER OF SCIENCE PROGRAM IN VETERINARY BIOMEDICAL SCIENCES (INTERNATIONAL PROGRAM)",
+"intake": "5 คน",
+"major": "วิทยาศาสตร์การวินิจฉัยทางการสัตวแพทย์",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
+"notice": [],
+"sections": {
+"แผนการศึกษาที่เปิดรับสมัคร": [
+"แผน 1.1 แบบวิชาการ (ทำวิทยานิพนธ์อย่างเดียว)",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์)",
+"แผน 2 แบบวิชาชีพ"
+],
+"คุณสมบัติของผู้มีสิทธิ์สมัคร": [
+"Plan 1.1 Academic (Thesis only)",
+"1) Holding a Bachelor's degree or equivalent in Doctor or Veterinary Medicine (D.V.M.) or Bachelor's degree in science, health sciences or other related fields",
+"2) Have at least one publication",
+"3) Have working experience in the related to health sciences, life science or other related fields at least one years",
+"4) Other requirements shall follow those that specified by the Faculty of Graduate Studies",
+"5) Qualifications different from 4) may be considered by the Program Administrative Committee and the Dean of the Faculty of Graduate Studies.",
+"Plan 1.2 Academic (course work and Thesis)",
+"1) Holding a Bachelor's degree or equivalent in Doctor or Veterinary Medicine (D.V.M.) or Bachelor's degree in science, health sciences or other related fields",
+"2) Other requirements shall follow those that specified by the Faculty of Graduate Studies",
+"3) Qualifications different from 2) may be considered by the Program Administrative Committee and the Dean of the Faculty of Graduate Studies.",
+"Plan 2 Profession",
+"1) Holding a Bachelor's degree or equivalent in Doctor or Veterinary Medicine (D.V.M.) or Bachelor's degree in science, health sciences or other related fields",
+"2) Have working experience in the related to health sciences, life science or other related fields at least one years",
+"3) Other requirements shall follow those that specified by the Faculty of Graduate Studies",
+"4) Qualifications different from 3) may be considered by the Program Administrative Committee and the Dean of the Faculty of Graduate Studies.",
+"สำหรับผู้สมัครชาวต่างชาติ โปรดอ่านรายละเอียด \"แนวปฏิบัติมาตรฐานความรู้ภาษาไทยขั้นต่ำสำหรับชาวต่างชาติที่มาศึกษาต่อในหลักสูตรภาษาไทย ระดับบัณฑิตศึกษา มหาวิทยาลัยมหิดล (ฉบับที่ 2) พ.ศ. 2568\"",
+"Minimum Requirements Thai Language (TH)"
+],
+"เงื่อนไขการยื่นผลคะแนนภาษาอังกฤษสำหรับผู้สมัครหลักสูตรนี้": [
+"ไม่กำหนดเกณฑ์มาตรฐานความรู้ภาษาอังกฤษขั้นต่ำที่รับเข้าศึกษา",
+"รายละเอียด",
+"ขั้นตอนการยื่นผลคะแนนภาษาอังกฤษ",
+"ประกาศเกณฑ์มาตรฐานภาษาอังกฤษ"
+],
+"วิธีการคัดเลือก": [
+"พิจารณาจากเอกสารประกอบการสมัคร",
+"สอบข้อเขียนวิชาเฉพาะของหลักสูตร",
+"ความรู้พื้นฐานทางการวินิจฉัยทางการสัตวแพทย์",
+"เชื้อก่อโรค",
+"สอบสัมภาษณ์"
+],
+"กำหนดการสอบคัดเลือก": [
+"รายละเอียดกิจกรรม | ภาคต้น",
+"รอบการรับสมัครของหลักสูตร | รอบ 2 | รอบ 3",
+"ตัดรอบพิจารณาคัดเลือก (เฉพาะผู้ที่ชำระค่าสมัครแล้ว) | รอบ 2 อา. 31 ม.ค. 2570 | รอบ 3 พ. 31 มี.ค. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์สอบและสถานที่สอบ | รอบ 2 จ. 15 ก.พ. 2570 | รอบ 3 ศ. 16 เม.ย. 2570",
+"สอบข้อเขียน | รอบ 2 พ. 24 ก.พ. 2570 | รอบ 3 ศ. 23 เม.ย. 2570",
+"สอบสัมภาษณ์ | รอบ 2 พ. 24 ก.พ. 2570 | รอบ 3 ศ. 23 เม.ย. 2570",
+"ประกาศรายชื่อผู้มีสิทธิ์เข้าศึกษา | รอบ 2 ศ. 5 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. 2570",
+"รายงานตัวเข้าศึกษาและชำระค่าขึ้นทะเบียนนักศึกษาใหม่ฯ | รอบ 2 ศ. 5 มี.ค. - พฤ. 11 มี.ค. 2570 | รอบ 3 อ. 11 พ.ค. - อ. 18 พ.ค. 2570",
+"ประกาศรายชื่อนักศึกษาที่รายงานตัวเข้าศึกษา | รอบ 2 จ. 16 มี.ค. 2570 | รอบ 3 ศ. 21 พ.ค. 2570",
+"หมายเหตุ :",
+"** โปรดพิจารณาช่วงเวลาในการชำระเงินค่าสมัครของท่านให้สอดคล้องกับรอบการสมัครที่ท่านประสงค์จะเข้ารับการคัดเลือก"
+],
+"หลักฐานการสมัคร": [
+"รูปถ่าย",
+"สำเนาปริญญาบัตร / หนังสือรับรองการเป็นนักศึกษา",
+"สำเนา Transcript / Grade Report ฉบับภาษาอังกฤษ",
+"สำเนาบัตรประชาชน (สำหรับผู้สมัครชาวไทย) / Passport (สำหรับผู้สมัครชาวต่างชาติ)",
+"หนังสือรับรองประสบการณ์การทำงาน (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Statement of Purpose (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"2-pages proposal (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"CV (สำหรับผู้สมัครชาวไทยและต่างชาติ)",
+"Publication for plan 1.1 (ถ้ามี) (สำหรับผู้สมัครชาวไทยและต่างชาติ)"
+],
+"ทุนการศึกษาของหลักสูตร": [
+"Research fee discount 150,000 THB"
+],
+"ค่าธรรมเนียมการศึกษา": [
+"ประกาศอัตราค่าธรรมเนียมการศึกษา",
+"ประกาศ สำหรับนักศึกษาที่เข้าศึกษา ปีการศึกษา 2570 (โปรดให้ความสำคัญ)",
+"ค่าใช้จ่ายตลอดหลักสูตร",
+"แผนการศึกษา | ระยะเวลาศึกษาตามแผนการศึกษาของหลักสูตร | อัตราค่าธรรมเนียมเหมาจ่ายฯ ที่ต้องชำระต่อภาคการศึกษาตามแผนการศึกษาของหลักสูตร (บาท) | อัตราค่าธรรมเนียมอื่น ๆ ชำระตลอดหลักสูตร (บาท) [1]",
+"ค่าวิจัยและ/หรือค่าอุปกรณ์พิเศษ | ค่าธรรมเนียมการศึกษาดูงาน",
+"นักศึกษาไทย",
+"แผน 1.1 แบบวิชาการ (ทำวิทยานิพนธ์อย่างเดียว) | 2 ปี (4 ภาคการศึกษา) | 40,000 | 0 | 0",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 40,000 | 0 | 0",
+"แผน 2 แบบวิชาชีพ | 2 ปี (4 ภาคการศึกษา) | 40,000 | 0 | 0",
+"นักศึกษาต่างชาติ",
+"แผน 1.1 แบบวิชาการ (ทำวิทยานิพนธ์อย่างเดียว) | 2 ปี (4 ภาคการศึกษา) | 50,000 | 0 | 0",
+"แผน 1.2 แบบวิชาการ (ศึกษารายวิชาและทำวิทยานิพนธ์) | 2 ปี (4 ภาคการศึกษา) | 50,000 | 0 | 0",
+"แผน 2 แบบวิชาชีพ | 2 ปี (4 ภาคการศึกษา) | 50,000 | 0 | 0",
+"หมายเหตุ:",
+"[1] สำหรับอัตราค่าธรรมเนียมอื่นๆ ชำระตลอดหลักสูตร (ค่าวิจัย และ/หรือ ค่าอุปกรณ์พิเศษ และ ค่าธรรมเนียมการศึกษาดูงาน) หลักสูตรอาจพิจารณาลดหย่อน หรือ ยกเว้นการจัดเก็บให้แก่นักศึกษาเป็นรายกรณีไป",
+"[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
+]
+},
+"page_sha256": "129675636a3b0b13ee36e5d0386551ceeabf6060681fd40ceab7490b65e8205b"
+},
+"sub_announcements": [
+{
+"id": "6703MG01",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=6703MG01&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "วิทยาศาสตร์การวินิจฉัยทางการสัตวแพทย์",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "6703MG02",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=6703MG02&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "ชีวเวชศาสตร์ทางการสัตวแพทย์ประยุกต์",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "6703MG03",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=6703MG03&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "การจัดการสุขภาพสัตว์สวนสัตว์และสัตว์ป่า",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+},
+{
+"id": "6703MG04",
+"url": "https://graduate.mahidol.ac.th/Admission/announce/announce.php?id=6703MG04&lang=th&y=2570",
+"status": "กำลังเปิดรับสมัคร",
+"major": "สัตวแพทย์สาธารณสุข",
+"apply_url": "https://graduate.mahidol.ac.th/admission-apply/"
+}
+]
 },
 {
 "code": "6801D04G",
@@ -16963,6 +18076,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN PHYSICAL THERAPY (INTERNATIONAL PROGRAM)",
 "intake": "9 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17050,6 +18164,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN CLINICAL PHYSICAL THERAPY",
 "intake": "23 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17136,6 +18251,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "GRADUATE DIPLOMA PROGRAM IN CLINICAL PHYSICAL THERAPY",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17213,6 +18329,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN PHYSICAL THERAPY (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17296,6 +18413,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN CLINICAL OCCUPATIONAL THERAPY",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17368,6 +18486,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN COMPUTER SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17490,6 +18609,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN COMPUTER SCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17597,6 +18717,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17704,6 +18825,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "40 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17767,7 +18889,7 @@
 "[2] กรณีหลักสูตรที่กำหนดให้นักศึกษาลงทะเบียนเรียนหรือขอสอบวิทยานิพนธ์หรือการค้นคว้าอิสระในภาคฤดูร้อน นักศึกษาต้องชำระค่าธรรมเนียมเหมาจ่ายภาคฤดูร้อน ในอัตราร้อยละ 50 ของค่าธรรมเนียมการศึกษาแบบเหมาจ่ายของแต่ละหลักสูตร"
 ]
 },
-"page_sha256": "b7beb9bd79c70f1fd8972f3eb42fa2deecd1443fa2ef080244bb55ffa72279e6"
+"page_sha256": "7fe1190d5f881dfee5a8c3ad2cf913a6f8f956dde106859adbb896351d0db6e5"
 }
 },
 {
@@ -17784,6 +18906,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17866,6 +18989,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF PRIMARY HEALTH CARE MANAGEMENT PROGRAM (INTERNATIONAL PROGRAM)",
 "intake": "25 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -17969,6 +19093,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN SCIENCE AND TECHNOLOGY EDUCATION (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18093,6 +19218,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN SCIENCE AND TECHNOLOGY EDUCATION (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18180,6 +19306,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN LEARNING INNOVATION (INTERNATIONAL PROGRAM)",
 "intake": "16 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18269,6 +19396,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN NEUROSCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "9 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18364,6 +19492,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN NEUROSCIENCE (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18444,6 +19573,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN MOLECULAR AND INTEGRATIVE BIOSCIENCES (INTERNATIONAL PROGRAM)",
 "intake": "8 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18536,6 +19666,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN MOLECULAR AND INTEGRATIVE BIOSCIENCES (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18675,6 +19806,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN CULTURAL STUDIES",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18778,6 +19910,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN MUSEUM STUDIES",
 "intake": "16 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18871,6 +20004,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "12 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -18954,6 +20088,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN FOOD SCIENCE FOR NUTRITION",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19065,6 +20200,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19168,6 +20304,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN NUTRITION AND DIETETICS",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19271,6 +20408,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN FOOD AND NUTRITION FOR HEALTH AND WELL-BEING (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19363,6 +20501,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19455,6 +20594,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN APPLIED LINGUISTICS (INTERNATIONAL PROGRAM)",
 "intake": "3 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19547,6 +20687,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "2 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19640,6 +20781,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19723,6 +20865,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN APPLIED LINGUISTICS (INTERNATIONAL PROGRAM)",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19805,6 +20948,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF ARTS PROGRAM IN HEALTH, NATURE, AND CULTURAL TOURISM MANAGEMENT",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19890,6 +21034,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "10 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -19985,6 +21130,7 @@
 "status": "ปิดรับสมัครแล้ว",
 "title_en": "MASTER OF ARTS PROGRAM IN HUMAN RIGHTS (INTERNATIONAL PROGRAM)",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20076,6 +21222,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN HUMAN RIGHTS AND PEACE STUDIES (INTERNATIONAL PROGRAM)",
 "intake": "5 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20167,6 +21314,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN CHILD, ADOLESCENT AND FAMILY PSYCHOLOGY",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20264,6 +21412,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20376,6 +21525,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "20 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20469,6 +21619,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN HEALTH AND SUSTAINABLE DEVELOPMENT (INTERNATIONAL PROGRAM)",
 "intake": "7 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20569,6 +21720,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "30 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20652,6 +21804,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "MASTER OF SCIENCE PROGRAM IN ANALYTICAL SCIENCES (INTERNATIONAL PROGRAM)",
 "intake": "2 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20740,6 +21893,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "2 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20849,6 +22003,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "15 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -20956,6 +22111,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "DOCTOR OF PHILOSOPHY PROGRAM IN THEORETICAL PHYSICS AND NATURAL PHILOSOPHY (INTERNATIONAL PROGRAM)",
 "intake": "2 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {
@@ -21045,6 +22201,7 @@
 "status": "กำลังเปิดรับสมัคร",
 "title_en": "",
 "intake": "25 คน",
+"major": "",
 "apply_url": "https://graduate.mahidol.ac.th/admission-apply/",
 "notice": [],
 "sections": {

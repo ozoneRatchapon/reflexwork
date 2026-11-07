@@ -1,0 +1,54 @@
+{
+  "_note": "Staff loop on the LOCAL mock backend (record with --mock): nothing is written to production. The staff answer is the official FAQ 76 text from https://graduate.mahidol.ac.th/engine/structure/faq/?lang=thai#faq-76 (docs/kb-faq-drafts/faq_076.md); only the source page conversion break \"ให ม่\" is written \"ใหม่\". The question fixes the source typo \"หลักจาก\" to \"หลังจาก\". Pages are served from git 6b9d7b5: chatbot.html and dashboard.html there are byte-identical to production (checked 2026-11-06); knowledge-index.json and wasm/ (identical to production) come from the working tree.",
+  "ref": "6b9d7b5",
+  "url": "{MOCK_PAGE}/chatbot.html?view=judge&api={MOCK_API}&llm={MOCK_API}",
+  "hold": 3000,
+  "type_ms": 70,
+  "steps": [
+    {
+      "ask": "หากผู้เข้าสอบต้องการหนังสือรับรองผลฉบับใหม่หลังจากที่เคยรับแล้วต้องดำเนินการอย่างไร",
+      "expect": "ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง",
+      "hold": 4000
+    },
+    {
+      "open": "dashboard",
+      "url": "{MOCK_PAGE}/dashboard.html",
+      "eval": "document.getElementById('base').value='{MOCK_API}'; tick(); true"
+    },
+    {
+      "tab": "dashboard",
+      "hold": 1500
+    },
+    {
+      "wait_text": "หนังสือรับรองผลฉบับใหม่",
+      "hold": 1500
+    },
+    {
+      "click_sel": ".ans-btn",
+      "hold": 1200
+    },
+    {
+      "type_sel": "#af-a",
+      "text": "ผู้เข้าสอบต้องติดต่อศูนย์สอบ IIE ด้วยตนเอง ค่าใช้จ่ายสำหรับขอหนังสือรับรองผลฉบับใหม่อยู่ที่ 500-800 บาท อีเมลศูนย์สอบ: bkktesting@iie.org (ที่มา: FAQ บัณฑิตวิทยาลัย ข้อ 76)",
+      "hold": 800
+    },
+    {
+      "click_sel": "button",
+      "text": "บันทึกและอนุมัติ",
+      "hold": 800
+    },
+    {
+      "wait_text": "อนุมัติแล้ว",
+      "hold": 3500
+    },
+    {
+      "tab": "chat",
+      "hold": 1500
+    },
+    {
+      "ask": "หากผู้เข้าสอบต้องการหนังสือรับรองผลฉบับใหม่หลังจากที่เคยรับแล้วต้องดำเนินการอย่างไร",
+      "expect": "bkktesting@iie.org",
+      "hold": 6000
+    }
+  ]
+}

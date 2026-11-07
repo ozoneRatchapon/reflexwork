@@ -14,6 +14,7 @@ pub mod decide;
 pub mod intake;
 pub mod resolve;
 mod re;
+pub mod route;
 pub mod understand;
 
 use blake3::Hasher;
@@ -169,6 +170,13 @@ pub struct RouteOutput {
     pub gate_score: f32,
 }
 
+/// BLAKE3 of the UTF-8 bytes of `text`, as 64 hex chars. The page builds the answer receipt from it: the preimage (question, route, served
+/// entry id + content, hash of the whole manual) is assembled in JS, hashed here, so one implementation hashes everything in the browser.
+#[wasm_bindgen]
+pub fn blake3_text(text: &str) -> String {
+    hex_encode(&blake3_hex(text.as_bytes()))
+}
+
 /// Route one task entirely in the browser. Returns a JSON object with the
 /// decision + a reproducible BLAKE3 proof — no backend, no token cost on the
 /// fast path. Mirrors the native Rust kernel's decision exactly.
@@ -233,19 +241,50 @@ fn gram_set(text: &str) -> Vec<String> {
     set.into_iter().collect()
 }
 
-#[derive(Deserialize)]
-struct KbEntryIn {
-    id: String,
-    keywords: String,
+/// Question-form words say HOW a student asks, never WHAT about; left in, their trigrams matched unrelated entries.
+/// Stripped from the QUERY only. Lockstep with chatbot.html `_stripQ` (same list, same alternation order = leftmost, first listed wins).
+const QUERY_FILLERS: [&str; 17] = [
+    "เท่าไหร่", "เท่าไร", "เท่าใด", "คืออะไร", "อะไรบ้าง", "ได้ไหม", "ได้มั้ย", "หรือไม่", "นะครับ",
+    "นะคะ", "ครับ", "ค่ะ", "คะ", "บ้าง", "หน่อย", "ไหม", "มั้ย",
+];
+
+fn strip_query_fillers(q: &str) -> String {
+    let chars: Vec<char> = q.chars().collect();
+    let fillers: Vec<Vec<char>> = QUERY_FILLERS.iter().map(|f| f.chars().collect()).collect();
+    let mut out = String::new();
+    let mut i = 0;
+    while i < chars.len() {
+        match fillers.iter().find(|f| chars[i..].starts_with(f)) {
+            Some(f) => {
+                out.push(' ');
+                i += f.len();
+            }
+            None => {
+                out.push(chars[i]);
+                i += 1;
+            }
+        }
+    }
+    let collapsed = out.split_whitespace().collect::<Vec<_>>().join(" ");
+    match collapsed.is_empty() {
+        true => q.to_string(),
+        false => collapsed,
+    }
 }
 
-#[derive(Serialize)]
-struct KbHit {
-    id: String,
+#[derive(Deserialize)]
+pub struct KbEntryIn {
+    pub id: String,
+    pub keywords: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct KbHit {
+    pub id: String,
     /// integer gate score (preserves decideTier's s>=4 / s>=6 contract)
-    s: i32,
-    cos: f32,
-    overlap: i32,
+    pub s: i32,
+    pub cos: f32,
+    pub overlap: i32,
 }
 
 /// Lexical overlap may only RAISE a candidate the vector already supports: below this cosine (= the lowest
@@ -295,6 +334,11 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
         Ok(v) => v,
         Err(_) => return serde_wasm_bindgen::to_value(&Vec::<KbHit>::new()).unwrap(),
     };
+    serde_wasm_bindgen::to_value(&kb_rank(&entries, query)).unwrap()
+}
+
+/// The ranking behind `kb_search`, callable from Rust (the decision order in `route` searches the manual with it).
+pub fn kb_rank(entries: &[KbEntryIn], query: &str) -> Vec<KbHit> {
     let n = entries.len().max(1) as f32;
     // document grams + document frequency
     let doc_grams: Vec<Vec<String>> = entries.iter().map(|e| gram_set(&e.keywords)).collect();
@@ -321,7 +365,7 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
         v
     };
     let doc_vecs: Vec<_> = doc_grams.iter().map(|gs| norm_vec(gs)).collect();
-    let qgrams = gram_set(query);
+    let qgrams = gram_set(&strip_query_fillers(query));
     let qv = norm_vec(&qgrams);
 
     let mut scored: Vec<KbHit> = Vec::new();
@@ -363,7 +407,7 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
         let ov_lead = if i == 0 { h.overlap - runner_overlap } else { 0 };
         h.s = cos_to_score(h.cos, margin, h.overlap, ov_lead);
     }
-    serde_wasm_bindgen::to_value(&scored).unwrap()
+    scored
 }
 
 // ─── Smalltalk intent scorer: sigmoid-gated, signed weights (never softmax) ──
@@ -475,6 +519,14 @@ mod tests {
     }
 
     #[test]
+    fn blake3_text_matches_known_vectors() {
+        // the same strings hashed by integrations/kernel-worker/vendor/blake3.js (JS), so the page and the worker agree
+        assert_eq!(blake3_text(""), "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262");
+        assert_eq!(blake3_text("abc"), "6437b3ac38465133ffb63b75273a8db548c558465d79db03fd359c6cd5bd9d85");
+        assert_eq!(blake3_text("ค่าเทอม"), "056513f6f449905ab98cf0274fcf215922b1bf4a1b2e8525be3bf5c535030c23");
+    }
+
+    #[test]
     fn proof_is_reproducible() {
         let a = blake3_hex(b"same input");
         let b = blake3_hex(b"same input");
@@ -513,6 +565,13 @@ mod tests {
     }
 
     // ─── kb_search gram helper ───────────────────────────────────────────────
+    #[test]
+    fn strip_query_fillers_matches_js() {
+        assert_eq!(strip_query_fillers("ค่าสมัครเรียนเท่าไหร่ครับ"), "ค่าสมัครเรียน");
+        assert_eq!(strip_query_fillers("ครับ"), "ครับ");
+        assert_eq!(strip_query_fillers("ต้องใช้ APA ไหมในวิทยานิพนธ์"), "ต้องใช้ APA ในวิทยานิพนธ์");
+    }
+
     #[test]
     fn gram_set_is_deterministic() {
         assert_eq!(gram_set("ค่าสอบเท่าไร"), gram_set("ค่าสอบเท่าไร"));
@@ -588,6 +647,46 @@ impl Resolver {
     /// `{kind: "one"|"many"|"broad", codes, topic, via, levelMissing, total}` or `null`. `loose` = nearest names only.
     pub fn resolve(&self, q: &str, loose: bool) -> JsValue {
         to_js(&self.inner.resolve(q, loose))
+    }
+}
+
+/// The whole chat decision order (plan 009). Built from the page's manual rows and programme rows (or null when there is no
+/// catalogue), then asked one question at a time. `decide` returns the route name or `null` (= the page's "not found" path).
+#[wasm_bindgen]
+pub struct Router {
+    manual: route::Manual,
+    catalogue: Option<resolve::Catalogue>,
+}
+
+#[wasm_bindgen]
+impl Router {
+    /// `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+    #[wasm_bindgen(constructor)]
+    pub fn new(kb: JsValue, programmes: JsValue) -> Result<Router, JsValue> {
+        let rows: Vec<route::router::KbIn> = serde_wasm_bindgen::from_value(kb)?;
+        let catalogue = match programmes.is_null() || programmes.is_undefined() {
+            true => None,
+            false => {
+                let rows: Vec<resolve::Programme> = serde_wasm_bindgen::from_value(programmes)?;
+                Some(resolve::Catalogue::new(&rows))
+            }
+        };
+        Ok(Router { manual: route::router::manual_from(rows), catalogue })
+    }
+
+    /// `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+    pub fn decide(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
+        let state: route::router::StateIn = serde_wasm_bindgen::from_value(state)?;
+        let phrases: Option<Vec<String>> = match rewrite.is_null() || rewrite.is_undefined() {
+            true => None,
+            false => Some(serde_wasm_bindgen::from_value(rewrite)?),
+        };
+        let name = route::router::route_name(q, &state, &self.manual, self.catalogue.as_ref(), phrases.as_deref())
+            .map_err(|e| JsValue::from_str(&e))?;
+        Ok(match name {
+            Some(n) => JsValue::from_str(n),
+            None => JsValue::NULL,
+        })
     }
 }
 

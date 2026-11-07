@@ -18,9 +18,32 @@ export class Resolver {
 }
 
 /**
+ * The whole chat decision order (plan 009). Built from the page's manual rows and programme rows (or null when there is no
+ * catalogue), then asked one question at a time. `decide` returns the route name or `null` (= the page's "not found" path).
+ */
+export class Router {
+    free(): void;
+    [Symbol.dispose](): void;
+    /**
+     * `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+     */
+    decide(q: string, state: any, rewrite: any): any;
+    /**
+     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+     */
+    constructor(kb: any, programmes: any);
+}
+
+/**
  * The manual's own words cut into short points (port of chatbot.html `answerPoints`).
  */
 export function answer_points(body: string): any;
+
+/**
+ * BLAKE3 of the UTF-8 bytes of `text`, as 64 hex chars. The page builds the answer receipt from it: the preimage (question, route, served
+ * entry id + content, hash of the whole manual) is assembled in JS, hashed here, so one implementation hashes everything in the browser.
+ */
+export function blake3_text(text: string): string;
 
 /**
  * `{kind: "personal", category, label}` for a personal/technical issue that needs staff, else `null` (port of `classifyIssue`).
@@ -90,7 +113,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_resolver_free: (a: number, b: number) => void;
+    readonly __wbg_router_free: (a: number, b: number) => void;
     readonly answer_points: (a: number, b: number) => number;
+    readonly blake3_text: (a: number, b: number, c: number) => void;
     readonly classify_issue: (a: number, b: number) => number;
     readonly classify_smalltalk: (a: number, b: number, c: number) => void;
     readonly decide_tier: (a: number, b: number, c: number) => number;
@@ -101,6 +126,8 @@ export interface InitOutput {
     readonly resolver_new: (a: number, b: number) => void;
     readonly resolver_resolve: (a: number, b: number, c: number, d: number) => number;
     readonly route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
+    readonly router_decide: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+    readonly router_new: (a: number, b: number, c: number) => void;
     readonly schedule_table: (a: number, b: number) => number;
     readonly slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly understand: (a: number, b: number, c: number) => number;

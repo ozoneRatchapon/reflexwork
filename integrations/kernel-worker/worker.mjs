@@ -13,6 +13,7 @@
 import { blake3 } from './vendor/blake3.js';
 import { bytesToHex, utf8ToBytes } from './vendor/utils.js';
 import { buildPayload } from '../_shared/federation.mjs';
+import { vote_bounds } from '../_shared/beta_bound.mjs';
 
 // ── Reflex Kernel routing, ported 1:1 from crates/reflex-wasm/src/lib.rs ──────
 // Same seeded weights, same sigmoid gate (θ=0.72), same category one-hot — so
@@ -261,12 +262,11 @@ async function feedback(request, env) {
   let entryConfidence;
   if (entryId) {
     const row = await env.DB.prepare("SELECT conf, up, down FROM entry_conf WHERE id=?1").bind(entryId).first();
-    const prev = row ? Number(row.conf) : 1.0;
-    // EMA nudge: 👍 → toward 1, 👎 → toward 0. alpha=0.85 keeps it stable.
-    const target = reward >= 0 ? 1.0 : 0.0;
-    const next = Math.max(0, Math.min(1, 0.85 * prev + 0.15 * target));
-    const up = (row ? row.up : 0) + (reward >= 0 ? 1 : 0);
-    const down = (row ? row.down : 0) + (reward < 0 ? 1 : 0);
+    // conf = posterior mean of Beta(1+up, 1+down) (2026-11-07, was an EMA 0.85·prev + 0.15·target: that depended on the ORDER of the
+    // votes and said nothing about how many there were). /entry-conf adds the 95% bounds (integrations/_shared/beta_bound.mjs).
+    const up = (row ? Number(row.up) || 0 : 0) + (reward >= 0 ? 1 : 0);
+    const down = (row ? Number(row.down) || 0 : 0) + (reward < 0 ? 1 : 0);
+    const next = vote_bounds(up, down).mean;
     await env.DB.prepare(
       "INSERT INTO entry_conf (id, conf, up, down, at) VALUES (?1,?2,?3,?4,?5) " +
       "ON CONFLICT(id) DO UPDATE SET conf=?2, up=?3, down=?4, at=?5"
@@ -277,7 +277,7 @@ async function feedback(request, env) {
   const row = await env.DB.prepare("SELECT v FROM metrics WHERE k='policy_version'").first();
   return json({ accepted: true, policy_version: row ? row.v : 1, reward,
     entry_id: entryId || undefined, entry_confidence: entryConfidence,
-    note: 'feedback recorded; policy adapts (EMA on the serving kernel)' });
+    note: 'feedback recorded; entry confidence = Beta posterior mean of its vote counts' });
 }
 
 async function status(env) {
@@ -361,10 +361,13 @@ async function gaps(env) {
 // that keep disappointing users (👎), learned automatically from feedback.
 async function entryConf(env) {
   await ensureSchema(env);
-  const rows = await env.DB.prepare(
-    "SELECT id, conf, up, down, at FROM entry_conf ORDER BY conf ASC, down DESC LIMIT 30"
-  ).all();
-  return json({ entries: rows.results || [] });
+  // Entries to fix first = those whose helpful rate is LOW EVEN AT ITS 95% UPPER BOUND (Best-Belief, katgpt-rs best_belief.rs): one 👎 is
+  // not enough to top the list, five 👎 are. lo = "at least" bound, for ranking the best entries. Few hundred rows: sorted here.
+  const rows = ((await env.DB.prepare("SELECT id, conf, up, down, at FROM entry_conf").all()).results || [])
+    .map(r => { const b = vote_bounds(r.up, r.down); return { ...r, conf: b.mean, lo: b.lo, hi: b.hi, votes: b.n }; })
+    .sort((a, b) => a.hi - b.hi || b.down - a.down || String(a.id).localeCompare(String(b.id)))
+    .slice(0, 30);
+  return json({ entries: rows, order: 'hi_asc', note: 'lo/hi = 95% bounds of the helpful rate from the vote counts' });
 }
 
 // GET /federation-preview — DRY RUN. Build the exact payload the opt-in
