@@ -59,6 +59,9 @@ jobs:
       - name: KB versioning (supersedes / valid_from / valid_to)
         run: node tests/kb_versioning.test.mjs
 
+      - name: Tuition finder only for tuition questions (not exam / service fees)
+        run: node tests/tuition_scope.test.mjs
+
       - name: KB recall eval on the built index
         run: node tests/kb_search.test.mjs
 

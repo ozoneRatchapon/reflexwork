@@ -1229,6 +1229,7 @@ const _P_ASPECT=[['fee',_P_TOPIC[0][1]],['scholarship',_P_TOPIC[1][1]],
   ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับ(?:สมัคร)?(?:อยู่)?ไหม|\bopen\b/i]];
 const _P_ASPECT_TH={fee:'ค่าธรรมเนียม',scholarship:'ทุน',docs:'หลักฐานการสมัคร',elig:'คุณสมบัติผู้สมัคร',english:'เกณฑ์ภาษาอังกฤษ',schedule:'กำหนดการ',status:'สถานะการรับสมัคร'};
 // True when a fee question carries nothing but the fee word, a level word and filler (no programme / field of its own).
+function isTuitionQuestion(q){ q=String(q||''); return _P_TUITION.test(q) || (_P_TOPIC[0][1].test(q) && !_P_NONTUITION.test(q)); }
 function isGenericFeeQuestion(text){
   const left=String(text||'').toLowerCase()
     .replace(/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย|ค่าเรียน|เหมาจ่าย|tuition|fees?/g,'')
@@ -1417,6 +1418,9 @@ const _AREAS=[
   {k:'education',  label:'การศึกษา · การสอน', say:/ครู|สอน|การศึกษา|อาจารย์|teach|educat/i, title:/การศึกษา|การสอน|ครุ/},
 ];
 const _P_CAREER=/ทำงานอะไร|งานอะไรดี|งานไหนดี|อาชีพ|สายงาน|ตำแหน่งงาน|อยากทำงาน|หางาน|เปลี่ยนสายงาน|(?:พัฒนา|เพิ่ม|เรียนรู้).{0,12}(?:skill|ทักษะ|สกิล)|(?:skill|ทักษะ|สกิล).{0,6}(?:อะไร|ไหนดี)|อยากทำ(?:งาน)?เกี่ยวกับ|อยากทำงานสาย|career/i;
+const _P_TUITION=/ค่าธรรมเนียมการศึกษา|ค่าเทอม|ค่าเล่าเรียน|ค่าเรียน|เหมาจ่าย|tuition/i;   // the programme's own fee, not an exam / service fee
+// a fee about something else: exams, applications, fines, bank transfers, buying / hiring (staff procurement), reimbursement
+const _P_NONTUITION=/\b(?:exam(?:ination)?s?|tests?|toefl|ielts|toeic|mu\s?grad|application|transfer|late|fine|penalty)\b|สอบ|สมัคร|โอนเงิน|ค่าปรับ|ปรับ|ซื้อ|จ้าง|เบิก|ขนส่ง|ภาษี/i;
 const _P_FREEQ=/ฟรี|ไม่เสียค่า|ไม่มีค่า(?:ใช้จ่าย|เทอม|ธรรมเนียม)|เรียนฟรี|free of charge|\bfree\b/i;
 // QA F23: 'เรียนฟรีไหม' / 'ปริญญาโทเรียนฟรีจริงไหม' / 'is tuition free?' name no fee word, so the premise guard below missed them
 const _P_FREESTUDY=/(?:เรียน|ศึกษา|ปริญญา(?:โท|เอก)?|หลักสูตร|ป\.(?:โท|เอก)).{0,12}ฟรี|ฟรี.{0,8}(?:เรียน|ศึกษา)|ไม่เสียค่า(?:เรียน|ใช้จ่าย|เทอม)|(?:tuition|study|studying|degree|master'?s?|program(?:me)?)\b.{0,12}\bfree\b/i;
@@ -2024,7 +2028,7 @@ function _askCore(){
 
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
   // A fee question that names a field but not one programme ("ค่าเทอมพยาบาล": 30+ programmes): show those programmes, not a wrong-topic KB entry.
-  if(!pinned && !staffFirst && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q)){
+  if(!pinned && !staffFirst && PROG.length && isTuitionQuestion(q) && !_P_FREEQ.test(q)){   // not an exam / service fee (benchmark/rules/002)
     const nf = resolveProgramme(q, PROG, true);
     if(nf && nf.rows && nf.rows.length){
       PCTX=null;
@@ -2328,7 +2332,10 @@ function _askCore(){
       renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q), undefined, undefined, _line('admissions'));
       return;
     }
-    if(PROG.length && _P_TOPIC[0][1].test(q)){   // a fee question that names no programme: fees differ per programme, so help find it
+    // a TUITION question that names no programme: fees differ per programme, so help find it. Only tuition words or a bare fee question:
+    // 'What is the fee for taking the TOEFL ITP?', 'MU GRAD Plus examination fees', 'ค่าใช้จ่ายอื่นๆ ที่มาพร้อมกับการซื้อวัสดุ' are other fees
+    // and used to open the tuition finder (benchmark/rules/002).
+    if(PROG.length && isTuitionQuestion(q)){
       renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, nearP && nearP.rows, true, 'ค่าเทอม ');   // picking a programme here answers with ITS fee table
       return;
     }
