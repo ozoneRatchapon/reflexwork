@@ -17,6 +17,11 @@
 | `002_doc2query_unreviewed.md` | adding generated questions to the index (offline expansion, still modelless at run time) |
 | `003_embed_bge-m3_unreviewed.md` | meaning-based search with bge-m3 (multilingual, 567M parameters, local) |
 | `004_embed_nomic_unreviewed.md` | the same with nomic-embed-text (English-centred) |
+| `005_distill_unreviewed.md` | bge-m3 distilled into a trigram -> vector map (offline ridge, no model at run time; katgpt-canon idea) |
+| `006_answer_type_unreviewed.md` | answer-type match: does the entry contain the kind of value asked for |
+| `007_signals_unreviewed.md` | AUROC of model-free abstain signals, rank-fused |
+
+What to take from katgpt-rs and why: `.plans/010_katgpt-adoption.md`.
 
 ### 1. The lexical search misses reworded questions
 - On Thai paraphrases, the right entry is ranked first **52%** of the time. English gets 49%.
