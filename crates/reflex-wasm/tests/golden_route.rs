@@ -14,7 +14,8 @@ use serde_json::Value;
 /// The day the contract is decided on (the branches read the manual's dates against it; which entries exist, not which day it is, picks the route).
 const TODAY: &str = "2026-11-07";
 const PORTED: &[Route] = &[Route::Wellbeing, Route::Smalltalk, Route::Personal, Route::StuckPick, Route::Restart, Route::Overview, Route::CatalogueNotReady, Route::GenericFee, Route::ProgrammeCard, Route::ProgrammePick,
-    Route::FieldFee, Route::FreeStudy, Route::Career, Route::Finder, Route::Followup, Route::FreeFee, Route::TimeIntent];
+    Route::FieldFee, Route::FreeStudy, Route::Career, Route::Finder, Route::Followup, Route::FreeFee, Route::TimeIntent,
+    Route::ScopeAsk, Route::ScopeNoYear, Route::ScopeNoRound, Route::AdviceAbstain, Route::AdviceStrong, Route::AdviceHybrid, Route::KbAct, Route::Disambiguate];
 
 /// The programme catalogue the contract was recorded against: programmes.json, minus the rows the page drops (`_okProg`: a code and a title).
 fn catalogue() -> Catalogue {
@@ -44,7 +45,7 @@ fn ported_prefix_matches_the_recorded_routes() {
         let want = Route::from_name(want_name).unwrap_or_else(|| panic!("unknown route {want_name:?} in the contract"));
         // mode "nocat" = the page was served with programmes.json answering 500 (the catalogue failed to load); every other mode has it loaded
         let prog_state = if r.get("mode").and_then(|m| m.as_str()) == Some("nocat") { ProgState::Failed } else { ProgState::Ok };
-        let mut ctx = Ctx { pinned: false, prog_state, programme_in_focus: None, today: TODAY.into(), catalogue: (prog_state == ProgState::Ok).then_some(&catalogue), manual: &manual, config: Config::default() };
+        let mut ctx = Ctx { pinned: false, prog_state, ai_off: r.get("mode").and_then(|m| m.as_str()) != Some("ai_on"), pinned_entry: None, programme_in_focus: None, today: TODAY.into(), catalogue: (prog_state == ProgState::Ok).then_some(&catalogue), manual: &manual, config: Config::default() };
         let got = decide_prefix(q, &mut ctx);
         checked += 1;
         let ok = match PORTED.contains(&want) {
@@ -61,7 +62,7 @@ fn ported_prefix_matches_the_recorded_routes() {
     // sessions: the programme in focus carries over from one turn to the next, exactly as in the page (a fresh page per session)
     let mut turns = 0usize;
     for r in all.iter().filter(|r| r["kind"] == "session") {
-        let mut ctx = Ctx { pinned: false, prog_state: ProgState::Ok, programme_in_focus: None, today: TODAY.into(), catalogue: Some(&catalogue), manual: &manual, config: Config::default() };
+        let mut ctx = Ctx { pinned: false, prog_state: ProgState::Ok, ai_off: true, pinned_entry: None, programme_in_focus: None, today: TODAY.into(), catalogue: Some(&catalogue), manual: &manual, config: Config::default() };
         let (qs, routes) = (r["qs"].as_array().unwrap(), r["routes"].as_array().unwrap());
         for (q, want_name) in qs.iter().zip(routes) {
             let (q, want_name) = (q.as_str().unwrap(), want_name.as_str().unwrap());

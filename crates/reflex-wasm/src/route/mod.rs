@@ -6,6 +6,7 @@ pub mod dates;
 pub mod manual;
 mod patterns_src;
 pub mod programme;
+pub mod scope;
 pub mod study_intent;
 pub mod term_year;
 pub mod stuck;

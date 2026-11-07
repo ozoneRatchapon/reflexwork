@@ -1,11 +1,13 @@
 //! The first branches of the chat's decision order, in the order the page tries them (chatbot.html `_askCore`, 2026-11-07):
-//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee  8-9 programme_card / programme_pick  10-15 field_fee, free_study, career, finder, followup, free_fee  16 time_intent
+//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee  8-9 programme_card / programme_pick  10-15 field_fee, free_study, career, finder, followup, free_fee  16 time_intent  17+ verdict: scope_*, advice_*, kb_act, disambiguate
 //! `decide_prefix` answers `Some(route)` when one of the ported branches fires and `None` ("continue with the branches not ported yet").
 //! The recorded contract (benchmark/golden/route.json, tests/golden_route.rs) checks this prefix exactly.
 
 use super::aspect::{asks_if_free, follow_up_aspect, is_generic_fee_question, is_tuition_question, mentions_free_study, names_a_fee};
 use super::dates::{dated_picks, time_intent};
 use super::manual::{Ctx, ProgState};
+use super::scope::{scope_clarify, Ranked, Scope};
+use crate::decide::{decide_tier, Action};
 use super::programme::{is_career_question, is_finder_question, is_level_only_question, resolve_programme_branch, ProgrammeOutcome};
 use super::patterns_src as p;
 use super::study_intent::catalogue_notice;
@@ -191,5 +193,51 @@ pub fn decide_prefix(typed: &str, ctx: &mut Ctx) -> Option<Route> {
             }
         }
     }
-    None
+    verdict_route(&q, ctx)
+}
+
+/// 17+: the manual's verdict (gate score + the ranked entries -> act / disambiguate / escalate), the account-problem override, the scope guard, then the
+/// advice / plain-answer split. An escalation goes on to the not-found family, which is not ported yet (`None`).
+fn verdict_route(q: &str, ctx: &Ctx) -> Option<Route> {
+    let found = ctx.manual.search(q);
+    let pinned_entry = if ctx.pinned { ctx.pinned_entry.as_deref().and_then(|id| ctx.manual.entries().iter().find(|e| e.id == id)) } else { None };
+    let ranked: Vec<Ranked> = match (ctx.pinned, pinned_entry) {
+        (true, Some(e)) => vec![Ranked { entry: e, s: 9 }],   // a tapped chip answers THAT entry
+        (true, None) => Vec::new(),
+        _ => found.iter().map(|f| Ranked { entry: f.entry, s: f.hit.s }).collect(),
+    };
+    let (_, gate) = crate::route_with_gate(&crate::encode("DataQuery", q, 2048, 128));
+    let scores: Vec<f64> = ranked.iter().map(|r| f64::from(r.s)).collect();
+    let mut action = decide_tier(Some(f64::from(gate)), &scores).action;
+    // a real personal account / system problem wins over a loose or tied guess in the manual
+    if let Some(top) = ranked.first() {
+        let tied = ranked.get(1).is_some_and(|r| r.s == top.s);
+        if action == Action::Act && (top.s < 4 || tied) && !top.entry.staff && crate::intake::classify_issue(q).is_some() {
+            action = Action::Escalate;
+        }
+    }
+    match action {
+        Action::Disambiguate => Some(Route::Disambiguate),
+        Action::Escalate => None,
+        Action::Act => {
+            match scope_clarify(q, &ranked, ctx.manual.entries()) {
+                Some(Scope::Ask { .. }) => return Some(Route::ScopeAsk),
+                Some(Scope::NoYear) => return Some(Route::ScopeNoYear),
+                Some(Scope::NoRound) => return Some(Route::ScopeNoRound),
+                _ => {}
+            }
+            // advice questions are rephrased with the AI when it is on; a factual or plain question is answered from the manual as it is
+            if crate::intake::is_advice(q) && !ctx.ai_off {
+                let top_score = ranked.first().map_or(0, |r| r.s);
+                return Some(if top_score < 4 {
+                    Route::AdviceAbstain
+                } else if top_score >= 6 || ranked.iter().take(3).any(|r| r.entry.staff) {
+                    Route::AdviceStrong
+                } else {
+                    Route::AdviceHybrid
+                });
+            }
+            Some(Route::KbAct)
+        }
+    }
 }

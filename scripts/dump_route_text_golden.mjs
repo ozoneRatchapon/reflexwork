@@ -4,7 +4,7 @@
 // written to benchmark/golden/route_text.json. (Not golden_dump.mjs: that one rewrites every golden file.)   Run: node scripts/dump_route_text_golden.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { root } from './lib/chatbot_fns.mjs';
+import { root, loadSearch } from './lib/chatbot_fns.mjs';
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const slice = (from, to, incl = false) => { const a = html.indexOf(from), b = html.indexOf(to, a); if (a < 0 || b < 0) throw new Error(`not found: ${from} .. ${to}`); return html.slice(a, b + (incl ? to.length : 0)); };
 const norm = slice('function normChat(q){', '// </chat-normalize>');
@@ -31,6 +31,18 @@ for (const e of edge) texts.add(e);
 for (const e of JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'))) texts.add(e.answer);   // every manual answer: real Thai dates, long lines, newlines
 const out = [...texts].map(t => ({ text: t, norm: F.normChat(t), wellbeing: F.wellbeingKind(t), personal: F.personalAsk(t), restart: F.isRestartPhrase(t), overview: F.isOverviewQuestion(t), study: F.hasStudyIntent(t), aspect: F.followUpAspect(t) || null, termYear: F.normTermYear(t), dateSpan: F.dateSpan(t), timeIntent: F.timeIntent(t), finder: F.isFinderQuestion(t), levelOnly: F.isLevelOnlyQuestion(t), enAsk: (() => { const r = F.englishProgrammeAsk(t); return r ? [r.name, r.topic] : null; })(), genericFee: F.isGenericFeeQuestion(t), stuck: (() => { const r = F.stuckTopic(t); return r === null ? null : r.cat ? r.cat.key : ''; })() }));
 const kb = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
+// scopeClarify over every text (raw and term-normalised), with the page's own search as the ranked list
+const scopeBlock = (html.match(/\/\/ <scope-clarify>([\s\S]*?)\/\/ <\/scope-clarify>/) || [])[1]; if (!scopeBlock) throw new Error('scope-clarify block not found');
+const SC = new Function(`${scopeBlock}\nreturn { scopeYears, scopeOf, scopeClarify, normTermYear };`)();
+const search = loadSearch(kb);
+const scopeCases = [];
+for (const t of texts) for (const q of new Set([t, SC.normTermYear(t)])) {
+  if (q.length > 600) continue;
+  const ranked = search(q), r = SC.scopeClarify(q, ranked, kb);
+  scopeCases.push({ q, years: SC.scopeYears(q), scopeOf: SC.scopeOf(q), kind: r ? r.kind : null, axis: r && r.axis || null, ids: r && r.candidates ? r.candidates.map(e => e.id) : r && r.entry ? [r.entry.id] : null });
+}
+writeFileSync(join(root, 'benchmark/golden/scope.json'), '[\n' + scopeCases.map(o => JSON.stringify(o)).join(',\n') + '\n]\n');
+console.log(`wrote ${scopeCases.length} scopeClarify cases (${scopeCases.filter(c => c.kind).length} with a result) -> benchmark/golden/scope.json`);
 const picksFn = new Function('KB', `${todayBlock}\nreturn { datedPicks, isDatedSchedule, entrySpan };`)(kb);
 const days = ['2026-01-15', '2026-05-12', '2026-06-01', '2026-07-20', '2026-10-31', '2026-11-07', '2026-12-16', '2027-01-10', '2027-07-06', '2027-08-15', '2028-03-01'];
 const picks = [];

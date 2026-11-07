@@ -26,23 +26,23 @@ Source of truth for "done": `cargo test -p reflex-wasm` green (`tests/golden_rou
 - [x] 14 `followup`
 - [x] 15 `free_fee`
 - [x] 16 `time_intent`
-- [ ] 17 verdict: gate score (`route_with_gate`) + `decide_tier` + the account-problem override (`classify_issue`)
-- [ ] 18 `scope_ask`, `scope_no_year`, `scope_no_round` (`scopeClarify`, `scopeOf`, `scopeYears`)
-- [ ] 19 `advice_abstain`, `advice_strong`, `advice_hybrid` (needs `Ctx.ai_off`)
-- [ ] 20 `kb_act`
-- [ ] 21 `disambiguate`
+- [x] 17 verdict: gate score (`route_with_gate`) + `decide_tier` + the account-problem override (`classify_issue`)
+- [x] 18 `scope_ask`, `scope_no_year`, `scope_no_round` (`scopeClarify`, `scopeOf`, `scopeYears`)
+- [x] 19 `advice_abstain`, `advice_strong`, `advice_hybrid` (needs `Ctx.ai_off`)
+- [x] 20 `kb_act`
+- [x] 21 `disambiguate`
 - [ ] 22 not-found family: `not_a_question`, `other_script`, `english_off_corpus`, `intake`
 - [ ] 23 not-found family: `unsure_programme`, `tuition_finder_nomatch` (`nearSpelling`)
 - [ ] 24 not-found family: `topic_picks` (`topicPicks`), `not_found`
 - [ ] 25 `understood_by_ai` (needs a working `/rewrite`: a mock proxy for the contract first)
-Progress: 17 of 34 route names ported (the 17 left are items 17-25).
+Progress: 25 of 34 route names ported. Left: items 22-25 (the not-found family and `understood_by_ai`).
 
 ### B. Supporting work
 - [x] Contract: every branch names itself (`data-route`), `benchmark/golden/route.json` (singles + 24 sessions), recorder isolated from tab storage
 - [x] Text preparation: `norm_chat`, `strip_lead_in`, `norm_term_year`, exact Unicode tables
-- [x] Differentials against the page's own functions (`route_text.json`: 2,235 texts; `dated_picks.json`)
+- [x] Differentials against the page's own functions (`route_text.json`: ~2,265 texts; `dated_picks.json`; `scope.json`: 2,306 scopeClarify cases)
 - [x] `kb_rank` (native twin of `kb_search`), `route::Manual`, `Ctx` (programme in focus, today, catalogue state)
-- [ ] Contract probes for the branches still to port (a branch with < 10 samples is not safe to trust)
+- [ ] Contract probes: a branch with < 10 samples is not safe to trust. Thin today: `scope_no_round` 1, `scope_no_year` 4, `advice_abstain` 1, `advice_hybrid` 4, `intake` 11. The not-found family needs its own probes before it is ported
 - [ ] Sessions replayed for the verdict routes (a turn on a route that is not ported cannot change state yet)
 - [ ] `PIN` (a tapped topic chip) in the contract: today `pinned` is always false in the tests
 

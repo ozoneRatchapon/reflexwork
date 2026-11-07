@@ -79,6 +79,10 @@ pub struct Ctx<'a> {
     /// the user tapped a topic chip (it skips the personal / stuck / programme paths)
     pub pinned: bool,
     pub prog_state: ProgState,
+    /// the deployment runs without any AI (`?ai=off`): the advice branches are off
+    pub ai_off: bool,
+    /// the id of the entry behind a tapped topic chip (`PIN`), when `pinned`
+    pub pinned_entry: Option<String>,
     /// the programme the last card was about (`PCTX`), if any: follow-up questions refer to it
     pub programme_in_focus: Option<String>,
     /// today's date, `YYYY-MM-DD` (the Asia/Bangkok day), supplied by the caller: the decision never reads a clock
