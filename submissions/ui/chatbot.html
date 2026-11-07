@@ -125,6 +125,7 @@
   .src-badge.staff{color:#b07bff;border-color:rgba(176,123,255,.5);background:rgba(176,123,255,.1)}
   .when{font-size:.75rem;white-space:nowrap}.when-passed{opacity:.7}.when-now,.when-today{color:#3fb950;font-weight:600}.stale{color:#e3b341}
   .staff-tag{display:inline-block;font-size:.78125rem;color:#b07bff;margin-bottom:2px}
+  .valid-tag{display:inline-block;font-size:.78125rem;color:#f6a93b;margin-bottom:2px}
   .src-badge.ai{color:var(--ai);border-color:rgba(246,169,59,.5);background:rgba(246,169,59,.1)}
   .kernel-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:11px;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,rgba(34,197,139,.12),rgba(91,140,255,.1));border:1px solid rgba(34,197,139,.3)}
   .kbadge{font-size:.75rem;font-weight:800;padding:3px 11px;border-radius:999px;color:#07122e}
@@ -838,8 +839,19 @@ function staffBody(hit, q){
   const shown=lines.slice(0,_SHOW_STAFF).map(L), more=lines.slice(_SHOW_STAFF).map(L);
   return head + shown.join('\n') + (more.length ? `<details class="more"><summary>อ่านเพิ่มอีก ${more.length} บรรทัด</summary>${more.join('\n')}</details>` : '');
 }
+// Versioning labels from the manual's own frontmatter (build_knowledge_index.py): not yet / no longer in force, and which older
+// entry this one replaces (the older one is not in the index any more). No dates in the entry -> no label.
+function validityTag(hit, today){
+  const t=today||todayIso(), f=hit.valid_from||'', u=hit.valid_to||'', out=[];
+  if(u && u<t) out.push(`⚠️ ข้อมูลนี้มีผลถึง ${_pEsc(_pDate(u))} อาจไม่เป็นปัจจุบัน โปรดตรวจที่ลิงก์ต้นทาง`);
+  else if(f && f>t) out.push(`ℹ️ ข้อมูลนี้มีผลตั้งแต่ ${_pEsc(_pDate(f))}`);
+  const sup=(Array.isArray(hit.supersedes)?hit.supersedes:[]).map(s=>s&&s.title).filter(Boolean);
+  if(sup.length) out.push(`🔁 ฉบับนี้ใช้แทน: ${sup.map(_pEsc).join(' · ')}`);
+  return out.length ? `<span class="valid-tag">${out.join('<br>')}</span>\n` : '';
+}
 // Returns HTML (every piece goes through linkify, which escapes).
-function kbBody(hit, q){
+function kbBody(hit, q){ return validityTag(hit) + kbBodyCore(hit, q); }
+function kbBodyCore(hit, q){
   const staffTag = hit.staff ? `<span class="staff-tag" data-staff="1">📝 คำตอบที่เจ้าหน้าที่เพิ่ม${hit.approved_at?` · ${_pEsc(_pDate(_bkkIso(hit.approved_at)))}`:''} (ยังไม่อยู่ในคู่มือหลัก)</span>\n` : '';
   if(hit.staff) return staffTag + staffBody(hit, q);
   const pts=answerPoints(hit.answer); if(!pts.length) return '(ดูรายละเอียดในแหล่งอ้างอิงครับ)';
@@ -2191,7 +2203,7 @@ function _askCore(){
           if(mt) mt.textContent = `คำถามขอคำแนะนำ → AI เรียบเรียงไม่สำเร็จหรือไม่พร้อม → แสดงข้อความคู่มือโดยตรง · score ${topScore}`;
           return;
         }
-        n.innerHTML = mdLite(linkify(ans, LINKS));   // linkify escapes (LLM text is untrusted)
+        n.innerHTML = validityTag(hit) + mdLite(linkify(ans, LINKS));   // linkify escapes (LLM text is untrusted); the version label stays over AI text
         if(rt){ rt.innerHTML = `🔀 KB-grounded + AI ช่วยเรียบเรียง ${stageTag}`; rt.style.cssText='background:rgba(91,140,255,.16);color:#8fb0ff'; }
         const bubble = n.closest('.msg'), b = bubble && bubble.querySelector('.src-badge');
         if(b){ b.className='src-badge ai'; b.textContent='🤖 AI ช่วยเรียบเรียง จากข้อมูลทางการ'; }

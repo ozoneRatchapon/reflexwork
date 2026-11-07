@@ -120,6 +120,8 @@ def main() -> int:
 
     entries = []
     skipped = []
+    errors = []
+    supersedes = {}   # new id -> [old ids]
     md_files = []
     for d in KN_DIRS:
         if d.is_dir():
@@ -153,6 +155,21 @@ def main() -> int:
         if sem in ("ภาคต้น", "ภาคปลาย", "ฤดูร้อน"):
             scope["semester"] = sem
 
+        # Versioning (optional, docs/adopt.md): `supersedes: "old_id, other_id"` = this entry replaces those files (they are
+        # dropped from the index below, so an old announcement can never be the answer); `valid_from` / `valid_to` (YYYY-MM-DD)
+        # = when the source says it applies (the chat labels an answer that is not yet / no longer in force).
+        for k in ("valid_from", "valid_to"):
+            v = fm.get(k, "").strip()
+            if v and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+                errors.append(f"{md.name}: {k} must be YYYY-MM-DD (Christian era), got {v!r}")
+            elif v:
+                scope[k] = v
+        if scope.get("valid_from") and scope.get("valid_to") and scope["valid_from"] > scope["valid_to"]:
+            errors.append(f"{md.name}: valid_from {scope['valid_from']} is after valid_to {scope['valid_to']}")
+        sup = [s.strip() for s in fm.get("supersedes", "").split(",") if s.strip()]
+        if sup:
+            supersedes[md.stem] = sup
+
         entries.append({
             "id": md.stem,
             "title": title,
@@ -169,9 +186,49 @@ def main() -> int:
                if fm.get("steps") else {}),
         })
 
+    # supersedes: every named file must exist (approved or not), no entry may replace itself, no chains that loop
+    known = {md.stem for md in md_files}
+    for new, olds in supersedes.items():
+        for old in olds:
+            if old == new:
+                errors.append(f"{new}.md: supersedes itself")
+            elif old not in known:
+                errors.append(f"{new}.md: supersedes {old!r}, but there is no {old}.md")
+    def _loops(start: str) -> bool:
+        seen, todo = set(), list(supersedes.get(start, []))
+        while todo:
+            x = todo.pop()
+            if x == start:
+                return True
+            if x not in seen:
+                seen.add(x)
+                todo.extend(supersedes.get(x, []))
+        return False
+    errors.extend(f"{n}.md: supersedes chain loops back to itself" for n in supersedes if _loops(n))
+    if errors:
+        print("knowledge index NOT written:", file=sys.stderr)
+        for e in errors:
+            print(f"  - {e}", file=sys.stderr)
+        return 1
+    # drop replaced entries; the newer one names what it replaces (shown under its answer)
+    by_id = {e["id"]: e for e in entries}
+    published = {e["id"] for e in entries}
+    dropped = []
+    for new, olds in supersedes.items():
+        if new not in published:
+            continue   # an unapproved replacement does not hide the entry that is live today
+        for old in olds:
+            if old in by_id:
+                by_id[new].setdefault("supersedes", []).append({"id": old, "title": by_id[old]["title"]})
+                dropped.append((old, new))
+    gone = {old for old, _ in dropped}
+    entries = [e for e in entries if e["id"] not in gone]
+
     OUT.write_text(json.dumps(entries, ensure_ascii=False, indent=0), encoding="utf-8")
     mode = "ALL (dev/demo)" if publish_all else "approved-only (publish-safe)"
     print(f"wrote {len(entries)} entries → {OUT}  [mode: {mode}]")
+    for old, new in dropped:
+        print(f"  replaced: {old} → {new} (supersedes)")
     if skipped and not publish_all:
         print(f"skipped {len(skipped)} unapproved entr{'y' if len(skipped)==1 else 'ies'}:")
         for sid, status in skipped:

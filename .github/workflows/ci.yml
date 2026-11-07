@@ -56,6 +56,9 @@ jobs:
       - name: KB year/semester scope guard
         run: node tests/kb_scope.test.mjs
 
+      - name: KB versioning (supersedes / valid_from / valid_to)
+        run: node tests/kb_versioning.test.mjs
+
       - name: KB recall eval on the built index
         run: node tests/kb_search.test.mjs
 
