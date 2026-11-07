@@ -650,6 +650,46 @@ impl Resolver {
     }
 }
 
+/// The whole chat decision order (plan 009). Built from the page's manual rows and programme rows (or null when there is no
+/// catalogue), then asked one question at a time. `decide` returns the route name or `null` (= the page's "not found" path).
+#[wasm_bindgen]
+pub struct Router {
+    manual: route::Manual,
+    catalogue: Option<resolve::Catalogue>,
+}
+
+#[wasm_bindgen]
+impl Router {
+    /// `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+    #[wasm_bindgen(constructor)]
+    pub fn new(kb: JsValue, programmes: JsValue) -> Result<Router, JsValue> {
+        let rows: Vec<route::router::KbIn> = serde_wasm_bindgen::from_value(kb)?;
+        let catalogue = match programmes.is_null() || programmes.is_undefined() {
+            true => None,
+            false => {
+                let rows: Vec<resolve::Programme> = serde_wasm_bindgen::from_value(programmes)?;
+                Some(resolve::Catalogue::new(&rows))
+            }
+        };
+        Ok(Router { manual: route::router::manual_from(rows), catalogue })
+    }
+
+    /// `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+    pub fn decide(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
+        let state: route::router::StateIn = serde_wasm_bindgen::from_value(state)?;
+        let phrases: Option<Vec<String>> = match rewrite.is_null() || rewrite.is_undefined() {
+            true => None,
+            false => Some(serde_wasm_bindgen::from_value(rewrite)?),
+        };
+        let name = route::router::route_name(q, &state, &self.manual, self.catalogue.as_ref(), phrases.as_deref())
+            .map_err(|e| JsValue::from_str(&e))?;
+        Ok(match name {
+            Some(n) => JsValue::from_str(n),
+            None => JsValue::NULL,
+        })
+    }
+}
+
 /// Verify the phrases an AI wrote: `results[i]` = the search result of `phrases[i]` as `[{id, s}]` (best first, 3 are enough).
 /// Returns `{kind: "one", id, score, via, others}`, `{kind: "many", ids}` or `{kind: "none"}` (port of `understand`).
 #[wasm_bindgen]

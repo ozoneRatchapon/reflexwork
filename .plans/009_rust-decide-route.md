@@ -31,10 +31,10 @@ Source of truth for "done": `cargo test -p reflex-wasm` green (`tests/golden_rou
 - [x] 19 `advice_abstain`, `advice_strong`, `advice_hybrid` (needs `Ctx.ai_off`)
 - [x] 20 `kb_act`
 - [x] 21 `disambiguate`
-- [ ] 22 not-found family: `not_a_question`, `other_script`, `english_off_corpus`, `intake`
-- [ ] 23 not-found family: `unsure_programme`, `tuition_finder_nomatch` (`nearSpelling`)
-- [ ] 24 not-found family: `topic_picks` (`topicPicks`), `not_found`
-- [ ] 25 `understood_by_ai` (needs a working `/rewrite`: a mock proxy for the contract first)
+- [x] 22 not-found family: `not_a_question`, `other_script`, `english_off_corpus`, `intake` (ported: `not_a_question` (`is_not_a_question`, `P_ACK`), `other_script` (`is_other_script`), `english_off_corpus` (`is_english`), `intake` (`crate::intake::classify_issue`, last in the family); probes 11, 12, 102, 12; `golden_route` passes (2 tests); `route_golden.mjs --check`: 2152 checked, 0 differences; clippy clean)
+- [x] 23 not-found family: `unsure_programme`, `tuition_finder_nomatch` (`nearSpelling`) (probes: 70 and 26; ported in `route/near.rs` + `branches.rs::finder_branches`; in `PORTED`; golden_route 2 passed)
+- [~] 24 not-found family (`not_found` is the fall-through reply, now reachable after item 25: `decide_route` returns None when no branch and no phrase clears the bar): `topic_picks` DONE (`route/topic.rs`, in `PORTED`, 15 samples). `not_found` NOT ported: its 3 `ai_on` samples are `not_found` but with AI on the page may answer `understood_by_ai` instead, so the branch needs the item-25 rewrite contract before it can be decided
+- [x] 25 `understood_by_ai` (2026-11-07): the branch is ported (`route/understood.rs`: `understood_outcome` = the page's `understand` over the manual search, `understood_route`, and `decide_route` = `decide_prefix` then the rewrite step). The AI call stays on the page; Rust takes the phrases. Contract: `benchmark/golden/rewrite_mock.json` (47 questions -> phrases, shared by `route_golden.mjs` `ai_mock` mode and `golden_route.rs`), 12 `understood_by_ai` samples (>= 10). `--check` 2199 checked, 0 differences; `cargo test` all suites pass; clippy clean. LIMITS: (a) the phrases were tuned by hand on these same questions (overfit: the contract checks the wiring, not Gemini's wording); (b) the Rust test manual has `staff: false` on every entry, so `_staffSupersede` is not exercised by this branch; (c) real `/rewrite` answers were not recorded, so the live hit rate is unmeasured.
 Progress: 25 of 34 route names ported. Left: items 22-25 (the not-found family and `understood_by_ai`).
 
 ### B. Supporting work
@@ -47,8 +47,12 @@ Progress: 25 of 34 route names ported. Left: items 22-25 (the not-found family a
 - [ ] `PIN` (a tapped topic chip) in the contract: today `pinned` is always false in the tests
 
 ### C. Switching the page and the other channels
-- [ ] Export `decide_route` from `reflex-wasm` (`#[wasm_bindgen]`), rebuild `submissions/ui/wasm` with `crates/reflex-wasm/build.sh`
-- [ ] Page calls it behind `?engine=js` fallback; contract identical on all entries (`node benchmark/golden/route_golden.mjs --check`), e2e 56/56, `demo_smoke` x4, `wasm_golden_check`
+- [x] Export from `reflex-wasm`: `Router` (`#[wasm_bindgen]`, `new(kb, programmes)` + `decide(q, state, rewrite)`), rebuilt `submissions/ui/wasm` with `crates/reflex-wasm/build.sh` (2026-11-07). The page does NOT use it for answers yet.
+- [x] SHADOW MODE (2026-11-07): `chatbot.html` runs `Router.decide` beside its own branches and only compares the route name (`window.__shadow`). Golden run: 4418 page questions, 4418 same, 0 differ, 0 errors (`route_golden.mjs --check` prints the totals). e2e 56/56, `wasm_golden_check` 0 differences, cargo test + clippy clean. Not run: `demo_smoke` (it targets production and calls the LLM).
+- [x] ROUTE SWITCH behind `?route=rust` (2026-11-07): every route site in `_askCore` asks `take(name, condition)`; with `?route=rust` the route is the one Rust chose (`RUST_TURN`), the branch bodies are unchanged. Verified: `route_golden.mjs --check --route rust`: 2199 checked, 0 differences; shadow 4418 same, 0 differ; e2e 81/81 (rust, js, rust+route=rust). DEFAULT IS NOW RUST (2026-11-07, source only: not committed, not deployed); `?route=js` = the JS conditions. Not switched yet: the AI-rewrite verdict (`understood`, async, still JS), and the data guards inside bodies (kept as safety checks).
+- [x] `?route=rust` is the default (e2e 56/56 with `?engine=rust` and `?engine=js&route=js`; golden every-5th sample 0 differences on the default page)
+- [ ] Remove the JS conditions and the `?route=js` fallback after a production soak (owner decision)
+- [ ] Commit + deploy the Pages change (not done: owner decision) contract identical on all entries (`node benchmark/golden/route_golden.mjs --check`), e2e 56/56, `demo_smoke` x4, `wasm_golden_check`
 - [ ] Delete the JS branch order from `chatbot.html`; flip the regex source of truth to Rust (`scripts/gen_rust_pattern_sources.mjs`)
 - [ ] LINE loads the same wasm (measure Workers cold start first)
 - [ ] Deploy (Pages main + any worker) after the above; NOT before

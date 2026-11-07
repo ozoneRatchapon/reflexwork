@@ -53,3 +53,13 @@ pub const FREESTUDY: Re = Re { src: r#"(?:เรียน|ศึกษา|ปร
 pub const TIME_W: Re = Re { src: r#"ตอนนี้|วันนี้|ขณะนี้|เทอมนี้|ภาคนี้|ปีนี้|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย|อยู่)|หรือยัง|ผ่าน(?:ไป)?แล้ว"#, flags: "" };
 pub const TIME_REST: Re = Re { src: r#"ตอนนี้|วันนี้|ขณะนี้|เทอมนี้|ภาคนี้|ปีนี้|หรือยัง|ผ่าน(?:ไป)?แล้ว|ยัง|ทัน|ลงทะเบียน|เรียน|ล่าช้า|รับสมัคร|สมัคร|ตัดรอบ|ปิดรับ|เปิดรับ|เปิด|ปิด|หมดเขต|ภาคการศึกษา|ภาคเรียน|เทอม|กำหนดการ|วันสุดท้าย|รอบ|ช่วง|อยู่|ใน|ได้|ไหม|มั้ย|มั๊ย|อะไร|วันไหน|เมื่อไหร่|เมื่อไร|ถึง|แล้ว|หรือ|ไหน|ครับ|ค่ะ|คะ|นะ|จ้า|เรา|ผม|หนู|ฉัน|จะ|ของ|ที่|คือ|เป็น|ตอน|บ้าง|วันที่|\d+|[ก-ฮ]{1,2}\.(?:[ก-ฮ]\.)?|[\s?!.,]"#, flags: "g" };
 pub const SNAPSHOT: Re = Re { src: r#"เก็บวันที่|ข้อมูล ณ|ประกาศ ณ"#, flags: "" };
+
+// `_P_ACK` (chatbot.html, `isNotAQuestion`): a bare acknowledgement, copied 2026-11-07.
+pub const P_ACK: Re = Re { src: r#"^(?:ok(?:ay)?|k|yes|no|yep|nope|ya|yeah|hmm+|lol|test(?:ing)?|f+u+c*k+(?:\s*(?:you|u|off))?|wtf|shit)\W*$"#, flags: "i" };
+
+// `_P_CORE_DROP` (chatbot.html, `nearSpelling`): the words a programme-name slip is judged without, copied 2026-11-07. Global in the page.
+pub const P_CORE_DROP: Re = Re { src: r#"ครับ|ค่ะ|คะ|นะ|หน่อย|ยังไง|อย่างไร|ไหม|มั้ย|ได้|อยาก|เรียน(?:ต่อ)?|สมัคร|สาขา(?:วิชา)?|หลักสูตร|ป\.?\s?(?:โท|เอก)|ปริญญา(?:โท|เอก)|[\s?!.,]"#, flags: "" };
+
+// `_TOPIC_HEAD` / `_TOPIC_TAIL` (chatbot.html, `topicCore`): the request words stripped from both ends of a topic question, copied 2026-11-07.
+pub const TOPIC_HEAD: Re = Re { src: r#"^(?:อยากได้|อยากรู้|อยาก|ขอ|มี|สอบถาม|ถามเรื่อง|เรื่อง|รบกวน)+"#, flags: "" };
+pub const TOPIC_TAIL: Re = Re { src: r#"(?:ทำยังไง|ทำไง|ยังไง|อย่างไร|ไหม|มั้ย|มั๊ย|บ้าง|อะไร|หน่อย|ครับ|ค่ะ|คะ|นะ|ได้|ที่ไหน|ไหน|เมื่อไหร่|ด้วย|เรียน)+$"#, flags: "" };

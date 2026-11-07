@@ -1919,7 +1919,7 @@ function _askCore(){
   // Wellbeing / crisis: a caring, deterministic reply + the counselling entry. Runs BEFORE smalltalk, the KB tier gate and the
   // programme finder so none of them can swallow it with a cold "ไม่เข้าใจ". No hotline number is invented (none is confirmed).
   const wb = wellbeingKind(q);
-  if(wb){
+  if(take('wellbeing', wb)){
     const wbHit = KB.find(e=>e.id==='gm_mental_wellbeing_navigation');
     const lead = wb==='crisis'
       ? 'ขอบคุณที่บอกนะครับ เรื่องนี้สำคัญมาก ถ้าตอนนี้ไม่ปลอดภัยหรือกำลังคิดทำร้ายตัวเอง โปรดติดต่อบริการฉุกเฉิน (1669) หรือคนที่ไว้ใจให้มาอยู่ด้วยทันที ไม่ต้องอยู่คนเดียวนะครับ'
@@ -1933,7 +1933,7 @@ function _askCore(){
     return;
   }
   const st = classifySmalltalk(q);
-  if(st){
+  if(take('smalltalk', st)){
     MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
     renderMood(true);
     const moodTag = MOOD.valence>0.5 ? '😊' : '🙂';
@@ -1966,7 +1966,7 @@ function _askCore(){
   // Broad "what should I know / what is interesting" questions have no single answer: give the common starting points
   // (derived from the KB, tap = guaranteed answer) instead of guessing one entry under the official badge.
   const pers = pinned ? null : personalAsk(q);
-  if(pers){
+  if(take('personal', pers)){
     const gen = pers==='self' ? search(q).filter(r=>r.s>=3 && !r.e.staff).slice(0,2).map(r=>r.e.title) : [];
     const eth = (LINKS||[]).find(l=>l.id==='ethesis'), thesisy = /วิทยานิพนธ์|สารนิพนธ์|คำร้อง|บฑ\./.test(q), cid='pr'+(++fbN);
     ROUTE_NAME = 'personal';
@@ -1980,7 +1980,7 @@ function _askCore(){
     return;
   }
   const stuck = pinned ? null : stuckTopic(q);
-  if(stuck){
+  if(take('stuck_pick', stuck)){
     const sid='st'+(++fbN), c=stuck.cat, picks=c ? stuckPicks(c) : [];
     const areas = c ? [] : _STUCK_CATS.filter(x=>stuckPicks(x).length || (x.key==='login' && AGENCY.it));   // only areas this KB can answer
     if(c ? picks.length : areas.length){
@@ -2003,7 +2003,7 @@ function _askCore(){
     }
   }
   const restart = isRestartPhrase(q);
-  if(restart || isOverviewQuestion(q)){
+  if(take(['restart','overview'], restart || isOverviewQuestion(q))){
     if(restart){ PCTX=null; PIN=null; }
     ROUTE_NAME = restart ? 'restart' : 'overview';
     renderChooser(q, d, kstrip, '🧭 คำถามกว้าง · ไม่เรียก AI', restart?VOICE.restartLead:VOICE.overviewLead,
@@ -2014,7 +2014,7 @@ function _askCore(){
   // Programme path: "I want to apply to <programme>" → that programme's own page + status, not a
   // generic how-to-apply answer. Deterministic (catalogue lookup), 0 token, JS-only layer.
   // The 2 MB programme catalogue is still loading (or failed): a programme question would fall to a wrong generic answer. Say so instead.
-  if(!pinned && PROG_STATE!=='ok' && PROG_STATE!=='none' && (hasStudyIntent(q) || _P_TOPIC.some(([,re])=>re.test(q)) || /เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร/.test(q))){
+  if(take('catalogue_not_ready', !pinned && PROG_STATE!=='ok' && PROG_STATE!=='none' && (hasStudyIntent(q) || _P_TOPIC.some(([,re])=>re.test(q)) || /เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร/.test(q)))){
     ROUTE_NAME = 'catalogue_not_ready';
     add('b', `${kstrip}
       <span class="route auto" style="background:rgba(246,169,59,.16);color:#f6a93b">⏳ รายการหลักสูตรยังไม่พร้อม</span>
@@ -2028,7 +2028,7 @@ function _askCore(){
   // A generic fee question ("ค่าเทอมเท่าไร", "ค่าเทอมปริญญาโท", "ค่าเทอมทั่วไป"): fees differ per programme, so open the fee finder instead of
   // a wrong-topic entry or a random programme's fee. Only when NOTHING but topic / level / filler words is left (a programme name keeps its own card).
   // ...but not a follow-up about the programme just shown ('แล้วค่าเทอมล่ะ' after a programme card): that is answered below for it
-  if(!pinned && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q) && isGenericFeeQuestion(q) && !(PCTX && followUpAspect(q))){
+  if(take('generic_fee', !pinned && PROG.length && _P_TOPIC[0][1].test(q) && !_P_FREEQ.test(q) && isGenericFeeQuestion(q) && !(PCTX && followUpAspect(q)))){
     PCTX=null;
     ROUTE_NAME = 'generic_fee';
     renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, null, true, 'ค่าเทอม ');
@@ -2042,7 +2042,7 @@ function _askCore(){
   let prog = (pinned || staffFirst || (PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q)))) ? null : resolveProgramme(q, PROG);
   if(!prog && !pinned && !staffFirst && PROG.length){ const ea=englishProgrammeAsk(q);   // QA F54: only a single, clear programme
     if(ea){ const r=resolveProgramme(ea.name, PROG); if(r && r.kind==='one') prog={...r, topic:r.topic||ea.topic}; } }
-  if(prog){
+  if(take(['programme_card','programme_pick'], prog)){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
     if(prog.kind==='one'){
@@ -2074,7 +2074,7 @@ function _askCore(){
 
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
   // A fee question that names a field but not one programme ("ค่าเทอมพยาบาล": 30+ programmes): show those programmes, not a wrong-topic KB entry.
-  if(!pinned && !staffFirst && PROG.length && isTuitionQuestion(q) && !_P_FREEQ.test(q)){   // not an exam / service fee (benchmark/rules/002)
+  if(take('field_fee', !pinned && !staffFirst && PROG.length && isTuitionQuestion(q) && !_P_FREEQ.test(q))){   // not an exam / service fee (benchmark/rules/002)
     const nf = resolveProgramme(q, PROG, true);
     if(nf && nf.rows && nf.rows.length){
       PCTX=null;
@@ -2084,24 +2084,24 @@ function _askCore(){
     }
   }
   // "ทำงานอะไรดี" / "อยากทำเกี่ยวกับคอม": narrow the official list by an area of interest; never predict jobs or pay.
-  if(!pinned && !staffFirst && PROG.length && _P_FREEQ.test(q) && _P_FREESTUDY.test(q)){   // QA F23: never confirm a 'free' premise; fees differ per programme
+  if(take('free_study', !pinned && !staffFirst && PROG.length && _P_FREEQ.test(q) && _P_FREESTUDY.test(q))){   // QA F23: never confirm a 'free' premise; fees differ per programme
     ROUTE_NAME = 'free_study';
     renderFinder(q, d, kstrip, isEnglish(q) ? VOICE.feePremiseEn : VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
   }
-  if(!pinned && !staffFirst && PROG.length && isCareerQuestion(q)){
+  if(take('career', !pinned && !staffFirst && PROG.length && isCareerQuestion(q))){
     PCTX=null; const area=careerArea(q);
     const intro=VOICE.careerIntro+(area?' (เริ่มจากด้านที่คุณพูดถึง เปลี่ยนด้านได้ด้านล่างครับ)':'ครับ');
     const ext='<a class="golink alt" href="https://suggest-program.mahidol.ac.th/" target="_blank" rel="noopener">🧭 อยากเริ่มจากอาชีพและทักษะ? เครื่องมือแนะนำหลักสูตรของมหาวิทยาลัยมหิดล (เว็บแยก ภาษาอังกฤษ ไม่ได้ทำโดยระบบนี้) →</a>';
     ROUTE_NAME = 'career';
     renderFinder(q, d, kstrip, intro, true, null, true, undefined, {career:true, topic:area}, ext); return;
   }
-  if(!pinned && !staffFirst && PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q))){ PCTX=null; ROUTE_NAME = 'finder'; renderFinder(q, d, kstrip, '', true); return; }
+  if(take('finder', !pinned && !staffFirst && PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q)))){ PCTX=null; ROUTE_NAME = 'finder'; renderFinder(q, d, kstrip, '', true); return; }
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
   // ...and only when the question names no programme/field of its own: 'ค่าเทอมสาธารณสุข' after a psychology card is NOT about the psychology card.
   const aspect = (PCTX && !pinned && !staffFirst && !(PROG.length && resolveProgramme(q, PROG, true))) ? followUpAspect(q) : '';
-  if(aspect){
+  if(take('followup', aspect)){
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect, q), uid='fu'+(++fbN);
     ROUTE_NAME = 'followup';
@@ -2118,7 +2118,7 @@ function _askCore(){
   PCTX = null;   // the conversation moved on: never pin a later question to an old programme
 
   // A yes/no question with a premise about fees ("...ฟรีใช่ไหม"): never confirm it. Fees differ per programme, so say that and open the fee finder.
-  if(!pinned && PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q)){
+  if(take('free_fee', !pinned && PROG.length && _P_FREEQ.test(q) && _P_TOPIC[0][1].test(q))){
     ROUTE_NAME = 'free_fee';
     renderFinder(q, d, kstrip, VOICE.feePremise, true, null, true, 'ค่าเทอม ');
     return;
@@ -2127,7 +2127,7 @@ function _askCore(){
   // "Now / still in time" with no topic of its own (QA G17): the dated schedules of the manual, nearest to today first, each
   // labelled against today's date. Never picks one for the student, never states a date the manual does not have.
   const tIntent = !pinned && !staffFirst ? timeIntent(q) : null;
-  if(tIntent){
+  if(take('time_intent', tIntent)){
     const today=todayIso(), picks=datedPicks(KB, tIntent, today);
     if(picks.length){
       const lead = VOICE.timeLead.replace('{today}', _pDate(today)) + (tIntent!=='registration' ? VOICE.timeAdmissionsHint : '');
@@ -2165,7 +2165,7 @@ function _askCore(){
   // Scope guard: same question, different academic year/semester → ask, never guess a year.
   const scope = verdict.action==='act' ? scopeClarify(q, ranked, KB) : null;
   if(scope && scope.kind==='pick') verdict.entry = scope.entry;
-  if(scope && (scope.kind==='ask' || scope.kind==='no_year' || scope.kind==='no_round')){
+  if(take(['scope_ask','scope_no_year','scope_no_round'], scope && (scope.kind==='ask' || scope.kind==='no_year' || scope.kind==='no_round'))){
     auto++; saved+=COST;
     const en = isEnglish(q);
     if(scope.kind==='ask'){
@@ -2198,7 +2198,7 @@ function _askCore(){
     return;
   }
 
-  if(verdict.action==='act'){
+  if(take(['advice_abstain','advice_strong','advice_hybrid','kb_act'], verdict.action==='act')){
     const hit = verdict.entry;
     if(!pinned && missingTypes(q, hit).length) logGap(q);   // the topic matched but not the fact asked for: staff see it in the gap list
     // Grounded hybrid for ADVICE questions: a raw KB dump reads wrong for
@@ -2206,8 +2206,8 @@ function _askCore(){
     // a wrong answer). If KB matches well enough → rephrase via local AI grounded
     // ONLY on those entries (facts stay from KB). Factual questions skip this.
     const topScore = (ranked[0]||{}).s || 0;
-    if(isAdvice(q) && !AI_OFF){
-      if(topScore < 4){
+    if(take(['advice_abstain','advice_strong','advice_hybrid'], isAdvice(q) && !AI_OFF)){
+      if(take('advice_abstain', topScore < 4)){
         // weak KB match on an advice question → abstain, hand to staff + gap log
         ai++;
         logGap(q);
@@ -2230,7 +2230,7 @@ function _askCore(){
       // risk. We only pay for (and risk) an LLM rephrase when the match is
       // MID-strength (4–5) and genuinely needs smoothing. This keeps the "facts
       // from KB only" promise: a strong hit is never handed to a generative model.
-      if(topScore >= 6 || ranked.slice(0,3).some(r=>r.e.staff)){   // a staff-written answer is shown as the staff wrote it (tag + date), never rephrased as 'AI from official data'
+      if(take('advice_strong', topScore >= 6 || ranked.slice(0,3).some(r=>r.e.staff))){   // a staff-written answer is shown as the staff wrote it (tag + date), never rephrased as 'AI from official data'
         saved+=COST;
         const srcH0 = kbSource(hit);
         ROUTE_NAME = 'advice_strong';
@@ -2286,7 +2286,7 @@ function _askCore(){
       <div class="meta">${verdict.reason}${evWhy(ranked, hit)}</div>
       ${src}
       ${fbUI(q, d.blake3_proof, hit.id)}`);
-  } else if(verdict.action==='disambiguate'){
+  } else if(take('disambiguate', verdict.action==='disambiguate')){
     // rethink found two close candidates — ask which, no AI.
     auto++; saved+=COST;
     const opts = (verdict.candidates||ranked.slice(0,3).map(r=>r.e)).map(e=>`<span class="dis" data-t="${_lEsc(e.title)}">${_lEsc(e.title)}</span>`).join('');
@@ -2310,7 +2310,7 @@ function _askCore(){
     // English FAQ + staff. We do NOT translate-and-answer (that would risk
     // inventing facts, against "facts from KB only"), and we do NOT reply in
     // Thai to an English speaker. Honest hand-off instead of a wrong guess.
-    if(isNotAQuestion(q)){
+    if(take('not_a_question', isNotAQuestion(q))){
       ai--;   // not a question: neither answered nor handed off
       ROUTE_NAME = 'not_a_question';
       add('b', `${kstrip}
@@ -2320,7 +2320,7 @@ function _askCore(){
       paintBar();
       return;
     }
-    if(isOtherScript(q)){
+    if(take('other_script', isOtherScript(q))){
       logGap(q);
       ROUTE_NAME = 'other_script';
       add('b', `${kstrip}
@@ -2332,7 +2332,7 @@ function _askCore(){
       paintBar();
       return;
     }
-    if(isEnglish(q)){
+    if(take('english_off_corpus', isEnglish(q))){
       logGap(q);
       ROUTE_NAME = 'english_off_corpus';
       add('b', `${kstrip}
@@ -2356,7 +2356,7 @@ function _askCore(){
     // always need and where to send them. QA G01: the chat keeps no state and sends nothing, so it says so; the e-mail button
     // opens a draft with the field labels already in it (the student fills them in their own mail app). Deterministic, 0 token.
     const issue = classifyIssue(q);
-    if(issue){
+    if(take('intake', issue)){
       const fields = INTAKE_FIELDS.map((f,i)=>`<label class="step"><input type="checkbox"><span><b>${i+1}.</b> ${f}</span></label>`).join('');
       const mailBody = encodeURIComponent(`เรื่อง: ${issue.label}\n${INTAKE_FIELDS.map((f,i)=>`${i+1}. ${f}: `).join('\n')}\n`);
       // QA G05: the IT contact comes from the agency config (another deployment never shows Mahidol's IT); the tel: link and its
@@ -2392,7 +2392,7 @@ function _askCore(){
     paintBar();
     const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
     const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
-    if(PROG.length && (hasStudyIntent(q) || nearOk)){
+    if(take('unsure_programme', PROG.length && (hasStudyIntent(q) || nearOk))){
       ROUTE_NAME = 'unsure_programme';
       renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q), undefined, undefined, _line('admissions'));
       return;
@@ -2400,7 +2400,7 @@ function _askCore(){
     // a TUITION question that names no programme: fees differ per programme, so help find it. Only tuition words or a bare fee question:
     // 'What is the fee for taking the TOEFL ITP?', 'MU GRAD Plus examination fees', 'ค่าใช้จ่ายอื่นๆ ที่มาพร้อมกับการซื้อวัสดุ' are other fees
     // and used to open the tuition finder (benchmark/rules/002).
-    if(PROG.length && isTuitionQuestion(q)){
+    if(take('tuition_finder_nomatch', PROG.length && isTuitionQuestion(q))){
       ROUTE_NAME = 'tuition_finder_nomatch';
       renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, nearP && nearP.rows, true, 'ค่าเทอม ');   // picking a programme here answers with ITS fee table
       return;
@@ -2408,7 +2408,7 @@ function _askCore(){
     // Short question around one topic word ("มีทุนไหม", "ทุน", "ขอทุนยังไง", "มีหอพักไหม"): one 3-letter word is a single
     // tri-gram, so the search scores ~1 everywhere. If the word is in the TITLE of 1-12 entries, offer those (no AI, no guess).
     const tp = topicPicks(q);
-    if(tp){
+    if(take('topic_picks', tp)){
       const cid='tp'+(++fbN);
       ROUTE_NAME = 'topic_picks';
       add('b', `${kstrip}
@@ -2458,7 +2458,10 @@ function _askCore(){
       wait.remove();
       if(myTurn!==askSeq) return;   // QA F60: a newer question was asked meanwhile - a late reply here would read as its answer
       const u = understand(phrases);
-      if(u.kind!=='one'){ showNotFound(u.kind==='many' ? u.entries : phraseHints(phrases)); return; }
+      // route switch: with ?route (default rust) Rust's verdict on the AI phrases decides; the JS verdict is the fallback
+      const rustVerdict = shadowRewrite(q, phrases, u);
+      const oneEntry = (ROUTE_RUST && rustVerdict!==null) ? rustVerdict==='understood_by_ai' && u.kind==='one' : u.kind==='one';
+      if(!oneEntry){ showNotFound(u.kind==='many' ? u.entries : phraseHints(phrases)); return; }
       const hit = u.entry, uid='un'+(++fbN);
       ai--; auto++;   // QA G31: counted as not-found above; it was answered from the manual (the rewrite is an LLM call, so no 'saved')
       ROUTE_NAME = 'understood_by_ai';
@@ -2678,13 +2681,65 @@ window.sendFeedback = sendFeedback;
 $('send').addEventListener('click', ask);
 // ---- suggestions: (1) after an answer, "ask next"; (2) while typing, matching questions. Deterministic, 0 token, from the KB.
 let _askWait=false;
+// ---- Route switch (plan 009): ?route=rust takes the route from the Rust decision order (WASM.Router) instead of the JS conditions
+// in _askCore. Every route site asks take(name, condition): JS mode = the condition; Rust mode = "Rust chose this route" (the body
+// and its locals are unchanged). RUST_TURN: undefined = JS mode; otherwise the route Rust chose for this question (null = none: the
+// AI-rewrite / not-found path, which still decides in JS).
+// Default: Rust (the decision order is verified: golden 2199 + shadow 4418 + e2e). ?route=js gives the old JS conditions back.
+const ROUTE_RUST = new URLSearchParams(location.search).get('route') !== 'js';
+let RUST_TURN;
+function take(names, jsCond){
+  if(RUST_TURN===undefined) return jsCond;
+  return Array.isArray(names) ? names.includes(RUST_TURN) : RUST_TURN===names;
+}
+// ---- Shadow mode (plan 009): the Rust decision order (WASM.Router) runs beside the page's own branches and is only COMPARED with the
+// route the page takes. The answer on screen never comes from Rust here. window.__shadow: read by benchmark/golden/route_golden.mjs.
+const SHADOW = { n:0, same:0, pending:0, errors:0, diffs:[], pending_turn:null };
+window.__shadow = SHADOW;
+function _shadowDiff(d){ if(SHADOW.diffs.length<200) SHADOW.diffs.push(d); }
+// Before _askCore: the page clears PIN and may move PCTX, so the state is read first.
+function shadowBegin(typed){
+  SHADOW.pending_turn = null;
+  if(!ready || !typed || typeof WASM.Router!=='function') return null;
+  try{
+    const state = { progState: PROG_STATE, aiOff: !!AI_OFF, pinnedId: (PIN && PIN.title===typed) ? PIN.id : null,
+      programmeInFocus: (PCTX && PCTX.code) || null, today: todayIso(), agencyHasIt: !!AGENCY.it };
+    const r = new WASM.Router(KB, PROG);
+    return { typed, state, router:r, rust: r.decide(typed, state, null) };
+  }catch(e){ SHADOW.errors++; console.warn('shadow: Rust route failed', e); return null; }
+}
+// After _askCore: a sync route is compared at once; `null` means "not found" or "waiting for the AI rewrite" (checked in shadowRewrite).
+function shadowEnd(sh){
+  if(!sh) return;
+  SHADOW.n++;
+  const page = ROUTE_NAME;
+  if(sh.rust!==null){ if(sh.rust===page) SHADOW.same++; else _shadowDiff({typed:sh.typed, page, rust:sh.rust}); return; }
+  if(page==='not_found'){ SHADOW.same++; return; }
+  if(page==='unrouted'){ SHADOW.pending++; SHADOW.pending_turn = sh; return; }   // the AI rewrite answers later
+  _shadowDiff({typed:sh.typed, page, rust:null});
+}
+// In the rewrite reply: the page's understand verdict against Rust's, with the same phrases.
+// Returns Rust's verdict for this reply ('understood_by_ai' | 'not_found') or null when Rust did not run for this turn.
+function shadowRewrite(q, phrases, u){
+  const sh = SHADOW.pending_turn; SHADOW.pending_turn = null;
+  if(!sh || sh.typed!==q) return null;
+  try{
+    const got = sh.router.decide(q, sh.state, phrases) ?? 'not_found';
+    const want = u.kind==='one' ? 'understood_by_ai' : 'not_found';
+    if(got===want) SHADOW.same++; else _shadowDiff({typed:q, page:want, rust:got, phrases});
+    return got;
+  }catch(e){ SHADOW.errors++; console.warn('shadow: Rust rewrite route failed', e); return null; }
+}
 function ask(){
   const typed=$('q').value.trim(); closeTypeahead();
   if(typed && ready && !LIVE_SETTLED){   // QA G12: hold an early question until the first staff-answer refresh settles
     if(_askWait) return; _askWait=true;
     LIVE_READY.then(()=>{ _askWait=false; LIVE_SETTLED=true; $('q').value=typed; ask(); }); return;
   }
-  _askCore();
+  const sh = shadowBegin(typed);
+  RUST_TURN = (ROUTE_RUST && sh) ? sh.rust : undefined;
+  try{ _askCore(); } finally{ RUST_TURN = undefined; }
+  shadowEnd(sh);
   if(!typed) return;
   try{ addFollowUps(typed); }catch(_){}
 }

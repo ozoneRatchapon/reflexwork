@@ -88,11 +88,11 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`, ms); await wait(150);
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? b.innerText.replace(/\\s+/g,' ') : ''})()`); };
 
-for (const eng of ['rust', 'js']) {
+for (const eng of ['rust', 'js&route=js']) {   // 'rust': Rust helpers + Rust routes (default); 'js&route=js': the JS fallback for both
   errors.length = 0; MOCK.rewrite = { delay: 0, body: { queries: [], source: 'gemini' } }; MOCK.llm = { status: 500 };
   check(`[${eng}] the page boots and enables the input`, await boot(eng));
   await ev('sessionStorage.clear()');
-  check(`[${eng}] the engine asked for is the engine running`, await ev('document.documentElement.dataset.engine') === eng);
+  check(`[${eng}] the engine asked for is the engine running`, await ev('document.documentElement.dataset.engine') === eng.split('&')[0]);
 
   const a1 = await ask('ส่งรูปเล่มภายในกี่วัน');
   check(`[${eng}] a manual question is answered from the manual`, /21 วัน/.test(a1) && /ข้อมูลทางการ/.test(a1), a1);

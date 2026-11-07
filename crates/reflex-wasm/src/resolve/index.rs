@@ -5,6 +5,8 @@ use super::types::Programme;
 /// Everything the resolver derives from one programme, computed once (the page recomputes it for every question).
 pub(super) struct Entry {
     pub code: String,
+    /// The programme's title as the catalogue has it (`p.title`): the page's `nearSpelling` compares against this.
+    pub title: String,
     pub international: bool,
     pub core: Vec<u16>,
     pub full: Vec<u16>,
@@ -37,6 +39,7 @@ fn from_programme(p: &Programme) -> Entry {
     let name_forms = [core.clone(), nk(&replace_parens(&p.title, "")), nk(en_src)].iter().filter(|s| !s.is_empty()).map(|s| u16s(s)).collect();
     Entry {
         code: p.code.clone(),
+        title: p.title.clone(),
         international: p.kind == "international",
         core_tri: tri(&core),
         full_tri: tri(&full),

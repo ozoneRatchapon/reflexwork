@@ -10,7 +10,9 @@ use super::scope::{scope_clarify, Ranked, Scope};
 use crate::decide::{decide_tier, Action};
 use super::programme::{is_career_question, is_finder_question, is_level_only_question, resolve_programme_branch, ProgrammeOutcome};
 use super::patterns_src as p;
-use super::study_intent::catalogue_notice;
+use super::study_intent::{catalogue_notice, has_study_intent};
+use super::near::near_spelling;
+use super::topic::topic_picks;
 use super::stuck::stuck_fires;
 use super::term_year::norm_term_year;
 use super::text::{norm_chat, slice_utf16, strip_lead_in};
@@ -39,6 +41,7 @@ lazy_re!(overview, p::OVERVIEW);
 lazy_re!(restart, p::RESTART);
 lazy_re!(wb_crisis, p::WB_CRISIS);
 lazy_re!(wb_stress, p::WB_STRESS);
+lazy_re!(p_ack, p::P_ACK);
 
 fn trim_js(s: &str) -> &str {
     s.trim_matches(|c: char| is_js_space(c))
@@ -193,7 +196,69 @@ pub fn decide_prefix(typed: &str, ctx: &mut Ctx) -> Option<Route> {
             }
         }
     }
-    verdict_route(&q, ctx)
+    // the verdict escalated (no manual answer): the not-found family, in the page's order; only its first two branches are ported
+    match verdict_route(&q, ctx) {
+        Some(route) => Some(route),
+        None => not_found_family(&q, ctx),
+    }
+}
+
+fn has_thai(s: &str) -> bool {
+    s.chars().any(|c| ('\u{0E00}'..='\u{0E7F}').contains(&c))
+}
+
+/// `isNotAQuestion`: a bare acknowledgement, a lone URL, or an ASCII text with at most two letters. Any Thai letter makes it a question.
+pub fn is_not_a_question(q: &str) -> bool {
+    let s = trim_js(q);
+    if has_thai(s) {
+        return false;
+    }
+    p_ack().is_match(s) || is_bare_url(s) || (s.is_ascii() && s.chars().filter(|c| c.is_ascii_alphabetic()).count() <= 2)
+}
+
+/// `/^https?:\/\/\S+$/i`: one URL and nothing else.
+fn is_bare_url(s: &str) -> bool {
+    let lower = s.to_ascii_lowercase();
+    let rest = lower.strip_prefix("https://").or_else(|| lower.strip_prefix("http://"));
+    rest.is_some_and(|r| !r.is_empty() && !r.chars().any(is_js_space))
+}
+
+/// `isOtherScript`: a Japanese, Chinese, Korean, Arabic or Cyrillic letter and no Thai.
+pub fn is_other_script(q: &str) -> bool {
+    !has_thai(q) && q.chars().any(|c| matches!(c, '\u{3040}'..='\u{30FF}' | '\u{3400}'..='\u{9FFF}' | '\u{AC00}'..='\u{D7AF}' | '\u{0600}'..='\u{06FF}' | '\u{0400}'..='\u{04FF}'))
+}
+
+/// `isEnglish`: a Latin letter and no Thai.
+pub fn is_english(q: &str) -> bool {
+    !has_thai(q) && q.chars().any(|c| c.is_ascii_alphabetic())
+}
+
+/// The not-found family, in the page's order (`isNotAQuestion`, `isOtherScript`, `isEnglish`, `classifyIssue` -> intake, then the
+/// programme and tuition finders when the catalogue is loaded, then the topic picks); the not-found branch is not ported yet (`None`).
+fn not_found_family(q: &str, ctx: &Ctx) -> Option<Route> {
+    match (is_not_a_question(q), is_other_script(q), is_english(q)) {
+        (true, _, _) => Some(Route::NotAQuestion),
+        (_, true, _) => Some(Route::OtherScript),
+        (_, _, true) => Some(Route::EnglishOffCorpus),
+        _ => match crate::intake::classify_issue(q) {
+            Some(_) => Some(Route::Intake),
+            None => finder_branches(q, ctx),
+        },
+    }
+}
+
+/// `unsure_programme`, `tuition_finder_nomatch` (both need the catalogue; the page checks `PROG.length`), then `topic_picks` (any catalogue state).
+fn finder_branches(q: &str, ctx: &Ctx) -> Option<Route> {
+    if let Some(cat) = ctx.catalogue {
+        let near_ok = cat.loose_titles(q).iter().any(|t| near_spelling(q, t) >= 0.8);
+        if has_study_intent(q) || near_ok {
+            return Some(Route::UnsureProgramme);
+        }
+        if is_tuition_question(q) {
+            return Some(Route::TuitionFinderNomatch);
+        }
+    }
+    topic_picks(q, ctx.manual.entries().iter().map(|e| e.title.as_str())).then_some(Route::TopicPicks)
 }
 
 /// 17+: the manual's verdict (gate score + the ranked entries -> act / disambiguate / escalate), the account-problem override, the scope guard, then the

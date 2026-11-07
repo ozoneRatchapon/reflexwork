@@ -47,6 +47,6 @@ routes! {
     UnsureProgramme => "unsure_programme",
     TuitionFinderNomatch => "tuition_finder_nomatch",
     TopicPicks => "topic_picks",
-    NotFound => "not_found",
     UnderstoodByAi => "understood_by_ai",
+    NotFound => "not_found",
 }

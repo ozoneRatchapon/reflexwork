@@ -124,6 +124,12 @@ fn codes(entries: &[&Entry]) -> Vec<String> {
 }
 
 impl Catalogue {
+    /// The titles of `resolveProgramme(q, P, true).rows` (the page's "nearest names"); empty when the loose pass finds nothing.
+    pub fn loose_titles(&self, q: &str) -> Vec<String> {
+        let Some(r) = self.resolve(q, true) else { return Vec::new() };
+        r.codes.iter().filter_map(|c| self.entries.iter().find(|e| &e.code == c)).map(|e| e.title.clone()).collect()
+    }
+
     /// Port of `resolveProgramme(q, P, loose)`. `loose` is used only after the strict pass AND the manual found nothing: it answers
     /// with the nearest names, never a single card, so it cannot assert a wrong programme.
     pub fn resolve(&self, q: &str, loose: bool) -> Option<Resolution> {

@@ -85,9 +85,16 @@ const PREFIX_PROBES = [   // the first branches of the order (wellbeing, smallta
   'ค่าเทอมเท่าไร???', 'ค่าเทอมเท่าไร ครับ 🙏', 'ค่าเทอมเท่าไรรรรร', 'ค่าเทอม　เท่าไร', 'ค่าเทอมเท่าไร！', 'เครียดมากกกกก', 'สวัสดีีีี', 'ｏｋ', 'ｈｅｌｌｏ', 'เครียด​มาก', 'เครียด⁠มาก', 'เครียดํามาก',
   'ตรวจ้ิ', 'ลงทะเบียนเมื่อไหร่ ๒๕๖๙', 'ลงทะเบียน ผลสอบของเพื่อน ๖๕๓๗๐๐๑', '   ขอบคุณครับ   ', '😀', 'สวัสดี 😀😀', '？', 'ตรวจบทคัดย่อ…', '~~~',
 ];
+// topic_picks: built from real KB title fragments (a fragment + 'ยังไง' whose core hits 1-12 titles); the page's topicPicks() decides, not this list
+const TOPIC_PROBES = ['ตรวจบทคัดย่อ ยังไง', 'Abstract ยังไง', 'ใช้เวลากี่วัน ยังไง', 'ลืมรหัสผ่าน ยังไง', 'บัญชีถูกล็อก ยังไง', 'Student Card ยังไง', 'Best Scores คืออะไร ยังไง', 'ขอเปลี่ยนชื่อ-สกุล ยังไง', 'ขณะกำลังศึกษา ยังไง', 'ยื่นผลคะแนน TOEFL iBT ยังไง', 'ค่าสมัครเข้าศึกษาเท่าไร ยังไง', 'สนใจเข้าศึกษาต้องสมัครอย่างไร ยังไง', 'ติดต่อบัณฑิตวิทยาลัยได้ช่องทางใด ยังไง', 'กำหนดการเปิด-ปิดรับสมัครเมื่อไร ยังไง', 'มีสาขาวิชาอะไรเปิดรับสมัครบ้าง ยังไง', 'เข้าระบบ', 'สกุล', 'ลงไป', 'ภาคปลาย', 'ภาคต้น', 'ฤดูร้อน', 'คณะ', 'หลักสูตร', 'ลาพัก', 'ลาออก', 'ผ่อนผัน', 'โอน', 'เทียบโอน', 'รอบ', 'ประกาศ', 'ได้กี่คำ', 'เกิน', 'ไฟล์', 'รายวิชา', 'เท่าไร', 'ใช้ระบบ', 'yes', 'no', 'okay', 'https://mahidol.ac.th', '你好吗', 'Здравствуйте, сколько стоит', 'Γειά σου', '안녕 학비', 'อืม', 'เอ่อ','ฮ่าๆ', 'เห็นด้วย', 'ไม่รู้', 'hmm', 'नमस्ते','Привет, как дела', 'สวัสดีค่ะ', 'こんにちは、学費はいくらですか', 'Merhaba', 'Hola, ¿cuánto cuesta?', 'ありがとうございます', 'спасибо', 'ตรวจบ', 'สถา', 'ทหารป', 'ยแพร', 'รสอบ', 'มงแ', 'บเคีย', 'งื่อน', 'อกำห', 'ิงในเ', 'ามต', 'งไรแ', 'ยายเ', 'ละร', 'งหลั', 'งดูข', 'ว้เป็', 'กค่า', 'ยบโอ', 'และคุ', 'งผู้', 'ลคะ', 'ยังไงแ', 'าจขอค', 'ของก', 'ลัยจั', 'ทนอย่', 'ิบั', 'เป็นอ', 'จัดร', 'ำเข้า', 'ใบรับ', 'ศึกษา', 'สมัครเรียน', 'ตารางเรียน', 'ผลการเรียน', 'ปริญญา', 'สอบถาม'];
+// ai_mock: the AI branches are on AND a mock /rewrite answers (the real model is not called: a contract is recorded, not Gemini's wording).
+// Each question maps to the search phrases a correct rewrite would give; unknown questions get NONE (no phrases). Phrases are copied
+// from the manual's own vocabulary (rewrite prompt examples), so the KB search decides the route, not the mock.
+const REWRITE_MOCK = JSON.parse(R('benchmark/golden/rewrite_mock.json'));   // question -> phrases the mock /rewrite returns (fixture shared with golden_route.rs)
 const probes = [
-  ['ai_off', [...PREFIX_PROBES, ...PROGRAMME_PROBES, ...FEE_CAREER_PROBES, ...TIME_PROBES, ...SCOPE_PROBES, ...RESOLVE_PROBES, 'ok', 'https://example.com', '1234', 'มีอะไรน่าสนใจบ้าง', 'ควรรู้อะไรบ้างก่อนเริ่ม', 'ขอดูผลการเรียนของฉัน', 'สถานะใบสมัครของฉันเป็นอย่างไร', '你好 请问学费多少', 'こんにちは', 'มีทุนไหม', 'มีหอพักไหม', 'ทุน']],
+  ['ai_off', [...PREFIX_PROBES, ...TOPIC_PROBES, ...PROGRAMME_PROBES, ...FEE_CAREER_PROBES, ...TIME_PROBES, ...SCOPE_PROBES, ...RESOLVE_PROBES, 'ok', 'https://example.com', '1234', 'มีอะไรน่าสนใจบ้าง', 'ควรรู้อะไรบ้างก่อนเริ่ม', 'ขอดูผลการเรียนของฉัน', 'สถานะใบสมัครของฉันเป็นอย่างไร', '你好 请问学费多少', 'こんにちは', 'มีทุนไหม', 'มีหอพักไหม', 'ทุน', 'ขอบคุณครับ', 'โอเค', '555', 'ครับ', 'ok ได้เลย', 'Здравствуйте', 'مرحبا', '안녕하세요', 'Bonjour, quels sont les frais', 'Thesis submission deadline', 'What is the tuition fee for the PhD?', 'library opening hours', 'ค่าธรรมเนียม', 'หอพัก', 'วิทยานิพนธ์', 'ลงทะเบียน', 'ใบรับรอง', 'ตารางสอบ', 'ค่าสมัคร', 'สถานที่', 'เอกสาร', 'ปริญญานิพนธ์', 'กำหนดการ']],
   ['ai_on', ['ช่วยแนะนำวิธีวางแผนส่งรูปเล่มให้ทันกำหนด', 'แนะนำหน่อยว่าควรเลือกเรียนอะไรดี', 'ควรเตรียมตัวสอบ TOEFL ยังไงดี', 'ช่วยแนะนำการจัดการเวลาทำวิทยานิพนธ์', 'ลองแนะนำวิธีขอทุนหน่อย', 'ช่วยแนะนำวิธีเตรียมตัวสอบ MU GRAD หน่อย', 'วางแผนทำวิทยานิพนธ์ให้จบทันยังไงดี', 'แนวทางจัดการเวลาตอนเขียนเล่มวิทยานิพนธ์', 'ควรทำอย่างไรถ้า Turnitin เกิน 25%', 'ช่วยแนะนำการลาพักการศึกษา', 'เตรียมตัวสมัครเรียนต่อปริญญาเอกต้องทำอะไรบ้าง', 'ทำยังไงดีถ้าส่งเล่มไม่ทัน', 'ช่วยวางแผนการลงทะเบียนเรียนหน่อย', 'ควรทำอะไรก่อนสอบวิทยานิพนธ์', 'แนะนำที่พักใกล้ศาลายา', 'ช่วยแนะนำวิธีติดต่ออาจารย์ที่ปรึกษา', 'ส่งรูปเล่มภายในกี่วัน', 'ค่าสมัครสอบ TOEFL ITP เท่าไร']],   // understood_by_ai needs a WORKING /rewrite: not reachable without a mock proxy (known hole)
+  ['ai_mock', Object.keys(REWRITE_MOCK)],
   ['nocat', ['อยากสมัครเรียนจิตวิทยา', 'ค่าเทอมหลักสูตรพยาบาล', 'หลักสูตรอะไรเปิดรับบ้าง', 'สมัครสอบ TOEFL', 'สมัครสอบ', 'สมัครเรียน', 'สมัครงาน', 'ป.โท', 'ปริญญาเอกสมัครยังไง', 'master program', 'apply for PhD', 'study abroad', 'ค่าเทอม', 'ทุน', 'หลักสูตรอะไรบ้าง', 'เรียนไรดี', 'ทำงานอะไรดี', 'เปิดรับสมัคร', 'พักการเรียน', 'ผลการเรียน', 'ตารางเรียน', 'ลาพัก', 'ส่งเล่มกี่วัน', 'คณะแพทย์', 'ต่อโท', 'ศึกษาต่อ', 'เข้าศึกษา', 'ทุนเรียนต่อ', 'ฝ่ายรับสมัครอยู่ไหน', 'ใบปริญญา', 'ลงทะเบียนเรียน', 'ติดปัญหา', 'สวัสดี', 'เครียดมาก', 'ขอสมัครสอบสมัครเรียน']],
 ];
 const items = [...singles.map((s, i) => ({ kind: 'single', set: s.set, qs: [s.q] })),
@@ -95,6 +102,18 @@ const items = [...singles.map((s, i) => ({ kind: 'single', set: s.set, qs: [s.q]
 const keyOf = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.qs[0]]);
 const goldOld = has('--update') && existsSync(OUT) ? new Map(JSON.parse(readFileSync(OUT, 'utf8')).map(r => [JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]), r])) : new Map();
 const pick = has('--update') ? items.filter(it => !goldOld.has(keyOf(it))) : TRY ? TRY.map(q => ({ kind: 'single', set: 'try', mode: TRYMODE, qs: [q] })) : LIMIT ? items.filter((_, i) => i % LIMIT === 0) : items;
+
+const mockSrv = http.createServer((q, s) => {
+  const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+  if (q.method === 'OPTIONS') { s.writeHead(204, cors); return s.end(); }
+  if (new URL(q.url, 'http://x').pathname !== '/rewrite') { s.writeHead(404, cors); return s.end(); }
+  let body = ''; q.on('data', d => { body += d; }); q.on('end', () => {
+    const input = (() => { try { return JSON.parse(body).input || ''; } catch { return ''; } })();
+    const queries = REWRITE_MOCK[input] || [];
+    s.writeHead(200, { ...cors, 'Content-Type': 'application/json' }); s.end(JSON.stringify({ queries, source: queries.length ? 'gemini' : 'none' }));
+  });
+});
+await new Promise(r => mockSrv.listen(0, '127.0.0.1', r)); const MP = mockSrv.address().port;
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm', '.css': 'text/css' };
 const srv = http.createServer((q, s) => { let p = decodeURIComponent(new URL(q.url, 'http://x').pathname); if (p === '/') p = '/chatbot.html';
@@ -104,7 +123,7 @@ const srv = http.createServer((q, s) => { let p = decodeURIComponent(new URL(q.u
 await new Promise(r => srv.listen(0, '127.0.0.1', r)); const SP = srv.address().port;
 const prof = mkdtempSync(join(tmpdir(), 'rw-route-'));
 const chrome = spawn(process.env.CHROME || ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].find(existsSync), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${prof}`, '--no-first-run', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
-const done = () => { try { chrome.kill(); } catch {} srv.close(); };
+const done = () => { try { chrome.kill(); } catch {} srv.close(); mockSrv.close(); };
 process.on('exit', done);
 const wsUrl = await new Promise(res => { let b = ''; chrome.stderr.on('data', d => { b += d; const m = b.match(/DevTools listening on (ws:\/\/\S+)/); if (m) res(m[1]); }); });
 const tab = await (await fetch(`http://127.0.0.1:${new URL(wsUrl).port}/json/new?about:blank`, { method: 'PUT' })).json();
@@ -118,13 +137,21 @@ await send('Page.enable'); await send('Runtime.enable');
 // the page keeps the chat and the programme in focus per TAB (sessionStorage) and restores them on load: without this, a session would start with whatever the previous one left behind
 await send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{sessionStorage.clear();localStorage.clear();}catch(e){}' });
 // ai=off + a dead kernel/proxy: no gap-log entry, no vote, no AI call; ?now pins nothing - date-dependent routes (time_intent) are decided by words, not by the clock
-const URLS = { ai_off: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off`, ai_on: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9`, nocat: `http://127.0.0.1:${SP}/chatbot.html?nocat=1&api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off` };
+const URLS = { ai_mock: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:${MP}`, ai_off: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off`, ai_on: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9`, nocat: `http://127.0.0.1:${SP}/chatbot.html?nocat=1&api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off` };
+// --route rust: the page takes its route from the Rust decision order (?route=rust), so the same questions must give the same routes
+if (opt('--route')) for (const k of Object.keys(URLS)) URLS[k] += `&route=${opt('--route')}`;   // default page: Rust routes; --route js = the JS fallback
 let MODE = 'ai_off';
-const boot = async () => { await send('Page.navigate', { url: URLS[MODE] }); await until(`!!document.getElementById('q') && !document.getElementById('q').disabled`, 30000); await until(`document.documentElement.classList.contains('agency-pending')===false`, 5000); await wait(300); };
+const boot = async () => { shLast = null; await send('Page.navigate', { url: URLS[MODE] }); await until(`!!document.getElementById('q') && !document.getElementById('q').disabled`, 30000); await until(`document.documentElement.classList.contains('agency-pending')===false`, 5000); await wait(300); };
 const bots = () => ev(`document.querySelectorAll('#chat .msg.b').length`);
+// shadow mode (chatbot.html): the Rust decision order is compared with the page's route on every question; totals are summed across page loads
+const SH = { n: 0, same: 0, pending: 0, errors: 0, diffs: [] }; let shLast = null;
+const shadowSync = async () => { const s = await ev('(() => { const s = window.__shadow; return s ? { n: s.n, same: s.same, pending: s.pending, errors: s.errors, diffs: s.diffs } : null; })()'); if (!s) return;
+  const p = shLast || { n: 0, same: 0, pending: 0, errors: 0, diffs: [] };
+  SH.n += s.n - p.n; SH.same += s.same - p.same; SH.pending += s.pending - p.pending; SH.errors += s.errors - p.errors; SH.diffs.push(...s.diffs.slice(p.diffs.length)); shLast = s; };
 const ask = async q => { const n = await bots();
   await ev(`(()=>{const i=document.getElementById('q'); i.value=${JSON.stringify(q)}; document.getElementById('send').click();})()`);
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`); await wait(60);
+  await shadowSync();
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? (b.dataset.route ?? null) : null;})()`); };
 const result = []; let n = 0, booted = '';
 for (const it of pick) {
@@ -134,6 +161,8 @@ for (const it of pick) {
   else { await ask('เริ่มใหม่'); result.push({ kind: 'single', set: it.set, ...(it.mode && it.mode !== 'ai_off' ? { mode: it.mode } : {}), q: it.qs[0], route: await ask(it.qs[0]) }); }
 }
 done();
+console.log(`shadow (Rust decide_route vs the page): ${SH.n} questions, ${SH.same} same, ${SH.pending} pending (AI rewrite), ${SH.errors} errors, ${SH.diffs.length} differ`);
+for (const d of SH.diffs.slice(0, 12)) console.log('  shadow diff:', JSON.stringify(d));
 if (has('--update')) {
   const fresh = new Map(result.map(r => [JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]), r]));
   const merged = items.map(it => { const k = keyOf(it); return fresh.get(k) || goldOld.get(k); }).filter(Boolean);

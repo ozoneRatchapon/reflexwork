@@ -109,8 +109,9 @@ Fix: added `จองวิชา grid ยังไง วิธีจอง จ
 - Compare top-5 for "จองวิชา GRID ยังไง" with/without gm_. Likely fix: add Thai booking keywords (จอง, ลงทะเบียนรายวิชา) to `grid_booking`'s keyword line.
 - **Done when:** grid_booking is top-1 again, and the 5 baseline FPs did not get worse.
 
-### Task 2.4 — (Optional, only if time) pre-existing 5 FPs — [ ]
-Same keyword-only approach. `leave_of_absence` not appearing in top-k for "หยุดเรียนชั่วคราวได้ไหม" is the most valuable (it's a common real question). Skip if Phase 3–4 are not done yet.
+### Task 2.4 — (Optional, only if time) pre-existing 5 FPs — [x] DONE (verified 2026-11-07, no code change needed)
+Verified: `หยุดเรียนชั่วคราวได้ไหม` → `leave_of_absence` top-1, s=6 (cos 0.430, overlap 16). `node tests/kb_search.test.mjs` on the current index: recall@1 43 (floor 37), recall@3 48 (floor 45), FP 3 (ceil 6), off-corpus 2/2, 9/9 passed. The FP count fell from 5 to 3 through the later KB alias work (commit `1055b96`), so the keyword fix is no longer needed.
+Original note: same keyword-only approach. `leave_of_absence` not appearing in top-k for "หยุดเรียนชั่วคราวได้ไหม" is the most valuable (it's a common real question). Skip if Phase 3–4 are not done yet.
 
 ### Task 2.5 — Keyword lines for the 20 gm_ docs without `คำค้นภาษาอังกฤษ:` — [x] DONE (2026-10-31)
 **Verdict: originally absent — nothing dropped. Left as-is.** Original corpus found at `~/.kiro/crew/scratch/runtime-6902633f/gm-corpus/knowledge/` (510 files). The 20 sources (`registration_*` ×17, `forms_directory`, `sample_2018DG00_2570_*` ×2) have no keyword line of any kind (`rg -c '^คำค้น'` = 0).
@@ -142,7 +143,7 @@ Also run the Rust side if the kernel has KB tests: `cargo test --quiet` in the w
 - Verify the **WASM** path (production) gives the same top-1 as the JS twin. If they differ → stop, that's a lockstep bug.
 - **Done when:** results table in Appendix C; screenshot optional.
 
-### 🛑 Checkpoint 1 — commit KB import
+### 🛑 Checkpoint 1 — commit KB import — [x] DONE (verified 2026-11-07: `5faa387`, `bb42f60` are on `main`; the `integrations/kernel-worker/` untracked files are still not committed)
 Ask the user to approve commit(s):
 - `feat(kb): import 62 GradMahidol FAQ docs into knowledge-public (owner-approved)`
 - `test(kb): accept verified-equivalent gm_ entries in recall eval` (or the B/C equivalent)
@@ -161,7 +162,7 @@ Do **not** commit `integrations/kernel-worker/wasm/`, `package-lock.json`, `.pnp
 ### Task 4.2 — Q&A bank — [x] DONE (Q17)
 Add to `docs/pitching/40-qa-bank.md`: "ข้อมูลใน KB มาจากไหน / ซ้ำกับทีมอื่นไหม" → answer: official public announcements, owner-approved, dedup strategy from 1.3.
 
-### 🛑 Checkpoint 2 — commit pitch updates + decide PR
+### 🛑 Checkpoint 2 — commit pitch updates + decide PR — [x] DONE (verified 2026-11-07: `1676bfe` is on `main`)
 `docs(pitch): update KB coverage to 132 entries after GradMahidol import`. Then ask whether to open the PR for this branch to `main` (gitflow: if `develop` exists, PR targets `develop` — check `git branch -a` first).
 
 ---
@@ -376,14 +377,14 @@ English answers via Gemini translation of the retrieved entry (needs a `lang` pa
 Done before the pitch (PR feat/ux-journey, UI only): student-first landing (one CTA, measured figures 379 / 85% = 44/52 / 0 wrong cards on 1,915 typos, replaces the unmeasured "~80% cost cut" and nanosecond/BLAKE3 hero); nav 4 -> 3 (ถามคำถาม · ยื่นคำร้อง · เบื้องหลังระบบ); "behind the system" section for judges (try, dashboard, pitch); evidence panel has a show/hide toggle (open by default >= 1000 px, closed on phones, remembered); mobile hides the engineering one-liner so the input box stays on the first screen.
 Earlier: programme example chips + swipeable chip row; off-topic fallback offers 4 starting questions; Lighthouse a11y 92 -> 100.
 AFTER the pitch (not started; do as separate PRs, each with before/after screenshots at 390 and 1280 px):
-- [ ] One shared design system file (colour/type/spacing tokens, one nav component) used by every page; today the nav is inline-styled and copied into 5 files (this PR edited all five by script).
+- [x] One shared design system file (colour/type/spacing tokens, one nav component) used by every page. (2026-11-07 verified: `submissions/ui/theme.css` holds the palette, focus ring and `.rw-nav`, from commit `50f6e2e`; index, chatbot, try, dashboard, student-desk link it and carry no nav inline styles. Not literally every page: `how-it-works.html` has its own in-page jump bar and `pitch.html`/`slides.html` have no nav.)
 - [ ] Replace emoji icons with one icon set; stronger type scale; optional light theme (ask what Mahidol brand colours to use before choosing any).
 - [x] Answer cards: two badges only - "official source" vs "AI-rephrased"; skeleton/loading state instead of blank space. (DONE by 2026-11-04: badges ✅ ข้อมูลทางการ / 🤖 AI ช่วยเรียบเรียง, plus 📝 เจ้าหน้าที่ตอบ for live staff answers since #141; shimmer skeleton since feat/journeys-skeleton.)
 - [ ] Student journey test with 3-5 real students (first-click test: "find if a programme is open"); fix what they stumble on.
 - [x] Re-check the remaining "~80%" claims (slides.html 7.5 already labels it an estimate; README, executive-summary, pitch.html, try.html still state it plainly): measure or label as estimate. (2026-11-04, PR feature/label-estimates: slides.html title/fast-path/local-model lines labelled ประมาณการ; README now gives the measured 44/52 on our own test set; executive-summary, try.html already labelled; pitch.html has none, enforced by tests/pitch_deck.test.mjs.)
 - [ ] English answers via Gemini translation (needs `lang` in llm-proxy + deploy).
 - [~] Rust consolidation: move scoring/decideTier/resolver/linkify into reflex-wasm so JS stops duplicating it (parity gate = 370-probe A/B + wasm_lockstep). (2026-11-04: scoring (kb_search/cos_to_score), decideTier and the resolver are in reflex-wasm and Rust is the default engine (#143-#149); linkify (the HTML escaper) is still JS only — after the pitch, tracked in .plans/002.)
-- [ ] Out-of-scope still answered 13% EN / 17% TH: review remaining cases (scoring change -> ask the owner first).
+- [x] Out-of-scope still answered 13% EN / 17% TH: review remaining cases (scoring change -> ask the owner first). (2026-11-07 review done: `benchmark/field/results/003_2026-11-07_out_of_scope_review.md`. 26 of 60 staff-only cases are answered: 7 wrong-topic, 19 on-topic or close. OWNER DECISION: should staff-only topics (procurement, transfer fees, reimbursement) be answered when the KB has an entry? A fix for the 7 wrong-topic cases is a scoring change, so it waits for approval.)
 
 ## Connectors + login idea (added 2026-11-03) — concept only, NOT built
 Owner idea: login, then "connect" to agencies; Graduate School is the first connected example; logged-in users get personalised Q&A.
@@ -513,3 +514,20 @@ Still open, and why none is agent-executable now:
 - After the pitch by decision (merge freeze 2026-11-05): shared design-system file, English answers via Gemini, login/connector phases 2-3.
 - Not requested: handover file.
 - [x] 2026-11-04: `/tmp/rw_prod/finish42.sh` run on user approval: PR #150 merged (a620576), Pages deployed, smoke ×4 hard checks pass (1 warning in 2 modes: Gemini 404/timeout/429 -> KB fallback shown, by design), 6 screenshots.
+
+## Owner needed — exact decision or content per open item (2026-11-07 pass)
+Nothing below is executable by the agent without the named input. Each line says what to send back.
+- Phase 6 handover (line ~195): say "write the handover" to get `.handovers/` (not in zed-fork).
+- Icons / light theme (381): Mahidol brand colour hex values, and the icon set to use (or "keep emoji").
+- Student journey test (383): 3-5 real students and a time slot; the first-click task is "find if a programme is open".
+- English answers via Gemini (385): a decision to reverse the page rule "we do NOT translate-and-answer" (chatbot.html, English branch). Without it the code change is not worth doing. Deploy also needs a yes.
+- Out-of-scope answers (387): (a) answer staff-only topics from the KB, or hand them to staff? (b) approve a scoring change for the 7 wrong-topic cases in `benchmark/field/results/003_2026-11-07_out_of_scope_review.md`.
+- Agency switcher (395): name a second agency willing to share public data (KB, catalogue, links).
+- Mahidol Account login (396): the owner of that system agrees; PDPA consent wording; retention period.
+- Agency-side records (397): the agency's read-only API spec and owner consent.
+- Gap list to KB owners (403): who receives it, and approval to send the list (outward-facing).
+- suggest-program API (432): owners' written permission to call it, plus terms and uptime.
+- Thai occupation wording (434): the owner's occupation-to-area mapping.
+- `reset_gaps.sh` (470): approval for `DELETE FROM gap_log` on prod, after the D1 export backup. The classifier blocked the agent from running it.
+- Fresh odd-question set (491): 20-30 real questions from staff or students, to confirm 0 wrong holds.
+- Chapters advice line (line 492, the #131 entry): owner confirmation of the wording.
