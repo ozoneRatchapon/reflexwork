@@ -10,9 +10,15 @@ experiments here on the 1,056 generated questions (`benchmark/synth/`, labels **
 | distil bge-m3 into a trigram -> vector map, offline ridge (`katgpt-canon/src/source_adapter.rs`, `katgpt-core/src/linalg/ridge_solve.rs`) | Thai held-out 53.4% -> **62.9%** first-right with no model at run time (bge-m3 itself: 74.2%); English **worse** (43.9 -> 28.0%, only 1 English example per entry in training); hybrid (lexical if s>=4 else distilled): Thai 61.7%, eval52 84 -> 88%, FAQ 94.4 -> 93.0% | `005_distill_unreviewed.md` |
 | answer-type match (composed from `katgpt-extract/src/parsers/*`) | flags 26.5% of near-misses as "asks for a value the entry does not have" at a cost of 2.5% of Thai (7.2% of English) paraphrases. A first version with a bare "เท่าไร" counted as an amount flagged 29.5% / 3.2% but said "no amount" about score questions; fixed | `006_answer_type_unreviewed.md` |
 | model-free abstain signals, rank-fused (`distance_abstain.rs` lesson: fuse on ranks) | best AUROC **0.60** (cos margin + answer-type; 0.598) vs shipped score 0.53; bge-m3 0.85 | `007_signals_unreviewed.md` |
+| corpus-distance gate (Reflex, reflex.riir.ai: 53% of its abstains) from our exemplars = entry text + train paraphrases | **no use against near-misses** (AUROC 0.47-0.54: a near-miss is on the same topic, so it sits close to the exemplars). **Weak use against questions outside the manual** (D_all 0.64 vs shipped score 0.52; only 46 such questions, 44 of them official FAQ items) | `008_distance_gate_unreviewed.md` |
 
 Reading: model-free signals help a little; the separation problem is mostly solved only by a meaning-based signal. The distilled map
 is the one way found to get part of that without a model per question, and it needs more (and multilingual) training questions.
+
+## What reflex.riir.ai adds (read 2026-11-07, figures are theirs, not re-run)
+- Modelless count-table engine: English intent 78-84% at 0.1-0.4 ms WITH many labelled examples per class (banking77 ~130 per class; we have ~8); raw confidence badly calibrated (ECE 0.64-0.82), hybrid 0.07-0.08.
+- Thai needs a ~850 MB encoder (laya) to reach 41-78% on their two Thai suites, so no in-browser option there.
+- Not comparable to our FAQ retrieval (classification suites, 77 classes); Reflex corpus boot takes 1-8 domains, so it cannot take our 132 entries as classes directly.
 
 ## Take (ranked)
 1. **Best-Belief Beta lower bound instead of the `entry_conf` EMA.** `katgpt-core/src/best_belief.rs`, katgpt Bench 010: 15-30% less selection regret when vote counts differ. Pure math, S. Score = 5% quantile of Beta(1+up, 1+down); explains itself ("at least 0.62 from 8 up / 1 down"). Reset counts when an entry's text changes (`calibration_staleness.rs` doctrine).

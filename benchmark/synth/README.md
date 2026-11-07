@@ -20,6 +20,7 @@
 | `005_distill_unreviewed.md` | bge-m3 distilled into a trigram -> vector map (offline ridge, no model at run time; katgpt-canon idea) |
 | `006_answer_type_unreviewed.md` | answer-type match: does the entry contain the kind of value asked for |
 | `007_signals_unreviewed.md` | AUROC of model-free abstain signals, rank-fused |
+| `008_distance_gate_unreviewed.md` | corpus-distance gate (Reflex idea): useless against near-misses, weak (0.64) against off-corpus questions |
 
 What to take from katgpt-rs and why: `.plans/010_katgpt-adoption.md`.
 
