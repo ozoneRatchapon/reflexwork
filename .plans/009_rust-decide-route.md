@@ -7,7 +7,58 @@
   - LINE has its own copy (`integrations/_shared`, `line-worker`) that drifts.
 - `benchmark/rules/003` shows the ordering matters more than any single regex. 3 wrong routes came from one branch firing before the KB answer.
 
-## Branch map (order today; one `Route` variant each)
+## Checklist (tick it when it lands; the details are below)
+Source of truth for "done": `cargo test -p reflex-wasm` green (`tests/golden_route.rs` = the contract, `tests/route_text.rs`, `tests/dated_picks.rs`) and `node tests/route_golden.test.mjs` green.
+
+### A. The 34 routes in Rust (`crates/reflex-wasm/src/route`, in the order the page tries them)
+- [x] 1 `wellbeing`
+- [x] 2 `smalltalk`
+- [x] 3 `personal`
+- [x] 4 `stuck_pick`
+- [x] 5 `restart`, `overview`
+- [x] 6 `catalogue_not_ready`
+- [x] 7 `generic_fee`
+- [x] 8-9 `programme_card`, `programme_pick`
+- [x] 10 `field_fee`
+- [x] 11 `free_study`
+- [x] 12 `career`
+- [x] 13 `finder`
+- [x] 14 `followup`
+- [x] 15 `free_fee`
+- [x] 16 `time_intent`
+- [ ] 17 verdict: gate score (`route_with_gate`) + `decide_tier` + the account-problem override (`classify_issue`)
+- [ ] 18 `scope_ask`, `scope_no_year`, `scope_no_round` (`scopeClarify`, `scopeOf`, `scopeYears`)
+- [ ] 19 `advice_abstain`, `advice_strong`, `advice_hybrid` (needs `Ctx.ai_off`)
+- [ ] 20 `kb_act`
+- [ ] 21 `disambiguate`
+- [ ] 22 not-found family: `not_a_question`, `other_script`, `english_off_corpus`, `intake`
+- [ ] 23 not-found family: `unsure_programme`, `tuition_finder_nomatch` (`nearSpelling`)
+- [ ] 24 not-found family: `topic_picks` (`topicPicks`), `not_found`
+- [ ] 25 `understood_by_ai` (needs a working `/rewrite`: a mock proxy for the contract first)
+Progress: 17 of 34 route names ported (the 17 left are items 17-25).
+
+### B. Supporting work
+- [x] Contract: every branch names itself (`data-route`), `benchmark/golden/route.json` (singles + 24 sessions), recorder isolated from tab storage
+- [x] Text preparation: `norm_chat`, `strip_lead_in`, `norm_term_year`, exact Unicode tables
+- [x] Differentials against the page's own functions (`route_text.json`: 2,235 texts; `dated_picks.json`)
+- [x] `kb_rank` (native twin of `kb_search`), `route::Manual`, `Ctx` (programme in focus, today, catalogue state)
+- [ ] Contract probes for the branches still to port (a branch with < 10 samples is not safe to trust)
+- [ ] Sessions replayed for the verdict routes (a turn on a route that is not ported cannot change state yet)
+- [ ] `PIN` (a tapped topic chip) in the contract: today `pinned` is always false in the tests
+
+### C. Switching the page and the other channels
+- [ ] Export `decide_route` from `reflex-wasm` (`#[wasm_bindgen]`), rebuild `submissions/ui/wasm` with `crates/reflex-wasm/build.sh`
+- [ ] Page calls it behind `?engine=js` fallback; contract identical on all entries (`node benchmark/golden/route_golden.mjs --check`), e2e 56/56, `demo_smoke` x4, `wasm_golden_check`
+- [ ] Delete the JS branch order from `chatbot.html`; flip the regex source of truth to Rust (`scripts/gen_rust_pattern_sources.mjs`)
+- [ ] LINE loads the same wasm (measure Workers cold start first)
+- [ ] Deploy (Pages main + any worker) after the above; NOT before
+
+### D. Decisions that are not ours to make alone
+- [ ] Embeddings at run time (bge-m3: Thai 52% -> 75% first-right, needs a model per question; `benchmark/synth/README.md`)
+- [ ] Review sheet `benchmark/synth/review_001.tsv` filled by a person (a second AI read was done: 3 of 60 labels wrong)
+- [ ] Deploy `how-it-works.html` text change (committed `1d29927`, not live; the last deploy command was refused)
+
+## Branch map as first sketched (kept for the reasoning; the checklist above is the current list of 34 routes)
 1. `Wellbeing`: `wellbeingKind`. Comes before smalltalk.
 2. `Smalltalk`: `classifySmalltalk` (wasm).
 3. `Personal`: `personalAsk`. Refused, not logged.

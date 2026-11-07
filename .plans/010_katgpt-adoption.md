@@ -20,6 +20,16 @@ is the one way found to get part of that without a model per question, and it ne
 - Thai needs a ~850 MB encoder (laya) to reach 41-78% on their two Thai suites, so no in-browser option there.
 - Not comparable to our FAQ retrieval (classification suites, 77 classes); Reflex corpus boot takes 1-8 domains, so it cannot take our 132 entries as classes directly.
 
+## Checklist
+- [x] 1 Best-Belief vote bounds instead of the EMA (commit `121e086`; kernel-worker + dashboard deployed 2026-11-07)
+- [x] 2 Answer-type note for factoid questions (commit `68ac1de`; Pages deployed)
+- [ ] 3 Distilled trigram -> bge-m3 table: re-run fairly (more English, fresh question set, size budget); adopt only if >= +10 points
+- [x] 4 Answer receipt covering the answer (commit `dc8f65f`; Pages deployed; `scripts/verify_receipt.mjs`)
+- [~] 5 Follow-up state: the programme in focus is a typed field in the Rust `Ctx` (plan 009); a scored stack of several referents is NOT done
+- [ ] 6 Process: Verdict line + preregistered gates in every benchmark header, `NEGATIVE_RESULTS.md`, golden tests against the SHIPPED wasm file with a minimum count
+- [ ] 7 Negation / polarity check for AI rephrasing ("ต้อง" -> "ไม่ต้อง"): small, not built
+- [ ] 8 Thai closed-class lexicon (months, Thai digits, BE years, number words, units) for the answer-type check and value-normalised grounding
+
 ## Take (ranked)
 1. **Best-Belief Beta lower bound instead of the `entry_conf` EMA.** `katgpt-core/src/best_belief.rs`, katgpt Bench 010: 15-30% less selection regret when vote counts differ. Pure math, S. Score = 5% quantile of Beta(1+up, 1+down); explains itself ("at least 0.62 from 8 up / 1 down"). Reset counts when an entry's text changes (`calibration_staleness.rs` doctrine).
 2. **Answer-type match as a note + gap-log rule.** DONE in the page 2026-11-07 (`missingTypes` / `typeMissNote`, `tests/answer_type.test.mjs`): the answer still shows, with "this topic does not state the [amount/duration/date/number] asked", and the question goes to the gap list. It appears on 6.2% of the answers the test pool gets (`benchmark/rules/note_rate.mjs`). Precise (2.5% cost) though it covers only factoid questions. Port the scanner DESIGN of `katgpt-extract/src/parsers` (ranked candidates, byte spans, abstain instead of clamp) with our own Thai grammar (Thai months, พ.ศ., Thai digits); the same parsers can make `groundedGuard` compare normalised values ("2 สัปดาห์" = "14 วัน").
