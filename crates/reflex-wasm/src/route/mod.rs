@@ -2,6 +2,7 @@
 //! against the recorded contract benchmark/golden/route.json (crates/reflex-wasm/tests/golden_route.rs).
 pub mod aspect;
 pub mod branches;
+pub mod dates;
 pub mod manual;
 mod patterns_src;
 pub mod programme;

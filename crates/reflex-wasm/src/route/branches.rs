@@ -1,9 +1,10 @@
 //! The first branches of the chat's decision order, in the order the page tries them (chatbot.html `_askCore`, 2026-11-07):
-//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee  8-9 programme_card / programme_pick  10-15 field_fee, free_study, career, finder, followup, free_fee
+//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee  8-9 programme_card / programme_pick  10-15 field_fee, free_study, career, finder, followup, free_fee  16 time_intent
 //! `decide_prefix` answers `Some(route)` when one of the ported branches fires and `None` ("continue with the branches not ported yet").
 //! The recorded contract (benchmark/golden/route.json, tests/golden_route.rs) checks this prefix exactly.
 
 use super::aspect::{asks_if_free, follow_up_aspect, is_generic_fee_question, is_tuition_question, mentions_free_study, names_a_fee};
+use super::dates::{dated_picks, time_intent};
 use super::manual::{Ctx, ProgState};
 use super::programme::{is_career_question, is_finder_question, is_level_only_question, resolve_programme_branch, ProgrammeOutcome};
 use super::patterns_src as p;
@@ -188,6 +189,14 @@ pub fn decide_prefix(typed: &str, ctx: &mut Ctx) -> Option<Route> {
         // 15: a yes/no question with a premise about fees
         if !pinned && asks_if_free(&q) && names_a_fee(&q) {
             return Some(Route::FreeFee);
+        }
+    }
+    // 16: "ตอนนี้ลงทะเบียนทันไหม": the dated schedules of the manual, nearest to today first
+    if !pinned && !staff_first {
+        if let Some(intent) = time_intent(&q) {
+            if !dated_picks(ctx.manual.entries(), intent, &ctx.today).is_empty() {
+                return Some(Route::TimeIntent);
+            }
         }
     }
     None

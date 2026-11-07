@@ -42,12 +42,12 @@
    (a) a ported branch on the page = the same branch in Rust; (b) any other branch on the page = `None` in Rust.
    Text functions are also checked one by one against the page's own code on 1,600+ strings: `benchmark/golden/route_text.json`
    (`node scripts/dump_route_text_golden.mjs`), `crates/reflex-wasm/tests/route_text.rs`.
-   - **Ported (16 of 34 routes):** text preparation (`norm_chat`, `strip_lead_in`, Thai digits), then in the page's order: `wellbeing`, `smalltalk`, `personal`, `stuck_pick`,
-     `restart`, `overview`, `catalogue_not_ready`, `generic_fee`, `programme_card`, `programme_pick`, `field_fee`, `free_study`, `career`, `finder`, `followup`, `free_fee`.
+   - **Ported (17 of 34 routes):** text preparation (`norm_chat`, `strip_lead_in`, Thai digits), then in the page's order: `wellbeing`, `smalltalk`, `personal`, `stuck_pick`,
+     `restart`, `overview`, `catalogue_not_ready`, `generic_fee`, `programme_card`, `programme_pick`, `field_fee`, `free_study`, `career`, `finder`, `followup`, `free_fee`, `time_intent` (`route::dates`: `date_span`, `time_intent`, `dated_picks`; today is an input, `Ctx.today`).
      `decide_prefix(typed, &mut Ctx)` now changes the programme in focus like the page (a card sets it; a picker, the finders, restart and generic_fee clear it).
      Helpers: `kb_rank` (native twin of `kb_search`), `route::Manual`, `Catalogue::resolve` (strict + loose), `follow_up_aspect`, `is_generic_fee_question`, `is_finder_question`,
      `is_level_only_question`, `english_programme_ask`, `is_career_question`, `is_tuition_question`.
-   - **Next, in order:** `time_intent` (`timeIntent` + `datedPicks`: needs today's date as an input), `scope_*` (`scopeClarify`), then the manual's tier (`decide_tier` exists;
+   - **Next, in order:** the verdict: `route_task` gate score (native `route_with_gate`), `decide_tier`, the account-problem override (`classify_issue`), `scope_*` (`scopeClarify`: ~100 lines, year / term / round), then the manual's tier (`decide_tier` exists;
      advice_* and kb_act / disambiguate), then the not-found family (`not_a_question`, `other_script`, `english_off_corpus`, `intake`, `unsure_programme`, `tuition_finder_nomatch`, `topic_picks`, `not_found`).
    - The remaining term/year rewrite of `normTermYear` ("เทอม 1/2569") is not ported; the programme and time branches read it.
 2. **State:** `decide_route(typed, &mut Ctx)` where `Ctx` holds `pinned`, the programme in focus (`PCTX`) and the catalogue/manual state. The 14 recorded sessions
@@ -70,5 +70,5 @@
 - The contract is tied to the manual: rebuild it (`--write`) when `knowledge-index.json`, `programmes.json` or the decision order changes ON PURPOSE.
 
 ## Status
-- 2026-11-07: step 0 done. Step 1 in Rust: 16 of the 34 routes are ported (everything up to and including free_fee); all 1,927-entry contract (1,859 single questions + 68 session turns replayed with the programme in focus carried over) and 2,022 text cases (normChat, wellbeingKind, personalAsk, stuckTopic, isRestartPhrase, isOverviewQuestion, hasStudyIntent, followUpAspect, isGenericFeeQuestion, isFinderQuestion, isLevelOnlyQuestion, englishProgrammeAsk) match the page.
+- 2026-11-07: step 0 done. Step 1 in Rust: 17 of the 34 routes are ported (everything up to and including time_intent); the whole contract (single questions + 68 session turns replayed with the programme in focus carried over), 2,053 text cases and 33 datedPicks cases (normChat, wellbeingKind, personalAsk, stuckTopic, isRestartPhrase, isOverviewQuestion, hasStudyIntent, followUpAspect, isGenericFeeQuestion, isFinderQuestion, isLevelOnlyQuestion, englishProgrammeAsk) match the page.
 - Found by the differential test: the page's `normalize('NFC')` DOES change Thai text (it reorders a tone mark typed before a lower vowel); the port reproduces that reordering for Thai. NFC composition of other scripts (Latin e + U+0301) is not ported (documented in route/text.rs).

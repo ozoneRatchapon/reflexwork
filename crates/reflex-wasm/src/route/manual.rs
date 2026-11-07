@@ -9,6 +9,12 @@ pub struct ManualEntry {
     pub keywords: String,
     /// A live staff answer (never in the published index; the page adds them at run time).
     pub staff: bool,
+    pub category: String,
+    /// the answer text as served (dates are read from it)
+    pub answer: String,
+    /// `academic_year` / `semester` tags of a dated entry
+    pub academic_year: Option<String>,
+    pub semester: Option<String>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -75,6 +81,8 @@ pub struct Ctx<'a> {
     pub prog_state: ProgState,
     /// the programme the last card was about (`PCTX`), if any: follow-up questions refer to it
     pub programme_in_focus: Option<String>,
+    /// today's date, `YYYY-MM-DD` (the Asia/Bangkok day), supplied by the caller: the decision never reads a clock
+    pub today: String,
     /// the programme catalogue, when this deployment has one and it is loaded (`prog_state == Ok`)
     pub catalogue: Option<&'a crate::resolve::Catalogue>,
     pub manual: &'a Manual,
