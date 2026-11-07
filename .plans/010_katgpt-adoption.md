@@ -39,6 +39,12 @@ is the one way found to get part of that without a model per question, and it ne
    - **Golden min-count:** golden tests assert a minimum fixture count.
    - **Test the shipped file:** run golden against the shipped wasm file.
 
+## Thai vocabulary (asked 2026-11-07: build a Thai word store like the English side?)
+- What the English side of katgpt-rs actually is: not a dictionary. `katgpt-extract/src/parsers/{words,datetime}.rs` hold small CLOSED lists (number words, ordinals, months, units) for deterministic typed parsers; the tokenizer crate has BPE/trie code. No general English word list was found.
+- Measured here (`benchmark/synth/010_segment_vs_trigram.md`): a Thai word vocabulary (Node's ICU dictionary segmenter as a stand-in) does NOT beat character trigrams for finding the right entry: words alone 45.8% vs trigrams 53.8% (Thai held-out), words+trigrams 54.2% (+0.4, noise), words+bigrams 50.4%; official FAQ 84.5% vs 94.4%. The misses are meaning (different words), not tokenisation, so a dictionary does not touch them.
+- Worth building: the Thai equivalent of the English closed lists - Thai months and abbreviations, Thai digits, Buddhist-era years, Thai number words, units (วัน สัปดาห์ เดือน บาท หน่วยกิต), ordinals, day names - for the answer-type check (`missingTypes`) and for value-normalised grounding. Small, no licence question, written from the manual's own usage.
+- klangkid.vercel.app (คลังคิด): a dictionary web app built for a Royal Society of Thailand / NECTEC hackathon, "not an official service of any agency". Its terms: words and definitions come from the Royal Society's dictionaries (2542, 2554, 2569 draft) "used under conditions set by the Office"; extras from Thai WordNet and Thai Wiktionary (CC BY-SA 4.0) are unreviewed and starred; no bulk download is offered (only fonts and logos); it has a public API (Swagger at /api/docs) whose terms for programmatic use I did not read. Do NOT vendor its word data without the Royal Society's permission; query expansion with unreviewed WordNet synonyms is the kind of change that already hurt retrieval (doc2query, 002).
+
 ## Do not take (and why)
 - katgpt-core as a dependency (pulls rayon, fastrand, blake3, serde, postcard; vendor single files instead, MIT).
 - micro-belief attractors / latent thoughts, personality composition, sense octree, PKM / lattice memory, Procrustes adapters (game or transformer internals; several failed their own gates).

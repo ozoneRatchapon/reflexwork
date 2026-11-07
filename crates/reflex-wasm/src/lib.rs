@@ -14,6 +14,7 @@ pub mod decide;
 pub mod intake;
 pub mod resolve;
 mod re;
+pub mod route;
 pub mod understand;
 
 use blake3::Hasher;

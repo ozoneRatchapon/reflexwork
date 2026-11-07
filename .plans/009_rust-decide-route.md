@@ -34,24 +34,24 @@
       - `topicPicks`;
       - decline.
 
-## Steps (one PR each, each shippable)
-0. **Golden route contract.** Record the route for every question in a large pool, in the real page:
-   - Pool:
-     - `benchmark/rules` 387 questions;
-     - synthetic questions `benchmark/synth/questions_001.json` (~1,000);
-     - the e2e journeys, for follow-up state.
-   - Tool: `benchmark/rules/branch_hits.mjs` already records the route label in headless Chrome. Extend it to write a stable machine name per branch: add `data-route="..."` to each bubble in the page (view only, no behaviour change).
-1. **Pure JS `routeOf(q, ctx)`.** It returns the variant plus the data the renderer needs. `_askCore` becomes:
-   - `const r = routeOf(q, ctx)`;
-   - then `switch(r.kind)` → the existing renderers, unchanged.
-   - Golden must stay identical. This step is the risky one (state: `PCTX`, `PIN`, `PROG_STATE`, `_pre`); do it alone.
-2. **Rust `decide_route`.**
-   - Code: `crates/reflex-wasm/src/route/{mod.rs,types.rs,decide.rs}`, with `enum Route`, `struct RouteCtx {pinned, prog_state, pctx, staff_first, ...}` and a `match` chain.
-   - Missing predicates get ported into Rust first, each against its own golden: `wellbeing_kind`, `personal_ask`, `stuck_topic`, `time_intent`, `follow_up_aspect`, `is_overview`, `is_restart`, `is_career`, `is_finder`, `is_level_only`, `is_tuition`, `is_generic_fee`.
-3. **Switch the page** to the wasm `decide_route` behind the existing JS fallback (`?engine=js`):
-   - A/B on the golden pool must be identical.
-   - Then run e2e, smoke ×4 and `wasm_golden_check`.
-4. **LINE loads the same wasm.** Measure Workers cold start first. LINE then gets the same routes, including the new version labels.
+## Steps (owner decision 2026-11-07: Rust directly - no intermediate JS `routeOf`)
+0. **DONE** - contract: `benchmark/golden/route.json` (see below).
+1. **Port the branches into `crates/reflex-wasm/src/route/` in the order the page tries them.** An ORDERED PREFIX is always exact:
+   `decide_prefix(typed, pinned) -> Option<Route>`; `None` = "continue with the branches not ported yet".
+   After each branch, add it to `PORTED` in `crates/reflex-wasm/tests/golden_route.rs`. The test then requires, for every recorded single question:
+   (a) a ported branch on the page = the same branch in Rust; (b) any other branch on the page = `None` in Rust.
+   Text functions are also checked one by one against the page's own code on 1,600+ strings: `benchmark/golden/route_text.json`
+   (`node scripts/dump_route_text_golden.mjs`), `crates/reflex-wasm/tests/route_text.rs`.
+   - **Ported:** text preparation (`norm_chat`, `strip_lead_in`, Thai digits), `wellbeing`, `smalltalk`, `personal`, `restart`, `overview`.
+   - **Next, in order:** `stuck_pick` (needs the manual's search natively: `kb_search` internals in lib.rs are private to the wasm entry point),
+     `catalogue_not_ready`, `generic_fee`, the programme branches (`Resolver` exists), `time_intent`, `followup` (needs `PCTX` as an input and an output),
+     `scope_*` (`scopeClarify`), the KB tier (`decide_tier` exists), then the not-found family (`english_off_corpus`, `intake`, `topic_picks`, `not_found`).
+   - The remaining term/year rewrite of `normTermYear` ("เทอม 1/2569") is not ported; the programme and time branches read it.
+2. **State:** `decide_route(typed, &mut Ctx)` where `Ctx` holds `pinned`, the programme in focus (`PCTX`) and the catalogue/manual state. The 14 recorded sessions
+   in the contract are the test for it.
+3. **Switch the page** to the wasm `decide_route` (`?engine=js` keeps the old path until the switch is proven): contract identical on all entries,
+   e2e, smoke x4, `wasm_golden_check`. Then delete the JS branch order.
+4. **LINE loads the same wasm.** Measure Workers cold start first.
 
 ## Rules
 - The UI stays JS (view only).
@@ -67,4 +67,5 @@
 - The contract is tied to the manual: rebuild it (`--write`) when `knowledge-index.json`, `programmes.json` or the decision order changes ON PURPOSE.
 
 ## Status
-- 2026-11-07: step 0 done (above). Steps 1-4 not started.
+- 2026-11-07: step 0 done. Step 1 started in Rust: 5 of the 34 routes are ported (wellbeing, smalltalk, personal, restart, overview); all 1,579 recorded single questions and 1,662 text cases match the page.
+- Found by the differential test: the page's `normalize('NFC')` DOES change Thai text (it reorders a tone mark typed before a lower vowel); the port reproduces that reordering for Thai. NFC composition of other scripts (Latin e + U+0301) is not ported (documented in route/text.rs).
