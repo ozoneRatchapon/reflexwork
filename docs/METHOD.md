@@ -46,6 +46,8 @@ Weights are **hand-seeded priors**, not fitted: `w[8]=4.0, w[0]=1.5, w[1]=1.2, w
 
 **Fingerprint, not proof.** Browser: `BLAKE3(input ‖ route ‖ category)`; native: `BLAKE3(H(task) ‖ H(policy snapshot) ‖ H(decision))`. Both let anyone recompute the same digest from the same inputs (replay / tamper-evidence). Neither proves the decision was *correct*, and the browser variant does not commit to the weights. **Replay holds within one implementation only:** the browser WASM, the edge worker (`integrations/kernel-worker`, a JS port) and the native kernel build the digest differently (`input‖route‖category` vs `input|route` vs a three-hash composite). Measured on identical inputs, the browser and the edge worker produce the **same gate score (equal to 6 decimals) but different fingerprints** — so a digest from one cannot be replayed on the other.
 
+**Answer receipt (2026-11-07).** The fingerprint above does not cover the answer. The page now also shows (judge view, under any answer taken from a manual entry) `receipt = BLAKE3(JSON[v1, question, route, entry id, entry digest, manual root])`, where the entry digest hashes the entry as served and the manual root hashes every `id:digest` line of the manual the page held. It is produced by the wasm export `blake3_text` and recomputed by `scripts/verify_receipt.mjs` with an independent JS BLAKE3 (`tests/receipt.test.mjs`: wasm == JS on all 132 entries; any change to the question, route, served entry, or ANY other entry changes it). It shows that an answer matches *this version of the manual*; it does not show the manual is right, does not cover the AI's rephrasing, and is neither signed nor stored server-side.
+
 ### 3.2 KB retrieval (`_jsSearch` ≡ `kb_search`; lockstep 52/52 tested)
 
 ```
