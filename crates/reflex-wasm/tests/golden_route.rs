@@ -10,7 +10,7 @@ use reflex_wasm::route::{decide_prefix, Config, Ctx, Manual, ManualEntry, ProgSt
 use serde_json::Value;
 
 /// The branches ported so far. Add one here when it lands in `decide_prefix`.
-const PORTED: &[Route] = &[Route::Wellbeing, Route::Smalltalk, Route::Personal, Route::StuckPick, Route::Restart, Route::Overview, Route::CatalogueNotReady];
+const PORTED: &[Route] = &[Route::Wellbeing, Route::Smalltalk, Route::Personal, Route::StuckPick, Route::Restart, Route::Overview, Route::CatalogueNotReady, Route::GenericFee];
 
 /// The manual the contract was recorded against: the published index (python3 submissions/build_knowledge_index.py writes it; CI builds it first).
 fn manual() -> Manual {
@@ -31,7 +31,7 @@ fn ported_prefix_matches_the_recorded_routes() {
         let want = Route::from_name(want_name).unwrap_or_else(|| panic!("unknown route {want_name:?} in the contract"));
         // mode "nocat" = the page was served with programmes.json answering 500 (the catalogue failed to load); every other mode has it loaded
         let prog_state = if r.get("mode").and_then(|m| m.as_str()) == Some("nocat") { ProgState::Failed } else { ProgState::Ok };
-        let got = decide_prefix(q, &Ctx { pinned: false, prog_state, manual: &manual, config: Config::default() });
+        let got = decide_prefix(q, &Ctx { pinned: false, prog_state, programme_in_focus: None, manual: &manual, config: Config::default() });
         checked += 1;
         let ok = match PORTED.contains(&want) {
             true => {

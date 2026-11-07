@@ -1,8 +1,9 @@
 //! The first branches of the chat's decision order, in the order the page tries them (chatbot.html `_askCore`, 2026-11-07):
-//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready
+//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready  7 generic_fee
 //! `decide_prefix` answers `Some(route)` when one of the ported branches fires and `None` ("continue with the branches not ported yet").
 //! The recorded contract (benchmark/golden/route.json, tests/golden_route.rs) checks this prefix exactly.
 
+use super::aspect::{asks_if_free, follow_up_aspect, is_generic_fee_question, names_a_fee};
 use super::manual::{Ctx, ProgState};
 use super::patterns_src as p;
 use super::study_intent::catalogue_notice;
@@ -130,6 +131,12 @@ pub fn decide_prefix(typed: &str, ctx: &Ctx) -> Option<Route> {
     // 6: the catalogue is not usable and the question reads like a programme question
     if !pinned && matches!(ctx.prog_state, ProgState::Loading | ProgState::Failed) && catalogue_notice(&q) {
         return Some(Route::CatalogueNotReady);
+    }
+    // 7: "ค่าเทอมเท่าไร" with no programme or field: fees differ per programme, so open the fee finder (unless it is a follow-up about the programme in focus)
+    if !pinned && ctx.prog_state == ProgState::Ok && names_a_fee(&q) && !asks_if_free(&q) && is_generic_fee_question(&q)
+        && !(ctx.programme_in_focus.is_some() && follow_up_aspect(&q).is_some())
+    {
+        return Some(Route::GenericFee);
     }
     None
 }

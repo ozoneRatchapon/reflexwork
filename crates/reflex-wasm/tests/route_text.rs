@@ -3,6 +3,7 @@
 //! Run: cargo test -p reflex-wasm --test route_text
 use reflex_wasm::route::branches::{is_overview_question, is_restart_phrase, personal_ask, wellbeing_kind};
 use reflex_wasm::route::text::norm_chat;
+use reflex_wasm::route::aspect::{follow_up_aspect, is_generic_fee_question};
 use reflex_wasm::route::study_intent::has_study_intent;
 use reflex_wasm::route::stuck::stuck_topic;
 use reflex_wasm::route::Personal;
@@ -31,7 +32,9 @@ fn text_functions_match_the_page() {
         let json_of = |p: Option<Personal>| p.map(|p| Value::from(match p { Personal::Other => "other", Personal::SelfRecord => "self" })).unwrap_or(Value::Null);
         // stuckTopic: null -> not stuck, "" -> stuck with no area named, otherwise the area key
         let stuck_key = |r: Option<Option<usize>>| match r { None => Value::Null, Some(None) => Value::from(""), Some(Some(i)) => Value::from(reflex_wasm::route::stuck::cat_key(i)) };
-        let raw: [(&str, Value, Value); 6] = [
+        let raw: [(&str, Value, Value); 8] = [
+            ("aspect", c["aspect"].clone(), follow_up_aspect(t).map(Value::from).unwrap_or(Value::Null)),
+            ("genericFee", c["genericFee"].clone(), is_generic_fee_question(t).into()),
             ("study", c["study"].clone(), has_study_intent(t).into()),
             ("stuck", c["stuck"].clone(), stuck_key(stuck_topic(t))),
             ("wellbeing", c["wellbeing"].clone(), wellbeing_kind(t).map(Value::from).unwrap_or(Value::Null)),

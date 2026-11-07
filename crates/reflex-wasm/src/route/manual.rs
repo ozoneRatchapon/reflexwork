@@ -73,6 +73,8 @@ pub struct Ctx<'a> {
     /// the user tapped a topic chip (it skips the personal / stuck / programme paths)
     pub pinned: bool,
     pub prog_state: ProgState,
+    /// the programme the last card was about (`PCTX`), if any: follow-up questions refer to it
+    pub programme_in_focus: Option<String>,
     pub manual: &'a Manual,
     pub config: Config,
 }

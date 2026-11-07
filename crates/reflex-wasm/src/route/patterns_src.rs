@@ -23,3 +23,15 @@ pub const WB_STRESS: Re = Re { src: r#"ซึมเศร้า|เครีย�
 pub const NOT_STUDY: Re = Re { src: r#"พัก(?:การ)?เรียน|ผลการเรียน|ตารางเรียน|(?:ยัง|กำลัง)เรียน(?:อยู่|ไม่จบ)?|ระหว่างเรียน|เรียนไม่จบ|เรียน(?:วัน)?เสาร์|นั่งเรียน|เรียนออนไลน์|(?:ฝ่าย|งาน|เจ้าหน้าที่)รับสมัคร|ภาพรวมการสมัคร|ปฏิทินการศึกษา|จบการศึกษา|ลาศึกษา|ใบปริญญา|ปริญญาบัตร|(?:ระบบ)?(?:ทวิภาค|ไตรภาค)(?:เรียน)?|ระบบการศึกษา|เรียนระบบ"#, flags: "" };   // global in the page: used with replace_all
 pub const STUDY_WORDS: Re = Re { src: r#"เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply"#, flags: "i" };
 pub const CAREER_OR_OPEN: Re = Re { src: r#"เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร"#, flags: "" };   // the extra words that also trigger the catalogue notice
+
+// Fee-question helpers (chatbot.html `_P_FREEQ`, `_P_ASPECT`, `followUpAspect`, `isGenericFeeQuestion`), copied 2026-11-07.
+pub const FREE_Q: Re = Re { src: r#"ฟรี|ไม่เสียค่า|ไม่มีค่า(?:ใช้จ่าย|เทอม|ธรรมเนียม)|เรียนฟรี|free of charge|\bfree\b"#, flags: "i" };
+pub const ASPECT_DOCS: Re = Re { src: r#"เอกสาร|หลักฐาน|ใช้อะไรบ้าง|documents?"#, flags: "i" };
+pub const ASPECT_ELIG: Re = Re { src: r#"คุณสมบัติ|จบ(?:อะไร|สาขา|ป\.?ตรี)|เกรดเฉลี่ย|\bgpa\b|eligib|requirements?"#, flags: "i" };
+pub const ASPECT_ENGLISH: Re = Re { src: r#"ภาษาอังกฤษ|อังกฤษ|toefl|ielts|english"#, flags: "i" };
+pub const ASPECT_SCHEDULE: Re = Re { src: r#"สอบ|สัมภาษณ์|ประกาศผล|กำหนดการ|ปิดรับวัน|สมัครได้ถึง|ถึงวันไหน|วันไหน|เมื่อไหร่|เมื่อไร|deadline|interview|schedule|รอบ"#, flags: "i" };
+pub const ASPECT_STATUS: Re = Re { src: r#"เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับ(?:สมัคร)?(?:อยู่)?ไหม|\bopen\b"#, flags: "i" };
+pub const PROGRAMME_CODE: Re = Re { src: r#"\d{4}[MDNC]\d{2}[GS]"#, flags: "i" };
+pub const GENERAL_WORDS: Re = Re { src: r#"มหิดล|บัณฑิตวิทยาลัย|ทั่วไป|ทุกหลักสูตร|mahidol"#, flags: "i" };
+pub const FEE_WORDS: Re = Re { src: r#"ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย|ค่าเรียน|เหมาจ่าย|tuition|fees?"#, flags: "" };
+pub const FEE_FILLER: Re = Re { src: r#"เท่าไหร่|เท่าไร|เท่าใด|กี่บาท|โดยทั่วไป|ทั่วไป|ปกติ|ปริญญา(?:โท|เอก)|ป\.?(?:โท|เอก)|โท|เอก|ระดับ|หลักสูตร|ไหม|มั้ย|มี|ครับ|ค่ะ|คะ|นะ|หน่อย|ขอ|อยากรู้|ของ|ที่นี่|ปี|ละ|ล่ะ|แล้ว|how much|is|the|what|are|for|master'?s?|phd|doctoral?"#, flags: "" };
