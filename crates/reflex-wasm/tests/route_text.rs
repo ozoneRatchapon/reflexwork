@@ -3,6 +3,8 @@
 //! Run: cargo test -p reflex-wasm --test route_text
 use reflex_wasm::route::branches::{is_overview_question, is_restart_phrase, personal_ask, wellbeing_kind};
 use reflex_wasm::route::text::norm_chat;
+use reflex_wasm::route::study_intent::has_study_intent;
+use reflex_wasm::route::stuck::stuck_topic;
 use reflex_wasm::route::Personal;
 use serde_json::Value;
 
@@ -27,7 +29,11 @@ fn text_functions_match_the_page() {
         }
         // the dump ran the predicates on the RAW text (the page runs them on the normalised text; both are covered by comparing the same input on both sides)
         let json_of = |p: Option<Personal>| p.map(|p| Value::from(match p { Personal::Other => "other", Personal::SelfRecord => "self" })).unwrap_or(Value::Null);
-        let raw: [(&str, Value, Value); 4] = [
+        // stuckTopic: null -> not stuck, "" -> stuck with no area named, otherwise the area key
+        let stuck_key = |r: Option<Option<usize>>| match r { None => Value::Null, Some(None) => Value::from(""), Some(Some(i)) => Value::from(reflex_wasm::route::stuck::cat_key(i)) };
+        let raw: [(&str, Value, Value); 6] = [
+            ("study", c["study"].clone(), has_study_intent(t).into()),
+            ("stuck", c["stuck"].clone(), stuck_key(stuck_topic(t))),
             ("wellbeing", c["wellbeing"].clone(), wellbeing_kind(t).map(Value::from).unwrap_or(Value::Null)),
             ("personal", c["personal"].clone(), json_of(personal_ask(t))),
             ("restart", c["restart"].clone(), is_restart_phrase(t).into()),

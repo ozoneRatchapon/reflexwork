@@ -273,18 +273,18 @@ fn strip_query_fillers(q: &str) -> String {
 }
 
 #[derive(Deserialize)]
-struct KbEntryIn {
-    id: String,
-    keywords: String,
+pub struct KbEntryIn {
+    pub id: String,
+    pub keywords: String,
 }
 
-#[derive(Serialize)]
-struct KbHit {
-    id: String,
+#[derive(Serialize, Clone, Debug)]
+pub struct KbHit {
+    pub id: String,
     /// integer gate score (preserves decideTier's s>=4 / s>=6 contract)
-    s: i32,
-    cos: f32,
-    overlap: i32,
+    pub s: i32,
+    pub cos: f32,
+    pub overlap: i32,
 }
 
 /// Lexical overlap may only RAISE a candidate the vector already supports: below this cosine (= the lowest
@@ -334,6 +334,11 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
         Ok(v) => v,
         Err(_) => return serde_wasm_bindgen::to_value(&Vec::<KbHit>::new()).unwrap(),
     };
+    serde_wasm_bindgen::to_value(&kb_rank(&entries, query)).unwrap()
+}
+
+/// The ranking behind `kb_search`, callable from Rust (the decision order in `route` searches the manual with it).
+pub fn kb_rank(entries: &[KbEntryIn], query: &str) -> Vec<KbHit> {
     let n = entries.len().max(1) as f32;
     // document grams + document frequency
     let doc_grams: Vec<Vec<String>> = entries.iter().map(|e| gram_set(&e.keywords)).collect();
@@ -402,7 +407,7 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
         let ov_lead = if i == 0 { h.overlap - runner_overlap } else { 0 };
         h.s = cos_to_score(h.cos, margin, h.overlap, ov_lead);
     }
-    serde_wasm_bindgen::to_value(&scored).unwrap()
+    scored
 }
 
 // ─── Smalltalk intent scorer: sigmoid-gated, signed weights (never softmax) ──

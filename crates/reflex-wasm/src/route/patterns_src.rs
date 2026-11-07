@@ -18,3 +18,8 @@ pub const RESTART: Re = Re { src: r#"^(?:ยกเลิก|เริ่มใ�
 pub const WB_CRISIS: Re = Re { src: r#"ฆ่าตัวตาย|อยากตาย|ไม่อยากมีชีวิต|ทำร้ายตัวเอง|ล่วงละเมิด|ข่มขืน|คุกคามทางเพศ|suicid|kill myself|self.?harm"#, flags: "i" };
 // JS: ท้อ(?!ง)  ->  ท้อ(?:[^ง]|$)
 pub const WB_STRESS: Re = Re { src: r#"ซึมเศร้า|เครียด|ท้อ(?:[^ง]|$)|หมดไฟ|เหนื่อยมาก|เหนื่อยจัง|เรียนไม่ไหว|ไม่ไหวแล้ว|อยากเลิกเรียน|วิตกกังวล|นอนไม่หลับ|depress|burn.?out|overwhelm"#, flags: "i" };
+
+// hasStudyIntent (chatbot.html): the programme-path signal. JS `สมัคร(?!สอบ)` is handled in code: "สมัครสอบ" is blanked out first (see study_intent.rs).
+pub const NOT_STUDY: Re = Re { src: r#"พัก(?:การ)?เรียน|ผลการเรียน|ตารางเรียน|(?:ยัง|กำลัง)เรียน(?:อยู่|ไม่จบ)?|ระหว่างเรียน|เรียนไม่จบ|เรียน(?:วัน)?เสาร์|นั่งเรียน|เรียนออนไลน์|(?:ฝ่าย|งาน|เจ้าหน้าที่)รับสมัคร|ภาพรวมการสมัคร|ปฏิทินการศึกษา|จบการศึกษา|ลาศึกษา|ใบปริญญา|ปริญญาบัตร|(?:ระบบ)?(?:ทวิภาค|ไตรภาค)(?:เรียน)?|ระบบการศึกษา|เรียนระบบ"#, flags: "" };   // global in the page: used with replace_all
+pub const STUDY_WORDS: Re = Re { src: r#"เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply"#, flags: "i" };
+pub const CAREER_OR_OPEN: Re = Re { src: r#"เรียนไรดี|ทำงานอะไรดี|หลักสูตร|เปิดรับสมัคร"#, flags: "" };   // the extra words that also trigger the catalogue notice

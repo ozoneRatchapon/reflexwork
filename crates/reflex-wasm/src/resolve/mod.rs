@@ -2,7 +2,7 @@
 //! `submissions/ui/chatbot.html`; contract: `benchmark/golden/resolve.json` (527 questions, strict + loose).
 //! Index only: the regexes come verbatim from the page (`patterns_src.rs` is generated), `patterns.rs` compiles them.
 mod index;
-mod patterns;
+pub(crate) mod patterns;
 mod patterns_src;
 mod resolver;
 mod text;

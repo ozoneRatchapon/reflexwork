@@ -1,9 +1,12 @@
 //! The first branches of the chat's decision order, in the order the page tries them (chatbot.html `_askCore`, 2026-11-07):
-//!   1 wellbeing  2 smalltalk  3 personal  4 stuck (NOT ported yet: needs the manual's search)  5 restart / overview
+//!   1 wellbeing  2 smalltalk  3 personal  4 stuck  5 restart / overview  6 catalogue_not_ready
 //! `decide_prefix` answers `Some(route)` when one of the ported branches fires and `None` ("continue with the branches not ported yet").
 //! The recorded contract (benchmark/golden/route.json, tests/golden_route.rs) checks this prefix exactly.
 
+use super::manual::{Ctx, ProgState};
 use super::patterns_src as p;
+use super::study_intent::catalogue_notice;
+use super::stuck::stuck_fires;
 use super::text::{norm_chat, slice_utf16, strip_lead_in, thai_digits_to_ascii};
 use super::types::Route;
 use crate::re::{compile, compile_src, is_js_space};
@@ -104,7 +107,8 @@ pub fn is_overview_question(text: &str) -> bool {
 }
 
 /// The ported prefix of the decision order for one typed question. `pinned` = the user tapped a topic chip (it skips the personal / stuck paths).
-pub fn decide_prefix(typed: &str, pinned: bool) -> Option<Route> {
+pub fn decide_prefix(typed: &str, ctx: &Ctx) -> Option<Route> {
+    let pinned = ctx.pinned;
     let q = prepare(typed);
     if wellbeing_kind(&q).is_some() {
         return Some(Route::Wellbeing);
@@ -115,10 +119,17 @@ pub fn decide_prefix(typed: &str, pinned: bool) -> Option<Route> {
     if !pinned && personal_ask(&q).is_some() {
         return Some(Route::Personal);
     }
-    // 4: stuck_pick is not ported yet
-    match (is_restart_phrase(&q), is_overview_question(&q)) {
-        (true, _) => Some(Route::Restart),
-        (_, true) => Some(Route::Overview),
-        _ => None,
+    if !pinned && stuck_fires(&q, ctx.manual, &ctx.config) {
+        return Some(Route::StuckPick);
     }
+    match (is_restart_phrase(&q), is_overview_question(&q)) {
+        (true, _) => return Some(Route::Restart),
+        (_, true) => return Some(Route::Overview),
+        _ => {}
+    }
+    // 6: the catalogue is not usable and the question reads like a programme question
+    if !pinned && matches!(ctx.prog_state, ProgState::Loading | ProgState::Failed) && catalogue_notice(&q) {
+        return Some(Route::CatalogueNotReady);
+    }
+    None
 }
