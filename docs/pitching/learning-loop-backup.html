@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ReflexWork - ภาพสำรอง Q&amp;A: ระบบปรับปรุงคำตอบยังไง</title>
+<!-- Q&A backup only (not part of the 8-slide deck, not deployed). Open locally, press F for full screen.
+     Every box matches the code as of 2026-11-06: chatbot.html (personal refusal, gap log with masking, 👍/👎),
+     worker.mjs (/gap, /entry-conf list, /kb-autodraft, /kb-approve -> /live-kb, /kb-retract). Checked by tests/learning_loop_backup.test.mjs. -->
+<style>
+:root{--bg:#0f1115;--fg:#f2f2f2;--muted:#9aa3ad;--box:#1b1f27;--line:#3a414d;--ok:#4cc38a;--warn:#f0b429;--hand:#7aa7ff;--ai:#c79bff}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:clamp(14px,1.55vw,22px)/1.35 -apple-system,"Segoe UI","Noto Sans Thai",sans-serif}
+.wrap{min-height:100%;display:flex;flex-direction:column;padding:1.6vh 3vw;gap:.9vh}
+h1{margin:0;font-size:1.6em}h1 small{font-size:.55em;color:var(--muted);font-weight:400}
+.row{display:grid;gap:1.4vw;align-items:stretch}.r3{grid-template-columns:repeat(3,1fr)}.r1{grid-template-columns:1fr}
+.b{background:var(--box);border:2px solid var(--line);border-radius:12px;padding:1vh 1vw}
+.b .t{font-weight:700}.b .d{color:var(--muted);font-size:.85em}
+.ok{border-color:var(--ok)}.warn{border-color:var(--warn)}.hand{border-color:var(--hand)}.ai{border-color:var(--ai)}
+.down{text-align:center;color:var(--muted);font-size:1em;line-height:1}
+.start{justify-self:center;text-align:center;min-width:30%}
+.loop{display:flex;align-items:center;gap:1vw;justify-content:center;color:var(--ok);font-weight:700}
+.note{color:var(--muted);font-size:.8em;border-top:1px solid var(--line);padding-top:1vh}
+</style></head><body>
+<div class="wrap">
+  <h1>คำตอบดีขึ้นได้อย่างไร <small>· คนตัดสินทุกครั้ง ระบบไม่เปลี่ยนคำตอบเอง</small></h1>
+
+  <div class="row r1"><div class="b start"><div class="t">นักศึกษาถาม</div></div></div>
+  <div class="down">▼</div>
+
+  <div class="row r3">
+    <div class="b ok"><div class="t">มีในคู่มือ</div><div class="d">ตอบจากคู่มือ + ลิงก์ต้นทาง<br/>ข้อเท็จจริงไม่เรียก AI<br/>ผู้ใช้กด 👍 / 👎 ได้ทุกคำตอบ</div></div>
+    <div class="b warn"><div class="t">ไม่มีในคู่มือ</div><div class="d">บอกตรง ๆ ไม่แต่งคำตอบ<br/>บันทึกคำถามให้ทีม<br/>(ซ่อนอีเมลและเลขรหัสก่อนส่ง)</div></div>
+    <div class="b hand"><div class="t">ข้อมูลส่วนตัว</div><div class="d">ไม่ตอบ ไม่เดา<br/>บอกให้ติดต่อเจ้าหน้าที่<br/>และควรเตรียมอะไรไป</div></div>
+  </div>
+  <div class="down">▼</div>
+
+  <div class="row r3">
+    <div class="b"><div class="t">หัวข้อที่ถูก 👎 บ่อย</div><div class="d">แสดงเป็นรายการให้เจ้าหน้าที่ตรวจ<br/>(ไม่ได้เปลี่ยนคำตอบเอง)</div></div>
+    <div class="b"><div class="t">คำถามที่ตอบไม่ได้</div><div class="d">เรียงตามจำนวนครั้งที่ถาม<br/>เห็นว่าคู่มือขาดอะไร</div></div>
+    <div class="b ai"><div class="t">AI ช่วยร่างคำตอบ</div><div class="d">เป็นแค่ร่าง<br/>รออนุมัติทุกข้อ</div></div>
+  </div>
+  <div class="down">▼</div>
+
+  <div class="row r1"><div class="b hand start"><div class="t">เจ้าหน้าที่ตรวจและอนุมัติ</div><div class="d">จุดเดียวที่ตัดสินว่าอะไรขึ้นแชต</div></div></div>
+  <div class="down">▼</div>
+
+  <div class="row r3">
+    <div class="b ok"><div class="t">ขึ้นแชตภายในราว 15 วินาที</div><div class="d">มีป้าย “เจ้าหน้าที่ตอบ”</div></div>
+    <div class="b"><div class="t">ถอนออกได้ทันที</div><div class="d">ถ้าพบว่าผิด</div></div>
+    <div class="b"><div class="t">ทีมเพิ่มเข้าคู่มือถาวร</div><div class="d">คนเป็นผู้บันทึก ไม่ใช่ระบบ</div></div>
+  </div>
+  <div class="loop">↺ ครั้งหน้าคำถามเดียวกันตอบจากคู่มือได้</div>
+
+  <div class="note">ยังไม่ได้ทำ (แผน <code>.plans/008</code>): ให้ผู้ใช้บอกเหตุผลตอนกด 👎 เพื่อแก้ให้ถูกหัวข้อ · แก้หัวข้อเดิมแทนการสร้างใหม่ · วัดผลก่อนและหลังแก้</div>
+</div>
+<script>addEventListener('keydown',e=>{ if(e.key==='f'||e.key==='F'){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{}); } });</script>
+</body></html>

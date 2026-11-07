@@ -1,0 +1,9 @@
+{
+  "url": "https://reflexwork.pages.dev/chatbot?view=judge",
+  "hold": 3500,
+  "steps": [
+    { "ask": "สมัคร ITM", "hold": 3500 },
+    { "click": "ปริญญาโท · วิทยาศาสตรมหาบัณฑิต", "hold": 5000 },
+    { "click": "แล้วค่าเทอมล่ะ", "hold": 6000 }
+  ]
+}
