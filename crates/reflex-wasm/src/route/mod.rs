@@ -7,6 +7,7 @@ pub mod manual;
 mod patterns_src;
 pub mod programme;
 pub mod study_intent;
+pub mod term_year;
 pub mod stuck;
 mod stuck_src;
 pub mod text;

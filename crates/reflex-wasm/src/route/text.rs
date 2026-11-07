@@ -4,7 +4,7 @@
 //!   the vowel below it, found by the differential test on a recorded question) is `canonical_order_thai`. Composition of other scripts
 //!   (Latin `e` + U+0301 -> `é`) is not done: no NFC table is worth the wasm bytes, and Thai has no composition pairs.
 //! - `\p{Cf}` and `\p{Extended_Pictographic}` use tables generated from Node's Unicode data (scripts/gen_route_unicode_tables.mjs); a newer Unicode version in the browser can differ for characters added since.
-//! - the term/year rewrite of `normTermYear` ("เทอม 1/2569" -> "ภาคต้น ปีการศึกษา 2569") is NOT ported yet: no branch before the programme path reads it.
+//! - the term/year rewrite of `normTermYear` lives in `term_year.rs`.
 
 use super::unicode_tables::{in_ranges, FORMAT, PICTOGRAPHIC};
 use crate::re::{compile_src, is_js_space};

@@ -10,9 +10,10 @@ use super::programme::{is_career_question, is_finder_question, is_level_only_que
 use super::patterns_src as p;
 use super::study_intent::catalogue_notice;
 use super::stuck::stuck_fires;
-use super::text::{norm_chat, slice_utf16, strip_lead_in, thai_digits_to_ascii};
+use super::term_year::norm_term_year;
+use super::text::{norm_chat, slice_utf16, strip_lead_in};
 use super::types::Route;
-use crate::re::{compile, compile_src, is_js_space};
+use crate::re::{compile, is_js_space};
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
@@ -37,12 +38,6 @@ lazy_re!(restart, p::RESTART);
 lazy_re!(wb_crisis, p::WB_CRISIS);
 lazy_re!(wb_stress, p::WB_STRESS);
 
-/// `normTermYear`'s guard: only a registration / term question gets its digits and terms rewritten.
-fn term_words() -> &'static Regex {
-    static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile_src(r"ลงทะเบียน|กำหนดการ|เปิดภาค|ปิดภาค|เทอม|ซัมเมอร์|summer|add ?/? ?drop|ถอนรายวิชา", "i"))
-}
-
 fn trim_js(s: &str) -> &str {
     s.trim_matches(|c: char| is_js_space(c))
 }
@@ -58,10 +53,7 @@ pub fn prepare(typed: &str) -> String {
     let n = norm_chat(&t);
     let base = if n.is_empty() { t } else { n };
     let q = strip_lead_in(&base, |rest| smalltalk_kind(rest).is_some());
-    match term_words().is_match(&q) {
-        true => thai_digits_to_ascii(&q),   // the rest of normTermYear is not ported yet (see text.rs)
-        false => q,
-    }
+    norm_term_year(&q)
 }
 
 /// `wellbeingKind`: "crisis" first, then "stress".

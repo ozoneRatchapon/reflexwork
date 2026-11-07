@@ -3,6 +3,7 @@
 //! Run: cargo test -p reflex-wasm --test route_text
 use reflex_wasm::route::branches::{is_overview_question, is_restart_phrase, personal_ask, wellbeing_kind};
 use reflex_wasm::route::text::norm_chat;
+use reflex_wasm::route::term_year::norm_term_year;
 use reflex_wasm::route::dates::{date_span, time_intent, TimeIntent};
 use reflex_wasm::route::aspect::{follow_up_aspect, is_generic_fee_question};
 use reflex_wasm::route::programme::{english_programme_ask, is_finder_question, is_level_only_question};
@@ -34,7 +35,8 @@ fn text_functions_match_the_page() {
         let json_of = |p: Option<Personal>| p.map(|p| Value::from(match p { Personal::Other => "other", Personal::SelfRecord => "self" })).unwrap_or(Value::Null);
         // stuckTopic: null -> not stuck, "" -> stuck with no area named, otherwise the area key
         let stuck_key = |r: Option<Option<usize>>| match r { None => Value::Null, Some(None) => Value::from(""), Some(Some(i)) => Value::from(reflex_wasm::route::stuck::cat_key(i)) };
-        let raw: [(&str, Value, Value); 13] = [
+        let raw: [(&str, Value, Value); 14] = [
+            ("termYear", c["termYear"].clone(), norm_term_year(t).into()),
             ("dateSpan", c["dateSpan"].clone(), date_span(t).map(|(a, b)| serde_json::json!({"start": a, "end": b})).unwrap_or(Value::Null)),
             ("timeIntent", c["timeIntent"].clone(), time_intent(t).map(|i| Value::from(match i { TimeIntent::Registration => "registration", TimeIntent::Admissions => "admissions", TimeIntent::Any => "any" })).unwrap_or(Value::Null)),
             ("finder", c["finder"].clone(), is_finder_question(t).into()),

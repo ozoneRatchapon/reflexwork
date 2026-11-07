@@ -49,7 +49,7 @@
      `is_level_only_question`, `english_programme_ask`, `is_career_question`, `is_tuition_question`.
    - **Next, in order:** the verdict: `route_task` gate score (native `route_with_gate`), `decide_tier`, the account-problem override (`classify_issue`), `scope_*` (`scopeClarify`: ~100 lines, year / term / round), then the manual's tier (`decide_tier` exists;
      advice_* and kb_act / disambiguate), then the not-found family (`not_a_question`, `other_script`, `english_off_corpus`, `intake`, `unsure_programme`, `tuition_finder_nomatch`, `topic_picks`, `not_found`).
-   - The remaining term/year rewrite of `normTermYear` ("เทอม 1/2569") is not ported; the programme and time branches read it.
+   - `normTermYear` ("เทอม 1/2569" -> "ภาคต้น ปีการศึกษา 2569") is ported (`route::term_year`, lookaheads done by capturing the next character); `prepare()` uses it. Differential: 60 of 2,235 texts are changed by it, all identical to the page.
 2. **State:** `decide_route(typed, &mut Ctx)` where `Ctx` holds `pinned`, the programme in focus (`PCTX`) and the catalogue/manual state. The 14 recorded sessions
    in the contract are the test for it.
 3. **Switch the page** to the wasm `decide_route` (`?engine=js` keeps the old path until the switch is proven): contract identical on all entries,
