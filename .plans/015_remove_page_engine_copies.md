@@ -133,3 +133,19 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
   gradmahidol/run_benchmark.mjs. Each needs a decision: point it at the snapshot (a JS experiment) or at the Rust search.
 - Still JS on the page (page logic, not twins of a wasm export): `datedPicks`, `nearSpelling`, `_pLevel` / `_P_LEVEL`.
 
+## Step 6a done (2026-11-09): the nine research benchmarks
+- Rule: a benchmark that measures the product runs the page's Rust search / tier rule (`pageSearch`, `pageDecideTier`); a JS internal that an
+  experiment needs and the page no longer ships comes from the snapshot (`scripts/lib/chatbot_fns.mjs`: `REF_COMMIT` = 15ef269, `refHtml()`
+  via `git show`, `searchSource()`, `loadGramSet()`).
+- Rust only: compare/latency (JS-twin row dropped; the resolver block gets the wasm, broken since 3a), synth/eval, scale/probe,
+  gradmahidol/run_benchmark (gate band 0.60 / 0.80 copied from `decide/tier.rs` for its gate proxy).
+- Rust search + snapshot `_jsGramSet` as a feature: synth/distill, synth/distance_gate, synth/segment_vs_trigram, abstain/experiment.
+- compare/decision_rule: the shipped arm and decideTier are Rust; the two scorer variants are edits of the snapshot's JS `_cosToScore`.
+- Checked against the recorded results: decision_rule = 008 (all rows), synth eval = 001, distill = 005, distance_gate = 008,
+  segment_vs_trigram = 010 (all tables identical); latency matches the recorded WASM kb_search time (~4.4 ms; the removed JS twin was ~2 ms).
+  abstain/experiment: 23/27 rows identical; the 4 rows that fit a threshold on the raw cosine move by 0.1-0.2 points. Cause: Rust `cos` is
+  f32 (JS was f64); over 1056 questions the top entry, order and scores are identical, max cosine difference 3.8e-7. The JS snapshot
+  reproduces the record 27/27. Not a product difference; the record stays.
+- Not run: gradmahidol/run_benchmark (needs the external gm-corpus; syntax checked only). scale/probe has no recorded table.
+- `integrations/_shared/answer_points.mjs` comment points at the Rust port instead of the removed inline copy.
+

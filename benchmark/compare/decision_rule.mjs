@@ -1,4 +1,4 @@
-// What does the page REALLY do with a retrieval score? Measures the production decideTier() (extracted from chatbot.html) and variants.
+// What does the page REALLY do with a retrieval score? Measures the production decideTier() (the page's, Rust) and scoring variants.
 //   node benchmark/compare/decision_rule.mjs
 // For each rule, over the same questions:  in-corpus -> answered right / answered WRONG / asked which one / handed on;
 //                                          off-corpus -> answered (always wrong) / refused (right).
@@ -6,22 +6,22 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier, searchSource } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const evalSrc = readFileSync(join(root, 'tests/kb_search.test.mjs'), 'utf8');
-const search = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
-const src = html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0];
-const twinSrc = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
+// The variants are edits of the JS scorer (`_cosToScore` in the search block of the plan-015 snapshot; the page itself runs the Rust port).
+const twinSrc = searchSource() + 'return _jsSearch;';
 const LIFT6 = 'if(c>=0.15 && ov>=8 && ovLead>=4) return 6;', LIFT5 = 'if(c>=0.15 && ov>=5 && ovLead>=2) return 5;';   // the shipped rule since 2026-11-03
 if (!twinSrc.includes(LIFT6) || !twinSrc.includes(LIFT5)) throw new Error('_cosToScore changed: update the variants in this script');
 const mk = t => new Function('KB', t)(KB);
 const SCORERS = {
-  'shipped: overlap lifts only if cosine >= 0.15':       mk(twinSrc),
+  'shipped: overlap lifts only if cosine >= 0.15':       pageSearch(KB, html),
   'before 2026-11-03: overlap could lift any candidate': mk(twinSrc.replace(LIFT6, 'if(ov>=8 && ovLead>=4) return 6;').replace(LIFT5, 'if(ov>=5 && ovLead>=2) return 5;')),
   'cosine only (no overlap lift at all)':                mk(twinSrc.replace(LIFT6, '').replace(LIFT5, '')),
 };
-const decide = new Function(src + '\nreturn decideTier;')();
+const decide = pageDecideTier(html);
 const GATE = 0.061;
 const CASES = [...evalSrc.matchAll(/^\s*\['([^']+)',\s*(null|'[^']*'),\s*'([^']*)'\],?$/gm)].map(m => ({ q: m[1], exp: m[2] === 'null' ? null : m[2].slice(1, -1), kind: m[3] }));
 const ALT = new Function('return ' + evalSrc.match(/const ALT = (\{[\s\S]*?\n\});/)[1])();

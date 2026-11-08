@@ -16,11 +16,12 @@
 // USAGE
 //   CORPUS=/abs/path/to/gm-corpus/knowledge node benchmark/gradmahidol/run_benchmark.mjs
 //
-// This reuses the SAME _jsSearch algorithm extracted from chatbot.html, so the
+// This runs the page's own search() and decideTier() (Rust, the shipped wasm), so the
 // benchmark exercises production search, not a copy.
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const htmlPath = join(root, 'submissions/ui/chatbot.html');
@@ -82,21 +83,13 @@ for (const f of files) {
   });
 }
 
-// ---- 2. Extract production _jsSearch + decideTier from chatbot.html --------
+// ---- 2. The page's own search + decideTier (Rust kb_search and tier rule on the shipped wasm) --------
 const html = readFileSync(htmlPath, 'utf8');
-const sm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
-if (!sm) { console.error('could not extract _jsSearch from chatbot.html'); process.exit(1); }
-const block = sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
-const search = new Function('KB', block)(KB);
-
-// Extract the production decideTier() + its _BAND so we can replay the real
-// fast-path vs escalate decision (not a re-implementation). _BAND holds the
-// gate low/high thresholds.
-const bandM = html.match(/const _BAND\s*=\s*(\{[^}]*\})/);
-const _BAND = bandM ? Function('return ' + bandM[1])() : { low: 0.5, high: 0.72 };
-const dtM = html.match(/function decideTier\([\s\S]*?\n\}/);
-if (!dtM) { console.error('could not extract decideTier from chatbot.html'); process.exit(1); }
-const decideTier = new Function('_BAND', dtM[0] + '\nreturn decideTier;')(_BAND);
+const search = pageSearch(KB, html);
+// The production decideTier(): the real fast-path vs escalate decision (not a re-implementation).
+const decideTier = pageDecideTier(html);
+// The gate band of the tier rule (crates/reflex-wasm/src/decide/tier.rs BAND_LOW / BAND_HIGH), for the gate proxy below.
+const _BAND = { low: 0.60, high: 0.80 };
 
 // Gate proxy for headless Node (the WASM sigmoid gate is unavailable here).
 // Mirror chatbot.html's own fallback: fast feel → low gate, else high gate.
@@ -180,7 +173,7 @@ let r1 = 0, r3 = 0, absOk = 0, absTot = 0, answerable = 0;
 let fpAct = 0, fpOnAnswerable = 0, fpEscalateOnOff = 0;   // fast-path accounting
 const rows = [];
 for (const [q, cat] of CASES) {
-  // _jsSearch returns ranked [{e, s, cos, overlap}]; the entry is in .e
+  // search returns ranked [{e, s, cos, overlap}]; the entry is in .e
   const ranked = rankFor(q);
   const raw = ranked.slice(0, 3);
   const res = raw.map(r => r.e || r);

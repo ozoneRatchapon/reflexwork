@@ -8,9 +8,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, loadGramSet } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const { search, gramSet } = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {search:_jsSearch, gramSet:_jsGramSet};'))(KB);
+const search = pageSearch(KB, html), gramSet = loadGramSet();   // search: the page's (Rust); gramSet: the JS trigram set of the plan-015 snapshot (feature only)
 const idx = new Set(KB.map(e => e.id));
 const items = JSON.parse(R('benchmark/synth/questions_001.json')).items.filter(x => x.q && idx.has(x.source_id));
 const group = kind => { const m = new Map(); for (const x of items.filter(x => x.kind === kind)) { const a = m.get(x.source_id) || []; a.push(x); m.set(x.source_id, a); } return m; };

@@ -4,6 +4,7 @@
 // loadSearch, loadUnderstand). The page has no JS copies since plan 015 step 5, so the oracle loaders need `html` from a snapshot of a
 // commit that still has them: git show 15ef269:submissions/ui/chatbot.html > /tmp/chatbot_ref.html
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { classifyIssue, isAdvice, isEnglish } from "../../integrations/_shared/intake.mjs";
@@ -39,6 +40,27 @@ export function pageDecideTier(html = readFileSync(join(root, 'submissions/ui/ch
   if (!m) throw new Error('chatbot.html: decideTier() not found');
   wasmReady();
   return new Function('WASM', m[0] + '\nreturn decideTier;')(WASM);
+}
+
+// The last commit whose chatbot.html still has the JS copies (plan 015 step 4c). refHtml() reads that page from git, for the JS oracle and
+// for research experiments that need a JS internal (the trigram set, the scorer source) that the page no longer ships.
+export const REF_COMMIT = '15ef269';
+let _refHtml = null;
+export function refHtml() {
+  _refHtml ??= execFileSync('git', ['show', `${REF_COMMIT}:submissions/ui/chatbot.html`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 });
+  return _refHtml;
+}
+
+// The JS search block of a snapshot (`_jsGramSet` ... `_jsSearch`), as source. Experiments edit it to try scorer variants.
+export function searchSource(html = refHtml()) {
+  const a = html.indexOf('function _jsGramSet'), b = html.indexOf('function search(q)');
+  if (a < 0 || b < a) throw new Error('chatbot.html snapshot: search helpers not found');
+  return html.slice(a, b);
+}
+
+// JS experiment helper: the snapshot's character-trigram set (`_jsGramSet`), the feature the search scores on.
+export function loadGramSet(html = refHtml()) {
+  return new Function('KB', searchSource(html) + 'return _jsGramSet;')([]);
 }
 
 // JS oracle: the deterministic JS search of a pre-step-5 page snapshot, over a given KB array.

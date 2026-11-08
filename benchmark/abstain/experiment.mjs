@@ -5,12 +5,13 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, loadGramSet, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html'), evalSrc = R('tests/kb_search.test.mjs');
-const { jsSearch: search, gramSet } = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {jsSearch:_jsSearch, gramSet:_jsGramSet};'))(KB);
+const search = pageSearch(KB, html), gramSet = loadGramSet();   // search: the page's (Rust); gramSet: the JS trigram set of the plan-015 snapshot (feature only)
 const DF = new Map(); const GS = new Map(KB.map(e => [e.id, gramSet(e.keywords)])); for (const g of GS.values()) for (const t of g) DF.set(t, (DF.get(t) || 0) + 1);
 const idf = t => Math.log((KB.length + 1) / ((DF.get(t) || 0) + 1));
-const decide = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
+const decide = pageDecideTier(html);
 const FAQ = JSON.parse(R('benchmark/field/faq_questions.json')).items.map(it => ({ ...it, gold: new Set(it.gold_kb_ids) }));
 const typo = q => { const c = [...q]; let n = 0; for (let i = 2; i < c.length - 1 && n < 2; i += 7) { if (/[ก-ฮ]/.test(c[i])) { c.splice(i, 1); n++; } } return c.join(''); };
 const short = q => q.split(/\s+/).slice(0, 6).join(' ');

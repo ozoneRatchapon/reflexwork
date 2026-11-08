@@ -7,9 +7,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, loadGramSet } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const { shipped, gramSet } = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {shipped:_jsSearch, gramSet:_jsGramSet};'))(KB);
+const shipped = pageSearch(KB, html), gramSet = loadGramSet();   // search: the page's (Rust); gramSet: the JS trigram set of the plan-015 snapshot (feature only)
 const seg = new Intl.Segmenter('th', { granularity: 'word' });
 const words = t => [...seg.segment(String(t).toLowerCase())].filter(s => s.isWordLike).map(s => s.segment);
 const feats = {

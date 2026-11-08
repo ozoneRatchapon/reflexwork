@@ -8,9 +8,8 @@
 // Replaces _shared/humanize.mjs (2026-11-03). Graduate School staff said answers
 // "read oddly, long paragraphs, hard to read"; the old template glued an opener
 // ("ขั้นตอนเป็นแบบนี้ …") onto a one-paragraph answer.
-// answerPoints() MUST match the inline copy in submissions/ui/chatbot.html:
+// answerPoints() MUST match the web page's, which calls the Rust port (crates/reflex-wasm/src/answer, plan 015 step 5):
 // tests/answer_points_parity.test.mjs compares both over the whole knowledge index.
-// (One Rust implementation for both is planned: .plans/002_rust-core-migration.md.)
 // ----------------------------------------------------------------------------
 
 // "ส่วน" and "FAQ" are not split words (QA F17): they begin noun phrases and left bare "ส่วน" / "หน้า" points.
