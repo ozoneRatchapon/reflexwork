@@ -220,6 +220,19 @@ export function classify_smalltalk(text) {
 }
 
 /**
+ * The gate score of one ranked row, for the page's staff-supersede step (it re-scores the new top against the new runner-up).
+ * @param {number} cos
+ * @param {number} margin
+ * @param {number} overlap
+ * @param {number} overlap_lead
+ * @returns {number}
+ */
+export function cos_to_score(cos, margin, overlap, overlap_lead) {
+    const ret = wasm.cos_to_score(cos, margin, overlap, overlap_lead);
+    return ret;
+}
+
+/**
  * What to do after the search: `{action: "act"|"disambiguate"|"escalate", stage: "reflex"|"rethink"}` (port of `decideTier`).
  * `gate` may be NaN when the kernel gave no gate score.
  * @param {number} gate

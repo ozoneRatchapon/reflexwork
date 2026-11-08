@@ -10,7 +10,7 @@ const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (n, ok, d = '') => { console.log((ok ? '✓' : '✗') + ' ' + n + (ok ? '' : `  ← ${d}`)); ok ? pass++ : fail++; };
 const bm = html.match(/\/\/ <programme-resolve>([\s\S]*?)\/\/ <\/programme-resolve>/), lk = html.match(/\/\/ <linkify>([\s\S]*?)\/\/ <\/linkify>/), td = html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/);
-const { resolveProgramme } = new Function('WASM', 'ENG', td[1] + lk[1] + '\n' + bm[1] + '\nreturn {resolveProgramme};')(shippedWasm(), {});
+const { resolveProgramme } = new Function('WASM', td[1] + lk[1] + '\n' + bm[1] + '\nreturn {resolveProgramme};')(shippedWasm());
 // the follow-up decision is Rust's (plan 015 step 4c): with a programme card on screen, is this a follow-up about it, and which aspect
 const card = catalogue.PROG.find(p => /จิตวิทยาคลินิก/.test(p.title));
 const followUp = q => { const d = decisionOf(q, { programmeInFocus: card.code }); return d.route === 'followup' ? d.aspect : null; };

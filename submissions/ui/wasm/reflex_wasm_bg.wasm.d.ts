@@ -7,6 +7,7 @@ export const answer_points: (a: number, b: number) => number;
 export const blake3_text: (a: number, b: number, c: number) => void;
 export const classify_issue: (a: number, b: number) => number;
 export const classify_smalltalk: (a: number, b: number, c: number) => void;
+export const cos_to_score: (a: number, b: number, c: number, d: number) => number;
 export const decide_tier: (a: number, b: number, c: number) => number;
 export const fee_table: (a: number, b: number) => number;
 export const is_advice: (a: number, b: number) => number;

@@ -1,8 +1,10 @@
-// The chat page's "AI understands, the manual answers" step. Runs the real understand() from chatbot.html with a fake search,
+// The chat page's "AI understands, the manual answers" step. Runs the real understand() from chatbot.html (the Rust rule on the shipped
+// wasm, plan 015 step 5) with a fake search,
 // and checks the guards around it. Run: node tests/understand_step.test.mjs
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const page = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
@@ -12,7 +14,8 @@ check('understand() found', !!src);
 const E = id => ({ id, title: 'T-' + id });
 const table = { 'ลาพัก': [{ e: E('leave'), s: 6 }, { e: E('quit'), s: 2 }], 'พักเรียน': [{ e: E('leave'), s: 5 }],
   'กำกวม': [{ e: E('a'), s: 5 }, { e: E('b'), s: 4 }], 'อ่อน': [{ e: E('weak'), s: 3 }], 'ลาออก': [{ e: E('quit'), s: 6 }] };
-const understand = new Function('search', src[0] + 'return understand;')(p => table[p] || []);
+const KB = Object.values(table).flat().map(r => r.e).filter((e, i, a) => a.findIndex(x => x.id === e.id) === i);   // understand() maps the Rust ids back to KB entries
+const understand = new Function('WASM', 'KB', 'search', src[0] + 'return understand;')(shippedWasm(), KB, p => table[p] || []);
 const one = understand(['ลาพัก', 'พักเรียน']);
 check('phrases agreeing on one clear entry -> answer it', one.kind === 'one' && one.entry.id === 'leave' && one.score === 6 && one.via === 'ลาพัก', JSON.stringify(one));
 check('"not this" alternatives exclude the chosen entry', one.others.every(e => e.id !== 'leave') && one.others.some(e => e.id === 'quit'));

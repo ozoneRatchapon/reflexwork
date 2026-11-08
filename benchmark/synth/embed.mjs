@@ -7,12 +7,13 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const argv = process.argv.slice(2), pos = argv.filter((a, i) => !a.startsWith('--') && !(argv[i - 1] || '').startsWith('--'));
 const qPath = pos[0] || join(root, 'benchmark/synth/questions_001.json'), outPath = pos[1];
 const MODEL = (argv.includes('--model') && argv[argv.indexOf('--model') + 1]) || 'nomic-embed-text';
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const search = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
+const search = pageSearch(KB, html);
 const cachePath = `/tmp/rw_embed_${MODEL.replace(/\W/g, '_')}.json`, cache = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, 'utf8')) : {};
 const key = t => createHash('sha256').update(t).digest('hex').slice(0, 20);
 async function embed(texts) {

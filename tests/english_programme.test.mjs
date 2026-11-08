@@ -3,9 +3,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { loadChatbotFns } from '../scripts/lib/chatbot_fns.mjs';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..'), read = f => readFileSync(join(root, f), 'utf8');
-const h = read('submissions/ui/chatbot.html'), F = loadChatbotFns(), P = JSON.parse(read('submissions/ui/programmes.json')).programmes;
+const h = read('submissions/ui/chatbot.html'), F = new Function('WASM', ['linkify', 'programme-resolve'].map(n => h.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1]).join('') + '\nreturn { resolveProgramme };')(shippedWasm()), P = JSON.parse(read('submissions/ui/programmes.json')).programmes;
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 // the English pre-pass is Rust's since plan 015 step 4c (route/programme.rs `programme_match`): the router's programme route and its match

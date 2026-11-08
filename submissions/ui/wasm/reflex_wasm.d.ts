@@ -65,6 +65,11 @@ export function classify_issue(text: string): any;
 export function classify_smalltalk(text: string): string;
 
 /**
+ * The gate score of one ranked row, for the page's staff-supersede step (it re-scores the new top against the new runner-up).
+ */
+export function cos_to_score(cos: number, margin: number, overlap: number, overlap_lead: number): number;
+
+/**
  * What to do after the search: `{action: "act"|"disambiguate"|"escalate", stage: "reflex"|"rethink"}` (port of `decideTier`).
  * `gate` may be NaN when the kernel gave no gate score.
  */
@@ -125,6 +130,7 @@ export interface InitOutput {
     readonly blake3_text: (a: number, b: number, c: number) => void;
     readonly classify_issue: (a: number, b: number) => number;
     readonly classify_smalltalk: (a: number, b: number, c: number) => void;
+    readonly cos_to_score: (a: number, b: number, c: number, d: number) => number;
     readonly decide_tier: (a: number, b: number, c: number) => number;
     readonly fee_table: (a: number, b: number) => number;
     readonly is_advice: (a: number, b: number) => number;

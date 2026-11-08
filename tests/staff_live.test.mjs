@@ -4,6 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => readFileSync(join(root, f), 'utf8');
 const k = read('integrations/kernel-worker/worker.mjs'), chat = read('submissions/ui/chatbot.html'), dash = read('submissions/ui/dashboard.html');
@@ -30,7 +31,7 @@ check('G11: only the latest /live-kb request writes KB (sequence counter)', /con
 check('G12: an early question waits (<= 1.5 s) for the first live refresh', /LIVE_READY = Promise\.race\(\[refreshLiveKb\(\), new Promise\(r=>setTimeout\(r,1500\)\)\]\)/.test(chat) && /if\(typed && ready && !LIVE_SETTLED\)/.test(chat));
 check('G09: the staff approval date is the Bangkok calendar day', /_pDate\(_bkkIso\(hit\.approved_at\)\)/.test(chat) && !/approved_at\)\.toISOString/.test(chat));
 check('G13: no same-category top-up after a staff answer (F18: no top-up at all now); retracted chips say so', !/e\.category===cur\.category/.test(chat) && /คำตอบนี้ถูกถอนแล้ว/.test(chat));
-check('G07: search() applies the staff-supersede step to both engines', /function search\(q\)\{ return _staffSupersede\(_searchRaw\(q\)\); \}/.test(chat));
+check('G07: search() applies the staff-supersede step to the kernel ranking', /function search\(q\)\{ return _staffSupersede\(_searchRaw\(q\)\); \}/.test(chat));
 check('G14: a staff answer keeps its own lines (staffBody), not answerPoints bullets', /if\(hit\.staff\) return staffTag \+ staffBody\(hit, q\);/.test(chat) && /const _SHOW_STAFF=8;/.test(chat));
 check('G35: _askCore binds add() to its own question and number', /const myTurn=\+\+askSeq, add=\(cls, html\)=>_add\(cls, html, typed, myTurn\);/.test(chat) && /const qsrc = askedQ !== undefined \? askedQ : lastUserQ/.test(chat));
 // behaviour of the two pure helpers, evaluated from the page source
@@ -38,7 +39,7 @@ const fnSrc = name => { const i = chat.indexOf(`function ${name}(`); let d = 0, 
 const _bkkIso = new Function(fnSrc('_bkkIso') + '; return _bkkIso;')();
 check('G09: 17:30Z = 4 Nov 2026 in Bangkok', _bkkIso(Date.UTC(2026, 10, 3, 17, 30)) === '2026-11-04', _bkkIso(Date.UTC(2026, 10, 3, 17, 30)));
 check('G09: 20:00Z on 31 Dec 2025 = 1 Jan 2026 in Bangkok', _bkkIso(Date.UTC(2025, 11, 31, 20, 0)) === '2026-01-01');
-const sup = new Function(fnSrc('_cosToScore') + ';' + fnSrc('_staffSupersede') + '; return _staffSupersede;')();
+const sup = new Function('WASM', fnSrc('_staffSupersede') + '; return _staffSupersede;')(shippedWasm());   // the score is the kernel's (WASM.cos_to_score)
 const M = { title: 'T', staff: false }, S = { title: 'T', staff: true }, O = { title: 'other' };
 const r1 = sup([{ e: M, cos: 0.6, overlap: 9, s: 3 }, { e: S, cos: 0.6, overlap: 9, s: 3 }, { e: O, cos: 0.2, overlap: 2, s: 1 }]);
 check('G07: an exact staff/manual tie puts the staff entry first and drops the manual twin', r1[0].e === S && !r1.some(r => r.e === M) && r1.length === 2);

@@ -325,6 +325,12 @@ fn cos_to_score(c: f32, margin: f32, ov: i32, ov_lead: i32) -> i32 {
     }
 }
 
+/// The gate score of one ranked row, for the page's staff-supersede step (it re-scores the new top against the new runner-up).
+#[wasm_bindgen(js_name = cos_to_score)]
+pub fn kb_row_score(cos: f32, margin: f32, overlap: i32, overlap_lead: i32) -> i32 {
+    cos_to_score(cos, margin, overlap, overlap_lead)
+}
+
 /// Search a KB (passed as `[{id, keywords}]` JSON) for `query`. Returns a ranked
 /// `[{id, s, cos, overlap}]`. The KB is small (tens–hundreds of entries) so a
 /// per-call IDF build is microseconds; no caching needed across the wasm boundary.

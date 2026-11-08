@@ -4,12 +4,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
-const twin = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
-const search = new Function('KB', twin)(KB);
-const decide = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
+const search = pageSearch(KB, html);
+const decide = pageDecideTier(html);
 const ids = new Set(KB.map(e => e.id));
 const H = JSON.parse(readFileSync(join(root, 'benchmark/field/english_heldout.json'), 'utf8')).items;
 const missing = H.flatMap(([, g]) => g).filter(x => !ids.has(x)); if (missing.length) console.log('WARNING unknown ids in held-out set:', [...new Set(missing)].join(', '));

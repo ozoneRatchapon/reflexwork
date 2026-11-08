@@ -1,5 +1,8 @@
 // Load the real pure functions out of submissions/ui/chatbot.html (no copies), for scripts that need them outside a browser.
 // Blocks are found by the same markers/regexes the tests use. Throws if a block moved, so a refactor cannot silently skip it.
+// Two kinds: the page as it runs now (pageSearch, shippedWasm: Rust only), and the JS oracle that wrote benchmark/golden (loadChatbotFns,
+// loadSearch, loadUnderstand). The page has no JS copies since plan 015 step 5, so the oracle loaders need `html` from a snapshot of a
+// commit that still has them: git show 15ef269:submissions/ui/chatbot.html > /tmp/chatbot_ref.html
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -22,14 +25,30 @@ export function loadChatbotFns(html = readFileSync(join(root, 'submissions/ui/ch
   return new Function("WASM", "ENG", `${today}\n${linkify}\n${prog}\n${slots}\n${points}\n${tier}\nreturn { answerPoints, slotLead, _pSchedule, _pFee, resolveProgramme, decideTier };`)(WASM, {});
 }
 
-// The deterministic JS search of the page (what search() falls back to without wasm), over a given KB array.
+// The page's search() over a given KB array: its own block (Rust kb_search + the staff-supersede step) on the shipped wasm.
+export function pageSearch(KB, html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
+  const a = html.indexOf('function _staffSupersede('), b = html.indexOf('\n// Evidence selectors:', a);
+  if (a < 0 || b < a) throw new Error('chatbot.html: search block not found');
+  wasmReady();
+  return new Function('KB', 'WASM', 'wasm_kb_search', html.slice(a, b) + '\nreturn search;')(KB, WASM, WASM.kb_search);
+}
+
+// The page's decideTier() (the Rust tier rule on the shipped wasm; the page attaches the entries).
+export function pageDecideTier(html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
+  const m = html.match(/^function decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/m);
+  if (!m) throw new Error('chatbot.html: decideTier() not found');
+  wasmReady();
+  return new Function('WASM', m[0] + '\nreturn decideTier;')(WASM);
+}
+
+// JS oracle: the deterministic JS search of a pre-step-5 page snapshot, over a given KB array.
 export function loadSearch(KB, html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
   const a = html.indexOf('function _jsGramSet'), b = html.indexOf('function search(q)');
   if (a < 0 || b < a) throw new Error('chatbot.html: search helpers not found');
   return new Function('KB', html.slice(a, b) + 'return _jsSearch;')(KB);
 }
 
-// understand() of the page, with `search` supplied by the caller (a stub in the golden contract).
+// JS oracle: understand() of a pre-step-5 page snapshot, with `search` supplied by the caller (a stub in the golden contract).
 export function loadUnderstand(search, html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
   const m = html.match(/function understand\(phrases\)\{[\s\S]*?\n\}\n/);
   if (!m) throw new Error('chatbot.html: understand() not found');

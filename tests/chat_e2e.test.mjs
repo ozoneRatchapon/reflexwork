@@ -1,4 +1,4 @@
-// End-to-end: the WHOLE chat page in headless Chrome, on both engines (?engine=rust and ?engine=js), against a local mock kernel /
+// End-to-end: the WHOLE chat page in headless Chrome (Rust is its only engine since plan 015 step 5), against a local mock kernel /
 // LLM proxy - nothing is sent to production. Every other test evaluates slices of the page; this one boots it, so load-order errors,
 // branch-order regressions ('แล้วค่าเทอมล่ะ' swallowed by the generic fee finder, 3eba860) and DOM wiring are caught.
 // Needs Chrome (CHROME_PATH, or the usual macOS / Linux locations); without it the test is SKIPPED (exit 0) and says so.
@@ -30,7 +30,11 @@ const stat = http.createServer((req, res) => {
   if (pathname === '/chatbot.preview.html' || pathname === '/dashboard.preview.html') {   // what submissions/deploy_pages.sh stamps on a deploy of any branch except main
     const src = readFileSync(join(UI, pathname.replace('.preview', '')), 'utf8').replace('<head>', '<head><meta name="robots" content="noindex"><meta name="rw-env" content="preview">');
     res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(src); }
-  if (pathname === '/chatbot.stale.html') {   // an old cached wasm without WASM.Router: the page has no other copy of the route order (plan 015 step 4b)
+  if (pathname === '/chatbot.oldwasm.html') {   // an old cached wasm that lacks an export the page needs: boot stops with the error + retry (plan 015 step 5)
+    const src = readFileSync(join(UI, 'chatbot.html'), 'utf8'), old = src.replace("const _WASM_NEEDS = ['kb_search'", "const _WASM_NEEDS = ['no_such_export','kb_search'");
+    if (old === src) { res.writeHead(500); return res.end('chatbot.html: _WASM_NEEDS not found'); }
+    res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(old); }
+  if (pathname === '/chatbot.stale.html') {   // the Rust router cannot run for a question (it threw): the page has no other copy of the route order (plan 015 step 4b)
     const src = readFileSync(join(UI, 'chatbot.html'), 'utf8'), stale = src.replace("typeof WASM.Router!=='function'", 'true');
     if (stale === src) { res.writeHead(500); return res.end('chatbot.html: Router check not found'); }
     res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(stale); }
@@ -80,8 +84,8 @@ const attempts = [];
 ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.method === 'Network.requestWillBeSent' && /workers\.dev/.test(m.params.request.url)) attempts.push(m.params.request.url); });
 
 const until = async (cond, ms = 8000) => { for (let t = 0; t < ms; t += 100) { if (await ev(cond)) return true; await wait(100); } return false; };
-const boot = async (eng, extra = '') => {
-  await send('Page.navigate', { url: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:${MP}&llm=http://127.0.0.1:${MP}&engine=${eng}${extra}` });
+const boot = async (extra = '') => {
+  await send('Page.navigate', { url: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:${MP}&llm=http://127.0.0.1:${MP}${extra}` });
   const ok = await until(`!!document.getElementById('q') && !document.getElementById('q').disabled && performance.getEntriesByType('resource').some(e=>/programmes\\.json/.test(e.name)&&e.responseEnd>0)`, 20000);
   await wait(1700);   // the first /live-kb refresh settles (QA G12 holds early questions up to 1.5 s)
   return ok;
@@ -92,11 +96,10 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`, ms); await wait(150);
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? b.innerText.replace(/\\s+/g,' ') : ''})()`); };
 
-for (const eng of ['rust', 'js']) {   // 'rust': Rust helpers (default); 'js': the JS helper twins. Routes are Rust in both (?route=js removed, plan 015 step 4a)
+{ const eng = 'rust';   // one run: the ?engine= switch and the JS twins are gone (plan 015 step 5)
   errors.length = 0; MOCK.rewrite = { delay: 0, body: { queries: [], source: 'gemini' } }; MOCK.llm = { status: 500 };
-  check(`[${eng}] the page boots and enables the input`, await boot(eng));
+  check(`[${eng}] the page boots and enables the input`, await boot());
   await ev('sessionStorage.clear()');
-  check(`[${eng}] the engine asked for is the engine running`, await ev('document.documentElement.dataset.engine') === eng.split('&')[0]);
 
   const a1 = await ask('ส่งรูปเล่มภายในกี่วัน');
   check(`[${eng}] a manual question is answered from the manual`, /21 วัน/.test(a1) && /ข้อมูลทางการ/.test(a1), a1);
@@ -167,10 +170,10 @@ for (const eng of ['rust', 'js']) {   // 'rust': Rust helpers (default); 'js': t
 
   // the conversation survives a reload in this tab; the clear button wipes it
   const before = await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`);
-  await boot(eng);
+  await boot();
   const restored = await ev(`document.querySelectorAll('#chat .msg[data-restored]').length`);
   check(`[${eng}] a reload keeps the conversation in this tab (the newest 30 messages: the stored history is capped)`, restored === Math.min(before, 30) && restored > 0, `before=${before} restored=${restored}`);
-  await ev(`document.getElementById('clear-chat').click()`); await wait(500); await boot(eng);
+  await ev(`document.getElementById('clear-chat').click()`); await wait(500); await boot();
   check(`[${eng}] the clear button wipes it (also after a reload)`, await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`) === 0);
 
   check(`[${eng}] no uncaught page errors`, errors.length === 0, errors.join(' | '));
@@ -178,20 +181,23 @@ for (const eng of ['rust', 'js']) {   // 'rust': Rust helpers (default); 'js': t
 
 // ---- PREVIEW builds: no production backend by default (the safe place to develop while the demo build stays untouched) ----------------
 { const go = async url => { attempts.length = 0; await send('Page.navigate', { url }); await until(`!!document.getElementById('q') && !document.getElementById('q').disabled`, 20000); await wait(2500); return [...attempts]; };
-  const prod = await go(`http://127.0.0.1:${SP}/chatbot.html?engine=js`);
+  const prod = await go(`http://127.0.0.1:${SP}/chatbot.html`);
   check('production page (no preview stamp): still reaches for the production workers by default', prod.length > 0 && !(await ev(`!!document.getElementById('preview-banner')`)), prod.join(' '));
-  const prev = await go(`http://127.0.0.1:${SP}/chatbot.preview.html?engine=js`);
+  const prev = await go(`http://127.0.0.1:${SP}/chatbot.preview.html`);
   const banner = await ev(`!!document.getElementById('preview-banner')`);
   const a = await ask('ส่งรูปเล่มภายในกี่วัน'); const nf = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน'); await wait(700);
   check('preview page: shows the preview banner, makes NO request to the production workers (not even after a not-found question)', banner && prev.length === 0 && attempts.length === 0, `${prev.join(' ')} | after asking: ${attempts.join(' ')}`);
   check('preview page: answers from the manual exactly as production does (search is local)', /21 วัน/.test(a) && /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(nf), a);
-  const r0 = MOCK_REQS; await go(`http://127.0.0.1:${SP}/chatbot.preview.html?engine=js&api=http://127.0.0.1:${MP}&llm=http://127.0.0.1:${MP}`);
+  const r0 = MOCK_REQS; await go(`http://127.0.0.1:${SP}/chatbot.preview.html?api=http://127.0.0.1:${MP}&llm=http://127.0.0.1:${MP}`);
   check('preview page: ?api= / ?llm= still connect it on purpose (a staging worker or a mock)', MOCK_REQS > r0 && attempts.length === 0, `mock requests +${MOCK_REQS - r0}`);
   await go(`http://127.0.0.1:${SP}/dashboard.preview.html`);
   check('preview dashboard: the kernel base starts empty (approve / retract cannot touch production)', await ev(`document.getElementById('base').value === ''`) && attempts.length === 0, attempts.join(' '));
   await go(`http://127.0.0.1:${SP}/chatbot.stale.html`);
   const stale = await ask('ส่งรูปเล่มภายในกี่วัน');
-  check('stale wasm (no WASM.Router): the page asks for a reload instead of guessing a route', /โหลดหน้าใหม่/.test(stale) && !/21 วัน/.test(stale), stale);
+  check('router unavailable for a question: the page asks for a reload instead of guessing a route', /โหลดหน้าใหม่/.test(stale) && !/21 วัน/.test(stale), stale);
+  await send('Page.navigate', { url: `http://127.0.0.1:${SP}/chatbot.oldwasm.html` });
+  const oldBoot = await until(`(()=>{const b=document.getElementById('boot'); return !!b && b.classList.contains('err') && !!b.querySelector('button.retry');})()`, 20000);
+  check('old wasm without a needed export: boot stops with the error and a retry button, the input stays off', oldBoot && await ev(`document.getElementById('q').disabled`));
   await go(`http://127.0.0.1:${SP}/dashboard.html`);
   check('production dashboard: base unchanged (points at the production kernel)', /workers\.dev/.test(await ev(`document.getElementById('base').value`))); }
 

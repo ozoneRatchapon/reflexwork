@@ -38,7 +38,7 @@ const kb = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.js
 // scopeClarify over every text (raw and term-normalised), with the page's own search as the ranked list
 const scopeBlock = (html.match(/\/\/ <scope-clarify>([\s\S]*?)\/\/ <\/scope-clarify>/) || [])[1]; if (!scopeBlock) throw new Error('scope-clarify block not found');
 const SC = new Function(`${scopeBlock}\nreturn { scopeYears, scopeOf, scopeClarify, normTermYear };`)();
-const search = loadSearch(kb);
+const search = loadSearch(kb, html);
 const scopeCases = [];
 for (const t of texts) for (const q of new Set([t, SC.normTermYear(t)])) {
   if (q.length > 600) continue;

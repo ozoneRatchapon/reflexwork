@@ -10,7 +10,7 @@ const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const blk = n => html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1];
-const F = new Function('WASM', 'ENG', blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {dateSpan, dateState, todayIso, daysSince, programmeCard, staleLine, datedPicks, resolveProgramme};')(shippedWasm(), {});
+const F = new Function('WASM', blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {dateSpan, dateState, todayIso, daysSince, programmeCard, staleLine, datedPicks, resolveProgramme};')(shippedWasm());
 const DOC = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8')), P = DOC.programmes;
 const at = (d, fn) => { globalThis.__today = d; try { return fn(); } finally { delete globalThis.__today; } };
 const txt = h => h.replace(/<[^>]+>/g, '');
@@ -53,8 +53,8 @@ check('every programme renders on a far-future date without throwing',
 check('stale line is empty within 30 days', F.staleLine('2026-11-02', '2026-12-02') === '' && F.staleLine('2026-11-02', '2026-12-03') !== '');
 // --- dated KB schedule entries (kbBody)
 const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
-const kbSrc = html.match(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=\/\/ --- Slot-filling)/)[0], slotSrc = html.match(/const _SLOTS=[\s\S]*?\n  return ''; }\n/)[0];
-const kbBody = new Function('linkify', 'LINKS', blk('today') + slotSrc + kbSrc + 'return kbBody;')(t => String(t), null);
+const kbSrc = html.match(/^function answerPoints\(body\)\{[\s\S]*?\n(?=\/\/ --- Slot-filling)/m)[0], slotSrc = html.match(/^function slotLead\(hit,q\)\{[^\n]*\n/m)[0];
+const kbBody = new Function('WASM', 'linkify', 'LINKS', blk('today') + slotSrc + kbSrc + 'return kbBody;')(shippedWasm(), t => String(t), null);
 const reg = KB.find(e => e.id === 'gm_registration_2569_second_semester'), r1 = KB.find(e => e.id === 'gm_schedule_2570_round1');
 { const h = at('2026-12-16', () => kbBody(reg, 'ลงทะเบียนภาคปลาย 2569'));
   check('registration window in progress is tagged "อยู่ในช่วงนี้"', /14–21 ธันวาคม 2569 <small class="when when-now">/.test(h), h.slice(0, 300)); }

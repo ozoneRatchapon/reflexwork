@@ -3,11 +3,12 @@
 //
 // Several KB entries answer the same question for different academic years /
 // semesters. Without a guard a keyword tie silently picks one year. We EXTRACT the
-// real scopeOf()/scopeClarify() and the JS search twin from the HTML so the test
+// real scopeOf()/scopeClarify() and search() (Rust kb_search) from the HTML so the test
 // exercises production code. Needs the generated knowledge-index.json.
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch } from '../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const idxPath = join(root, 'submissions/ui/knowledge-index.json');
@@ -19,12 +20,10 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 if (!existsSync(idxPath)) { console.log('⚠ knowledge-index.json not present — run build_knowledge_index.py. Skipping.'); process.exit(0); }
 const KB = JSON.parse(readFileSync(idxPath, 'utf8'));
 
-const sm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
 const cm = html.match(/\/\/ <scope-clarify>([\s\S]*?)\/\/ <\/scope-clarify>/);
-check('_jsSearch block found', sm);
 check('scope-clarify block found', cm);
-if (!sm || !cm) process.exit(1);
-const search = new Function('KB', sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
+if (!cm) process.exit(1);
+const search = pageSearch(KB, html);
 const { scopeOf, scopeClarify, ceNote, normTermYear } = new Function(cm[1] + '\nreturn {scopeOf, scopeClarify, ceNote, normTermYear};')();
 
 const run = q => scopeClarify(q, search(q), KB);

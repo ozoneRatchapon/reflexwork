@@ -10,7 +10,7 @@ const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const bm = html.match(/\/\/ <programme-resolve>([\s\S]*?)\/\/ <\/programme-resolve>/), lk = html.match(/\/\/ <linkify>([\s\S]*?)\/\/ <\/linkify>/), td = html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/);
-const { resolveProgramme, programmeCard } = new Function('WASM', 'ENG', td[1] + lk[1] + '\n' + bm[1] + '\nreturn {resolveProgramme, programmeCard};')(shippedWasm(), {});
+const { resolveProgramme, programmeCard } = new Function('WASM', td[1] + lk[1] + '\n' + bm[1] + '\nreturn {resolveProgramme, programmeCard};')(shippedWasm());
 const DOC = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8')), P = DOC.programmes;
 const ask = q => { const r = resolveProgramme(q, P); if (!r || r.kind !== 'one') return { r, h: '' }; return { r, h: programmeCard(r.row, DOC.fetched_at, DOC.year, r.topic, q).html }; };
 const first = h => h.split('\n')[0].replace(/<[^>]+>/g, '');

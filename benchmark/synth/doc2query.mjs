@@ -6,11 +6,12 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const [qPath = join(root, 'benchmark/synth/questions_001.json'), outPath] = process.argv.slice(2);
 const KB0 = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const mk = KB => new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
-const decide = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
+const mk = KB => pageSearch(KB, html);
+const decide = pageDecideTier(html);
 const items = JSON.parse(readFileSync(qPath, 'utf8')).items.filter(x => x.q);
 // fixed split: within each entry, Thai paraphrases with an even index (0, 2) train, odd (1, 3) test
 const byEntry = new Map(); for (const x of items.filter(x => x.kind === 'para_th')) { const a = byEntry.get(x.source_id) || []; a.push(x); byEntry.set(x.source_id, a); }

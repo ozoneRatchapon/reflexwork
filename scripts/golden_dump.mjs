@@ -10,7 +10,10 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadChatbotFns, loadSearch, loadUnderstand, loadIntake, root } from './lib/chatbot_fns.mjs';
-const F = loadChatbotFns(), DIR = join(root, 'benchmark/golden'), CHECK = process.argv.includes('--check');
+// --html <path>: the page to read the JS from. Since plan 015 step 5 the current page has no JS copies: pass a snapshot
+//   git show 15ef269:submissions/ui/chatbot.html > /tmp/chatbot_ref.html && node scripts/golden_dump.mjs --check --html /tmp/chatbot_ref.html
+const _hi = process.argv.indexOf('--html'), HTML = _hi > 0 ? readFileSync(process.argv[_hi + 1], 'utf8') : undefined;
+const F = loadChatbotFns(HTML), DIR = join(root, 'benchmark/golden'), CHECK = process.argv.includes('--check');
 // the last three pin the QA F17 rules: "นานเท่าไร" asks a duration; a deadline question naming a fee asks a date, unless it asks the amount
 const SLOT_QS = ['ส่งเล่มภายในกี่วัน', 'ค่าธรรมเนียมเท่าไหร่', 'turnitin เกินกี่ %', 'ทำยังไง', 'ใช้เวลานานเท่าไร', 'วันสุดท้ายชำระค่าธรรมเนียมวันไหน', 'ค่าปรับวันสุดท้ายเท่าไหร่'];
 const lines = f => readFileSync(join(root, f), 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
@@ -29,7 +32,7 @@ const outIntake = inp => { const I = loadIntake(); return inp.map(c => { const r
 // understand(): the search results of each phrase are FROZEN in the case (top 3: id + score), so the contract does not depend on the KB.
 const outUnderstand = inp => inp.map(c => {
   const stub = p => { const i = c.phrases.indexOf(p); return (c.results[i] || []).map(h => ({ e: { id: h.id }, s: h.s })); };
-  const r = loadUnderstand(stub)(c.phrases);
+  const r = loadUnderstand(stub, HTML)(c.phrases);
   const out = r.kind === 'one' ? { kind: 'one', id: r.entry.id, score: r.score, via: r.via, others: r.others.map(e => e.id) } : r.kind === 'many' ? { kind: 'many', ids: r.entries.map(e => e.id) } : { kind: 'none' };
   return { ...c, out };
 });
@@ -51,7 +54,7 @@ function intakeInputs(KB, faq, odd) {
 }
 
 function understandInputs(KB) {
-  const search = loadSearch(KB), titles = KB.map(e => e.title), frag = (t, n = 12) => t.slice(0, n).trim();
+  const search = loadSearch(KB, HTML), titles = KB.map(e => e.title), frag = (t, n = 12) => t.slice(0, n).trim();
   const lists = [
     ['ลาพักการศึกษา', 'ขั้นตอนการขอลาพักการศึกษา'], ['ตรวจการคัดลอกวิทยานิพนธ์', 'การตรวจสอบการซ้ำ', 'แก้ไขวิทยานิพนธ์'], ['ทุนการศึกษา', 'เงินสนับสนุนการศึกษา'],
     ['ลาพักการศึกษา'], ['เปลี่ยนนามสกุล'], ['ขอใบแสดงผลการศึกษา', 'หนังสือรับรองผลการศึกษา'], [], ['x'], ['qqqq zzzz', 'xxxx'], ['ทุน'], ['ทุน', 'ทุนการศึกษา', 'ทุนวิทยานิพนธ์'],
@@ -105,7 +108,7 @@ const OUT = { answer_points: outPoints, schedule_fee: outProg, resolve: outResol
 let bad = 0;
 const frozen = (name, saved) => name === 'resolve' ? { catalogue: saved.catalogue, questions: saved.cases.map(c => c.q) }
   : saved.map(({ points, slot, schedule, fee, out, ...rest }) => rest);   // understand: phrases + frozen results stay
-const KEEP = process.argv.includes('--keep-inputs'), only = process.argv.slice(2).filter(a => !a.startsWith('--'));
+const KEEP = process.argv.includes('--keep-inputs'), only = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--html');
 if (CHECK) {
   for (const [name, fn] of Object.entries(OUT)) {
     const file = join(DIR, `${name}.json`);

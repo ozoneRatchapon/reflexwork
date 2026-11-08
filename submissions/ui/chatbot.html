@@ -490,7 +490,7 @@ const EXAMPLE_QS=()=>AGENCY.examples.map(e=>e.q);
 // label, until it is merged into the main manual (or retracted). Read from the kernel's public GET /live-kb and merged into KB;
 // the search reads KB on every question, so nothing else changes. No kernel (other agencies by default) = no live answers.
 let LIVE_N=0, LIVE_SEQ=0, LIVE_SETTLED=false, LIVE_READY=Promise.resolve();
-function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์ · engine: '+ENGINE+'</span>'; }
+function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์ · engine: rust</span>'; }
 async function refreshLiveKb(){
   if(!KERNEL_API){ LIVE_SETTLED=true; return; }
   const my=++LIVE_SEQ;   // QA G11: overlapping refreshes (tab focus + poll) - only the latest request may write KB, a slow older one is dropped
@@ -507,7 +507,9 @@ async function refreshLiveKb(){
 }
 async function load(){
   await loadAgency(); pickBackends(); applyAgency();
-  const _w0 = performance.now(); await init(); ENG.wasmInitMs = performance.now() - _w0;
+  await init();
+  const _missing = _WASM_NEEDS.filter(n=>typeof WASM[n]!=='function');
+  if(_missing.length) throw new Error(`reflex_wasm lacks ${_missing.join(', ')} (an old cached build)`);   // the boot error below asks for a reload
   // Prefer the full knowledge index if present (local dev); otherwise use a
   // small built-in fallback so the public demo still works without the other
   // team's private data.
@@ -549,37 +551,11 @@ async function load(){
   document.addEventListener('keydown', e=>{ const t=e.target&&e.target.closest&&e.target.closest('.chip,.dis'); if(t&&t.getAttribute('role')==='button'&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); t.click(); } });
   renderMood(false);
 }
-// ===== Engine switch (2026-11-04): the same pure answer logic runs in Rust (wasm) or in the JS functions above =====
-// ?engine=rust|js picks one (default: ENGINE_DEFAULT). Every function below keeps its JS twin as the fallback: if the wasm lacks an
-// export (an old cached build) or a Rust call throws, that call runs the JS version and ENG.errors counts it. Both engines are timed
-// per function (ENG.t / ENG.n, read by benchmark/engine_ab.mjs). Contract that both must meet: benchmark/golden (6 files, ~5,700 cases).
-const ENGINE_DEFAULT = 'rust';   // Rust since 2026-11-04 (A/B 319/319 and session 150/150 identical: benchmark/engine/results). Back to JS: ?engine=js, or set this to 'js'
-const _ENGINE_NEEDS = ['answer_points','slot_lead','decide_tier','schedule_table','fee_table','understand','classify_issue','is_advice','is_english','Resolver'];
-const _ENGINE_ASKED = new URLSearchParams(location.search).get('engine') || ENGINE_DEFAULT;
-const ENGINE = (_ENGINE_ASKED==='rust' && _ENGINE_NEEDS.every(n=>typeof WASM[n]==='function')) ? 'rust' : 'js';
-const ENG = { name:ENGINE, asked:_ENGINE_ASKED, t:{}, n:{}, errors:0, wasmInitMs:0, impl:{} };   // impl: both implementations of each function, for benchmark/engine/engine_micro.mjs
-ENG.data = () => ({ KB, PROG, search });   // the page's data, for the micro-benchmark (module variables are not reachable from outside)
-window.__eng = ENG; document.documentElement.dataset.engine = ENGINE;
-function _engine(name, js, rust){
-  ENG.impl[name] = { js, rust };
-  const run = ENGINE==='rust'
-    ? (...a)=>{ try{ return rust(...a); }catch(e){ ENG.errors++; console.warn(`rust engine failed in ${name}, using JS`, e); return js(...a); } }
-    : js;
-  return (...a)=>{ const t0=performance.now(); try{ return run(...a); } finally { ENG.t[name]=(ENG.t[name]||0)+(performance.now()-t0); ENG.n[name]=(ENG.n[name]||0)+1; } };
-}
-{
-  const byId = id => KB.find(e=>e.id===id);
-  answerPoints   = _engine('answerPoints', answerPoints,   body => WASM.answer_points(String(body==null?'':body)));
-  slotLead       = _engine('slotLead',     slotLead,       (hit,q) => WASM.slot_lead(String((hit&&hit.answer)||''), String(q||'')));
-  _pFee          = _engine('fee',          _pFee,          lines => WASM.fee_table(lines||[]));
-  _pScheduleData = _engine('schedule',     _pScheduleData, lines => WASM.schedule_table(lines||[]));
-  decideTier     = _engine('decideTier',   decideTier,     ({gate, ranked}) => {
-    const v = WASM.decide_tier(typeof gate==='number' ? gate : NaN, ranked.map(r=>r.s));
-    return v.action==='act' ? {...v, entry:ranked[0].e} : v.action==='disambiguate' ? {...v, candidates:ranked.slice(0,3).map(r=>r.e)} : v; });
-  understand     = _engine('understand',   understand,     phrases => {
-    const o = WASM.understand(phrases, phrases.map(p=>search(p).slice(0,3).map(r=>({id:r.e.id, s:r.s}))));
-    return o.kind==='one' ? {kind:'one', entry:byId(o.id), score:o.score, via:o.via, others:o.others.map(byId)} : o.kind==='many' ? {kind:'many', entries:o.ids.map(byId)} : {kind:'none'}; });
-}
+// ===== Rust engine (plan 015 step 5): the pure answer logic (search, answer points, slot lead, tier, understand, fee and schedule
+// tables, intake, programme resolver, route order) runs only in the wasm build shipped beside this page; there is no JS copy and no
+// ?engine= switch. load() stops with the boot error and its retry button when the wasm lacks one of these exports (an old cached build).
+// Contract: benchmark/golden (scripts/wasm_golden_check.mjs).
+const _WASM_NEEDS = ['kb_search','cos_to_score','answer_points','slot_lead','decide_tier','schedule_table','fee_table','understand','classify_issue','is_advice','is_english','Resolver','Router'];
 
 load().catch(()=>{
   const boot=$('boot');
@@ -604,73 +580,26 @@ const FALLBACK_KB = [
     source_url:'https://graduate.mahidol.ac.th/', faq_number:'' },
 ];
 
-// KB retrieval — HYBRID lexical + vector (TF-IDF cosine; no neural model), implemented IN RUST (reflex-wasm
-// crates/reflex-wasm/src/lib.rs::kb_search), called over WASM. Single source of
-// truth: the same TF-IDF cosine + calibrated gate score runs in the kernel crate
-// (native tests) and in the browser (this call), so there is no JS/Rust logic
-// drift. `search()` is now a thin adapter that maps the Rust result (id → score)
-// back to KB entry objects so the rest of ask() is unchanged. A pure-JS fallback
-// (same algorithm) keeps the page working if the WASM export is ever missing and
-// lets the Node recall test exercise the logic headlessly.
-function _jsGramSet(text){ const s=String(text||'').toLowerCase(); const g=new Set();
-  for(const tok of s.split(/\s+/)) if(tok.length>1) g.add(tok);
-  for(let i=0;i<s.length-2;i++){ const t=s.slice(i,i+3).trim(); if(t.length===3) g.add(t);} return g; }
-function _cosToScore(c, margin, ov, ovLead){
-  // blend of the vector and lexical signals (lockstep with reflex-wasm::cos_to_score): a dominant
-  // lexical overlap lifts the score even when TF-IDF cosine is diluted by a long
-  // keyword list (the "Turnitin เกิน 25%" case: overlap 15, cosine only 0.20) - but only if the
-  // vector supports the candidate too (cosine >= 0.15, the lowest answering tier). Without that floor
-  // generic question words lifted cosine-0.11 candidates to s=5-6 and 25-39% of out-of-scope
-  // questions got an unrelated answer (docs/METHOD.md section 5 F).
-  if(c>=0.15 && ov>=8 && ovLead>=4) return 6;
-  if(c>=0.15 && ov>=5 && ovLead>=2) return 5;
-  if(c>=0.40 && margin>=0.08) return 6; if(c>=0.30) return 5; if(c>=0.20) return 4;
-  if(c>=0.15) return 3; return Math.max(1, Math.round(c*10)); }
-// Question-form words say HOW the student asks, never WHAT about; left in, their trigrams matched unrelated entries
-// ("ค่าสมัครเรียนเท่าไหร่ครับ" -> TOEFL fee). Stripped from the QUERY only (lockstep with reflex-wasm::strip_query_fillers).
-const _QFILL=/เท่าไหร่|เท่าไร|เท่าใด|คืออะไร|อะไรบ้าง|ได้ไหม|ได้มั้ย|หรือไม่|นะครับ|นะคะ|ครับ|ค่ะ|คะ|บ้าง|หน่อย|ไหม|มั้ย/g;
-function _stripQ(q){ const r=String(q||'').replace(_QFILL,' ').replace(/\s+/g,' ').trim(); return r||String(q||''); }
-function _jsSearch(q){
-  const docGrams=KB.map(e=>_jsGramSet(e.keywords)); const DF=new Map();
-  for(const gs of docGrams) for(const g of gs) DF.set(g,(DF.get(g)||0)+1);
-  const N=KB.length||1; const idf=g=>Math.log((N+1)/((DF.get(g)||0)+1))+1;
-  const nv=gs=>{const v=new Map();let n2=0;for(const g of gs){const w=idf(g);v.set(g,w);n2+=w*w;}const nr=Math.sqrt(n2)||1;for(const[k,w] of v)v.set(k,w/nr);return v;};
-  const DV=docGrams.map(nv); const qg=_jsGramSet(_stripQ(q)); const qv=nv([...qg]);
-  const scored=[];
-  for(let i=0;i<KB.length;i++){ const e=KB[i]; let overlap=0; for(const g of qg) if(e.keywords.includes(g)) overlap++;
-    let cos=0; const dv=DV[i]; for(const[g,w] of qv){ const dw=dv.get(g); if(dw) cos+=w*dw; }
-    if(overlap>0||cos>0) scored.push({e,cos,overlap}); }
-  scored.sort((a,b)=>(b.cos-a.cos)||(b.overlap-a.overlap));
-  const runner=scored[1]?scored[1].cos:0; const runnerOv=scored[1]?scored[1].overlap:0;
-  for(let i=0;i<scored.length;i++){ const margin=i===0?scored[0].cos-runner:0; const ovLead=i===0?scored[0].overlap-runnerOv:0; scored[i].s=_cosToScore(scored[i].cos,margin,scored[i].overlap,ovLead); }
-  return scored;
-}
+// KB retrieval — HYBRID lexical + vector (TF-IDF cosine; no neural model), in Rust (crates/reflex-wasm/src/lib.rs::kb_search) over
+// WASM, the only copy (the JS twin went in plan 015 step 5). `search()` maps the Rust result (id → score) back to KB entry objects.
 // QA G07: a staff answer written for the same question as a manual entry (same cosine and overlap) is the newer word on it:
 // it goes first and its exact-tie manual twin leaves the ranking, so the winner no longer follows keyword length and the tie
 // does not open a two-identical-titles picker. The top score is recomputed against the new runner-up (same formula as the kernel).
-// A page-level step on the kernel's output, the same for ?engine=rust and ?engine=js.
+// A page-level step on the kernel's output; the score is the kernel's own formula (WASM.cos_to_score).
 function _staffSupersede(rows){
   if(rows.length<2 || !rows.some(r=>r.e.staff)) return rows;
   const tie=(a,b)=>Math.abs(a.cos-b.cos)<1e-9 && a.overlap===b.overlap;
   const st=rows.find(r=>r.e.staff && tie(r,rows[0])); if(!st) return rows;
   const out=[st, ...rows.filter(r=>r!==st && !(!r.e.staff && tie(r,st)))];
-  const r1=out[1]; out[0]={...st, s:_cosToScore(st.cos, st.cos-(r1?r1.cos:0), st.overlap, st.overlap-(r1?r1.overlap:0))};
+  const r1=out[1]; out[0]={...st, s:WASM.cos_to_score(st.cos, st.cos-(r1?r1.cos:0), st.overlap, st.overlap-(r1?r1.overlap:0))};
   return out;
 }
 function search(q){ return _staffSupersede(_searchRaw(q)); }
 function _searchRaw(q){
-  // Prefer the Rust/WASM kernel (single source of truth). Map id → entry.
-  if(typeof wasm_kb_search==='function' && KB.length){
-    try{
-      const lite=KB.map(e=>({id:e.id, keywords:e.keywords}));
-      const hits=wasm_kb_search(lite, q) || [];
-      const byId=new Map(KB.map(e=>[e.id,e]));
-      const mapped=[];
-      for(const h of hits){ const e=byId.get(h.id); if(e) mapped.push({e, s:h.s, cos:h.cos, overlap:h.overlap}); }
-      if(mapped.length) return mapped;
-    }catch(_){ /* fall through to JS */ }
-  }
-  return _jsSearch(q);
+  if(!KB.length) return [];
+  const byId=new Map(KB.map(e=>[e.id,e])), out=[];
+  for(const h of (wasm_kb_search(KB.map(e=>({id:e.id, keywords:e.keywords})), String(q==null?'':q)) || [])){ const e=byId.get(h.id); if(e) out.push({e, s:h.s, cos:h.cos, overlap:h.overlap}); }
+  return out;
 }
 
 // Evidence selectors: these are the "เบื้องหลัง" bits that should NOT clutter the
@@ -767,39 +696,8 @@ function _add(cls, html, askedQ, askedN){ const d=document.createElement('div');
 // Now: the manual's own words, unchanged, cut into short points - the first point is the answer, the rest are bullets, and
 // anything past the first few is folded behind "อ่านเพิ่ม". If the question asks for a number (กี่วัน/กี่บาท/กี่ %), that
 // number from the entry is shown first in bold. Only whitespace, a trailing full stop and list markers are removed.
-// "ส่วน" and "FAQ" are not split words (QA F17): they begin noun phrases ("ส่วน FAQ …", "หน้า FAQ ระบุว่า") and left bare
-// "ส่วน" / "หน้า" bullets.
-const _SPLIT_BEFORE=/\s+(?=(?:หาก|ถ้า|จากนั้น|ทั้งนี้|กรณี|หลังจาก|นอกจากนี้|อย่างไรก็ตาม|ขั้นตอนหลัก|ข้อควรจำ|ระหว่างนี้))/;
-function _sentences(line){   // split at ". " / "。" - but not after an abbreviation (พ.ศ. 2569, ม.มหิดล, e.g.) or before a digit
-  const out=[]; let from=0; const re=/[.。]\s+/g; let m;
-  while((m=re.exec(line))){ const before=line.slice(Math.max(0,m.index-4), m.index), after=line[m.index+m[0].length]||'';
-    if(/\d/.test(after) || /[.][^\s.]{1,3}$/.test(before) || /(?:^|\s)[^\s.]{1,2}$/.test(before)) continue;
-    out.push(line.slice(from, m.index+1)); from=m.index+m[0].length; }
-  out.push(line.slice(from)); return out;
-}
-// A label line ending in ":" keeps its value (QA F17: "ช่วงลงทะเบียนเรียนปกติ:" was one bullet, "13–20 กรกฎาคม 2569" the next,
-// and the fold could fall between them). It takes the next plain line, or a run of at most _LABEL_RUN "•"/"-"/"*" lines
-// (joined with " · ") while the point stays within _LABEL_MAX characters; a longer run stays a list. A "▪" section header
-// or another label is never pulled in.
-const _LABEL_MAX=120, _LABEL_RUN=2;
-function _joinLabels(lines){
-  const out=[], bullet=l=>/^[-•*]\s+/.test(l||''), stop=l=>!l || /^▪/.test(l) || /[:：]$/.test(l);
-  for(let i=0;i<lines.length;i++){ let l=lines[i];
-    if(/[:：]$/.test(l) && !stop(lines[i+1])){
-      if(!bullet(lines[i+1])) l+=' '+_unmark(lines[++i]);
-      else { let k=0; while(bullet(lines[i+1+k]) && !stop(lines[i+1+k])) k++;
-        const run=lines.slice(i+1, i+1+k).map(_unmark), joined=l+' '+run.join(' · ');
-        if(k<=_LABEL_RUN && joined.length<=_LABEL_MAX){ l=joined; i+=k; } } }
-    out.push(l); }
-  return out;
-}
-function _unmark(l){ return l.replace(/^(?:[-•*]|\d+[.)])\s+/,''); }
-function answerPoints(body){
-  return _joinLabels(String(body||'').split(/\n+/).map(l=>l.trim()))
-    .map(_unmark)
-    .flatMap(l=>_sentences(l)).flatMap(x=>x.split(_SPLIT_BEFORE))
-    .map(x=>x.trim().replace(/\.$/,'')).filter(Boolean);
-}
+// The cutting is Rust (crates/reflex-wasm answer::answer_points, contract benchmark/golden/answer_points.json); the page only lays it out.
+function answerPoints(body){ return WASM.answer_points(String(body==null?'':body)); }
 const _SHOW_POINTS=4;
 // QA F17: a "▪ n. …" section header is never the answer line; it is shown as a sub-heading above the first point it heads.
 // A date question ("วันไหน", "วันสุดท้าย…", "เมื่อไร") leads with the first dated point - of the section whose header names the
@@ -894,38 +792,15 @@ function kbBodyCore(hit, q){
   return staffTag + head + ctx + L(pts[li]) + (shown.length ? '\n'+shown.join('\n') : '')
     + (more.length ? `<details class="more"><summary>อ่านเพิ่มอีก ${moreN} ข้อ</summary>${more.join('\n')}</details>` : '');
 }
-// --- Slot-filling: lead with the SPECIFIC fact asked (duration/cost/percent), no AI
-// QA F17: "นานเท่าไร"/"ใช้เวลา" ask a duration (1-3 digits standing alone: "2569 วันสุดท้าย" is a year); a lead keeps its space ("ภายใน 3 วันทำการ"). A deadline question that only
-// names a fee ("วันสุดท้ายชำระค่าธรรมเนียม") asks for a date, not the fine; and an entry with several amounts (GRID: three tiers)
-// gets no money lead - one bold figure out of three would mislead.
-const _SLOTS=[
-  { ask:/กี่วัน|ภายในกี่|นานแค่ไหน|นานเท่าไร|นานเท่าไหร่|นานไหม|ใช้เวลา|กี่สัปดาห์|กี่เดือน|ระยะเวลา/, grab:/(?:ไม่เกิน|ภายใน|ประมาณ|ราว ?ๆ?)?\s*(?<!\d)\d{1,3}\s*(?:วัน(?:ทำการ)?|สัปดาห์|เดือน)/, lead:m=>/^\d/.test(m) ? `ภายใน ${m}` : m.replace(/^(ไม่เกิน|ภายใน|ประมาณ)(?=\d)/,'$1 ') },
-  { ask:/เท่าไร|เท่าไหร่|กี่บาท|ค่าใช้จ่าย|ราคา|ค่าธรรมเนียม|ค่าสอบ|ค่าตอบแทน/, not:/นานเท่าไ|วันสุดท้าย|วันไหน|เมื่อไร|เมื่อไหร่|กี่วัน/, unless:/กี่บาท|ราคา|ค่า\S*เท่าไ/, grab:/\d[\d,]*\s*บาท/, single:true, lead:m=>`${m}` },
-  { ask:/กี่ ?%|กี่เปอร์|เกินเท่าไร|เกินกี่|ไม่เกินเท่าไร/, grab:/(?:ไม่เกิน|เกิน)?\s*\d+\s*%/, lead:m=>`${m}` },
-];
-function slotLead(hit,q){ q=q||''; const body=String(hit.answer||'');
-  for(const s of _SLOTS){ if(!s.ask.test(q) || (s.not && s.not.test(q) && !s.unless.test(q))) continue;
-    const all=body.match(new RegExp(s.grab.source,'g')); if(!all) continue;
-    if(s.single && new Set(all.map(x=>x.replace(/[\s,]/g,''))).size>1) continue;
-    return s.lead(all[0].trim().replace(/\s+/g,' ')); }
-  return ''; }
+// --- Slot-filling: lead with the SPECIFIC fact asked (duration/cost/percent), no AI. Rust (answer::slot_lead, QA F17 rules there).
+function slotLead(hit,q){ return WASM.slot_lead(String((hit&&hit.answer)||''), String(q||'')); }
 
 // --- Rethink layer (System 1 / System 2, deterministic, no AI) ---------------
 // Borderline reflex → RETHINK with cheap moves before paying for an LLM.
-const _BAND={low:0.60,high:0.80};
+// The tier rule is Rust (decide::decide_tier: gate bands 0.60 / 0.80, score bars 4 / 6, lead 2); the page attaches the entries.
 function decideTier({gate, ranked}){
-  const top=ranked[0]||null, second=ranked[1]||null;
-  if(typeof gate==='number' && gate<_BAND.low && top && top.s>=4)
-    return {action:'act', stage:'reflex', entry:top.e, reason:'gate ต่ำ + KB ตรงชัด — ตอบทันที'};
-  if(typeof gate==='number' && gate>=_BAND.high && !(top&&top.s>=6))
-    return {action:'escalate', stage:'reflex', reason:'gate สูง + KB ไม่ตรงพอ — ส่ง LLM'};
-  if(top && top.s>=4 && (!second || top.s-second.s>=2))
-    return {action:'act', stage:'rethink', entry:top.e, reason:'คิดซ้ำแล้วเจอข้อที่ตรงชัด — ตอบจากคู่มือ (ไม่เรียก AI)'};
-  if(top && second && top.s>=2 && (top.s-second.s)<=1)
-    return {action:'disambiguate', stage:'rethink', candidates:ranked.slice(0,3).map(r=>r.e), reason:'คิดซ้ำแล้วมี 2 ข้อใกล้กัน — ถามให้ชัดก่อน (ยังไม่เรียก AI)'};
-  if(top && top.s>=3)
-    return {action:'act', stage:'rethink', entry:top.e, reason:'คิดซ้ำแล้วมีข้อที่พอตรง — ตอบจากคู่มือก่อน'};
-  return {action:'escalate', stage:'rethink', reason:'คิดซ้ำแล้วยังไม่พบในคู่มือ — จึงส่งให้ AI'};
+  const v = WASM.decide_tier(typeof gate==='number' ? gate : NaN, ranked.map(r=>r.s));
+  return v.action==='act' ? {...v, entry:ranked[0].e} : v.action==='disambiguate' ? {...v, candidates:ranked.slice(0,3).map(r=>r.e)} : v;
 }
 
 // <scope-clarify>
@@ -1145,7 +1020,7 @@ function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; retu
 let _resolver = null;
 function resolveProgramme(q, P, loose){
   if(!Array.isArray(P) || !P.length) return null;
-  if(!_resolver || _resolver.src!==P){ const t0=performance.now(); _resolver={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))}; ENG.resolverBuildMs=performance.now()-t0; }
+  if(!_resolver || _resolver.src!==P) _resolver={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))};
   return _progView(_resolver.r.resolve(String(q==null?'':q), !!loose), loose, _resolver.by);
 }
 // A Rust resolution ({kind, codes, topic, via, levelMissing, total}) as the page's rows: from the resolver above, or from the router's
@@ -1176,16 +1051,7 @@ const _P_FEE_URL='https://graduate.mahidol.ac.th/thai/prospective-students/?topi
 // ones (plan | duration | lump sum per semester | other fees for the whole programme = research/equipment | study visit);
 // nothing is added up or inferred. Cells split on "|" with optional spaces: an empty duration cell is "| |".
 // Certificates have no plan cell (4 cells); the study-visit cell may be prose ("อัตรา 20,000 บาท สำหรับ…").
-function _pFee(lines){
-  const L=lines||[], h1=L.some(l=>/^แผนการศึกษา \| ระยะเวลา/.test(l)), h2=L.some(l=>/^ค่าวิจัย.*\| ค่าธรรมเนียมการศึกษาดูงาน$/.test(l));
-  const rows=[]; let grp='';
-  for(const l of L){ if(/^นักศึกษา(?:ไทย|ต่างชาติ)$/.test(l)){ grp=l; continue; }
-    const c=l.split(/ ?\| ?/), amt=x=>/^(?:[\d,.]+|-)$/.test(x||'');
-    if(!h1||!h2) continue;
-    if(c.length===5 && c[0] && amt(c[2]) && amt(c[3]) && c[4]) rows.push({grp, plan:c[0], dur:c[1], lump:c[2], res:c[3], visit:c[4]});
-    else if(c.length===4 && amt(c[1]) && amt(c[2]) && c[3]) rows.push({grp, plan:'', dur:c[0], lump:c[1], res:c[2], visit:c[3]}); }
-  return {rows, notes:L.filter(l=>/^\[\d+\]/.test(l))};
-}
+function _pFee(lines){ return WASM.fee_table(lines||[]); }   // Rust: catalogue::fee_table
 function _pFeeHtml(a, year){
   const f=_pFee(a&&a.sections&&a.sections['ค่าธรรมเนียมการศึกษา']);
   if(!f.rows.length) return `💰 ค่าธรรมเนียม: ประกาศปีการศึกษา ${_pEsc(year)} ของหลักสูตรนี้ยังไม่ระบุอัตรา — ดูอัตราของบัณฑิตวิทยาลัยที่ปุ่ม "ค่าธรรมเนียมการศึกษา"`;
@@ -1204,25 +1070,8 @@ function _pSchHtml(a){
 // The source lines are "activity | รอบ 1 <date> | รอบ 2 <date> ..." under a header "รอบการรับสมัครของหลักสูตร | รอบ 1 | รอบ 2 ...".
 // The round name repeated in every cell is dropped; lines without "|" (opening dates, หมายเหตุ) become notes under the table.
 // Anything that does not fit that shape falls back to the plain list - all lines, nothing cut (the old list stopped at 8 lines).
-function _pScheduleData(lines){
-  const L=(lines||[]).filter(l=>!/^รายละเอียดกิจกรรม/.test(l));
-  const hi=L.findIndex(l=>/^รอบการรับสมัคร/.test(l) && l.includes(' | '));
-  const list=()=>({cols:[], rows:[], notes:[], list:L.map(l=>{ const c=l.split(' | '); return c.length>1 ? `• ${_pEsc(c[0])}: ${c.slice(1).map(_pEsc).join(' · ')}` : `• ${_pEsc(l)}`; })});
-  if(hi<0) return list();
-  const cols=L[hi].split(' | ').slice(1), rows=[], notes=[];
-  for(const l of L.slice(hi+1)){
-    if(!l.includes(' | ')){
-      // QA F62: '(เปิดรับสมัคร พฤ. 1 ก.ค. 2570)' under the header is the opening date of the last, named round ('รอบภาคปลาย')
-      const last=cols[cols.length-1]||'';
-      if(l.startsWith('(เปิดรับสมัคร') && l.endsWith(')') && last && !/^รอบ \d+$/.test(last)){ notes.push(`${last}: ${l.slice(1,-1)}`); continue; }
-      if(!/^หมายเหตุ\s*:?$/.test(l)) notes.push(l.replace(/^\*+\s*/,'')); continue; }
-    const c=l.split(' | '); if(c.length!==cols.length+1) return list();
-    rows.push([c[0], ...c.slice(1).map((x,i)=>x.startsWith(cols[i]+' ') ? x.slice(cols[i].length+1) : x)]);
-  }
-  if(!rows.length) return list();
-  return {cols, rows, notes, list:[]};
-}
-// The table HTML from the data above (the data comes from the JS or the Rust engine; the HTML is always built here).
+function _pScheduleData(lines){ return WASM.schedule_table(lines||[]); }   // Rust: catalogue::schedule_table
+// The table HTML from the data above (the data is Rust's; the HTML is built here).
 function _pScheduleView(d){
   if(!d.rows.length) return {table:'', notes:[], rows:[], cols:[], list:d.list};
   const {cols, rows, notes}=d;
@@ -1422,19 +1271,11 @@ function phraseHints(phrases){
   for(const p of (phrases||[])){ const top=search(p)[0]; if(top && top.s>=3 && !seen.has(top.e.id)){ seen.add(top.e.id); out.push(top.e); } }
   return out.slice(0,3);
 }
+// The agreement rule is Rust (understand::understand): it reads each phrase's top 3 from the same search; the page maps ids to entries.
 function understand(phrases){
-  const clear = [];
-  for(const p of phrases){ const r = search(p), top = r[0], second = r[1];
-    if(top && top.s>=4 && (!second || top.s-second.s>=2)) clear.push({ e:top.e, s:top.s, via:p }); }
-  const ids = [...new Set(clear.map(c=>c.e.id))];
-  // One phrase alone is not enough when the model gave several: measured 2026-11-03, a single clear hit from one of 2-3 phrases
-  // was wrong in 2 of 6 cases (the lexical search over-matches one word). Require two phrases to agree, or a single-phrase reply.
-  const agree = ids.length===1 && (clear.length>=2 || phrases.length===1);
-  if(agree){ const best = clear.sort((a,b)=>b.s-a.s)[0];
-    const others = phrases.flatMap(p=>search(p).slice(0,3)).map(r=>r.e).filter((e,i,a)=>e.id!==best.e.id && a.findIndex(x=>x.id===e.id)===i).slice(0,3);
-    return { kind:'one', entry:best.e, score:best.s, via:best.via, others }; }
-  if(ids.length>1) return { kind:'many', entries: ids.map(id=>clear.find(c=>c.e.id===id).e).slice(0,3) };
-  return { kind:'none' };
+  const byId = id => KB.find(e=>e.id===id);
+  const o = WASM.understand(phrases, phrases.map(p=>search(p).slice(0,3).map(r=>({id:r.e.id, s:r.s}))));
+  return o.kind==='one' ? {kind:'one', entry:byId(o.id), score:o.score, via:o.via, others:o.others.map(byId)} : o.kind==='many' ? {kind:'many', entries:o.ids.map(byId)} : {kind:'none'};
 }
 
 async function groundedHybrid(q, entries){

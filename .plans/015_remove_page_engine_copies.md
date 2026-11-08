@@ -43,7 +43,7 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Scale: about 70 files reference the page. This plan is several sessions, not one. Each step is its own commit.
 
 ## Status (2026-11-09)
-- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732), 4b (db94144) and 4c done. Next: step 5.
+- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732), 4b (db94144), 4c (15ef269) and 5 done. Next: step 6.
 
 ## Step 2 done (intake part, 2026-11-08)
 - The intake patterns (`_ISSUE_CATS`, `_NOT_PERSONAL`, `_ADVICE`, `_FACTUAL`) moved from the page into `vocab.json` (`intake_issues`,
@@ -109,4 +109,27 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Still failing, for step 5: `engine_switch` (checks the `_engine` switch that step 5 removes). `benchmark/engine/engine_micro.mjs`
   reads `ENG.impl.isAdvice`, which has not existed since step 2.
 - Gates: see the commit message.
+
+## Step 5 done (2026-11-09)
+- Page: the engine switch is gone (`ENGINE_DEFAULT`, `?engine=`, `_engine()`, `ENG`, `window.__eng`, `data-engine`). `answerPoints`, `slotLead`,
+  `decideTier`, `understand`, `_pFee`, `_pScheduleData` are one-line Rust calls; their JS bodies and helpers (`_SPLIT_BEFORE`, `_sentences`,
+  `_joinLabels`, `_unmark`, `_LABEL_*`, `_SLOTS`, `_BAND`) are removed. The search has no JS fallback (`_jsSearch`, `_jsGramSet`,
+  `_cosToScore`, `_stripQ`, `_QFILL` removed); `_staffSupersede` re-scores with the new wasm export `cos_to_score` (lib.rs `kb_row_score`).
+- `_WASM_NEEDS` (13 exports): `load()` throws when one is missing, so an old cached wasm gets the boot error with its retry button.
+  chat_e2e checks it with a stamped page (`/chatbot.oldwasm.html`). The route-time reload message (4b) stays for a router that throws.
+- Tests: `engine_switch` became `rust_engine` (export list vs d.ts and Rust source, no switch, no twin left). `golden_contract` runs
+  `wasm_golden_check` on the shipped wasm. Search tests (kb_search, kb_scope, kb_search_floor, chat_robust, phrase_hints) use `pageSearch`
+  (`scripts/lib/chatbot_fns.mjs`: the page's own search block on the shipped wasm). `wasm_lockstep` keeps only the gate-floor checks (no
+  twin to compare). answer_points_parity, readable_answer, schedule_table, staff_live, understand_step, date_awareness, per_major,
+  english_programme run the page's wrappers with the shipped wasm. chat_e2e runs once (no js pass): 57 checks became 32.
+- The JS oracle (golden_dump.mjs, dump_route_text_golden.mjs, `loadChatbotFns` / `loadSearch` / `loadUnderstand`) needs a snapshot:
+  `git show 15ef269:submissions/ui/chatbot.html > /tmp/chatbot_ref.html && node scripts/golden_dump.mjs --check --html /tmp/chatbot_ref.html`
+  (6/6 match). `benchmark/golden/README.md` and how-it-works slide 12 say so.
+- Removed: `benchmark/engine/engine_ab.mjs`, `engine_micro.mjs` (A/B of the switch; `benchmark/engine/results` stays as history).
+- Benchmarks moved to `pageSearch` / `pageDecideTier`: compare_retrievers (read by how_it_works, slides_claims, pitch_claims; claims
+  unchanged), official_faq_eval, english_eval, note_rate, signals, embed, doc2query, programme_names.
+- For step 6, still reading the removed JS internals (research scripts, in no gate): compare/latency.mjs, compare/decision_rule.mjs,
+  synth/eval.mjs, synth/distill.mjs, synth/distance_gate.mjs, synth/segment_vs_trigram.mjs, abstain/experiment.mjs, scale/probe.mjs,
+  gradmahidol/run_benchmark.mjs. Each needs a decision: point it at the snapshot (a JS experiment) or at the Rust search.
+- Still JS on the page (page logic, not twins of a wasm export): `datedPicks`, `nearSpelling`, `_pLevel` / `_P_LEVEL`.
 

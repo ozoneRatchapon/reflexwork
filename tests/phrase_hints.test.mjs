@@ -3,12 +3,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { loadSearch } from '../scripts/lib/chatbot_fns.mjs';
+import { pageSearch } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
-const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8')), search = loadSearch(KB);
+const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8')), search = pageSearch(KB, html);
 const src = html.match(/function phraseHints\(phrases\)\{[\s\S]*?\n\}\n/)[0];
 const phraseHints = new Function('search', src + 'return phraseHints;')(search);
 const h = phraseHints(['ชั่วโมงกิจกรรม soft skills', 'ค่าปรับส่งเล่มล่าช้า', 'ชั่วโมงกิจกรรม soft skills']);
