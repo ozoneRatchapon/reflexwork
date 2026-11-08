@@ -43,7 +43,8 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Scale: about 70 files reference the page. This plan is several sessions, not one. Each step is its own commit.
 
 ## Status (2026-11-09)
-- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732), 4b (db94144), 4c (15ef269) and 5 done. Next: step 6.
+- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732), 4b (db94144), 4c (15ef269), 5 (c5f18eb),
+  6a (5248ac0) and 6b (e9983c2) done. The plan is complete; see "Closed" at the end.
 
 ## Step 2 done (intake part, 2026-11-08)
 - The intake patterns (`_ISSUE_CATS`, `_NOT_PERSONAL`, `_ADVICE`, `_FACTUAL`) moved from the page into `vocab.json` (`intake_issues`,
@@ -164,3 +165,13 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
   `ui_guards` checks a Rust source string (`branches.rs`); a Rust unit test would be the better home.
 - Gates: 79/79 test files pass, chat_e2e 32/32.
 
+
+## Closed (2026-11-09)
+- Goal met: the page has no regex copy of a Rust pattern and no JS twin of a wasm export; `rust_engine` guards that no copy comes back.
+- Final gates on e9983c2 (plus the uncommitted PIN test in `golden_route.rs`, not from this plan): cargo test -p reflex-wasm all ok;
+  wasm golden 0 differences (intake 985, understand 1331, decide_tier 91, answer_points 132, schedule_fee 230, resolve 2690);
+  route_golden --check 2268 / shadow 4629 same, 21 pending (AI rewrite), 0 differ; route_rust_check 2221/2221; CI route contract 190/0.
+  The 6 "no chip" probe lines are chips the chooser does not show; none of them is in the golden (it holds 23 pins).
+- Still JS on the page, page logic and not copies (new work if moved): `datedPicks`, `nearSpelling` + `_P_CORE_DROP`, `_pLevel` / `_P_LEVEL`
+  (finder facets), `_P_SCHED_PICK` (which schedule rows a schedule question shows).
+- Open, owner's call: `docs/METHOD.md` and `docs/pitching/40-qa-bank.md:113` still describe the JS twin and `wasm_lockstep`.
