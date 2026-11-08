@@ -1,0 +1,14 @@
+[package]
+name = "reflex-gate"
+version = "0.1.0"
+edition = "2021"
+description = "Domain pack gate runner (plan 012): runs gates 1-5 for a named pack and writes a numbered result file"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "reflex-gate"
+path = "src/main.rs"

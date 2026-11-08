@@ -1,0 +1,17 @@
+# Gate 5 word list: graduate-school vocabulary that must not appear in engine source (plan 011 inventory).
+# Terms are case-insensitive substrings. Move each one into the pack vocab when plan 011 step 1-4 lands.
+หลักสูตร
+เทอม
+ภาคเรียน
+ปีการศึกษา
+ค่าธรรมเนียม
+ปริญญา
+บัณฑิต
+นักศึกษา
+คณะ
+สาขา
+ทุน
+รอบ
+programme
+semester
+tuition
