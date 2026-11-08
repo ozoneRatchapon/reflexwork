@@ -569,8 +569,6 @@ function _engine(name, js, rust){
 }
 {
   const byId = id => KB.find(e=>e.id===id);
-  let res = null;   // the Rust resolver, built once per catalogue (the page's PROG array)
-  const jsResolve = resolveProgramme;
   answerPoints   = _engine('answerPoints', answerPoints,   body => WASM.answer_points(String(body==null?'':body)));
   slotLead       = _engine('slotLead',     slotLead,       (hit,q) => WASM.slot_lead(String((hit&&hit.answer)||''), String(q||'')));
   _pFee          = _engine('fee',          _pFee,          lines => WASM.fee_table(lines||[]));
@@ -581,15 +579,6 @@ function _engine(name, js, rust){
   understand     = _engine('understand',   understand,     phrases => {
     const o = WASM.understand(phrases, phrases.map(p=>search(p).slice(0,3).map(r=>({id:r.e.id, s:r.s}))));
     return o.kind==='one' ? {kind:'one', entry:byId(o.id), score:o.score, via:o.via, others:o.others.map(byId)} : o.kind==='many' ? {kind:'many', entries:o.ids.map(byId)} : {kind:'none'}; });
-  resolveProgramme = _engine('resolveProgramme', jsResolve, (q, P, loose) => {
-    if(P!==PROG || !Array.isArray(P) || !P.length) return jsResolve(q, P, loose);   // only the page's own catalogue is indexed
-    if(!res || res.src!==P){ const t0=performance.now(); res={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))}; ENG.resolverBuildMs=performance.now()-t0; }
-    const r = res.r.resolve(String(q==null?'':q), !!loose);
-    if(r===null) return null;
-    const rows = r.codes.map(c=>res.by.get(c));
-    return r.kind==='one' ? {kind:'one', row:rows[0], via:r.via, topic:r.topic, levelMissing:r.levelMissing}
-      : r.kind==='broad' ? {kind:'broad', total:r.total, rows, levelMissing:r.levelMissing}
-      : {kind:'many', rows, total:r.total, levelMissing:r.levelMissing, topic:r.topic, ...(loose ? {near:true} : {})}; });
 }
 
 load().catch(()=>{
@@ -1150,105 +1139,30 @@ function linkify(text, links){
 // Matching is by character trigrams (Thai has no word breaks) plus ANCHORED removal of intent
 // words at the start/end of the question - never inside it, because filler such as "ต่อ"/"ที่"
 // can be part of a field name (ต่อมไร้ท่อ, ที่ปรึกษา).
-const _P_ZERO=/[​‌‍]/g;
 // Intent phrases are removed only as WHOLE phrases at the start/end of the question (never single
 // words like "ต่อ"/"ศึกษา"/"ทาง", which begin real field names: ต่อมไร้ท่อ, ศึกษาศาสตร์, ทางการแพทย์).
-const _P_LEAD=/^(?:(?:ผม|หนู|ฉัน|เรา|พี่|ขอ|รบกวน|ช่วย|สอบถาม|ถามหน่อย)\s*)?(?:(?:อยาก|จะ|ต้องการ|สนใจ|กำลังจะ|ตั้งใจจะ)?(?:สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เข้าเรียน|เข้าศึกษา|เรียน)(?:ทำ|ด้าน|สาย)?|มี(?=หลักสูตร|สาขา)|ขอ(?:ข้อมูล|รายละเอียด)|(?:ข้อมูล|รายละเอียด)(?:ของ|เกี่ยวกับ)?|เกี่ยวกับ|อยาก|สนใจ|ต้องการ|ต่อ(?=โท|เอก)|ด้าน|ใน|ที่(?=\s)|ของ|หลักสูตร|สาขาวิชา|สาขา|ระดับ|คณะ|หา|ดู|i want to|i would like to|i'd like to|how to apply to|apply(?:ing)? (?:to|for)|the|a|an|in|of|program(?:me)?|course)\s*/i;
-const _P_TAIL=/\s*(?:ครับ|ค่ะ|คะ|นะครับ|นะคะ|นะ|หน่อย|ด้วย|ได้ไหม|ได้หรือไม่|ได้ยังไง|ยังไง|อย่างไร|ไหม|หรือเปล่า|หรือไม่|อยู่|สมัครเรียน|สมัคร|เรียนต่อ|ศึกษาต่อ|เปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|ปิดรับ(?:สมัคร)?(?:หรือยัง|ไหม)?|รับสมัคร|หรือยัง|เท่าไหร่|เท่าไร|กี่บาท|อะไรบ้าง|ต่อเทอม|เทอมละ|ต่อภาค(?:การศึกษา)?|ภาคละ|ทั้งหมด|ตลอดหลักสูตร|ที่ไหน|เมื่อไหร่|เมื่อไร|วันไหน|ปี ?\d{4}|\d{4}|หลักสูตร|program(?:me)?|course|please)\s*$/i;
 // 'ป เอก' / 'ปเอก' / a bare 'เอก' (no dot) count as the level only as a word of their own: space or start before, space, end or a
 // particle after (no look-arounds: the Rust twin uses regex_lite). 'ไปเอกสาร', 'วิชาเอก', 'โทร' are not levels.
-const _P_DEGREE=/ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต|ประกาศนียบัตร|ปริญญาโท|ปริญญาเอก|ปริญญา|ป\.\s?โท|ป\.\s?เอก|(?:^|\s)ป?\s?(?:เอก|โท)(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับโท|ระดับเอก|มหาบัณฑิต|ดุษฎีบัณฑิต|ต่อโท|ต่อเอก|master(?:'s)?|doctoral|doctorate|ph\.?\s?d|\bmsc\b|m\.\s?sc\.?/gi;
-const _P_QUAL=/ภาคพิเศษ|ภาคปกติ|นานาชาติ|international(?: program(?:me)?)?|special program(?:me)?/gi;
-const _P_PAREN=/\(\s*(?:หลักสูตร)?\s*\)/g;
 const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(?:ใน)?(?:การ)?สมัคร|ค่าปรับ|ค่า\S{0,10}สอบ|รักษาสถานภาพ|ใบรับรอง|ผ่อนผัน|โครงร่าง|ประมวลความรู้|อาจารย์ที่ปรึกษา|เปลี่ยนสาขา|ย้ายสาขา|วิทยานิพนธ์|ลงทะเบียน|ลาพัก|ลาออก|หยุดเรียน|พักการเรียน|เกรด|transcript|ตารางสอบ|ย้ายหลักสูตร|เปลี่ยนหลักสูตร|ตารางเรียน|เรียนกี่|เรียนนาน|จบกี่ปี|ใช้เวลาเรียน|application fee|thesis|turnitin/i;
 // Topic of a programme question: "ค่าเทอม <programme>" / "ทุน <programme>" -> that programme's own fee table /
 // scholarship note from its announcement. Without a programme in the question the KB answers as before.
 const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย(?:ตลอดหลักสูตร)?|ค่าเรียน|เหมาจ่าย|tuition(?: fees?)?|\bfees?\b/i],
   ['scholarship',/ทุนการศึกษา|ทุนเรียน|ทุน|scholarships?/i]];
-// What a question naming a programme ASKS about, so the card can lead with that answer ("จิตวิทยาคลินิกสอบสัมภาษณ์วันไหน").
-// Narrower than the follow-up list below (_P_ASPECT): these words are also removed before matching the programme name.
-const _P_ASK=[['schedule',/สอบสัมภาษณ์|สัมภาษณ์|สอบข้อเขียน|สอบวันไหน|สอบเมื่อ(?:ไหร่|ไร)|ประกาศผล|ประกาศรายชื่อ|รายงานตัว|กำหนดการ|สมัครได้ถึง|หมดเขต|ตัดรอบ|ปิดรับ(?:สมัคร)?(?:วันไหน|เมื่อ(?:ไหร่|ไร))|deadline|interview/i],
-  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด(?:รับ)?(?:สมัคร)?|รับกี่คน|จำนวนรับ|รับสมัครอยู่|ยังรับ(?:สมัคร)?|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย)/i],
-  ['docs',/เอกสาร(?:การ)?สมัคร|ใช้เอกสาร|หลักฐานการสมัคร|ต้องใช้อะไรบ้าง/i],
-  ['elig',/คุณสมบัติ(?:ผู้สมัคร)?/i],
-  ['english',/เกณฑ์(?:ภาษา)?อังกฤษ|คะแนน(?:ภาษา)?อังกฤษ|toefl|ielts|ยื่นผล(?:ภาษา)?อังกฤษ/i]];
-const _P_INTENT=/สมัคร|เรียน|สาขา|อยากเข้า|เรียนต่อ|ศึกษาต่อ|ต่อโท|ต่อเอก|สนใจ|เปิดรับ|ปิดรับ|รับสมัคร|ข้อมูล|รายละเอียด|หลักสูตร|apply|admission|enrol|programme|program\b|study/i;
 const _P_LEVEL=[['N',/ประกาศนียบัตรบัณฑิตชั้นสูง|ป\.?\s?บ\.?\s?ช\.?\s?สูง/i],['C',/ประกาศนียบัตร|certificate|diploma/i],['D',/ปริญญาเอก|ป\.\s?เอก|(?:^|\s)ป?\s?เอก(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับเอก|ดุษฎี|ด็อกเตอร์|ดอกเตอร์|ต่อเอก|doctor|ph\.?\s?d/i],['M',/ปริญญาโท|ป\.\s?โท|(?:^|\s)ป?\s?โท(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับโท|มหาบัณฑิต|ต่อโท|master|m\.\s?sc|\bmsc\b/i]];
-// Abbreviations people really type. Each expansion is checked against the catalogue by the test
-// (must resolve to ≥1 programme); extend from the gap log, not from guesses.
-const _P_ALIAS={mph:['สาธารณสุขศาสตร','public health'],itm:['การจัดการเทคโนโลยีสารสนเทศ','information technology management']};
-// Tone marks, karan and mai-taikhu (U+0E47-0E4C) are typed inconsistently ("ทันตแพทย" for "ทันตแพทย์"): ignored on both sides.
-function _pTone(s){ return String(s||'').replace(/[\u0E47-\u0E4C]/g,''); }
-function _pTri(s){ s=_pTone(String(s||'').toLowerCase().replace(_P_ZERO,'').replace(/\s+/g,'')); const g=new Set(); for(let i=0;i<s.length-2;i++) g.add(s.slice(i,i+3)); return g; }
-// Share of the needle covered by pieces (≥3 chars) that occur in the name: people drop middle words
-// ("พยาบาลชุมชน" = two pieces of "การพยาบาลเวชปฏิบัติชุมชน"), and the join trigrams exist in neither.
-function _pPieces(n, h){ let i=0, cov=0;
-  while(i<n.length){ let L=3; if(i+L<=n.length && h.includes(n.slice(i,i+L))){ while(i+L<n.length && h.includes(n.slice(i,i+L+1))) L++; cov+=L; i+=L; } else i++; }
-  return n.length ? cov/n.length : 0; }
-function _pCore(title){ let t=String(title||'').replace(/\([^)]*\)/g,' ');
-  const i=t.indexOf('สาขาวิชา'); t = i>=0 ? t.slice(i+8) : t.replace(/มหาบัณฑิต|ดุษฎีบัณฑิต|ประกาศนียบัตรบัณฑิตชั้นสูง|ประกาศนียบัตรบัณฑิต/g,'');
-  return _pTone(t.replace(/\s+/g,'').toLowerCase()); }
-// An official title pasted whole (QA F24): "(หลักสูตรนานาชาติ)" leaves "(หลักสูตร)" once _P_QUAL has gone, and the degree
-// name before สาขาวิชา ("วิทยาศาสตร", "พยาบาลศาสตร") is not the field - read only what follows สาขาวิชา, as _pCore does.
-function _pClean(q){ let s=String(q||'').toLowerCase().replace(_P_ZERO,'').replace(_P_DEGREE,' ').replace(_P_QUAL,' ').replace(_P_PAREN,' ').replace(/\s+/g,' ').trim(), prev;
-  const i=s.indexOf('สาขาวิชา'); if(i>=0 && s.slice(i+8).trim()) s=s.slice(i+8).trim();
-  do{ prev=s; s=s.replace(_P_LEAD,'').replace(_P_TAIL,'').replace(/\s+มี$/,'').trim(); }while(s!==prev && s);   // "ทุน X มีไหม" leaves a stray มี
-  return s.replace(/\s+/g,''); }
-const _P_FUNC=/^(?:ต้อง|สำหรับ|เพื่อ|การ|ของ|และ|ที่|ใน|มี|ได้|เป็น|จะ|ให้|กับ|แบบ|ทาง|ด้าน|เรื่อง|อะไร|ยังไง|อย่างไร|ไหม|บ้าง|ศึกษา|วิจัย|เรียน|สมัคร|ทำ|ไป|นี้|นั้น)+$/;
 function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; return ''; }
 // loose=true: used ONLY after the strict pass AND the KB found nothing (a slip such as "กายอุปกณ์"). Lower bar (>= 0.5 of the
 // question's trigrams), but the answer is always a picker of the nearest names, never a single card - it cannot assert a wrong programme.
+// The programme resolver is the Rust one (the page's own catalogue only). Built once per catalogue.
+let _resolver = null;
 function resolveProgramme(q, P, loose){
-  const raw=String(q||''); if(!Array.isArray(P)||!P.length) return null;
-  if(_P_OTHER.test(raw)) return null;
-  const feeTopic=(_P_TOPIC.find(([,re])=>re.test(raw))||[''])[0], topic=feeTopic || (_P_ASK.find(([,re])=>re.test(raw))||[''])[0];
-  const code=raw.toUpperCase().match(/\b(\d{4}[MDNC]\d{2}[GS])\b/);
-  if(code){ const r=P.find(p=>p.code===code[1]); return r ? {kind:'one', row:r, via:'code', topic} : null; }
-  // A leading "มี" goes with the ask ("มีสอบสัมภาษณ์ไหม", "X มีทุนไหม") - unless it ends the name ("เคมีสอบข้อเขียน", QA F25):
-  // both readings are tried, the มี-less one first.
-  const strip=mi=>[..._P_TOPIC,..._P_ASK].reduce((s,[,re])=>s.replace(new RegExp(mi+'(?:'+re.source+')','gi'),' '), raw), texts=[...new Set([strip('(?:มี)?'), strip('')])];
-  const alias=Object.keys(_P_ALIAS).find(a=>new RegExp('(?:^|[^a-z])'+a+'(?:[^a-z]|$)','i').test(raw));
-  const level=_pLevel(raw), intl=/นานาชาติ|international/i.test(raw), special=/ภาคพิเศษ|special program/i.test(raw);
-  const needles = [...new Set(alias ? _P_ALIAS[alias].map(s=>s.replace(/\s+/g,'')) : texts.map(_pClean))].filter(n=>!_P_FUNC.test(n)).map(_pTone);   // function-word test BEFORE tone marks go ("เพื่อ" must still read as เพื่อ)
-  const need = needles.map(n=>({n, g:_pTri(n)})).filter(x=>x.g.size>=2);
-  if(!need.length) return null;
-  const intentOk=_P_INTENT.test(raw) || !!alias || !!topic;
-  const scored=[];
-  for(const p of P){
-    const core=_pCore(p.title), full=_pTone(String(p.title||'').replace(/\([^)]*\)/g,'').replace(/\s+/g,'').toLowerCase()), en=String((p.announcement&&p.announcement.title_en)||p.title_en||'').toLowerCase().replace(/\s+/g,'');
-    let best=0;
-    for(const {n,g} of need){
-      for(const h of [core,full,en].filter(Boolean)){ const hg=_pTri(h);
-        let hit=0; for(const t of g) if(hg.has(t)) hit++; const cov=Math.max(hit/g.size, _pPieces(n,h));   // how much of the question is in the name
-        const exact = h===n ? 1 : 0, contained = h.includes(n) ? 0.3 : 0;
-        if(cov>=(loose?0.5:0.85)) best=Math.max(best, cov + exact + contained - Math.min(0.2, Math.abs(h.length-n.length)/200));
-        // reverse: the WHOLE programme name appears in the question, whatever filler surrounds it ("เรียนทำกายอุปกรณ์").
-        // Needs ≥4 trigrams so short names (เคมี) cannot match incidental text; longer names rank higher.
-        // ...but a short name hidden inside a longer, mistyped one ("ชีววิทยา" inside "ชีวเคมีและชีววิทยา…") is not the programme asked for:
-        // the contained name must be a real share (>= 40%) of what was asked.
-        // A name with a long leftover (QA F27: "ชีววิทยา" inside the slip "จุลชีววิทยาสาธารณุข") only just clears the bar, so a
-        // name that covers the whole question outranks it; with a small leftover ("เรียนทำ" + name) it is the programme asked for.
-        if(hg.size>=4 && h===core && h.length>=0.4*n.length){ let inQ=0; for(const t of hg) if(g.has(t)) inQ++;
-          if(inQ===hg.size) best=Math.max(best, n.length-h.length<=Math.max(3, 0.25*n.length) ? 1 + Math.min(h.length,40)/50 : 0.85 + Math.min(h.length,40)/400); } }
-    }
-    if(best>0) scored.push({p, s:best});
-  }
-  if(!scored.length) return null;
-  if(loose){ scored.sort((a,b)=>b.s-a.s); const top=scored[0].s; let rows=scored.filter(x=>x.s>=top-0.3).slice(0,5); if(rows.length<3) rows=scored.slice(0,3); return {kind:'many', rows:rows.map(x=>x.p), total:scored.length, near:true}; }
-  // the question must either state an apply/info intent, or BE (almost) just a programme name
-  scored.sort((a,b)=>b.s-a.s);
-  if(!intentOk){ const n=need[0].n, t=scored[0].p, nk=x=>_pTone(String(x||'').toLowerCase().replace(/\s+/g,'')), hs=[_pCore(t.title), nk(String(t.title||'').replace(/\([^)]*\)/g,'')), nk((t.announcement&&t.announcement.title_en)||t.title_en)].filter(Boolean);
-    const rest=Math.min(...hs.map(h=>n.length*(1-_pPieces(n,h)))); if(rest>Math.max(3, n.length*0.25)) return null; }
-  const top=scored[0].s; let pool=scored.filter(x=>x.s>=top-0.15).map(x=>x.p);
-  let levelMissing=false;
-  const keep=(f)=>{ const r=pool.filter(f); if(r.length) pool=r; else return false; return true; };
-  if(level && !keep(p=>p.code[4]===level)) levelMissing=true;
-  if(intl) keep(p=>p.kind==='international');
-  if(special) keep(p=>p.code.endsWith('S'));
-  if(pool.length===1) return {kind:'one', row:pool[0], via:alias?'alias':'name', levelMissing, topic};
-  if(pool.length>12) return feeTopic ? null   // "ค่าเทอมพยาบาล": the KB's general fee answer beats a 30-programme picker
-    : {kind:'broad', total:pool.length, rows:pool.slice(0,6), levelMissing};   // a field word, not a programme: ask for more, don't list 30
-  return {kind:'many', rows:pool.slice(0,6), total:pool.length, levelMissing, topic};
+  if(!Array.isArray(P) || !P.length) return null;
+  if(!_resolver || _resolver.src!==P){ const t0=performance.now(); _resolver={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))}; ENG.resolverBuildMs=performance.now()-t0; }
+  const r = _resolver.r.resolve(String(q==null?'':q), !!loose);
+  if(r===null) return null;
+  const rows = r.codes.map(c=>_resolver.by.get(c));
+  return r.kind==='one' ? {kind:'one', row:rows[0], via:r.via, topic:r.topic, levelMissing:r.levelMissing}
+    : r.kind==='broad' ? {kind:'broad', total:r.total, rows, levelMissing:r.levelMissing}
+    : {kind:'many', rows, total:r.total, levelMissing:r.levelMissing, topic:r.topic, ...(loose ? {near:true} : {})};
 }
 // Follow-up turn: right after a single-programme card, a SHORT question about one of its aspects that names no
 // programme, level, code or other topic of its own ("แล้วค่าเทอมล่ะ", "มีทุนไหม", "สอบวันไหน") is about THAT programme.

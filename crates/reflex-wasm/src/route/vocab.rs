@@ -80,6 +80,33 @@ pub struct Vocab {
     pub not_personal: Re,
     pub advice: Re,
     pub factual: Re,
+    pub resolve: ResolveVocab,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+/// The programme-matching regexes (plan 015 step 3): the resolver's lead, tail, degree, qualifier and intent words, the fee and
+/// ask topics, and the level letters. Keys of `topics`, `asks` and `levels` are the labels the resolver returns.
+pub struct ResolveVocab {
+    pub lead: Re,
+    pub tail: Re,
+    pub degree: Re,
+    pub qual: Re,
+    pub paren: Re,
+    pub other: Re,
+    pub intent: Re,
+    pub func: Re,
+    pub topics: Vec<KeyRe>,
+    pub asks: Vec<KeyRe>,
+    pub levels: Vec<KeyRe>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+/// A labelled regex (`key` names the match: a topic, an ask, or a level letter).
+pub struct KeyRe {
+    pub key: String,
+    pub re: Re,
 }
 
 #[derive(Deserialize)]

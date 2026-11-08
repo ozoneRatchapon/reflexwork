@@ -275,7 +275,7 @@
       <li class="good">เปิดหน้าด้วย <code>?engine=rust</code> (ค่าเริ่มต้น) หรือ <code>?engine=js</code> — ฟังก์ชันที่ย้ายไป Rust แล้วถ้าล้มเหลวจะ<b>ถอยกลับไปใช้ฉบับ JS</b> เองโดยผู้ใช้ไม่เห็น</li>
       <li class="good"><b>Golden contract:</b> ชุดอินพุตที่แช่แข็งไว้กว่า 5,000 กรณี (ค้นชื่อหลักสูตร · ตารางกำหนดการ/ค่าธรรมเนียม · คัดปัญหาเฉพาะบุคคล · ตัดสินใจ · แปลคำค้น · เรียงคำตอบ) พร้อมผลลัพธ์ที่ JS ให้ — ฉบับ Rust ต้องตรงทุกกรณี (CI: <code>rust-golden</code>)</li>
       <li class="mid">เปลี่ยนตรรกะโดยตั้งใจ → สร้างค่า golden ใหม่ด้วย <code>golden_dump.mjs --keep-inputs</code> แล้วตรวจ diff ทีละรายการก่อน commit</li>
-      <li class="mid">รูปแบบ regex ที่ใช้ร่วมกัน (เช่น คัดปัญหาบัญชี) ถูกสร้างเป็นโค้ด Rust จากไฟล์หน้าเว็บอัตโนมัติ <code>gen_rust_pattern_sources.mjs</code> กันไม่ให้สองฉบับเพี้ยนจากกัน</li>
+      <li class="mid">รูปแบบ regex ที่ใช้ร่วมกัน (เช่น คัดปัญหาบัญชี) อยู่ในไฟล์เดียว <code>packs/graduate-school/vocab.json</code> และโค้ด Rust อ่านจากไฟล์นี้โดยตรง ไม่มีสำเนาในหน้าเว็บ</li>
     </ul>
   </section>
 

@@ -3,8 +3,13 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { classifyIssue, isAdvice, isEnglish } from '../../integrations/_shared/intake.mjs';
+import { classifyIssue, isAdvice, isEnglish } from "../../integrations/_shared/intake.mjs";
+import * as WASM from "../../submissions/ui/wasm/reflex_wasm.js";
 export const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+let _inited = false;
+// the page's Rust engine, the same shipped build the page loads (submissions/ui/wasm)
+function wasmReady(){ if(_inited) return; WASM.initSync({ module: readFileSync(join(root, "submissions/ui/wasm/reflex_wasm_bg.wasm")) }); _inited = true; }
+
 export function loadChatbotFns(html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
   const need = (re, name) => { const m = html.match(re); if (!m) throw new Error(`chatbot.html: block not found: ${name}`); return m[1] ?? m[0]; };
   const linkify = need(/\/\/ <linkify>([\s\S]*?)\/\/ <\/linkify>/, 'linkify');
@@ -13,7 +18,8 @@ export function loadChatbotFns(html = readFileSync(join(root, 'submissions/ui/ch
   const slots = need(/const _SLOTS=[\s\S]*?\n  return ''; }\n/, 'slotLead');
   const points = need(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=const _SHOW_POINTS)/, 'answerPoints');
   const tier = need(/const _BAND=[\s\S]*?\nfunction decideTier[\s\S]*?\n}\n/, 'decideTier');
-  return new Function(`${today}\n${linkify}\n${prog}\n${slots}\n${points}\n${tier}\nreturn { answerPoints, slotLead, _pSchedule, _pFee, resolveProgramme, decideTier };`)();
+  wasmReady();
+  return new Function("WASM", "ENG", `${today}\n${linkify}\n${prog}\n${slots}\n${points}\n${tier}\nreturn { answerPoints, slotLead, _pSchedule, _pFee, resolveProgramme, decideTier };`)(WASM, {});
 }
 
 // The deterministic JS search of the page (what search() falls back to without wasm), over a given KB array.
@@ -35,3 +41,6 @@ export function loadUnderstand(search, html = readFileSync(join(root, 'submissio
 export function loadIntake() {
   return { classifyIssue, isAdvice, isEnglish };
 }
+
+// The shipped Rust engine (submissions/ui/wasm), for page blocks that call the Rust resolver. Pass as `WASM` to the block's Function.
+export function shippedWasm() { wasmReady(); return WASM; }

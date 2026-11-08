@@ -8,7 +8,11 @@
 // (3) the 50 KB eval questions are NOT stolen by this path, (4) text from the web is escaped.
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join } from "node:path";
+import * as WASM from "../submissions/ui/wasm/reflex_wasm.js";
+// the abbreviations the Rust resolver expands (crates/reflex-wasm/src/resolve/patterns.rs ALIASES); the page no longer has a copy
+const ALIAS_KEYS = ["mph", "itm"];
+WASM.initSync({ module: readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "submissions/ui/wasm/reflex_wasm_bg.wasm")) });
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const progPath = join(root, 'submissions/ui/programmes.json');
@@ -25,7 +29,7 @@ check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
 if (!existsSync(progPath)) process.exit(1);
-const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
+const { resolveProgramme, programmeCard, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function("WASM", "ENG", html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + bm[1] + '\nreturn {resolveProgramme, programmeCard, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')(WASM, {});
 const DOC = JSON.parse(readFileSync(progPath, 'utf8')), P = DOC.programmes;
 const by = Object.fromEntries(P.map(p => [p.code, p]));
 
@@ -87,7 +91,7 @@ expectIn('clinical psychology master', '2022M04G');                  // English 
   check(`names that start/end with a strippable word survive (${risky.length} programmes)`, risky.length >= 20 && broken.length === 0, `${risky.length} risky; broken ${broken.map(p => p.code).slice(0, 6).join()}`);
 }
 // alias expansions must hit the catalogue (a stale alias is a silent dead end)
-for (const a of Object.keys(_P_ALIAS)) { const r = run('อยากสมัคร ' + a.toUpperCase()); check(`alias ${a.toUpperCase()} resolves to ≥1 programme`, r && codes(r).length >= 1, r ? '' : 'no match'); }
+for (const a of ALIAS_KEYS) { const r = run('อยากสมัคร ' + a.toUpperCase()); check(`alias ${a.toUpperCase()} resolves to ≥1 programme`, r && codes(r).length >= 1, r ? '' : 'no match'); }
 // not a programme question -> leave it to the KB
 for (const q of ['สมัครเรียนได้ไหม', 'อยากเรียนโทที่มหิดล', 'ส่งเล่มวิทยานิพนธ์กี่วัน', 'ลงทะเบียนภาคปลายวันไหน', 'วันนี้อากาศเป็นยังไง', 'ทุนการศึกษามีอะไรบ้าง',
   'ค่าเทอม ป.โท เท่าไหร่', 'ค่าเทอมพยาบาล', 'ค่าสมัครจิตวิทยาคลินิก', 'ค่าธรรมเนียมการสมัครเท่าไหร่']) expectNone(q);   // no programme / too broad / application fee -> KB

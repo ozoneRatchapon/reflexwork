@@ -3,12 +3,13 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (n, ok, d = '') => { console.log((ok ? '✓' : '✗') + ' ' + n + (ok ? '' : `  ← ${d}`)); ok ? pass++ : fail++; };
 const bm = html.match(/\/\/ <programme-resolve>([\s\S]*?)\/\/ <\/programme-resolve>/), lk = html.match(/\/\/ <linkify>([\s\S]*?)\/\/ <\/linkify>/), td = html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/);
-const { resolveProgramme, followUpAspect, isGenericFeeQuestion } = new Function(td[1] + lk[1] + '\n' + bm[1] + '\nreturn {resolveProgramme, followUpAspect, isGenericFeeQuestion};')();
+const { resolveProgramme, followUpAspect, isGenericFeeQuestion } = new Function('WASM', 'ENG', td[1] + lk[1] + '\n' + bm[1] + '\nreturn {resolveProgramme, followUpAspect, isGenericFeeQuestion};')(shippedWasm(), {});
 const P = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8')).programmes;
 const own = ['ค่าเทอมสาธารณสุข', 'ทุนวิศวกรรม', 'แล้วทุนการพยาบาลล่ะ', 'สอบสัมภาษณ์วันไหน ทันตแพทย์'];
 const plain = ['แล้วค่าเทอมล่ะ', 'มีทุนไหม', 'สมัครได้ถึงเมื่อไหร่', 'ค่าเทอมเท่าไร'];

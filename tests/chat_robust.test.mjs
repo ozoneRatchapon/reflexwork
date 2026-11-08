@@ -6,6 +6,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
@@ -13,7 +14,7 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const block = n => { const m = html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`)); check(`<${n}> block found`, m); if (!m) process.exit(1); return m[1]; };
 const { normChat } = new Function(block('chat-normalize') + '\nreturn {normChat};')();
-const { hasStudyIntent, resolveProgramme } = new Function(block('linkify') + block('programme-resolve') + '\nreturn {hasStudyIntent, resolveProgramme};')();
+const { hasStudyIntent, resolveProgramme } = new Function('WASM', 'ENG', block('linkify') + block('programme-resolve') + '\nreturn {hasStudyIntent, resolveProgramme};')(shippedWasm(), {});
 
 // --- sloppy typing ------------------------------------------------------------------------------------------------
 const cases = [['เรียนรายยย', 'เรียนราย'], ['ขอบคุณครับบบบบ', 'ขอบคุณครับ'], ['ได้้้้ไหม', 'ได้ไหม'], ['จ้าาาา', 'จ้า'],
