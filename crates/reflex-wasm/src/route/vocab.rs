@@ -73,6 +73,19 @@ pub struct Vocab {
     pub term_second_pat: Re,
     pub term_summer_pat: Re,
     pub words: Words,
+    pub stuck_w: Re,
+    pub stuck_fill: Re,
+    pub stuck_cats: Vec<StuckCatVocab>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+/// One "ติดปัญหา" area: its key, the words that name it (`topic`), the title filter and the seed phrases (plan 011 step 3).
+pub struct StuckCatVocab {
+    pub key: String,
+    pub topic: Re,
+    pub title: Re,
+    pub seeds: Vec<String>,
 }
 
 #[derive(Deserialize)]
