@@ -8,33 +8,23 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (n, ok, d = '') => { console.log((ok ? '✓' : '✗') + ' ' + n + (ok ? '' : `  ← ${d}`)); ok ? pass++ : fail++; };
-const grab = re => { const m = html.match(re); check(`found: ${re.source.slice(0, 40)}`, !!m); return m ? m[0] : ''; };
-import { classifyIssue } from '../integrations/_shared/intake.mjs';   // the web copy is wasm-only now (plan 015 step 2); LINE is lockstep-tested
-const stuck = grab(/const _STUCK_W=[\s\S]*?\nfunction stuckPicks\(c\)\{[\s\S]*?\n\}\n/);
-if (!stuck) process.exit(1);
-const { stuckTopic, stuckPicks, _STUCK_CATS } = new Function('KB', 'search', 'classifyIssue', stuck + '\nreturn { stuckTopic, stuckPicks, _STUCK_CATS };')([], () => [], classifyIssue);
-
-const bare = ['ติดปัญหา', 'ติดปัญหาค่ะ', 'ติดปัญหาครับ', 'ผมติดปัญหาครับ', 'มีปัญหา', 'มีปัญหาค่ะ', 'ช่วยด้วย', 'ช่วยด้วยครับ', 'ช่วยหน่อย', 'ขอความช่วยเหลือ', 'ไม่รู้จะทำยังไงดี', 'ทำยังไงดี', 'งงมาก', 'ติด ปัญหา'];
-check('a stuck message with no topic -> the area menu', bare.every(q => { const r = stuckTopic(q); return r && r.cat === null; }), bare.filter(q => { const r = stuckTopic(q); return !(r && r.cat === null); }).join(', '));
-const area = { 'ติดปัญหาวิทยานิพนธ์': 'thesis', 'ติดปัญหาเรื่องวิทยานิพนธ์': 'thesis', 'มีปัญหาเรื่องส่งเล่ม': 'thesis', 'ติดปัญหา Turnitin': 'thesis',
-  'ติดปัญหาเรื่องลงทะเบียน': 'reg', 'ติดปัญหาจ่ายค่าเทอม': 'reg', 'ลงทะเบียนมีปัญหาครับ': 'reg', 'ติดปัญหาการชำระเงิน': 'reg',
-  'ติดปัญหาเรื่องลาพัก': 'status', 'มีปัญหาเรื่องลาออก': 'status', 'ติดปัญหาเรื่องขอจบ': 'grad', 'ติดปัญหาเรื่องเอกสาร': 'grad' };
-for (const [q, k] of Object.entries(area)) { const r = stuckTopic(q); check(`"${q}" -> area ${k}`, r && r.cat && r.cat.key === k, JSON.stringify(r && r.cat && r.cat.key)); }
-const leave = ['ติดปัญหาส่งเล่มเกินกำหนดต้องเสียค่าปรับไหม', 'ติดปัญหาเข้าระบบไม่ได้', 'ระบบลงทะเบียนมีปัญหา', 'เข้าระบบไม่ได้ ช่วยด้วย', 'ช่วยแนะนำวิธีจัดการเวลาทำวิทยานิพนธ์',
-  'ส่งรูปเล่มภายในกี่วัน', 'ติดปัญหาเรื่องที่จอดรถ', 'ปัญหาพิเศษคืออะไร', 'อยากลาพักการศึกษา ควรทำยังไง', 'ok', ''];
-check('real questions, account / system problems and other topics are left to the normal path', leave.every(q => stuckTopic(q) === null), leave.filter(q => stuckTopic(q) !== null).join(', '));
-check('the login chip asks the account intake phrase (IT contact box)', _STUCK_CATS.find(c => c.key === 'login').asks === 'เข้าระบบไม่ได้');
-
-// chips come from the KB: a seed's top entry counts only if its title is in the area; a KB without the area offers nothing
-const thesis = _STUCK_CATS.find(c => c.key === 'thesis');
-const fakeHit = t => ({ e: { id: t, title: t }, s: 6 });
-const picks = new Function('KB', 'search', 'classifyIssue', stuck + '\nreturn stuckPicks;')([], s => [fakeHit(/Turnitin/.test(s) ? 'Turnitin เกิน 25% ต้องทำอย่างไร' : 'ทุนการศึกษามีอะไรบ้าง')], classifyIssue);
-check('an off-area top hit is not offered as a chip', picks(thesis).length === 1 && picks(thesis)[0].title.startsWith('Turnitin'), JSON.stringify(picks(thesis)));
-check('an empty KB offers no chips for the area', stuckPicks(thesis).length === 0);
+import { decisionOf } from '../scripts/lib/rust_route.mjs';
+// Which message is a stuck message, which area it names and which entries it offers is Rust's since plan 015 step 4c (route/stuck.rs; the hand cases
+// are in crates/reflex-wasm/tests/route_predicates.rs). Here: the router's decision, and the page's view of it.
+const stuck = q => { const d = decisionOf(q); return d.route === 'stuck_pick' ? d.stuck : null; };
+const bare = ['ติดปัญหา', 'ติดปัญหาครับ', 'ช่วยด้วย', 'งงมาก'];
+check('a stuck message with no topic -> the area menu', bare.every(q => { const r = stuck(q); return r && r.key === null && r.areas.length > 0; }), bare.filter(q => { const r = stuck(q); return !(r && r.key === null); }).join(', '));
+const area = { 'ติดปัญหาเรื่องวิทยานิพนธ์': 'thesis', 'ติดปัญหาจ่ายค่าเทอม': 'reg', 'ติดปัญหาเรื่องลาพัก': 'status', 'ติดปัญหาเรื่องขอจบ': 'grad' };
+for (const [q, k] of Object.entries(area)) { const r = stuck(q); check(`"${q}" -> area ${k}, with entries`, r && r.key === k && r.picks.length > 0, JSON.stringify(r)); }
+const leave = ['ติดปัญหาส่งเล่มเกินกำหนดต้องเสียค่าปรับไหม', 'ระบบลงทะเบียนมีปัญหา', 'เข้าระบบไม่ได้ ช่วยด้วย', 'ส่งรูปเล่มภายในกี่วัน'];
+check('real questions and account / system problems are left to the normal path', leave.every(q => stuck(q) === null), leave.filter(q => stuck(q) !== null).join(', '));
+const view = html.match(/const _STUCK_VIEW=\{[\s\S]*?\n\};/);
+check('the page has a view (chip, name, question) for every area the router can name', !!view && ['login', 'reg', 'thesis', 'status', 'grad'].every(k => new RegExp(`\\b${k}:\\{key:'${k}', chip:'[^']+', name:'[^']+', asks:'[^']+'\\}`).test(view[0])));
+check('the login chip asks the account intake phrase (IT contact box)', !!view && /login:\{[^}]*asks:'เข้าระบบไม่ได้'\}/.test(view[0]));
 
 // wiring: after the kernel strip and the personal-record guard, before the broad-question chooser; never logs a gap
-const at = html.indexOf('stuckTopic(q)');
-check('the branch runs after kstrip / personalAsk and before the restart / overview chooser', at > html.indexOf('const kstrip =') && at > html.indexOf('personalAsk(q)') && at < html.indexOf('isRestartPhrase(q);'));
+const at = html.indexOf("if(take('stuck_pick')){");
+check('the branch runs after kstrip / the personal guard and before the restart / overview chooser', at > html.indexOf('const kstrip =') && at > html.indexOf("if(take('personal')){") && at < html.indexOf('isRestartPhrase(q);'));
 const branch = html.slice(at, html.indexOf('isRestartPhrase(q);'));
 check('the stuck branch does not log a gap or show the not-understood line', !/logGap|notUnderstood|frustratedNote/.test(branch));
 check('the stuck branch always shows the staff contact', /_btn\(AGENCY\.contact\)/.test(branch));

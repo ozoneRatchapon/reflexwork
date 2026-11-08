@@ -20,4 +20,6 @@ const state = { progState: 'ok', aiOff: true, pinnedId: null, programmeInFocus: 
 // the route the Rust side picks for a typed question (null = waiting for the AI rewrite / not found); `over` replaces fields of the
 // page state above (e.g. { progState: 'loading' } for a catalogue that has not arrived yet)
 export const routeOf = (q, over) => router.decide(q, over ? { ...state, ...over } : state, null) ?? null;
+// the whole decision: the route and what its view needs ({route, personal, stuck, programme, aspect, timeIntent, studyIntent})
+export const decisionOf = (q, over) => router.decision(q, over ? { ...state, ...over } : state, null);
 export const catalogue = { KB, PROG };

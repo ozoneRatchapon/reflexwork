@@ -106,6 +106,11 @@ pub fn is_overview_question(text: &str) -> bool {
     t.encode_utf16().count() <= 40 && overview().is_match(&t)
 }
 
+/// A staff-written answer matches this question clearly (s >= 6): it wins over the programme resolver and the later programme branches.
+pub fn staff_first(q: &str, ctx: &Ctx) -> bool {
+    !ctx.pinned && ctx.manual.search(q).first().is_some_and(|f| f.entry.staff && f.hit.s >= 6)
+}
+
 /// The ported prefix of the decision order for one typed question. `pinned` = the user tapped a topic chip (it skips the personal / stuck paths).
 pub fn decide_prefix(typed: &str, ctx: &mut Ctx) -> Option<Route> {
     let pinned = ctx.pinned;
@@ -142,7 +147,7 @@ pub fn decide_prefix(typed: &str, ctx: &mut Ctx) -> Option<Route> {
         return Some(Route::GenericFee);
     }
     // 8-9: a staff answer that clearly matches wins over the programme resolver; otherwise the resolver gives a card or a picker (or the question goes on)
-    let staff_first = !pinned && ctx.manual.search(&q).first().is_some_and(|f| f.entry.staff && f.hit.s >= 6);
+    let staff_first = staff_first(&q, ctx);
     if ctx.prog_state == ProgState::Ok {
         if let Some(cat) = ctx.catalogue {
             match resolve_programme_branch(&q, cat, pinned || staff_first) {

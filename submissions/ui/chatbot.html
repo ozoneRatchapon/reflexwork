@@ -1077,14 +1077,7 @@ const _SNAPSHOT_RE=/เก็บวันที่|ข้อมูล ณ|ปร
 function isDatedSchedule(e){ return !!(e && e.academic_year && /กำหนดการ/.test(e.title||'')); }
 function entrySpan(e){ return dateSpan(String(e.answer||'').split('\n').filter(l=>!_SNAPSHOT_RE.test(l)).join('\n')); }
 
-// "Now / still in time" questions (QA G17): 'ยังทันไหม', 'ตอนนี้ภาคเรียนอะไร', 'วันนี้ปิดรับหรือยัง'. Only when, after the time words,
-// nothing but schedule words, fillers and dates is left - 'ตอนนี้ลาพักได้ไหม' names its own topic and goes on to search.
-const _TIME_W=/ตอนนี้|วันนี้|ขณะนี้|เทอมนี้|ภาคนี้|ปีนี้|ยังทัน|ทัน(?:ไหม|มั้ย|มั๊ย|อยู่)|หรือยัง|ผ่าน(?:ไป)?แล้ว/;
-const _TIME_REST=/ตอนนี้|วันนี้|ขณะนี้|เทอมนี้|ภาคนี้|ปีนี้|หรือยัง|ผ่าน(?:ไป)?แล้ว|ยัง|ทัน|ลงทะเบียน|เรียน|ล่าช้า|รับสมัคร|สมัคร|ตัดรอบ|ปิดรับ|เปิดรับ|เปิด|ปิด|หมดเขต|ภาคการศึกษา|ภาคเรียน|เทอม|กำหนดการ|วันสุดท้าย|รอบ|ช่วง|อยู่|ใน|ได้|ไหม|มั้ย|มั๊ย|อะไร|วันไหน|เมื่อไหร่|เมื่อไร|ถึง|แล้ว|หรือ|ไหน|ครับ|ค่ะ|คะ|นะ|จ้า|เรา|ผม|หนู|ฉัน|จะ|ของ|ที่|คือ|เป็น|ตอน|บ้าง|วันที่|\d+|[ก-ฮ]{1,2}\.(?:[ก-ฮ]\.)?|[\s?!.,]/g;
-function timeIntent(q){
-  const s=String(q||''); if(!_TIME_W.test(s) || s.replace(_TIME_REST,'').length) return null;
-  return /ลงทะเบียน|ภาคเรียน|ภาคการศึกษา|เทอม|เรียน/.test(s) ? 'registration' : /สมัคร|ตัดรอบ|ปิดรับ|เปิดรับ|หมดเขต|รอบ/.test(s) ? 'admissions' : 'any';
-}
+// "Now / still in time" (QA G17): which schedules a question asks about is Rust's (route/dates.rs `time_intent`, via the router's decision).
 // The dated schedule entries for that intent, nearest to today first: in progress, then upcoming, then the most recently passed.
 function datedPicks(kb, intent, today, n=4){
   const t=today||todayIso(), want={registration:'registration', admissions:'admissions'}[intent];
@@ -1144,11 +1137,6 @@ function linkify(text, links){
 // words like "ต่อ"/"ศึกษา"/"ทาง", which begin real field names: ต่อมไร้ท่อ, ศึกษาศาสตร์, ทางการแพทย์).
 // 'ป เอก' / 'ปเอก' / a bare 'เอก' (no dot) count as the level only as a word of their own: space or start before, space, end or a
 // particle after (no look-arounds: the Rust twin uses regex_lite). 'ไปเอกสาร', 'วิชาเอก', 'โทร' are not levels.
-const _P_OTHER=/ค่า(?:ธรรมเนียม|ใช้จ่าย)?(?:ใน)?(?:การ)?สมัคร|ค่าปรับ|ค่า\S{0,10}สอบ|รักษาสถานภาพ|ใบรับรอง|ผ่อนผัน|โครงร่าง|ประมวลความรู้|อาจารย์ที่ปรึกษา|เปลี่ยนสาขา|ย้ายสาขา|วิทยานิพนธ์|ลงทะเบียน|ลาพัก|ลาออก|หยุดเรียน|พักการเรียน|เกรด|transcript|ตารางสอบ|ย้ายหลักสูตร|เปลี่ยนหลักสูตร|ตารางเรียน|เรียนกี่|เรียนนาน|จบกี่ปี|ใช้เวลาเรียน|application fee|thesis|turnitin/i;
-// Topic of a programme question: "ค่าเทอม <programme>" / "ทุน <programme>" -> that programme's own fee table /
-// scholarship note from its announcement. Without a programme in the question the KB answers as before.
-const _P_TOPIC=[['fee',/ค่าธรรมเนียมการศึกษา|ค่าธรรมเนียม|ค่าเทอม|ค่าเล่าเรียน|ค่าใช้จ่าย(?:ตลอดหลักสูตร)?|ค่าเรียน|เหมาจ่าย|tuition(?: fees?)?|\bfees?\b/i],
-  ['scholarship',/ทุนการศึกษา|ทุนเรียน|ทุน|scholarships?/i]];
 const _P_LEVEL=[['N',/ประกาศนียบัตรบัณฑิตชั้นสูง|ป\.?\s?บ\.?\s?ช\.?\s?สูง/i],['C',/ประกาศนียบัตร|certificate|diploma/i],['D',/ปริญญาเอก|ป\.\s?เอก|(?:^|\s)ป?\s?เอก(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับเอก|ดุษฎี|ด็อกเตอร์|ดอกเตอร์|ต่อเอก|doctor|ph\.?\s?d/i],['M',/ปริญญาโท|ป\.\s?โท|(?:^|\s)ป?\s?โท(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับโท|มหาบัณฑิต|ต่อโท|master|m\.\s?sc|\bmsc\b/i]];
 function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; return ''; }
 // loose=true: used ONLY after the strict pass AND the KB found nothing (a slip such as "กายอุปกณ์"). Lower bar (>= 0.5 of the
@@ -1158,28 +1146,21 @@ let _resolver = null;
 function resolveProgramme(q, P, loose){
   if(!Array.isArray(P) || !P.length) return null;
   if(!_resolver || _resolver.src!==P){ const t0=performance.now(); _resolver={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))}; ENG.resolverBuildMs=performance.now()-t0; }
-  const r = _resolver.r.resolve(String(q==null?'':q), !!loose);
-  if(r===null) return null;
-  const rows = r.codes.map(c=>_resolver.by.get(c));
+  return _progView(_resolver.r.resolve(String(q==null?'':q), !!loose), loose, _resolver.by);
+}
+// A Rust resolution ({kind, codes, topic, via, levelMissing, total}) as the page's rows: from the resolver above, or from the router's
+// decision (codes of the page's own catalogue PROG).
+let _progBy = null;
+function _progView(r, loose, by){
+  if(r==null) return null;
+  if(!by){ if(!_progBy || _progBy.src!==PROG) _progBy={src:PROG, by:new Map(PROG.map(p=>[p.code,p]))}; by=_progBy.by; }
+  const rows = r.codes.map(c=>by.get(c));
   return r.kind==='one' ? {kind:'one', row:rows[0], via:r.via, topic:r.topic, levelMissing:r.levelMissing}
     : r.kind==='broad' ? {kind:'broad', total:r.total, rows, levelMissing:r.levelMissing}
     : {kind:'many', rows, total:r.total, levelMissing:r.levelMissing, topic:r.topic, ...(loose ? {near:true} : {})};
 }
-// Follow-up turn: right after a single-programme card, a SHORT question about one of its aspects that names no
-// programme, level, code or other topic of its own ("แล้วค่าเทอมล่ะ", "มีทุนไหม", "สอบวันไหน") is about THAT programme.
-// Pure: the chat holds the one remembered programme, always says how it read the question, and offers an undo.
-const _P_ASPECT=[['fee',_P_TOPIC[0][1]],['scholarship',_P_TOPIC[1][1]],
-  ['docs',/เอกสาร|หลักฐาน|ใช้อะไรบ้าง|documents?/i],
-  ['elig',/คุณสมบัติ|จบ(?:อะไร|สาขา|ป\.?ตรี)|เกรดเฉลี่ย|\bgpa\b|eligib|requirements?/i],
-  ['english',/ภาษาอังกฤษ|อังกฤษ|toefl|ielts|english/i],
-  ['schedule',/สอบ|สัมภาษณ์|ประกาศผล|กำหนดการ|ปิดรับวัน|สมัครได้ถึง|ถึงวันไหน|วันไหน|เมื่อไหร่|เมื่อไร|deadline|interview|schedule|รอบ/i],
-  ['status',/เปิดรับ|ปิดรับ|เปิด(?:หรือ)?ยัง|ยังเปิด|รับกี่คน|จำนวนรับ|รับ(?:สมัคร)?(?:อยู่)?ไหม|\bopen\b/i]];
+// Follow-up turn: which aspect a follow-up asks about is Rust's (route/aspect.rs `follow_up_aspect`, via the router's decision); the label:
 const _P_ASPECT_TH={fee:'ค่าธรรมเนียม',scholarship:'ทุน',docs:'หลักฐานการสมัคร',elig:'คุณสมบัติผู้สมัคร',english:'เกณฑ์ภาษาอังกฤษ',schedule:'กำหนดการ',status:'สถานะการรับสมัคร'};
-function followUpAspect(q){
-  const raw=String(q||'').trim(); if(!raw || raw.replace(/\s+/g,'').length>40) return '';
-  if(_P_OTHER.test(raw) || _pLevel(raw) || /\d{4}[MDNC]\d{2}[GS]/i.test(raw) || /มหิดล|บัณฑิตวิทยาลัย|ทั่วไป|ทุกหลักสูตร|mahidol/i.test(raw)) return '';
-  const hit=_P_ASPECT.find(([,re])=>re.test(raw)); return hit ? hit[0] : '';
-}
 function _pDate(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? `${+m[3]} ${_TH_MON[+m[2]-1]} ${+m[1]+543}` : ''; }
 // The snapshot age warning (QA G16): quiet while the data is fresh, loud once it is over a month old.
 const _STALE_DAYS=30;
@@ -1323,12 +1304,7 @@ function programmeCard(p, asOf, year, topic, q){
 // Programme finder ("เรียนไรดี"): there is no single right answer, so the bot does not pick one. It narrows the
 // official catalogue by facets the site itself publishes (level, faculty, open now, international, special
 // programme) with live counts, until a handful of programmes is left to open as cards. Pure; the chat wires clicks.
-const _P_FINDQ=/(?:เรียน|ศึกษาต่อ|ต่อ(?:โท|เอก)|สาขา|หลักสูตร|คณะ)\s*(?:อะไร|ไร|ไหน)\s*ดี|ไม่รู้จะเรียน|แนะนำ(?:หลักสูตร|สาขา|คณะ|ที่เรียน)|(?:มี|เปิด(?:รับ)?)\s*(?:หลักสูตร|สาขา|คณะ)\s*(?:อะไร|ไหน)(?:บ้าง)?|หลักสูตร(?:ทั้งหมด|อะไรบ้าง)|หลักสูตรที่เปิด(?:รับ)?(?:สมัคร)?(?:มี)?(?:อะไร)?บ้าง|what should i study|which (?:program|course)s?|list of programs?/i;
 const _P_LV=[['M','ปริญญาโท'],['D','ปริญญาเอก'],['C','ประกาศนียบัตรบัณฑิต'],['N','ป.บัณฑิตชั้นสูง']];
-// A question that is ABOUT studying but names no programme we can find (typo, slang, "เรียนรายยย"): the finder is the
-// graceful way out - better than a staff hand-off. Fee / registration / thesis topics are excluded (the KB owns them).
-// Words that contain เรียน/สมัคร/ศึกษา but are about something else (QA F16): leave, grades, timetable, the admissions office.
-const _P_NOTSTUDY=/พัก(?:การ)?เรียน|ผลการเรียน|ตารางเรียน|(?:ยัง|กำลัง)เรียน(?:อยู่|ไม่จบ)?|ระหว่างเรียน|เรียนไม่จบ|เรียน(?:วัน)?เสาร์|นั่งเรียน|เรียนออนไลน์|(?:ฝ่าย|งาน|เจ้าหน้าที่)รับสมัคร|ภาพรวมการสมัคร|ปฏิทินการศึกษา|จบการศึกษา|ลาศึกษา|ใบปริญญา|ปริญญาบัตร|(?:ระบบ)?(?:ทวิภาค|ไตรภาค)(?:เรียน)?|ระบบการศึกษา|เรียนระบบ/g;
 // A loose programme match is used for a not-found question only when the question READS as a misspelt programme name: the
 // question core is an approximate substring of the title (edits < 20% of its length, Sellers DP). 'กายอุปกณ์' -> กายอุปกรณ์ passes;
 // 'โรงอาหาร' (โภชนาการและการกำหนดอาหาร) and 'ปฏิทินการศึกษา' (การจัดการการศึกษา) share only a fragment and do not.
@@ -1342,7 +1318,6 @@ function nearSpelling(q, title){
     prev=cur; }
   return 1-Math.min(...prev)/a.length;
 }
-function hasStudyIntent(q){ const s=String(q||'').replace(_P_NOTSTUDY,' '); return !_P_OTHER.test(s) && !_P_TOPIC.some(([,re])=>re.test(s)) && /เรียน|ศึกษาต่อ|เข้าศึกษา|สมัคร(?!สอบ)|หลักสูตร|สาขา|คณะ|ปริญญา|ป\.\s?(?:โท|เอก)|ต่อโท|ต่อเอก|master|ph\.?\s?d|program|course|study|apply/i.test(s); }   // bare "ศึกษา" is not a signal (ลาพักการศึกษา, วุฒิการศึกษา); "สมัครสอบ" is an exam, not a programme
 // Career-first questions ("ทำงานอะไรดี", "อยากทำเกี่ยวกับคอม", "อยากพัฒนา skill อะไร"): there is no single right answer and this
 // system does NOT predict jobs or pay. It narrows the OFFICIAL list by an area of interest (matched on the programme title) and
 // points to the university's own career-based tool. Areas overlap on purpose; they are search aids, not a taxonomy.
@@ -1356,22 +1331,6 @@ const _AREAS=[
   {k:'education',  label:'การศึกษา · การสอน', say:/ครู|สอน|การศึกษา|อาจารย์|teach|educat/i, title:/การศึกษา|การสอน|ครุ/},
 ];
 function careerArea(q){ const s=String(q||''); const hit=_AREAS.find(a=>a.say.test(s)); return hit?hit.k:''; }
-function isFinderQuestion(q){ const s=String(q||''); return _P_FINDQ.test(s) && !_P_OTHER.test(s); }
-// QA F26: a question that is ONLY a level (+ international / special / open, 'หลักสูตร', polite fillers): 'ปริญญาโท', 'ป.เอก',
-// 'ประกาศนียบัตร', 'ปริญญาโท นานาชาติ ที่เปิดรับ' -> the finder at that level. 'สมัคร…' is left out: 'สมัครปริญญาโท' is how-to-apply.
-const _P_LEVEL_FILL=/นานาชาติ|international|ภาคพิเศษ|special\s*program(?:me)?s?|ที่?เปิด(?:รับ)?(?:สมัคร)?|หลักสูตร|ระดับ|มี|อะไร|บ้าง|ไหน|ทั้งหมด|ครับ|ค่ะ|คะ|หน่อย|programs?|programmes?|courses?/gi;
-// QA F54: an English question about a named programme ('interview date for clinical psychology', 'is clinical psychology open for
-// application') did not resolve because of the English question words. Page-side pre-pass: strip them, keep the level words
-// (MSc / PhD resolve), and map the ask to the card's topic. The resolver itself (and its Rust twin) is unchanged.
-const _P_EN_ASK=[['schedule',/\binterviews?\b|\bexams?\b|\bexamination\b|\bschedule\b|\bdeadline\b|\bresults?\b/i],['status',/\bopen\b|\bapply\b|\bapplications?\b|\baccepting\b/i]];
-const _P_EN_FILL=/\b(?:is|are|it|the|a|an|for|of|to|in|on|when|what|which|date|dates|day|time|does|do|still|now|currently|open|apply|applications?|admission|accepting|interviews?|exams?|examination|schedule|deadline|results?)\b/gi;
-function englishProgrammeAsk(q){ const s=String(q||''); if(!isEnglish(s)) return null;
-  const topic=(_P_EN_ASK.find(([,re])=>re.test(s))||[''])[0]; if(!topic) return null;
-  const name=s.replace(_P_EN_FILL,' ').replace(/[?!.,]/g,' ').replace(/\s+/g,' ').trim();
-  return name.length>=4 ? {name, topic} : null; }
-function isLevelOnlyQuestion(q){ let s=String(q||''); if(!_pLevel(s)) return false;
-  for(const [,re] of _P_LEVEL) s=s.replace(new RegExp(re.source,'gi'),' ');
-  return !s.replace(_P_LEVEL_FILL,' ').replace(/[\s.,?!()\-]+/g,''); }
 function finderInit(q){ const s=String(q||''); return {topic:'', level:_pLevel(s), faculty:'', open:/เปิดรับ/.test(s), intl:/นานาชาติ|international/i.test(s), special:/ภาคพิเศษ|special program/i.test(s)}; }
 function finderFacets(P, f){
   const isOpen=p=>!!(p.announcement&&p.announcement.status==='กำลังเปิดรับสมัคร');
@@ -1427,15 +1386,6 @@ function classifyIssue(text){ return WASM.classify_issue(String(text==null?'':te
 // The chat has no sign-in and no personal data source, but these used to get a GENERAL entry (fees page, advisor-approval rule, thesis
 // exam rule) that reads like the person's own answer. Now: say so, give a way to look it up, never log it. How-to / eligibility questions
 // ('ผมสอบผ่านแล้วต้องทำอะไรต่อ', 'ดูเกรดได้ที่ไหน') are NOT personal lookups and still get their normal answer.
-const _PERS_RECORD=/ผลสอบ|ผลการเรียน|ผลการสอบ|เกรด|GPA|คะแนน|สถานะ|คำร้อง|ค้างจ่าย|ค้างชำระ|ยอดค้าง|ยอดเงิน|ที่ปรึกษา|กรรมการสอบ|หน่วยกิต|สอบผ่าน|สอบตก|จบ|ได้ทุน|ใบเสร็จ|ลงทะเบียน/i;
-const _PERS_STATUSQ=/เท่าไร|เท่าไหร่|เท่าใด|หรือยัง|หรือเปล่า|คือใคร|ถึงไหน|ครบหรือยัง|ค้างอยู่|เป็นยังไง|เป็นอย่างไร|กี่หน่วยกิต|ผ่านไหม|ผ่านมั้ย|ตกไหม|ได้ทุนไหม/;
-const _PERS_HOWTO=/ที่ไหน|อย่างไร|ยังไง|ทำไง|วิธี|ขั้นตอน|ต้อง|ควร|เมื่อไร|เมื่อไหร่|กี่วัน|กำหนด|เกณฑ์|ได้ไหม|ได้หรือไม่|เงื่อนไข|ทำได้|ขอได้|จะ|ถ้า|หาก/;
-const _PERS_SELF=/ผม|ฉัน|ดิฉัน|หนู|กระผม/, _PERS_OWN=/(?:สถานะ|ผล(?:สอบ|การเรียน|การสอบ)?|เกรด|คะแนน|ยอด[ก-๙]*|ที่ปรึกษา|คำร้อง)[^\n]{0,20}ของ(?:ผม|ฉัน|ดิฉัน|หนู)/;
-const _PERS_OTHER=/เพื่อน|น้อง|รุ่นพี่|ลูกศิษย์|ลูก(?:ชาย|สาว)?ของ|แฟน|นักศึกษาคนอื่น|คนอื่น|เขา(?![ก-๙])|เธอ|\b\d{7,10}\b/, _PERS_OTHER_REC=/ผล|เกรด|คะแนน|สถานะ|คำร้อง|ข้อมูล|ประวัติ|ค้าง|ที่ปรึกษา|สอบ/;
-function personalAsk(q){ const t=String(q||''); if(!t || _PERS_HOWTO.test(t)) return null;
-  if(_PERS_OTHER.test(t) && _PERS_OTHER_REC.test(t)) return 'other';
-  if((_PERS_SELF.test(t) && _PERS_RECORD.test(t) && _PERS_STATUSQ.test(t)) || _PERS_OWN.test(t)) return 'self';
-  return null; }
 function isEnglish(q){ return WASM.is_english(String(q==null?'':q)); }
 
 // Deep link to the exact official page, and the entry's steps as a tick-list (deterministic, no AI).
@@ -1711,42 +1661,13 @@ function isRestartPhrase(text){ return /^(?:ยกเลิก|เริ่ม�
 // area word" ("ติดปัญหาวิทยานิพนธ์", "ติดปัญหาจ่ายค่าเทอม") opens that area's entries. Anything more than an area word
 // ("ติดปัญหาส่งเล่มเกินกำหนดต้องเสียค่าปรับไหม") is a real question and goes on to search. The chips come from the KB (a seed
 // phrase's top entry, kept only if its title is in the area), so an area this deployment's KB has nothing for is not offered.
-const _STUCK_W=/ติดปัญหา|มีปัญหา|เจอปัญหา|ปัญหา|ติดขัด|ช่วยด้วย|ช่วยหน่อย|ขอความช่วยเหลือ|ไม่รู้จะทำ(?:ยังไง|ไง|อย่างไร)(?:ดี)?|ทำ(?:ยังไง|ไง|อย่างไร)ดี|งงมาก|งง/;
-const _STUCK_FILL=/^(?:ผม|หนู|ฉัน|ดิฉัน|กระผม|เรา|คือ|ตอนนี้|อยู่|ขอ)+|(?:ครับ|ค่ะ|คะ|ค่า|จ้า|นะ|หน่อย|ด้วย|อยู่|เลย|ช่วย|ที)+$/g;
-const _STUCK_CATS=[
-  {key:'login',  chip:'🔐 เข้าระบบไม่ได้',          name:'การเข้าระบบและบัญชี', asks:'เข้าระบบไม่ได้',   // the account / IT intake path (classifyIssue) answers this
-   topic:/ล็อก ?อิน|ล็อค ?อิน|เข้า(?:สู่)?ระบบ|รหัสผ่าน|บัญชี|login/gi, title:/ล็อก|เข้าระบบ|บัญชี|รหัสผ่าน/i,
-   seeds:['เข้าระบบไม่ได้ ลืมรหัสผ่าน','บัญชีถูกล็อก ยืนยันตัวตนไม่ผ่าน','อาจารย์เข้าระบบ Thesis Online Advisor ไม่ได้']},
-  {key:'reg',    chip:'📝 ลงทะเบียน / ชำระเงิน',   name:'ลงทะเบียนและชำระเงิน', asks:'ติดปัญหาเรื่องลงทะเบียน',
-   topic:/ลงทะเบียน|ชำระ(?:เงิน)?|จ่าย(?:เงิน)?|ค่าเทอม|ค่าเล่าเรียน|ค่าธรรมเนียม/g, title:/ลงทะเบียน|ค่าเล่าเรียน|ค่าธรรมเนียม|ชำระ|เหมาจ่าย|หน่วยกิต|งานทะเบียน/,
-   seeds:['ตรวจค่าเล่าเรียนให้ตรงปีเข้าศึกษา','หลักเกณฑ์ทะเบียนแบบหน่วยกิตหรือเหมาจ่าย','ไม่ลงทะเบียนภาคถัดไป','ค่าธรรมเนียมการโอนเงินผ่าน Online Banking','งานทะเบียน ช่องทางบริการและติดต่อ']},
-  {key:'thesis', chip:'📘 วิทยานิพนธ์ / ส่งเล่ม',  name:'วิทยานิพนธ์และการส่งเล่ม', asks:'ติดปัญหาเรื่องวิทยานิพนธ์',
-   topic:/วิทยานิพนธ์|สารนิพนธ์|ธีสิส|thesis|รูปเล่ม|ส่งเล่ม|เล่ม|turnitin|โครงร่าง/gi, title:/วิทยานิพนธ์|สารนิพนธ์|รูปเล่ม|เล่ม|Turnitin|Thesis|หน้าลงนาม|หน้าอนุมัติ/i,
-   seeds:['ขั้นตอนการส่งรูปเล่มวิทยานิพนธ์','ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วันหลังสอบผ่าน','Turnitin เกิน 25% ต้องทำอย่างไร','ไฟล์ PDF สำหรับส่งรูปเล่ม','ขอเปลี่ยนหัวข้อวิทยานิพนธ์','หาแบบฟอร์มเกี่ยวกับวิทยานิพนธ์']},
-  {key:'status', chip:'⏸️ ลาพัก / ลาออก',          name:'ลาพัก ลาออก และสถานภาพ', asks:'ติดปัญหาเรื่องลาพัก',
-   topic:/ลาพัก|พักการศึกษา|รักษาสภาพ|ลาออก|พ้นสภาพ|คืนสภาพ|ขยายเวลา/g, title:/ลาพัก|ลาออก|รักษาสภาพ|ไม่ลงทะเบียน|ขยายเวลา|ผ่อนผัน/,
-   seeds:['ลาพักการศึกษาต้องทำอย่างไร','แบบฟอร์มทะเบียน ลาพัก ลาออก','ไม่ลงทะเบียนภาคถัดไป','ขอขยายเวลาการลาศึกษาต่อ']},
-  {key:'grad',   chip:'🎓 ขอจบ / เอกสาร',          name:'การขอจบและเอกสาร', asks:'ติดปัญหาเรื่องขอจบ',
-   topic:/ขอจบ|สำเร็จการศึกษา|จบ|ใบรับรอง|หนังสือรับรอง|transcript|ทรานสคริปต์|เอกสาร|ใบปริญญา/gi, title:/สำเร็จการศึกษา|Transcript|หลักฐานการศึกษา|หนังสือรับรอง|รอเผยแพร่|ส่งตัวกลับ/i,
-   seeds:['ขอสำเร็จการศึกษา บฑ.5','ขอ Transcript และหลักฐานการศึกษา','สอบผ่านแล้ว รอเผยแพร่ผลงาน ยังต้องลงทะเบียน','ขอหนังสือส่งตัวกลับไปปฏิบัติงาน']},
-];
-// null = not a stuck message; {cat:null} = stuck, no area named; {cat} = stuck + one area word only.
-function stuckTopic(text){
-  const t=String(text||'').replace(/\s+/g,'').toLowerCase(); if(!t || t.length>40) return null;
-  const m=t.match(_STUCK_W); if(!m) return null;
-  const before=t.slice(0,m.index).replace(_STUCK_FILL,''), after=t.slice(m.index+m[0].length).replace(/^(?:เรื่อง|กับ|ด้าน|ตอน|เกี่ยวกับ|ที่)/,'').replace(_STUCK_FILL,'');
-  if(before && after) return null;
-  if(classifyIssue(t)) return null;   // "ระบบลงทะเบียนมีปัญหา", "เข้าระบบไม่ได้ ช่วยด้วย": the account / system intake answers these with the IT contact
-  const rest=(before||after).replace(_STUCK_W,'').replace(_STUCK_FILL,'');
-  if(!rest) return {cat:null};
-  for(const c of _STUCK_CATS){ const left=rest.replace(c.topic,''); if(left!==rest && left.replace(/การ|ไม่ได้|ไม่ผ่าน|ของ|เรื่อง|ใน|แล้ว/g,'')==='') return {cat:c}; }
-  return null;
-}
-function stuckPicks(c){
-  const out=[]; for(const s of c.seeds){ const r=search(s)[0];
-    if(r && r.s>=3 && !r.e.staff && c.title.test(r.e.title) && !out.includes(r.e)) out.push(r.e); }
-  return out.slice(0,6);
-}
+const _STUCK_VIEW={   // the stuck areas' chip, name and the question a chip asks; which area and which entries is Rust's (vocab.json stuck_cats)
+  login:{key:'login', chip:'🔐 เข้าระบบไม่ได้', name:'การเข้าระบบและบัญชี', asks:'เข้าระบบไม่ได้'},
+  reg:{key:'reg', chip:'📝 ลงทะเบียน / ชำระเงิน', name:'ลงทะเบียนและชำระเงิน', asks:'ติดปัญหาเรื่องลงทะเบียน'},
+  thesis:{key:'thesis', chip:'📘 วิทยานิพนธ์ / ส่งเล่ม', name:'วิทยานิพนธ์และการส่งเล่ม', asks:'ติดปัญหาเรื่องวิทยานิพนธ์'},
+  status:{key:'status', chip:'⏸️ ลาพัก / ลาออก', name:'ลาพัก ลาออก และสถานภาพ', asks:'ติดปัญหาเรื่องลาพัก'},
+  grad:{key:'grad', chip:'🎓 ขอจบ / เอกสาร', name:'การขอจบและเอกสาร', asks:'ติดปัญหาเรื่องขอจบ'},
+};
 // One chooser bubble: KB entries as chips (tap = that entry, pinned), with an optional state label per chip.
 const _PICK_STATE={now:'กำลังอยู่ในช่วงนี้', ahead:'ยังไม่ถึง', passed:'ผ่านไปแล้ว'};
 function renderChooser(q, d, kstrip, route, lead, picks, meta){
@@ -1844,8 +1765,8 @@ function _askCore(){
 
   // Broad "what should I know / what is interesting" questions have no single answer: give the common starting points
   // (derived from the KB, tap = guaranteed answer) instead of guessing one entry under the official badge.
-  const pers = pinned ? null : personalAsk(q);
   if(take('personal')){
+    const pers = RUST_DETAIL.personal;
     const gen = pers==='self' ? search(q).filter(r=>r.s>=3 && !r.e.staff).slice(0,2).map(r=>r.e.title) : [];
     const eth = (LINKS||[]).find(l=>l.id==='ethesis'), thesisy = /วิทยานิพนธ์|สารนิพนธ์|คำร้อง|บฑ\./.test(q), cid='pr'+(++fbN);
     ROUTE_NAME = 'personal';
@@ -1858,10 +1779,9 @@ function _askCore(){
     if(gen.length) document.getElementById(cid).querySelectorAll('.dis').forEach(el=>el.addEventListener('click',()=>{ $('q').value=el.dataset.t; ask(); }));
     return;
   }
-  const stuck = pinned ? null : stuckTopic(q);
   if(take('stuck_pick')){
-    const sid='st'+(++fbN), c=stuck.cat, picks=c ? stuckPicks(c) : [];
-    const areas = c ? [] : _STUCK_CATS.filter(x=>stuckPicks(x).length || (x.key==='login' && AGENCY.it));   // only areas this KB can answer
+    const st=RUST_DETAIL.stuck, sid='st'+(++fbN), c=st.key ? _STUCK_VIEW[st.key] : null;   // Rust: the area named, its entries, or the areas this KB can answer
+    const picks=st.picks.map(id=>KB.find(e=>e.id===id)).filter(Boolean), areas=st.areas.map(k=>_STUCK_VIEW[k]);
     if(c ? picks.length : areas.length){
       const chips = c ? picks.map(e=>`<span class="dis" data-id="${_lEsc(e.id)}">${_lEsc(e.title)}</span>`).join('')
                       : areas.map(x=>`<span class="dis" data-t="${_lEsc(x.asks)}">${_lEsc(x.chip)}</span>`).join('');
@@ -1913,15 +1833,11 @@ function _askCore(){
     renderFinder(q, d, kstrip, 'ค่าเทอมต่างกันตามหลักสูตรและระบบการศึกษา — บอกชื่อหลักสูตรได้เลย (เช่น "ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก") หรือเลือกจากตัวช่วยด้านล่าง', true, null, true, 'ค่าเทอม ');
     return;
   }
-  // A staff-written answer that matches this question clearly (s>=6) wins over the programme resolver: staff corrections about a
-  // named programme (extended deadline, fee change) were unreachable because the resolver always showed a picker first.
-  const _pre = pinned ? null : search(q), staffFirst = !!(_pre && _pre[0] && _pre[0].e.staff && _pre[0].s>=6);
-  // QA F54: 'list of programs' reached the resolver first and listed 8 programmes with PROGRAM in their English title; a finder
-  // question (no programme named - 0 of 1,137 programme-name questions match it) goes straight to the finder below
-  let prog = (pinned || staffFirst || (PROG.length && (isFinderQuestion(q) || isLevelOnlyQuestion(q)))) ? null : resolveProgramme(q, PROG);
-  if(!prog && !pinned && !staffFirst && PROG.length){ const ea=englishProgrammeAsk(q);   // QA F54: only a single, clear programme
-    if(ea){ const r=resolveProgramme(ea.name, PROG); if(r && r.kind==='one') prog={...r, topic:r.topic||ea.topic}; } }
+  // The search result is reused by the verdict below. Which programme a question names (a staff answer with s>=6 first, the finder questions,
+  // the English pre-pass of QA F54) is Rust's: route/programme.rs `programme_match`, via the router's decision.
+  const _pre = pinned ? null : search(q);
   if(take(['programme_card','programme_pick'])){
+    const prog = _progView(RUST_DETAIL.programme, false);   // Rust: the strict match, or the English pre-pass's single programme
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const yr = PROGDOC.year, asOf = PROGDOC.fetched_at;
     if(prog.kind==='one'){
@@ -1954,7 +1870,7 @@ function _askCore(){
   // "เรียนไรดี": no right answer to pick -> narrow the official catalogue with facet buttons (level, faculty, open, ...)
   // A fee question that names a field but not one programme ("ค่าเทอมพยาบาล": 30+ programmes): show those programmes, not a wrong-topic KB entry.
   if(take('field_fee')){   // not an exam / service fee (benchmark/rules/002)
-    const nf = resolveProgramme(q, PROG, true);
+    const nf = _progView(RUST_DETAIL.programme, true);
     if(nf && nf.rows && nf.rows.length){
       PCTX=null;
       ROUTE_NAME = 'field_fee';
@@ -1979,8 +1895,8 @@ function _askCore(){
 
   // Follow-up turn ("แล้วค่าเทอมล่ะ" after a programme card): answer for the remembered programme, say so, offer undo.
   // ...and only when the question names no programme/field of its own: 'ค่าเทอมสาธารณสุข' after a psychology card is NOT about the psychology card.
-  const aspect = (PCTX && !pinned && !staffFirst && !(PROG.length && resolveProgramme(q, PROG, true))) ? followUpAspect(q) : '';
   if(take('followup')){
+    const aspect = RUST_DETAIL.aspect;
     auto++; saved+=COST; MOOD.felt('hit'); renderMood(true);
     const p = PCTX, c = programmeCard(p, PROGDOC.fetched_at, PROGDOC.year, aspect, q), uid='fu'+(++fbN);
     ROUTE_NAME = 'followup';
@@ -2005,8 +1921,8 @@ function _askCore(){
 
   // "Now / still in time" with no topic of its own (QA G17): the dated schedules of the manual, nearest to today first, each
   // labelled against today's date. Never picks one for the student, never states a date the manual does not have.
-  const tIntent = !pinned && !staffFirst ? timeIntent(q) : null;
   if(take('time_intent')){
+    const tIntent=RUST_DETAIL.timeIntent;
     const today=todayIso(), picks=datedPicks(KB, tIntent, today);
     if(picks.length){
       const lead = VOICE.timeLead.replace('{today}', _pDate(today)) + (tIntent!=='registration' ? VOICE.timeAdmissionsHint : '');
@@ -2273,7 +2189,7 @@ function _askCore(){
     const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
     if(take('unsure_programme')){
       ROUTE_NAME = 'unsure_programme';
-      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, hasStudyIntent(q), undefined, undefined, _line('admissions'));
+      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, RUST_DETAIL.studyIntent, undefined, undefined, _line('admissions'));
       return;
     }
     // a TUITION question that names no programme: fees differ per programme, so help find it. Only tuition words or a bare fee question:
@@ -2564,7 +2480,7 @@ let _askWait=false;
 // site asks take(name): "Rust chose this route" (the body and its locals are unchanged). RUST_TURN: the route Rust chose for this
 // question (null = none: the AI-rewrite / not-found path); undefined when the Rust router could not run - _askCore then asks for a reload
 // instead of answering (plan 015 step 4b: the JS conditions were removed; ?route=js went in step 4a, owner decision 2026-11-08).
-let RUST_TURN;
+let RUST_TURN, RUST_DETAIL = null;   // RUST_DETAIL: the router's decision for this question (what the chosen route's view needs)
 function take(names){
   return Array.isArray(names) ? names.includes(RUST_TURN) : RUST_TURN===names;
 }
@@ -2584,7 +2500,8 @@ function shadowBegin(typed){
     // embedded graduate-school pack is used (undefined = None on the Rust side).
     const vocabJson = AGENCY.vocab ? JSON.stringify(AGENCY.vocab) : undefined;
     const r = new WASM.Router(KB, PROG, vocabJson);
-    return { typed, state, router:r, rust: r.decide(typed, state, null) };
+    const detail = r.decision(typed, state, null);
+    return { typed, state, router:r, rust: detail.route, detail };
   }catch(e){ SHADOW.errors++; console.warn('shadow: Rust route failed', e); return null; }
 }
 // After _askCore: a sync route is compared at once; `null` means "not found" or "waiting for the AI rewrite" (checked in shadowRewrite).
@@ -2616,8 +2533,8 @@ function ask(){
     LIVE_READY.then(()=>{ _askWait=false; LIVE_SETTLED=true; $('q').value=typed; ask(); }); return;
   }
   const sh = shadowBegin(typed);
-  RUST_TURN = sh ? sh.rust : undefined;
-  try{ _askCore(); } finally{ RUST_TURN = undefined; }
+  RUST_TURN = sh ? sh.rust : undefined; RUST_DETAIL = sh ? sh.detail : null;
+  try{ _askCore(); } finally{ RUST_TURN = undefined; RUST_DETAIL = null; }
   shadowEnd(sh);
   if(!typed) return;
   try{ addFollowUps(typed); }catch(_){}

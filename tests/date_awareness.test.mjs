@@ -10,7 +10,7 @@ const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const blk = n => html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1];
-const F = new Function('WASM', 'ENG', blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {dateSpan, dateState, todayIso, daysSince, programmeCard, staleLine, timeIntent, datedPicks, resolveProgramme};')(shippedWasm(), {});
+const F = new Function('WASM', 'ENG', blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {dateSpan, dateState, todayIso, daysSince, programmeCard, staleLine, datedPicks, resolveProgramme};')(shippedWasm(), {});
 const DOC = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8')), P = DOC.programmes;
 const at = (d, fn) => { globalThis.__today = d; try { return fn(); } finally { delete globalThis.__today; } };
 const txt = h => h.replace(/<[^>]+>/g, '');
@@ -63,10 +63,7 @@ const reg = KB.find(e => e.id === 'gm_registration_2569_second_semester'), r1 = 
   check('…the snapshot line "ที่เก็บวันที่ 26 ตุลาคม 2569" is never tagged', !/เก็บวันที่ 26 ตุลาคม 2569[^\n]*\(ผ่านไปแล้ว\)/.test(h)); }
 check('undated entries are untouched', !/class="when/.test(at('2030-01-01', () => kbBody(KB.find(e => e.id === 'thesis_submit_days'), 'x'))));
 // --- "now / still in time" questions (G17)
-const TI = { 'ยังทันไหม': 'any', 'วันนี้ปิดรับหรือยัง': 'admissions', 'ตอนนี้ภาคเรียนอะไร': 'registration', 'ตอนนี้อยู่ในช่วงลงทะเบียนไหม': 'registration',
-  'ตัดรอบสมัครรอบ 1 พ.ย. 2569 ผ่านไปแล้วหรือยัง': 'admissions', 'ตอนนี้ลาพักได้ไหม': null, 'ส่งเล่มหรือยัง': null, 'ลงทะเบียนได้ถึงเมื่อไหร่': null, 'จิตวิทยาคลินิกยังทันไหม': null };
-check('time intent only when nothing but schedule words, fillers and dates is left', Object.entries(TI).every(([q, v]) => F.timeIntent(q) === v),
-  Object.entries(TI).filter(([q, v]) => F.timeIntent(q) !== v).map(([q]) => `${q}=${F.timeIntent(q)}`).join(', '));
+// timeIntent is Rust's since plan 015 step 4c: its cases are in crates/reflex-wasm/tests/route_predicates.rs
 { const p = F.datedPicks(KB, 'registration', '2026-12-16');
   check('registration picks on 2026-12-16: in-progress terms first, then upcoming, all labelled', p.length === 4 && p[0].state === 'now' && p.some(x => x.e.id === 'gm_registration_2569_second_semester' && x.state === 'now') && p[p.length - 1].state === 'ahead', p.map(x => x.e.id + ':' + x.state).join(' ')); }
 { const p = F.datedPicks(KB, 'registration', '2027-11-04');

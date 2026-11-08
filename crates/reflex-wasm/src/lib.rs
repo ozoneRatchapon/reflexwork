@@ -679,18 +679,27 @@ impl Router {
     }
 
     /// `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+    /// Returns the route name, or `null` for the page's "not found" path.
     pub fn decide(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
+        let d = self.decide_in(q, state, rewrite)?;
+        Ok(d.route.map_or(JsValue::NULL, JsValue::from_str))
+    }
+
+    /// Same arguments as `decide`. Returns `{route, personal, stuck: {key, picks, areas}, programme, aspect, timeIntent, studyIntent}`:
+    /// the route (or `null`) and what its view needs; fields a route does not use are `null` (plan 015 step 4c).
+    pub fn decision(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
+        Ok(to_js(&self.decide_in(q, state, rewrite)?))
+    }
+}
+
+impl Router {
+    fn decide_in(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<route::detail::Decision, JsValue> {
         let state: route::router::StateIn = serde_wasm_bindgen::from_value(state)?;
         let phrases: Option<Vec<String>> = match rewrite.is_null() || rewrite.is_undefined() {
             true => None,
             false => Some(serde_wasm_bindgen::from_value(rewrite)?),
         };
-        let name = route::router::route_name(q, &state, &self.manual, self.catalogue.as_ref(), phrases.as_deref())
-            .map_err(|e| JsValue::from_str(&e))?;
-        Ok(match name {
-            Some(n) => JsValue::from_str(n),
-            None => JsValue::NULL,
-        })
+        route::router::decide(q, &state, &self.manual, self.catalogue.as_ref(), phrases.as_deref()).map_err(|e| JsValue::from_str(&e))
     }
 }
 

@@ -43,7 +43,7 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Scale: about 70 files reference the page. This plan is several sessions, not one. Each step is its own commit.
 
 ## Status (2026-11-09)
-- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732) and 4b done. Next: step 4c, then 5.
+- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732), 4b (db94144) and 4c done. Next: step 5.
 
 ## Step 2 done (intake part, 2026-11-08)
 - The intake patterns (`_ISSUE_CATS`, `_NOT_PERSONAL`, `_ADVICE`, `_FACTUAL`) moved from the page into `vocab.json` (`intake_issues`,
@@ -93,10 +93,19 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
   `benchmark/compare/programme_names.mjs` passes the shipped wasm (broken by 3a; `pitch_claims` runs it and passes again).
 - Plan revised: `take(name)` stays as a one-line name check, and shadow mode stays: `shadowBegin` is where the route is computed, and
   `route_golden.mjs` reads `window.__shadow` to catch a body that falls through after Rust chose its route.
-- 4c (next): the bodies still compute their render inputs in JS, duplicating part of Rust's decision: `prog` (`isFinderQuestion`,
-  `isLevelOnlyQuestion`, `englishProgrammeAsk`), `aspect` (`followUpAspect`, `_P_ASPECT`), `personalAsk` (`_PERS_*`), `timeIntent`
-  (`_TIME_*`), `stuckTopic` (`_STUCK_*`), `hasStudyIntent` (`_P_TOPIC`, `_P_OTHER`). Removing them needs the Rust router to return the
-  payload with the route (e.g. `{route, aspect, timeIntent, stuck}`), a wasm API change.
+- 4c: the router returns what each route's view needs. New wasm method `Router.decision(q, state, rewrite)` ->
+  `{route, personal, stuck: {key, picks, areas}, programme, aspect, timeIntent, studyIntent}` (`route/detail.rs`, computed from the same
+  prepared question and state as the route); `Router.decide` still returns the name only. `route/programme.rs` `programme_match` returns the
+  resolution (English pre-pass topic included); `branches.rs` `staff_first` is shared. The page reads `RUST_DETAIL` (set beside `RUST_TURN`);
+  `_progView` maps a resolution's codes to rows. Removed from the page: `personalAsk` + `_PERS_*`, `stuckTopic`, `stuckPicks`, `_STUCK_W`,
+  `_STUCK_FILL`, `_STUCK_CATS` (display-only `_STUCK_VIEW` kept: chip / name / question per area key), `timeIntent` + `_TIME_*`,
+  `followUpAspect` + `_P_ASPECT` (label table `_P_ASPECT_TH` kept), `hasStudyIntent`, `_P_NOTSTUDY`, `isFinderQuestion`, `_P_FINDQ`,
+  `isLevelOnlyQuestion`, `_P_LEVEL_FILL`, `englishProgrammeAsk`, `_P_EN_ASK`, `_P_EN_FILL`, `_P_TOPIC`, `_P_OTHER`, the `staffFirst` local.
+  Parity before removal: the page ran both (JS value vs Rust detail per route) through route_golden: 4629 shadow same, 0 differ.
+  Tests: the readers' hand cases moved to `crates/reflex-wasm/tests/route_predicates.rs`; personal_boundary, followup_scope,
+  english_programme, stuck_intent, programme_resolve check the router (`decisionOf` in `scripts/lib/rust_route.mjs`); date_awareness and
+  chat_robust drop the moved cases. Still JS on the page (step 5/6): `datedPicks`, `nearSpelling`, `_pLevel` / `_P_LEVEL` (finder facets).
+  `scripts/dump_route_text_golden.mjs` needs a pre-4c chatbot.html snapshot (as its header says).
 - Still failing, for step 5: `engine_switch` (checks the `_engine` switch that step 5 removes). `benchmark/engine/engine_micro.mjs`
   reads `ENG.impl.isAdvice`, which has not existed since step 2.
 - Gates: see the commit message.

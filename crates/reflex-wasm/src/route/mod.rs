@@ -3,6 +3,7 @@
 pub mod aspect;
 pub mod branches;
 pub mod dates;
+pub mod detail;
 pub mod manual;
 pub mod near;
 pub mod vocab;

@@ -26,8 +26,14 @@ export class Router {
     [Symbol.dispose](): void;
     /**
      * `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+     * Returns the route name, or `null` for the page's "not found" path.
      */
     decide(q: string, state: any, rewrite: any): any;
+    /**
+     * Same arguments as `decide`. Returns `{route, personal, stuck: {key, picks, areas}, programme, aspect, timeIntent, studyIntent}`:
+     * the route (or `null`) and what its view needs; fields a route does not use are `null` (plan 015 step 4c).
+     */
+    decision(q: string, state: any, rewrite: any): any;
     /**
      * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
      * for the embedded graduate-school pack (install happens once per process, before any route call).
@@ -128,6 +134,7 @@ export interface InitOutput {
     readonly resolver_resolve: (a: number, b: number, c: number, d: number) => number;
     readonly route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
     readonly router_decide: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+    readonly router_decision: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
     readonly router_new: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly schedule_table: (a: number, b: number) => number;
     readonly slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
