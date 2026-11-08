@@ -55,3 +55,13 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Not in this step, failing at HEAD before the change (not caused by it): chat_keep, counters_turns, fee_premise, not_found_gate,
   short_input, tuition_scope, level_only, engine_switch (one check).
 - `scripts/dump_route_text_golden.mjs` and `golden_dump.mjs` need a chatbot.html snapshot from before this step (see the dumper's header).
+
+## Step 1, partial (2026-11-08): Rust-only route check for single questions
+- `benchmark/golden/route_rust_check.mjs` runs the wasm the page ships over the 2221 single-question entries of `route.json`, with no browser.
+- The golden does not store the page's AI_OFF flag, and it changed during the recording run. A question passes when the Rust route matches
+  with AI_OFF on or off; catalogue_not_ready passes with progState 'loading'. Result: 2221/2221 (2162 match both settings, 59 one setting).
+- The rule is lenient: a change that flips an advice route between kb_act and advice_* can pass in the 59. The exact check stays in the
+  browser (route_golden.mjs, shadow mode) until the flag is recorded per entry.
+- Not done: recording `ai_off` per entry. That changes `route_golden.mjs` and `route.json`, which have uncommitted edits that are not from
+  this work; owner decision needed first.
+- Session and pin entries (24 + 26) still need the page's state carry-over; they stay in shadow mode.
