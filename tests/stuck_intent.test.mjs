@@ -9,10 +9,10 @@ const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (n, ok, d = '') => { console.log((ok ? '✓' : '✗') + ' ' + n + (ok ? '' : `  ← ${d}`)); ok ? pass++ : fail++; };
 const grab = re => { const m = html.match(re); check(`found: ${re.source.slice(0, 40)}`, !!m); return m ? m[0] : ''; };
-const intake = grab(/const _ISSUE_CATS=\[[\s\S]*?\nfunction classifyIssue\(text\)\{[\s\S]*?return null; \}/);
+import { classifyIssue } from '../integrations/_shared/intake.mjs';   // the web copy is wasm-only now (plan 015 step 2); LINE is lockstep-tested
 const stuck = grab(/const _STUCK_W=[\s\S]*?\nfunction stuckPicks\(c\)\{[\s\S]*?\n\}\n/);
-if (!intake || !stuck) process.exit(1);
-const { stuckTopic, stuckPicks, _STUCK_CATS } = new Function('KB', 'search', intake + stuck + '\nreturn { stuckTopic, stuckPicks, _STUCK_CATS };')([], () => []);
+if (!stuck) process.exit(1);
+const { stuckTopic, stuckPicks, _STUCK_CATS } = new Function('KB', 'search', 'classifyIssue', stuck + '\nreturn { stuckTopic, stuckPicks, _STUCK_CATS };')([], () => [], classifyIssue);
 
 const bare = ['ติดปัญหา', 'ติดปัญหาค่ะ', 'ติดปัญหาครับ', 'ผมติดปัญหาครับ', 'มีปัญหา', 'มีปัญหาค่ะ', 'ช่วยด้วย', 'ช่วยด้วยครับ', 'ช่วยหน่อย', 'ขอความช่วยเหลือ', 'ไม่รู้จะทำยังไงดี', 'ทำยังไงดี', 'งงมาก', 'ติด ปัญหา'];
 check('a stuck message with no topic -> the area menu', bare.every(q => { const r = stuckTopic(q); return r && r.cat === null; }), bare.filter(q => { const r = stuckTopic(q); return !(r && r.cat === null); }).join(', '));
@@ -28,7 +28,7 @@ check('the login chip asks the account intake phrase (IT contact box)', _STUCK_C
 // chips come from the KB: a seed's top entry counts only if its title is in the area; a KB without the area offers nothing
 const thesis = _STUCK_CATS.find(c => c.key === 'thesis');
 const fakeHit = t => ({ e: { id: t, title: t }, s: 6 });
-const picks = new Function('KB', 'search', intake + stuck + '\nreturn stuckPicks;')([], s => [fakeHit(/Turnitin/.test(s) ? 'Turnitin เกิน 25% ต้องทำอย่างไร' : 'ทุนการศึกษามีอะไรบ้าง')]);
+const picks = new Function('KB', 'search', 'classifyIssue', stuck + '\nreturn stuckPicks;')([], s => [fakeHit(/Turnitin/.test(s) ? 'Turnitin เกิน 25% ต้องทำอย่างไร' : 'ทุนการศึกษามีอะไรบ้าง')], classifyIssue);
 check('an off-area top hit is not offered as a chip', picks(thesis).length === 1 && picks(thesis)[0].title.startsWith('Turnitin'), JSON.stringify(picks(thesis)));
 check('an empty KB offers no chips for the area', stuckPicks(thesis).length === 0);
 

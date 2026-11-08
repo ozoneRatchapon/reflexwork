@@ -89,6 +89,12 @@ export function intakePrompt(category) {
 // "กี่วัน/กี่บาท/กี่%" = factual (must stay exact — never rephrase). Deterministic.
 const _ADVICE = /แนะนำ|ช่วย.*(ยังไง|อย่างไร|หน่อย)|วิธีวางแผน|วางแผน|จัดการเวลา|เตรียมตัว|ควรทำ|ทำยังไงดี|แนวทาง/;
 const _FACTUAL = /กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|กี่ ?%|กี่คน|วันไหน|เมื่อไหร่/;
+/** English detection, the same rule as the page's and the Rust port's isEnglish: Latin letters and no Thai letters. */
+export function isEnglish(q) {
+  const s = String(q || '');
+  return /[A-Za-z]/.test(s) && !/[\u0E00-\u0E7F]/.test(s);
+}
+
 export function isAdvice(q) {
   q = String(q || '');
   return _ADVICE.test(q) && !_FACTUAL.test(q);

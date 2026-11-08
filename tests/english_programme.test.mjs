@@ -8,7 +8,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..'), read = f => re
 const h = read('submissions/ui/chatbot.html'), F = loadChatbotFns(), P = JSON.parse(read('submissions/ui/programmes.json')).programmes;
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
-const isEnglish = new Function(h.match(/function isEnglish\(q\)\{[^\n]*/)[0] + ';return isEnglish;')();
+const isEnglish = (await import('../integrations/_shared/intake.mjs')).isEnglish;   // the page's copy is the wasm port now (plan 015 step 2)
 const ea = new Function('isEnglish', h.slice(h.indexOf('const _P_EN_ASK='), h.indexOf('function isLevelOnlyQuestion(q){')) + 'return englishProgrammeAsk;')(isEnglish);
 const via = q => { const r0 = F.resolveProgramme(q, P); if (r0) return r0; const a = ea(q); if (!a) return null; const r = F.resolveProgramme(a.name, P); return r && r.kind === 'one' ? { ...r, topic: r.topic || a.topic } : null; };
 const cases = [['interview date for clinical psychology', 'schedule'], ['when is the interview for MSc Clinical Psychology', 'schedule'], ['is clinical psychology open for application', 'status']];

@@ -1,5 +1,6 @@
-use super::patterns_src::{ADVICE, FACTUAL, ISSUES, NOT_PERSONAL};
+//! The intake patterns, read from the installed pack's `vocab.json` (plan 015 step 2; they used to be generated from chatbot.html).
 use crate::re::compile;
+use crate::route::vocab::vocab;
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
@@ -13,10 +14,13 @@ pub struct Patterns {
 
 pub fn patterns() -> &'static Patterns {
     static P: OnceLock<Patterns> = OnceLock::new();
-    P.get_or_init(|| Patterns {
-        issues: ISSUES.iter().map(|(c, l, r)| (*c, *l, compile(r))).collect(),
-        not_personal: compile(&NOT_PERSONAL),
-        advice: compile(&ADVICE),
-        factual: compile(&FACTUAL),
+    P.get_or_init(|| {
+        let v = vocab();
+        Patterns {
+            issues: v.intake_issues.iter().map(|i| (i.category.as_str(), i.label.as_str(), compile(&i.re))).collect(),
+            not_personal: compile(&v.not_personal),
+            advice: compile(&v.advice),
+            factual: compile(&v.factual),
+        }
     })
 }

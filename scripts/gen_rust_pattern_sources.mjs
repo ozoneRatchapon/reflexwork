@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Writes crates/reflex-wasm/src/{resolve,intake}/patterns_src.rs: the matching regexes of chatbot.html, verbatim (source + flags),
+// Writes crates/reflex-wasm/src/resolve/patterns_src.rs (the intake patterns moved to vocab.json, plan 015 step 2): the matching regexes of chatbot.html, verbatim (source + flags),
 // so the Rust port cannot drift from the page by a typo. The Rust side only translates JS-only syntax (\s \d \b) when compiling.
 //   node scripts/gen_rust_pattern_sources.mjs           write the file
 //   node scripts/gen_rust_pattern_sources.mjs --check   exit 1 if the file is out of date (tests/rust_patterns_sync.test.mjs)
@@ -24,12 +24,7 @@ const resolveOut = HEADER + `${Object.entries(singles).map(([r, j]) => `pub cons
 ${arr('TOPICS', '&str', k => `"${k}"`, many('_P_TOPIC', 'fee|scholarship'))}
 ${arr('ASKS', '&str', k => `"${k}"`, many('_P_ASK', 'schedule|status|docs|elig|english'))}
 ${arr('LEVELS', 'char', k => `'${k}'`, many('_P_LEVEL', '[NCDM]'))}`;
-// intake: _ISSUE_CATS is a list of {category, label, re} objects
-const catsRegion = html.match(/^const _ISSUE_CATS=\[([\s\S]*?)\];\n/m); if (!catsRegion) throw new Error('chatbot.html: _ISSUE_CATS not found');
-const cats = [...catsRegion[1].matchAll(/\{category:'(\w+)', label:'([^']*)', re:\/(.+)\/([a-z]*)\}/g)].map(x => ({ category: x[1], label: x[2], src: x[3], flags: x[4] })); if (cats.length !== 3) throw new Error(`_ISSUE_CATS: expected 3, found ${cats.length}`);
-const intakeOut = HEADER + `pub const ISSUES: [(&str, &str, Re); ${cats.length}] = [\n${cats.map(c => `    ("${c.category}", "${c.label}", ${re(c)}),`).join('\n')}\n];\n\n`
-  + [['NOT_PERSONAL', '_NOT_PERSONAL'], ['ADVICE', '_ADVICE'], ['FACTUAL', '_FACTUAL']].map(([r, j]) => `pub const ${r}: Re = ${re(one(j))};\n`).join('');
-const files = [[join(root, 'crates/reflex-wasm/src/resolve/patterns_src.rs'), resolveOut], [join(root, 'crates/reflex-wasm/src/intake/patterns_src.rs'), intakeOut]];
+const files = [[join(root, 'crates/reflex-wasm/src/resolve/patterns_src.rs'), resolveOut]];
 if (process.argv.includes('--check')) {
   let ok = true;
   for (const [file, out] of files) { let cur = ''; try { cur = readFileSync(file, 'utf8'); } catch {} const same = cur === out; ok &&= same; console.log(same ? `✓ ${file.split('crates/')[1]} matches chatbot.html` : `✗ ${file.split('crates/')[1]} is out of date - run node scripts/gen_rust_pattern_sources.mjs`); }

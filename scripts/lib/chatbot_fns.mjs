@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { classifyIssue, isAdvice, isEnglish } from '../../integrations/_shared/intake.mjs';
 export const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export function loadChatbotFns(html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
   const need = (re, name) => { const m = html.match(re); if (!m) throw new Error(`chatbot.html: block not found: ${name}`); return m[1] ?? m[0]; };
@@ -29,11 +30,8 @@ export function loadUnderstand(search, html = readFileSync(join(root, 'submissio
   return new Function('search', m[0] + 'return understand;')(search);
 }
 
-// classifyIssue / isAdvice / isEnglish of the page (the web's own copies; LINE has a second one in integrations/_shared/intake.mjs).
-export function loadIntake(html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8')) {
-  const need = (re, name) => { const m = html.match(re); if (!m) throw new Error(`chatbot.html: ${name} not found`); return m[0]; };
-  const issue = need(/const _ISSUE_CATS=[\s\S]*?return null; \}\n/, 'classifyIssue');
-  const advice = need(/const _ADVICE=[\s\S]*?function isAdvice\(q\)\{[^\n]*\}\n/, 'isAdvice');
-  const english = need(/function isEnglish\(q\)\{[^\n]*\}\n/, 'isEnglish');
-  return new Function(`${issue}\n${advice}\n${english}\nreturn { classifyIssue, isAdvice, isEnglish };`)();
+// classifyIssue / isAdvice / isEnglish. The page's copies are the wasm port now (plan 015 step 2); the JS contract is the LINE module, which is
+// lockstep-tested against the wasm (tests/intake_parity.test.mjs, benchmark/golden/intake.json).
+export function loadIntake() {
+  return { classifyIssue, isAdvice, isEnglish };
 }

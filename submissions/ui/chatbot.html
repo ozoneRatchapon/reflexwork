@@ -573,9 +573,6 @@ function _engine(name, js, rust){
   const jsResolve = resolveProgramme;
   answerPoints   = _engine('answerPoints', answerPoints,   body => WASM.answer_points(String(body==null?'':body)));
   slotLead       = _engine('slotLead',     slotLead,       (hit,q) => WASM.slot_lead(String((hit&&hit.answer)||''), String(q||'')));
-  classifyIssue  = _engine('classifyIssue',classifyIssue,  text => WASM.classify_issue(String(text==null?'':text)));
-  isAdvice       = _engine('isAdvice',     isAdvice,       q => WASM.is_advice(String(q==null?'':q)));
-  isEnglish      = _engine('isEnglish',    isEnglish,      q => WASM.is_english(String(q==null?'':q)));
   _pFee          = _engine('fee',          _pFee,          lines => WASM.fee_table(lines||[]));
   _pScheduleData = _engine('schedule',     _pScheduleData, lines => WASM.schedule_table(lines||[]));
   decideTier     = _engine('decideTier',   decideTier,     ({gate, ranked}) => {
@@ -1514,25 +1511,17 @@ function finderHtml(F, f, asOf, showAll){
 // with an LLM, classify the issue and collect the exact fields staff always ask
 // for, then hand off to a human. Kept in lockstep with _shared/intake.mjs (LINE).
 const INTAKE_FIELDS=['ชื่อ-นามสกุล','รหัสนักศึกษา / username / อีเมลมหาวิทยาลัย','ระบบที่มีปัญหา (เช่น WE Mahidol, Student Card App, e-Thesis, ระบบลงทะเบียน)','อาการ / ข้อความ error ที่เจอ (แนบภาพหน้าจอได้)'];
-const _ISSUE_CATS=[
-  {category:'login', label:'เข้าระบบ/ล็อกอินไม่ได้', re:/ล็อก ?อิน|เข้า ?(?:สู่ ?)?ระบบ(?:ไม่ได้)?|เข้า ?บัญชี|เข้า ?(?:แอป|app)|ลืมรหัส|รหัสผ่าน|รีเซ็ต ?รหัส|ยืนยันตัวตน|บัญชี(?:ถูก)?ล็อก|login|log ?in|sign ?in|password|forgot ?password|reset.{0,8}(?:password|รหัส)|account.{0,12}(?:locked|ล็อก|ไม่ได้)|server ?error|we ?mahidol|student ?card/i},
-  {category:'data_stuck', label:'ข้อมูล/สถานะค้างในระบบ', re:/(?:ข้อมูล|รายชื่อ|สถานะ|ชื่อ).{0,12}(?:ค้าง|ไม่อัปเดต|ไม่อัพเดต|ไม่ขึ้น|หาย|ไม่ตรง|ผิด)|(?:รหัส ?(?:นักศึกษา|นศ)|ผล ?(?:สอบ|การเรียน)|เกรด|คะแนน).{0,12}ไม่ขึ้น|ยังมีรายชื่อ|ติดอยู่ในระบบ|stuck|not ?updat|pending.*(?:system|ระบบ)/i},
-  {category:'system_error', label:'ระบบขัดข้อง/ใช้งานไม่ได้', re:/ระบบ.{0,16}(?:error|ขัดข้อง|ล่ม|พัง|ใช้ ?ไม่ ?ได้|มีปัญหา|ไม่ทำงาน|ไม่ได้)|กดไม่ได้|(?:ใส่|กรอก|เลือก|เพิ่ม)(?:ชื่อ)?.{0,12}ไม่ได้|บันทึกไม่ได้|อัปโหลดไม่ได้|กด ?(?:ส่ง|ยืนยัน|บันทึก)?.{0,10}ไม่(?:ไป|ขึ้น|ทำงาน)|(?:ระบบ|หน้า ?(?:เว็บ|จอ)) ?ค้าง|system ?(?:error|down|broken)/i},
-];
 // QA G03: a term system (ทวิภาค, "เรียนระบบนี้"), a full exam round, and a name on a degree certificate or transcript are manual
 // questions (registrar), not an account problem for the IT box. Bare reset/account no longer read as login.
-const _NOT_PERSONAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|ค่าสอบ|ค่าธรรมเนียม|turnitin|กี่ ?%|เงื่อนไข|คุณสมบัติ|ทวิภาค|ไตรภาค|ระบบการศึกษา|ระบบภาค|เรียนระบบ|เพราะเต็ม|ที่นั่งเต็ม|รอบเต็ม|เต็มแล้ว|ใบปริญญา|ปริญญาบัตร|ใบรับรอง|ใบแสดงผล|transcript|ดาวน์โหลด|download/i;
-function classifyIssue(text){ const q=String(text||''); if(!q.trim()) return null; if(_NOT_PERSONAL.test(q)) return null;
-  for(const c of _ISSUE_CATS){ if(c.re.test(q)) return {kind:'personal', category:c.category, label:c.label}; } return null; }
+// Rust-only (plan 015 step 2): the page's intake functions are wrappers of the wasm port; the patterns live in vocab.json.
+function classifyIssue(text){ return WASM.classify_issue(String(text==null?'':text)); }
 
 // --- Advice-type detector + grounded hybrid (KB ground + local AI rephrase) ---
 // "แนะนำ/ช่วย...ยังไง/วิธีวางแผน" = open-ended advice, not a factual lookup.
 // For these, dumping a raw KB entry reads wrong; instead we GROUND the local AI
 // on the matched KB entries and let it rephrase (facts from KB only, no making
 // things up). A FACTUAL question (กี่วัน/กี่บาท) must NOT be rephrased.
-const _ADVICE=/แนะนำ|ช่วย.*(ยังไง|อย่างไร|หน่อย)|วิธีวางแผน|วางแผน|จัดการเวลา|เตรียมตัว|ควรทำ|ทำยังไงดี|แนวทาง/;
-const _FACTUAL=/กี่วัน|กี่บาท|เท่าไร|เท่าไหร่|กี่ ?%|กี่คน|วันไหน|เมื่อไหร่/;
-function isAdvice(q){ q=String(q||''); return _ADVICE.test(q) && !_FACTUAL.test(q); }
+function isAdvice(q){ return WASM.is_advice(String(q==null?'':q)); }
 // English detection: the KB is Thai (char-n-gram keyed), so a Latin-script
 // question with no Thai characters is one we may not be able to match. We don't
 // TRANSLATE (that would risk inventing facts — against "facts from KB only");
@@ -1560,7 +1549,7 @@ function personalAsk(q){ const t=String(q||''); if(!t || _PERS_HOWTO.test(t)) re
   if(_PERS_OTHER.test(t) && _PERS_OTHER_REC.test(t)) return 'other';
   if((_PERS_SELF.test(t) && _PERS_RECORD.test(t) && _PERS_STATUSQ.test(t)) || _PERS_OWN.test(t)) return 'self';
   return null; }
-function isEnglish(q){ q=String(q||''); const hasThai=/[\u0E00-\u0E7F]/.test(q); const hasLatin=/[A-Za-z]/.test(q); return hasLatin && !hasThai; }
+function isEnglish(q){ return WASM.is_english(String(q==null?'':q)); }
 
 // Deep link to the exact official page, and the entry's steps as a tick-list (deterministic, no AI).
 // QA F48: entry fields reach innerHTML; a source link must be an allow-listed http(s) URL (no javascript:/data:, no quote-break) and is escaped

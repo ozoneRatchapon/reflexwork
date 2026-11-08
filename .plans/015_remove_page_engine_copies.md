@@ -44,3 +44,14 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 
 ## Status
 - Not started. Step 1 is the first to do.
+
+## Step 2 done (intake part, 2026-11-08)
+- The intake patterns (`_ISSUE_CATS`, `_NOT_PERSONAL`, `_ADVICE`, `_FACTUAL`) moved from the page into `vocab.json` (`intake_issues`,
+  `not_personal`, `advice`, `factual`). `intake/patterns_src.rs` deleted; the generator no longer writes intake (resolve still generated).
+- The page's `classifyIssue`, `isAdvice`, `isEnglish` are wrappers of the wasm port. Their `_engine` lines are gone.
+- Tests moved off the page copies: `intake_parity` (web checked by wasm golden), `stuck_intent` and `english_programme` (LINE module),
+  `engine_switch` (seven functions in the switch). `golden_contract` passes through `loadIntake` (LINE module).
+- Gates: cargo test exit 0; wasm golden 0 differences (intake 985); route golden 2271 / shadow 5112, 0 differences; chat e2e 56/56.
+- Not in this step, failing at HEAD before the change (not caused by it): chat_keep, counters_turns, fee_premise, not_found_gate,
+  short_input, tuition_scope, level_only, engine_switch (one check).
+- `scripts/dump_route_text_golden.mjs` and `golden_dump.mjs` need a chatbot.html snapshot from before this step (see the dumper's header).

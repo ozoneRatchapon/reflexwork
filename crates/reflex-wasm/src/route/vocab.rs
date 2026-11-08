@@ -76,6 +76,19 @@ pub struct Vocab {
     pub stuck_w: Re,
     pub stuck_fill: Re,
     pub stuck_cats: Vec<StuckCatVocab>,
+    pub intake_issues: Vec<IntakeIssueVocab>,
+    pub not_personal: Re,
+    pub advice: Re,
+    pub factual: Re,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+/// One account / system problem category of the intake (plan 015 step 2). The first category whose pattern matches wins.
+pub struct IntakeIssueVocab {
+    pub category: String,
+    pub label: String,
+    pub re: Re,
 }
 
 #[derive(Deserialize)]
