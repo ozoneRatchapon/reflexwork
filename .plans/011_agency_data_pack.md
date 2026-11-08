@@ -74,4 +74,13 @@ order is still JS (route switch is `take()`, default rust).
 - `route/term_year.rs` and `route/scope.rs`: the 15 patterns and the words they write or compare (term names, academic year word,
   fee word, round word, admissions category) now come from `vocab.json` (`words` object). Each pattern was checked byte-exact against HEAD.
 - Gates 1, 2, 3a, 3b PASS. Gate 4 SKIPPED. Gate 5 FAIL with 200 hits (was 217 after step 1, 267 before).
-- Not committed.
+- Committed in f273283 (steps 1-2) and 8bf3cf8 (status docs).
+
+## Step 3 done, stuck part (2026-11-08, commit 97aaa73)
+- The "ติดปัญหา" branch vocabulary (`stuck_w`, `stuck_fill`, `stuck_cats`: 5 areas with topic, title and seed phrases) moved from
+  `route/stuck_src.rs` (deleted) into `vocab.json`. Seed counts per area match the old file (3, 5, 6, 4, 4).
+- Decision: the `intake` patterns (`intake/patterns_src.rs`) stay GENERATED from `chatbot.html`. `tests/rust_patterns_sync.test.mjs`
+  is the only guard that the Rust copy matches the page's `_ISSUE_CATS` and `_NOT_PERSONAL`; moving them to `vocab.json` now would drop
+  that guard while the page still has its own copy. They move in step 5, when the page reads `vocab.json` and the page copy goes away.
+- Gates: `cargo test -p reflex-wasm` exit 0; `route_golden.mjs --check` 2271 checked, 0 differences; shadow 5112 same, 0 differ.
+- Not run: `chat_e2e` (page untouched in this step).
