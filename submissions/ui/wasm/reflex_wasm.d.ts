@@ -29,9 +29,10 @@ export class Router {
      */
     decide(q: string, state: any, rewrite: any): any;
     /**
-     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
+     * for the embedded graduate-school pack (install happens once per process, before any route call).
      */
-    constructor(kb: any, programmes: any);
+    constructor(kb: any, programmes: any, vocab?: string | null);
 }
 
 /**
@@ -127,7 +128,7 @@ export interface InitOutput {
     readonly resolver_resolve: (a: number, b: number, c: number, d: number) => number;
     readonly route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
     readonly router_decide: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-    readonly router_new: (a: number, b: number, c: number) => void;
+    readonly router_new: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly schedule_table: (a: number, b: number) => number;
     readonly slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly understand: (a: number, b: number, c: number) => number;

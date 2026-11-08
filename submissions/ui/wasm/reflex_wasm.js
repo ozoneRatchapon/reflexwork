@@ -90,14 +90,18 @@ export class Router {
         }
     }
     /**
-     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
+     * for the embedded graduate-school pack (install happens once per process, before any route call).
      * @param {any} kb
      * @param {any} programmes
+     * @param {string | null} [vocab]
      */
-    constructor(kb, programmes) {
+    constructor(kb, programmes, vocab) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.router_new(retptr, addHeapObject(kb), addHeapObject(programmes));
+            var ptr0 = isLikeNone(vocab) ? 0 : passStringToWasm0(vocab, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            var len0 = WASM_VECTOR_LEN;
+            wasm.router_new(retptr, addHeapObject(kb), addHeapObject(programmes), ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
