@@ -2704,7 +2704,10 @@ function shadowBegin(typed){
   try{
     const state = { progState: PROG_STATE, aiOff: !!AI_OFF, pinnedId: (PIN && PIN.title===typed) ? PIN.id : null,
       programmeInFocus: (PCTX && PCTX.code) || null, today: todayIso(), agencyHasIt: !!AGENCY.it };
-    const r = new WASM.Router(KB, PROG);
+    // plan 011 step 5: a deployment's agency.json `vocab` (the pack's vocab.json as an object) is the Rust route vocabulary; without it the
+    // embedded graduate-school pack is used (undefined = None on the Rust side).
+    const vocabJson = AGENCY.vocab ? JSON.stringify(AGENCY.vocab) : undefined;
+    const r = new WASM.Router(KB, PROG, vocabJson);
     return { typed, state, router:r, rust: r.decide(typed, state, null) };
   }catch(e){ SHADOW.errors++; console.warn('shadow: Rust route failed', e); return null; }
 }

@@ -84,3 +84,10 @@ order is still JS (route switch is `take()`, default rust).
   that guard while the page still has its own copy. They move in step 5, when the page reads `vocab.json` and the page copy goes away.
 - Gates: `cargo test -p reflex-wasm` exit 0; `route_golden.mjs --check` 2271 checked, 0 differences; shadow 5112 same, 0 differ.
 - Not run: `chat_e2e` (page untouched in this step).
+
+## Step 5 part 1 (2026-11-08): page passes the pack vocab to the Router
+- `chatbot.html` `shadowBegin` passes `AGENCY.vocab` (JSON text, from agency.json) as the third argument of `new WASM.Router`; without it the
+  embedded graduate-school pack is used. Gates: `route_golden.mjs --check` 2271 checked, 0 differences; `chat_e2e.test.mjs` 56/56 pass.
+- Not effective until `submissions/ui/wasm/` is rebuilt from current source (owner decision, see the owner questions).
+- Still open in step 5: remove the page's own regex copies (`_P_*`, `_ISSUE_CATS`, `_STUCK_*`, ...). They back `?route=js` and the JS fallback, and
+  `tests/` and `scripts/dump_route_text_golden.mjs` slice them out of the page, so this needs its own pass.
