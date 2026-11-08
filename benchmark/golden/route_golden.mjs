@@ -105,10 +105,14 @@ const probes = [
   ['ai_mock', Object.keys(REWRITE_MOCK)],
   ['nocat', ['อยากสมัครเรียนจิตวิทยา', 'ค่าเทอมหลักสูตรพยาบาล', 'หลักสูตรอะไรเปิดรับบ้าง', 'สมัครสอบ TOEFL', 'สมัครสอบ', 'สมัครเรียน', 'สมัครงาน', 'ป.โท', 'ปริญญาเอกสมัครยังไง', 'master program', 'apply for PhD', 'study abroad', 'ค่าเทอม', 'ทุน', 'หลักสูตรอะไรบ้าง', 'เรียนไรดี', 'ทำงานอะไรดี', 'เปิดรับสมัคร', 'พักการเรียน', 'ผลการเรียน', 'ตารางเรียน', 'ลาพัก', 'ส่งเล่มกี่วัน', 'คณะแพทย์', 'ต่อโท', 'ศึกษาต่อ', 'เข้าศึกษา', 'ทุนเรียนต่อ', 'ฝ่ายรับสมัครอยู่ไหน', 'ใบปริญญา', 'ลงทะเบียนเรียน', 'ติดปัญหา', 'สวัสดี', 'เครียดมาก', 'ขอสมัครสอบสมัครเรียน']],
 ];
+// PIN (2026-11-08): a topic chip tapped under a question. One item per (typed question, chip index): the first 3 chips of each topic list
+const PIN_ITEMS = TOPIC_PROBES.flatMap(q => [0, 1, 2].map(chip => ({ kind: 'pin', set: 'pin', typed: q, chip, qs: [q] })));
 const items = [...singles.map((s, i) => ({ kind: 'single', set: s.set, qs: [s.q] })),
-  ...probes.flatMap(([mode, qs]) => qs.map(q => ({ kind: 'single', set: 'probe', mode, qs: [q] }))), ...sessions.map((qs, i) => ({ kind: 'session', set: 'session', qs }))];
-const keyOf = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.qs[0]]);
-const goldOld = has('--update') && existsSync(OUT) ? new Map(JSON.parse(readFileSync(OUT, 'utf8')).map(r => [JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]), r])) : new Map();
+  ...probes.flatMap(([mode, qs]) => qs.map(q => ({ kind: 'single', set: 'probe', mode, qs: [q] }))), ...sessions.map((qs, i) => ({ kind: 'session', set: 'session', qs })), ...PIN_ITEMS];
+// one key for items, recorded results and the golden: a session by its turns, a single by its question, a pin by (typed question, chip index)
+const KEY = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.typed ?? r.q ?? r.qs[0], r.chip ?? null]);
+const keyOf = KEY;
+const goldOld = has('--update') && existsSync(OUT) ? new Map(JSON.parse(readFileSync(OUT, 'utf8')).map(r => [KEY(r), r])) : new Map();
 const pick = has('--update') ? items.filter(it => !goldOld.has(keyOf(it))) : TRY ? TRY.map(q => ({ kind: 'single', set: 'try', mode: TRYMODE, qs: [q] })) : LIMIT ? items.filter((_, i) => i % LIMIT === 0) : items;
 
 const mockSrv = http.createServer((q, s) => {
@@ -161,10 +165,24 @@ const ask = async q => { const n = await bots();
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`); await wait(60);
   await shadowSync();
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? (b.dataset.route ?? null) : null;})()`); };
+// PIN: the topic list under the typed question; a tap on chip i sets the page's PIN to that entry and asks its title. The recorded route is the answer to
+// the TITLE (what the page sends), with the entry id the Rust side receives as `pinned`. A typed question with fewer chips records nothing for the rest.
+const pinAsk = async it => {
+  await ask('เริ่มใหม่'); await ask(it.typed);
+  const chip = await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); const c=b&&b.querySelectorAll('.dislist .dis[data-id]')[${it.chip}]; return c ? {id:c.dataset.id, title:c.firstChild.textContent} : null;})()`);
+  if (!chip) return null;
+  const nb = await bots();
+  await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); b.querySelectorAll('.dislist .dis[data-id]')[${it.chip}].click();})()`);
+  await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${nb}`); await wait(60);
+  await shadowSync();
+  const route = await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? (b.dataset.route ?? null) : null;})()`);
+  return { kind: 'pin', set: 'pin', typed: it.typed, chip: it.chip, q: chip.title, pin: chip.id, route };
+};
 const result = []; let n = 0, booted = '';
 for (const it of pick) {
   const mode = it.mode || 'ai_off';
   if (mode !== booted || n++ % 60 === 0) { MODE = mode; await boot(); booted = mode; }
+  if (it.kind === 'pin') { const r = await pinAsk(it); if (r) result.push(r); else console.log(`no chip ${it.chip} under ${JSON.stringify(it.typed)}`); continue; }
   if (it.kind === 'session') { await boot(); const routes = []; for (const q of it.qs) routes.push(await ask(q)); result.push({ kind: 'session', qs: it.qs, routes }); }
   else { await ask('เริ่มใหม่'); result.push({ kind: 'single', set: it.set, ...(it.mode && it.mode !== 'ai_off' ? { mode: it.mode } : {}), q: it.qs[0], route: await ask(it.qs[0]) }); }
 }
@@ -172,13 +190,13 @@ done();
 console.log(`shadow (Rust decide_route vs the page): ${SH.n} questions, ${SH.same} same, ${SH.pending} pending (AI rewrite), ${SH.errors} errors, ${SH.diffs.length} differ`);
 for (const d of SH.diffs.slice(0, 12)) console.log('  shadow diff:', JSON.stringify(d));
 if (has('--update')) {
-  const fresh = new Map(result.map(r => [JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]), r]));
+  const fresh = new Map(result.map(r => [KEY(r), r]));
   const merged = items.map(it => { const k = keyOf(it); return fresh.get(k) || goldOld.get(k); }).filter(Boolean);
   writeFileSync(OUT, '[\n' + merged.map(r => JSON.stringify(r)).join(',\n') + '\n]\n');
   console.log(`updated: ${result.length} recorded, ${merged.length - result.length} kept, ${[...goldOld.keys()].filter(k => !items.some(it => keyOf(it) === k)).length} dropped -> ${OUT}`); process.exit(0);
 }
 if (TRY) { for (const r of result) console.log(`${(r.route ?? 'null').padEnd(24)} ${r.q}`); process.exit(0); }
-const key = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]);
+const key = KEY;
 const val = r => JSON.stringify(r.kind === 'session' ? r.routes : r.route);
 if (has('--write')) {
   const lines = result.map(r => JSON.stringify(r));
