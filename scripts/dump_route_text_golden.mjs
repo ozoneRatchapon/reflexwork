@@ -5,7 +5,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { root, loadSearch } from './lib/chatbot_fns.mjs';
-const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
+// Optional argument: the chatbot.html to read the JS reference from. Default: the current page. After the page's JS copies are removed
+// (plan 015), regenerate from a snapshot of the last commit that still has them, e.g.
+//   git show <commit>:submissions/ui/chatbot.html > /tmp/chatbot_ref.html && node scripts/dump_route_text_golden.mjs /tmp/chatbot_ref.html
+const htmlPath = process.argv[2] ? process.argv[2] : join(root, 'submissions/ui/chatbot.html');
+const html = readFileSync(htmlPath, 'utf8');
 const slice = (from, to, incl = false) => { const a = html.indexOf(from), b = html.indexOf(to, a); if (a < 0 || b < 0) throw new Error(`not found: ${from} .. ${to}`); return html.slice(a, b + (incl ? to.length : 0)); };
 const norm = slice('function normChat(q){', '// </chat-normalize>');
 const wb = slice('function wellbeingKind(text){', 'function classifySmalltalk');
