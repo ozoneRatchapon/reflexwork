@@ -153,8 +153,6 @@ await send('Page.enable'); await send('Runtime.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{sessionStorage.clear();localStorage.clear();}catch(e){}' });
 // ai=off + a dead kernel/proxy: no gap-log entry, no vote, no AI call; ?now pins nothing - date-dependent routes (time_intent) are decided by words, not by the clock
 const URLS = { ai_mock: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:${MP}`, ai_off: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off`, ai_on: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9`, nocat: `http://127.0.0.1:${SP}/chatbot.html?nocat=1&api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off` };
-// --route rust: the page takes its route from the Rust decision order (?route=rust), so the same questions must give the same routes
-if (opt('--route')) for (const k of Object.keys(URLS)) URLS[k] += `&route=${opt('--route')}`;   // default page: Rust routes; --route js = the JS fallback
 let MODE = 'ai_off';
 const boot = async () => { shLast = null; await send('Page.navigate', { url: URLS[MODE] }); await until(`!!document.getElementById('q') && !document.getElementById('q').disabled`, 30000); await until(`document.documentElement.classList.contains('agency-pending')===false`, 5000); await wait(300); };
 const bots = () => ev(`document.querySelectorAll('#chat .msg.b').length`);

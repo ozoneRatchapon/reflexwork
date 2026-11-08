@@ -2363,7 +2363,7 @@ function _askCore(){
       const u = understand(phrases);
       // route switch: with ?route (default rust) Rust's verdict on the AI phrases decides; the JS verdict is the fallback
       const rustVerdict = shadowRewrite(q, phrases, u);
-      const oneEntry = (ROUTE_RUST && rustVerdict!==null) ? rustVerdict==='understood_by_ai' && u.kind==='one' : u.kind==='one';
+      const oneEntry = (rustVerdict!==null) ? rustVerdict==='understood_by_ai' && u.kind==='one' : u.kind==='one';
       if(!oneEntry){ showNotFound(u.kind==='many' ? u.entries : phraseHints(phrases)); return; }
       const hit = u.entry, uid='un'+(++fbN);
       ai--; auto++;   // QA G31: counted as not-found above; it was answered from the manual (the rewrite is an LLM call, so no 'saved')
@@ -2584,12 +2584,10 @@ window.sendFeedback = sendFeedback;
 $('send').addEventListener('click', ask);
 // ---- suggestions: (1) after an answer, "ask next"; (2) while typing, matching questions. Deterministic, 0 token, from the KB.
 let _askWait=false;
-// ---- Route switch (plan 009): ?route=rust takes the route from the Rust decision order (WASM.Router) instead of the JS conditions
-// in _askCore. Every route site asks take(name, condition): JS mode = the condition; Rust mode = "Rust chose this route" (the body
-// and its locals are unchanged). RUST_TURN: undefined = JS mode; otherwise the route Rust chose for this question (null = none: the
-// AI-rewrite / not-found path, which still decides in JS).
-// Default: Rust (the decision order is verified: golden 2199 + shadow 4418 + e2e). ?route=js gives the old JS conditions back.
-const ROUTE_RUST = new URLSearchParams(location.search).get('route') !== 'js';
+// ---- Route switch (plan 009): the route comes from the Rust decision order (WASM.Router). Every route site asks take(name, condition):
+// "Rust chose this route" (the body and its locals are unchanged). RUST_TURN: the route Rust chose for this question (null = none: the
+// AI-rewrite / not-found path, which still decides in JS); undefined only when the Rust router could not run (the JS condition is used).
+// ?route=js was removed (plan 015 step 4a, owner decision 2026-11-08).
 let RUST_TURN;
 function take(names, jsCond){
   if(RUST_TURN===undefined) return jsCond;
@@ -2643,7 +2641,7 @@ function ask(){
     LIVE_READY.then(()=>{ _askWait=false; LIVE_SETTLED=true; $('q').value=typed; ask(); }); return;
   }
   const sh = shadowBegin(typed);
-  RUST_TURN = (ROUTE_RUST && sh) ? sh.rust : undefined;
+  RUST_TURN = sh ? sh.rust : undefined;
   try{ _askCore(); } finally{ RUST_TURN = undefined; }
   shadowEnd(sh);
   if(!typed) return;

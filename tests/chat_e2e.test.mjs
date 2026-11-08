@@ -88,7 +88,7 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`, ms); await wait(150);
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? b.innerText.replace(/\\s+/g,' ') : ''})()`); };
 
-for (const eng of ['rust', 'js&route=js']) {   // 'rust': Rust helpers + Rust routes (default); 'js&route=js': the JS fallback for both
+for (const eng of ['rust', 'js']) {   // 'rust': Rust helpers (default); 'js': the JS helper twins. Routes are Rust in both (?route=js removed, plan 015 step 4a)
   errors.length = 0; MOCK.rewrite = { delay: 0, body: { queries: [], source: 'gemini' } }; MOCK.llm = { status: 500 };
   check(`[${eng}] the page boots and enables the input`, await boot(eng));
   await ev('sessionStorage.clear()');
