@@ -20,6 +20,7 @@ const inRust = n => ['Resolver', 'Router'].includes(n) ? new RegExp(`#\\[wasm_bi
 check('...and each one is a #[wasm_bindgen] item in the Rust source', needs.every(inRust), needs.filter(n => !inRust(n)).join(','));
 check('load() stops (boot error + retry) when the wasm lacks a needed export', /const _missing = _WASM_NEEDS\.filter\(n=>typeof WASM\[n\]!=='function'\);\n\s*if\(_missing\.length\) throw /.test(page));
 check('no engine switch left: no ?engine=, no _engine(), no ENGINE_DEFAULT', !/get\('engine'\)|_engine\(|ENGINE_DEFAULT|_ENGINE_/.test(page));
+check('no intake or English pre-pass copy left (plan 015 steps 2, 4c)', !/_ISSUE_CATS|_NOT_PERSONAL|const _ADVICE|const _FACTUAL|englishProgrammeAsk/.test(page));
 check('no JS twin left: search, answer points, slot lead, tier, understand, fee, schedule are Rust calls',
   !/function _jsSearch|function _cosToScore|const _SLOTS=|const _BAND=|const _SPLIT_BEFORE/.test(page)
   && /function answerPoints\(body\)\{ return WASM\.answer_points\(/.test(page) && /function slotLead\(hit,q\)\{ return WASM\.slot_lead\(/.test(page)

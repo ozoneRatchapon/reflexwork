@@ -19,5 +19,8 @@ check('shipped workers and loopback are accepted', ['https://reflexwork-kernel.s
 check('a stranger\'s origin, protocol-relative and junk are refused', ['https://evil.example', '//evil.example', 'https://reflexwork-kernel.solana-thailand.workers.dev.evil.example', 'javascript:alert(1)', ''].every(u => safeBackend(u) === ''));
 const raw = (html.match(/\+'\/gap',\{method:'POST'/g) || []).length;
 check('no inline /gap POST bypasses logGap (so no double count, no unscrubbed copy)', raw === 0, `${raw} inline`);
-check('intake messages are not logged', !/classifyIssue\(q\);\s*if\(issue\)\{[^}]*logGap/.test(html));
+// The intake branch (a personal/technical issue) runs from take('intake') to its else; the gap log is only in the else.
+const intakeA = html.indexOf("if(take('intake')){"), intakeB = html.indexOf('} else {\n    logGap(q);', intakeA);
+check('intake branch found (anchors for the next check)', intakeA > 0 && intakeB > intakeA, `${intakeA} ${intakeB}`);
+check('intake messages are not logged', intakeA > 0 && intakeB > intakeA && !/logGap/.test(html.slice(intakeA, intakeB)));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

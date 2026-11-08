@@ -96,87 +96,87 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`, ms); await wait(150);
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? b.innerText.replace(/\\s+/g,' ') : ''})()`); };
 
-{ const eng = 'rust';   // one run: the ?engine= switch and the JS twins are gone (plan 015 step 5)
+{
   errors.length = 0; MOCK.rewrite = { delay: 0, body: { queries: [], source: 'gemini' } }; MOCK.llm = { status: 500 };
-  check(`[${eng}] the page boots and enables the input`, await boot());
+  check(`the page boots and enables the input`, await boot());
   await ev('sessionStorage.clear()');
 
   const a1 = await ask('ส่งรูปเล่มภายในกี่วัน');
-  check(`[${eng}] a manual question is answered from the manual`, /21 วัน/.test(a1) && /ข้อมูลทางการ/.test(a1), a1);
+  check(`a manual question is answered from the manual`, /21 วัน/.test(a1) && /ข้อมูลทางการ/.test(a1), a1);
 
   const card = await ask('จิตวิทยาคลินิก');
-  check(`[${eng}] a programme name opens its card`, /จิตวิทยาคลินิก/.test(card) && /สถานะบนเว็บบัณฑิตวิทยาลัย/.test(card), card);
+  check(`a programme name opens its card`, /จิตวิทยาคลินิก/.test(card) && /สถานะบนเว็บบัณฑิตวิทยาลัย/.test(card), card);
   const fu = await ask('แล้วค่าเทอมล่ะ');
-  check(`[${eng}] 'แล้วค่าเทอมล่ะ' after a card answers THAT programme's fees (not the generic fee finder)`, /ตีความว่าถามเรื่องค่าธรรมเนียมของ/.test(fu) && /จิตวิทยาคลินิก/.test(fu), fu);
+  check(`'แล้วค่าเทอมล่ะ' after a card answers THAT programme's fees (not the generic fee finder)`, /ตีความว่าถามเรื่องค่าธรรมเนียมของ/.test(fu) && /จิตวิทยาคลินิก/.test(fu), fu);
 
   const it = await ask('เข้าระบบไม่ได้');
-  check(`[${eng}] a login problem gets the Graduate School IT first (LINE), the university IT desk after it`, /ติดต่องานเทคโนโลยีสารสนเทศ บัณฑิตวิทยาลัยได้โดยตรง/.test(it) && /@322wjrbo/.test(it) && /บัญชีมหาวิทยาลัยถูกล็อก: โทรกองไอที 02-849-6022/.test(it) && it.indexOf('@322wjrbo') < it.indexOf('02-849-6022'), it);
+  check(`a login problem gets the Graduate School IT first (LINE), the university IT desk after it`, /ติดต่องานเทคโนโลยีสารสนเทศ บัณฑิตวิทยาลัยได้โดยตรง/.test(it) && /@322wjrbo/.test(it) && /บัญชีมหาวิทยาลัยถูกล็อก: โทรกองไอที 02-849-6022/.test(it) && it.indexOf('@322wjrbo') < it.indexOf('02-849-6022'), it);
 
   MOCK.gaps = []; const stk = await ask('ติดปัญหา');
-  check(`[${eng}] 'ติดปัญหา' asks which area (area chips + staff contact), not 'not understood', no gap`, /ติดปัญหาเรื่องไหน/.test(stk) && /วิทยานิพนธ์ \/ ส่งเล่ม/.test(stk) && /ติดต่อบัณฑิตวิทยาลัย/.test(stk) && !/จับใจความ/.test(stk) && await ev(`!![...document.querySelectorAll('#chat .msg.b')].pop().querySelector('a[href="https://line.me/R/ti/p/@gradmu"]')`) && (await wait(300), MOCK.gaps.length === 0), `${stk} gaps=${MOCK.gaps.length}`);
+  check(`'ติดปัญหา' asks which area (area chips + staff contact), not 'not understood', no gap`, /ติดปัญหาเรื่องไหน/.test(stk) && /วิทยานิพนธ์ \/ ส่งเล่ม/.test(stk) && /ติดต่อบัณฑิตวิทยาลัย/.test(stk) && !/จับใจความ/.test(stk) && await ev(`!![...document.querySelectorAll('#chat .msg.b')].pop().querySelector('a[href="https://line.me/R/ti/p/@gradmu"]')`) && (await wait(300), MOCK.gaps.length === 0), `${stk} gaps=${MOCK.gaps.length}`);
   const stkT = await ask('ติดปัญหาวิทยานิพนธ์');
-  check(`[${eng}] 'ติดปัญหาวิทยานิพนธ์' opens the thesis entries`, /วิทยานิพนธ์และการส่งเล่มในคู่มือมีหัวข้อ/.test(stkT) && /Turnitin/.test(stkT), stkT);
+  check(`'ติดปัญหาวิทยานิพนธ์' opens the thesis entries`, /วิทยานิพนธ์และการส่งเล่มในคู่มือมีหัวข้อ/.test(stkT) && /Turnitin/.test(stkT), stkT);
 
   const lv = await ask('ป.โท');
-  check(`[${eng}] a level-only question opens the finder at that level`, /พบ \d+ หลักสูตร/.test(lv) && /ปริญญาโท/.test(lv), lv);
+  check(`a level-only question opens the finder at that level`, /พบ \d+ หลักสูตร/.test(lv) && /ปริญญาโท/.test(lv), lv);
 
   MOCK.gaps = []; const g0 = await ask('ok');
-  check(`[${eng}] a non-question gets a prompt and is not logged as a gap`, /พิมพ์สิ่งที่อยากรู้ได้เลย/.test(g0) && (await wait(300), MOCK.gaps.length === 0), `${g0} gaps=${MOCK.gaps.length}`);
+  check(`a non-question gets a prompt and is not logged as a gap`, /พิมพ์สิ่งที่อยากรู้ได้เลย/.test(g0) && (await wait(300), MOCK.gaps.length === 0), `${g0} gaps=${MOCK.gaps.length}`);
 
   const adv = await ask('อยากลาพักการศึกษา ควรทำยังไง', 25000);
   await until(`!document.querySelector('#chat .msg.b:last-child .hyb-wait')`, 25000);
   const badge = await ev(`([...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.src-badge')||{}).textContent||''`);
-  check(`[${eng}] advice with the AI down keeps the manual text under the official badge (not 'AI')`, /ข้อมูลทางการ/.test(badge) && !/AI/.test(badge), `${badge} | ${adv.slice(0, 80)}`);
+  check(`advice with the AI down keeps the manual text under the official badge (not 'AI')`, /ข้อมูลทางการ/.test(badge) && !/AI/.test(badge), `${badge} | ${adv.slice(0, 80)}`);
 
   // a slow AI reading for an older question must not land under a newer one (QA F60)
   MOCK.rewrite = { delay: 2500, body: { queries: ['ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน'], source: 'gemini' } };
   await ev(`(()=>{document.getElementById('q').value='พรุ่งนี้ฝนจะตกไหม';document.getElementById('send').click();})()`); await wait(400);
   await ask('Turnitin เกิน 25% ทำอย่างไร'); await wait(3200);
   const last = await ev(`(()=>{const m=[...document.querySelectorAll('#chat .msg')]; const i=m.findLastIndex(x=>x.classList.contains('u') && /Turnitin เกิน 25%/.test(x.innerText)); return {after:m.slice(i+1).map(x=>x.className.replace('msg ','')), pending:document.querySelectorAll('#chat .msg.pending').length}})()`);
-  check(`[${eng}] a late AI reading for an older question is dropped (nothing after the newer answer)`, last.pending === 0 && last.after.length === 1 && last.after[0].startsWith('b'), JSON.stringify(last));
+  check(`a late AI reading for an older question is dropped (nothing after the newer answer)`, last.pending === 0 && last.after.length === 1 && last.after[0].startsWith('b'), JSON.stringify(last));
   MOCK.rewrite = { delay: 0, body: { queries: [], source: 'gemini' } };
 
   // ---- the 5-minute pitch rehearsal (docs/pitching/10-pitch-script-5min.md): same questions, same expectations ----------------------
   const p1 = await ask('อยากสมัครเรียนชีวสารสนเทศทางการแพทย์');
-  check(`[${eng}] pitch 1: the demo programme shows an OPEN card (not "closed")`, /ชีวสารสนเทศทางการแพทย์/.test(p1) && /🟢 สถานะบนเว็บบัณฑิตวิทยาลัย: กำลังเปิดรับสมัคร/.test(p1) && !/ปิดรับสมัครแล้ว/.test(p1), p1);
+  check(`pitch 1: the demo programme shows an OPEN card (not "closed")`, /ชีวสารสนเทศทางการแพทย์/.test(p1) && /🟢 สถานะบนเว็บบัณฑิตวิทยาลัย: กำลังเปิดรับสมัคร/.test(p1) && !/ปิดรับสมัครแล้ว/.test(p1), p1);
   const p2 = await ask('แล้วค่าเทอมล่ะ');
-  check(`[${eng}] pitch 2: "แล้วค่าเทอมล่ะ" shows real fee amounts for that programme`, /ตีความว่าถามเรื่องค่าธรรมเนียมของ/.test(p2) && /ชีวสารสนเทศ/.test(p2) && /\d{1,3},\d{3}/.test(p2) && !/ยังไม่ระบุอัตรา/.test(p2), p2);
+  check(`pitch 2: "แล้วค่าเทอมล่ะ" shows real fee amounts for that programme`, /ตีความว่าถามเรื่องค่าธรรมเนียมของ/.test(p2) && /ชีวสารสนเทศ/.test(p2) && /\d{1,3},\d{3}/.test(p2) && !/ยังไม่ระบุอัตรา/.test(p2), p2);
   await ask('ส่งรูปเล่มภายในกี่วัน');
   const evTxt = await ev(`(document.querySelector('#ev-list .ev-card')||{textContent:''}).textContent.replace(/\\s+/g,' ')`);
-  check(`[${eng}] pitch 2b: the evidence panel shows score, entry and BLAKE3 (question + route)`, /คะแนน \d/.test(evTxt) && /คู่มือ #thesis_submit_days/.test(evTxt) && /รหัส BLAKE3 ของคำถาม\+เส้นทาง/.test(evTxt), evTxt.slice(0, 200));
+  check(`pitch 2b: the evidence panel shows score, entry and BLAKE3 (question + route)`, /คะแนน \d/.test(evTxt) && /คู่มือ #thesis_submit_days/.test(evTxt) && /รหัส BLAKE3 ของคำถาม\+เส้นทาง/.test(evTxt), evTxt.slice(0, 200));
 
   const nf = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
-  check(`[${eng}] pitch 3a: a question the manual lacks gets "not in the manual" and the staff contact, no invented answer`, /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(nf) && /ติดต่อ/.test(nf) && !/เจ้าหน้าที่ตอบ/.test(nf), nf);
+  check(`pitch 3a: a question the manual lacks gets "not in the manual" and the staff contact, no invented answer`, /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(nf) && /ติดต่อ/.test(nf) && !/เจ้าหน้าที่ตอบ/.test(nf), nf);
   MOCK.live = [{ id: 901, title: 'ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน', question: 'ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน', answer: '(ตัวอย่างทดสอบ ไม่ใช่ข้อมูลจริง) ที่จอดรถอยู่ด้านหลังอาคาร A', approved_at: Date.now() }];
   await ev(`document.dispatchEvent(new Event('visibilitychange'))`); await wait(900);   // what the page does when the tab gets focus; it also polls every 15 s
   const again = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
   const staffBadge = await ev(`(([...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.src-badge'))||{}).textContent||''`);
-  check(`[${eng}] pitch 3b: after staff approval the same question is answered, labelled "เจ้าหน้าที่ตอบ"`, /ที่จอดรถอยู่ด้านหลังอาคาร A/.test(again) && /เจ้าหน้าที่ตอบ/.test(staffBadge), `${staffBadge} | ${again}`);
+  check(`pitch 3b: after staff approval the same question is answered, labelled "เจ้าหน้าที่ตอบ"`, /ที่จอดรถอยู่ด้านหลังอาคาร A/.test(again) && /เจ้าหน้าที่ตอบ/.test(staffBadge), `${staffBadge} | ${again}`);
   MOCK.live = []; await ev(`document.dispatchEvent(new Event('visibilitychange'))`); await wait(900);
   const gone = await ask('ที่จอดรถสำหรับนักศึกษาอยู่ตรงไหน');
-  check(`[${eng}] pitch 3c: after staff retract the answer is gone again`, !/ด้านหลังอาคาร A/.test(gone) && /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(gone), gone);
+  check(`pitch 3c: after staff retract the answer is gone again`, !/ด้านหลังอาคาร A/.test(gone) && /ยังไม่มีในคู่มือ|ยังจับใจความ|ยังหาคำตอบที่ตรง/.test(gone), gone);
 
   // ---- personal questions without a sign-in: an honest boundary, a way to look it up, nothing logged ----------------------------------
   MOCK.gaps = [];
   const ps = await ask('ผลสอบของฉันออกหรือยัง');
   const psLinks = await ev(`[...[...document.querySelectorAll('#chat .msg.b')].pop().querySelectorAll('.staffbox a')].map(a=>a.textContent.trim()).join('|')`);
-  check(`[${eng}] personal: "my exam result" -> cannot see personal data, says why, offers the staff contact`, /ดูให้ไม่ได้/.test(ps) && /ไม่ได้เชื่อมกับระบบ/.test(ps) && /ติดต่อบัณฑิตวิทยาลัย/.test(psLinks), `${ps.slice(0, 120)} | ${psLinks}`);
+  check(`personal: "my exam result" -> cannot see personal data, says why, offers the staff contact`, /ดูให้ไม่ได้/.test(ps) && /ไม่ได้เชื่อมกับระบบ/.test(ps) && /ติดต่อบัณฑิตวิทยาลัย/.test(psLinks), `${ps.slice(0, 120)} | ${psLinks}`);
   const po = await ask('ขอดูข้อมูลของเพื่อนผมหน่อย รหัส 6537001');
-  check(`[${eng}] personal: a friend's record -> refused, "ask the owner", no general topic offered`, /ผมแสดงให้ไม่ได้/.test(po) && /เจ้าของข้อมูลมาถามเอง/.test(po) && !/ถามได้เลยครับ เช่น/.test(po), po.slice(0, 160));
+  check(`personal: a friend's record -> refused, "ask the owner", no general topic offered`, /ผมแสดงให้ไม่ได้/.test(po) && /เจ้าของข้อมูลมาถามเอง/.test(po) && !/ถามได้เลยครับ เช่น/.test(po), po.slice(0, 160));
   const pg = await ask('ผมสอบผ่านแล้วต้องทำอะไรต่อ');
-  check(`[${eng}] personal: a general question with a pronoun still gets its normal answer`, !/ดูให้ไม่ได้/.test(pg) && !/ผมแสดงให้ไม่ได้/.test(pg), pg.slice(0, 120));
+  check(`personal: a general question with a pronoun still gets its normal answer`, !/ดูให้ไม่ได้/.test(pg) && !/ผมแสดงให้ไม่ได้/.test(pg), pg.slice(0, 120));
   await wait(400);
-  check(`[${eng}] personal: neither personal question was logged as a gap`, MOCK.gaps.every(g => !/6537001|ผลสอบของฉัน/.test(g)), JSON.stringify(MOCK.gaps).slice(0, 160));
+  check(`personal: neither personal question was logged as a gap`, MOCK.gaps.every(g => !/6537001|ผลสอบของฉัน/.test(g)), JSON.stringify(MOCK.gaps).slice(0, 160));
 
   // the conversation survives a reload in this tab; the clear button wipes it
   const before = await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`);
   await boot();
   const restored = await ev(`document.querySelectorAll('#chat .msg[data-restored]').length`);
-  check(`[${eng}] a reload keeps the conversation in this tab (the newest 30 messages: the stored history is capped)`, restored === Math.min(before, 30) && restored > 0, `before=${before} restored=${restored}`);
+  check(`a reload keeps the conversation in this tab (the newest 30 messages: the stored history is capped)`, restored === Math.min(before, 30) && restored > 0, `before=${before} restored=${restored}`);
   await ev(`document.getElementById('clear-chat').click()`); await wait(500); await boot();
-  check(`[${eng}] the clear button wipes it (also after a reload)`, await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`) === 0);
+  check(`the clear button wipes it (also after a reload)`, await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`) === 0);
 
-  check(`[${eng}] no uncaught page errors`, errors.length === 0, errors.join(' | '));
+  check(`no uncaught page errors`, errors.length === 0, errors.join(' | '));
 }
 
 // ---- PREVIEW builds: no production backend by default (the safe place to develop while the demo build stays untouched) ----------------

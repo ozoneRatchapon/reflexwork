@@ -101,7 +101,7 @@ jobs:
           node tests/inline_handlers.test.mjs
           node tests/slides_claims.test.mjs
           node tests/feedback_votes.test.mjs
-          node tests/wasm_lockstep.test.mjs
+          node tests/kb_gate_floor.test.mjs
 
       - name: Every test file (a glob, so a new test can never be left out of CI)
         run: |

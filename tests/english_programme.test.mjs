@@ -17,5 +17,4 @@ for (const [q, topic] of cases) { const r = via(q); check(`F54: "${q}" -> one pr
 const faq = JSON.parse(read('benchmark/field/faq_questions.json')).items.map(i => i.en).filter(Boolean);
 const pulled = faq.filter(q => !F.resolveProgramme(q, P) && via(q));
 check(`F54: none of ${faq.length} English field questions is pulled to a programme card`, pulled.length === 0, pulled.slice(0, 3).join(' | '));
-check('F54: the page renders the router\'s match (no page copy of the pre-pass)', /const prog = _progView\(RUST_DETAIL\.programme, false\)/.test(h) && !/englishProgrammeAsk/.test(h));
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

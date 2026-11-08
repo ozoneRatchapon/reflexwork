@@ -149,3 +149,18 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Not run: gradmahidol/run_benchmark (needs the external gm-corpus; syntax checked only). scale/probe has no recorded table.
 - `integrations/_shared/answer_points.mjs` comment points at the Rust port instead of the removed inline copy.
 
+## Step 6b (2026-11-09): the page-reading tests
+- All 53 tests that read `chatbot.html` were read and sorted: behaviour (runs page blocks / wasm / browser), static guard (a real UI, a11y or
+  security string), stale. No test asserts the presence of a removed name; the absence checks are the intended "no copy left" guards.
+- Fixed a check that could not fail: `privacy` "intake messages are not logged" matched the pre-38bec4c shape (`if(issue){`) and so passed
+  whatever the branch did. It now slices the intake branch (`take('intake')` to its `else` + `logGap`), asserts the anchors, and was
+  mutation-checked (a `logGap(q)` put into the branch fails it).
+- `wasm_lockstep` renamed `kb_gate_floor` (no twin to compare; its two gate-floor checks exist nowhere else). CI step updated.
+- Leftovers removed: the dead `ENG` parameter in `programme_resolve`, the `[rust]` label prefix in `chat_e2e`, the one-item loop and the
+  two-copy wording in `intake_parity` (its label now names what it checks: classifyIssue and isEnglish call the wasm).
+  `english_programme` F54 page check deleted (same regex as `followup_scope`); the absence checks for the intake and English pre-pass copies
+  moved to `rust_engine`, the one home for "no copy left".
+- Not changed (docs, owner's call): `docs/METHOD.md` and `docs/pitching/40-qa-bank.md:113` still describe the JS twin / `wasm_lockstep`.
+  `ui_guards` checks a Rust source string (`branches.rs`); a Rust unit test would be the better home.
+- Gates: 79/79 test files pass, chat_e2e 32/32.
+
