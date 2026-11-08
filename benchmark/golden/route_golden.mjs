@@ -106,7 +106,10 @@ const probes = [
   ['nocat', ['อยากสมัครเรียนจิตวิทยา', 'ค่าเทอมหลักสูตรพยาบาล', 'หลักสูตรอะไรเปิดรับบ้าง', 'สมัครสอบ TOEFL', 'สมัครสอบ', 'สมัครเรียน', 'สมัครงาน', 'ป.โท', 'ปริญญาเอกสมัครยังไง', 'master program', 'apply for PhD', 'study abroad', 'ค่าเทอม', 'ทุน', 'หลักสูตรอะไรบ้าง', 'เรียนไรดี', 'ทำงานอะไรดี', 'เปิดรับสมัคร', 'พักการเรียน', 'ผลการเรียน', 'ตารางเรียน', 'ลาพัก', 'ส่งเล่มกี่วัน', 'คณะแพทย์', 'ต่อโท', 'ศึกษาต่อ', 'เข้าศึกษา', 'ทุนเรียนต่อ', 'ฝ่ายรับสมัครอยู่ไหน', 'ใบปริญญา', 'ลงทะเบียนเรียน', 'ติดปัญหา', 'สวัสดี', 'เครียดมาก', 'ขอสมัครสอบสมัครเรียน']],
 ];
 // PIN (2026-11-08): a topic chip tapped under a question. One item per (typed question, chip index): the first 3 chips of each topic list
-const PIN_ITEMS = TOPIC_PROBES.flatMap(q => [0, 1, 2].map(chip => ({ kind: 'pin', set: 'pin', typed: q, chip, qs: [q] })));
+// only the questions whose golden route shows a chip list (topic_picks, disambiguate): other routes have no chips to tap
+const CHOOSER_ROUTES = new Set(['topic_picks', 'disambiguate']);
+const chooserQs = new Set(JSON.parse(readFileSync(OUT, 'utf8')).filter(x => x.kind === 'single' && CHOOSER_ROUTES.has(x.route)).map(x => x.q));
+const PIN_ITEMS = TOPIC_PROBES.filter(q => chooserQs.has(q)).flatMap(q => [0, 1, 2].map(chip => ({ kind: 'pin', set: 'pin', typed: q, chip, qs: [q] })));
 const items = [...singles.map((s, i) => ({ kind: 'single', set: s.set, qs: [s.q] })),
   ...probes.flatMap(([mode, qs]) => qs.map(q => ({ kind: 'single', set: 'probe', mode, qs: [q] }))), ...sessions.map((qs, i) => ({ kind: 'session', set: 'session', qs })), ...PIN_ITEMS];
 // one key for items, recorded results and the golden: a session by its turns, a single by its question, a pin by (typed question, chip index)
