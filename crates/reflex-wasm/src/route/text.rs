@@ -162,7 +162,7 @@ pub fn norm_chat(q: &str) -> String {
 
 fn lead_in() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile_src(super::patterns_src::LEAD_IN.src, super::patterns_src::LEAD_IN.flags))
+    R.get_or_init(|| compile_src(super::vocab::vocab().lead_in.src, super::vocab::vocab().lead_in.flags))
 }
 
 /// `stripLeadIn`: "สวัสดีค่ะ ลืมรหัสผ่านทำไง" -> "ลืมรหัสผ่านทำไง" when what remains is a real message (longer than 3 characters and not small talk itself).

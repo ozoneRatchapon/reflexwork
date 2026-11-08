@@ -660,9 +660,13 @@ pub struct Router {
 
 #[wasm_bindgen]
 impl Router {
-    /// `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+    /// `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
+    /// for the embedded graduate-school pack (install happens once per process, before any route call).
     #[wasm_bindgen(constructor)]
-    pub fn new(kb: JsValue, programmes: JsValue) -> Result<Router, JsValue> {
+    pub fn new(kb: JsValue, programmes: JsValue, vocab: Option<String>) -> Result<Router, JsValue> {
+        if let Some(json) = vocab {
+            route::vocab::install(&json).map_err(|e| JsValue::from_str(&e))?;
+        }
         let rows: Vec<route::router::KbIn> = serde_wasm_bindgen::from_value(kb)?;
         let catalogue = match programmes.is_null() || programmes.is_undefined() {
             true => None,

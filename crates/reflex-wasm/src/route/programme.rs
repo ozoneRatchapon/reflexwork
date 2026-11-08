@@ -1,6 +1,6 @@
 //! The programme path of the decision order: which question goes to the programme resolver (a card or a picker), and which goes to the finder.
 //! Ports of `isFinderQuestion`, `isLevelOnlyQuestion`, `englishProgrammeAsk` (chatbot.html) and the branch that calls `resolveProgramme`.
-use super::patterns_src::{CAREER, EN_ASK_SCHEDULE, EN_ASK_STATUS, EN_FILL, FINDQ, LEVEL_FILL};
+use super::vocab::vocab;
 use crate::re::{compile, compile_src, is_js_space};
 use crate::resolve::patterns::patterns;
 use crate::resolve::{Catalogue, Kind};
@@ -15,12 +15,12 @@ macro_rules! lazy_re {
         }
     };
 }
-lazy_re!(findq, FINDQ);
-lazy_re!(career, CAREER);
-lazy_re!(level_fill, LEVEL_FILL);
-lazy_re!(en_fill, EN_FILL);
-lazy_re!(en_schedule, EN_ASK_SCHEDULE);
-lazy_re!(en_status, EN_ASK_STATUS);
+lazy_re!(findq, vocab().findq);
+lazy_re!(career, vocab().career);
+lazy_re!(level_fill, vocab().level_fill);
+lazy_re!(en_fill, vocab().en_fill);
+lazy_re!(en_schedule, vocab().en_ask_schedule);
+lazy_re!(en_status, vocab().en_ask_status);
 fn punctuation() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
     R.get_or_init(|| compile_src(r"[\s.,?!()\-]+", ""))

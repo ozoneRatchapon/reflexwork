@@ -1,6 +1,6 @@
 //! `hasStudyIntent` and the catalogue-not-ready branch. "Does this read like a question about a programme?" - used while the programme
 //! catalogue is still loading (or failed to load), so the page can say so instead of answering a programme question from the wrong place.
-use super::patterns_src::{CAREER_OR_OPEN, NOT_STUDY, STUDY_WORDS};
+use super::vocab::vocab;
 use crate::re::compile;
 use crate::resolve::patterns::patterns;
 use regex_lite::Regex;
@@ -8,15 +8,15 @@ use std::sync::OnceLock;
 
 fn not_study() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&NOT_STUDY))
+    R.get_or_init(|| compile(&vocab().not_study))
 }
 fn study_words() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&STUDY_WORDS))
+    R.get_or_init(|| compile(&vocab().study_words))
 }
 fn career_or_open() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&CAREER_OR_OPEN))
+    R.get_or_init(|| compile(&vocab().career_or_open))
 }
 
 /// `_P_TOPIC.some(([,re]) => re.test(s))`: the text names a fee or scholarship topic.

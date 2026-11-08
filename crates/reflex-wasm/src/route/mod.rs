@@ -5,7 +5,7 @@ pub mod branches;
 pub mod dates;
 pub mod manual;
 pub mod near;
-mod patterns_src;
+pub mod vocab;
 pub mod programme;
 pub mod router;
 pub mod scope;

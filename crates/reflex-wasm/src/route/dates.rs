@@ -1,7 +1,7 @@
 //! Dates in the manual and the "now / still in time" branch: ports of `dateSpan`, `entrySpan`, `isDatedSchedule`, `timeIntent`, `datedPicks`
 //! (chatbot.html `<today>` block). Today is an INPUT (`YYYY-MM-DD`, the Asia/Bangkok day), never read from a clock here.
 use super::manual::ManualEntry;
-use super::patterns_src::{SNAPSHOT, TIME_REST, TIME_W};
+use super::vocab::vocab;
 use crate::re::{compile, compile_src};
 use regex_lite::Regex;
 use std::sync::OnceLock;
@@ -53,7 +53,7 @@ pub fn date_span(text: &str) -> Option<(String, String)> {
 
 fn snapshot() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&SNAPSHOT))
+    R.get_or_init(|| compile(&vocab().snapshot))
 }
 
 /// A dated schedule entry of the manual: has an academic year and is a "กำหนดการ" entry.
@@ -69,11 +69,11 @@ pub fn entry_span(e: &ManualEntry) -> Option<(String, String)> {
 
 fn time_w() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&TIME_W))
+    R.get_or_init(|| compile(&vocab().time_w))
 }
 fn time_rest() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&TIME_REST))
+    R.get_or_init(|| compile(&vocab().time_rest))
 }
 fn registration_words() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();

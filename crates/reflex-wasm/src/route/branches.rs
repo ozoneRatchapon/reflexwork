@@ -9,7 +9,7 @@ use super::manual::{Ctx, ProgState};
 use super::scope::{scope_clarify, Ranked, Scope};
 use crate::decide::{decide_tier, Action};
 use super::programme::{is_career_question, is_finder_question, is_level_only_question, resolve_programme_branch, ProgrammeOutcome};
-use super::patterns_src as p;
+use super::vocab::vocab;
 use super::study_intent::{catalogue_notice, has_study_intent};
 use super::near::near_spelling;
 use super::topic::topic_picks;
@@ -29,19 +29,19 @@ macro_rules! lazy_re {
         }
     };
 }
-lazy_re!(pers_record, p::PERS_RECORD);
-lazy_re!(pers_statusq, p::PERS_STATUSQ);
-lazy_re!(pers_howto, p::PERS_HOWTO);
-lazy_re!(pers_self, p::PERS_SELF);
-lazy_re!(pers_own, p::PERS_OWN);
-lazy_re!(pers_other, p::PERS_OTHER);
-lazy_re!(pers_other_rec, p::PERS_OTHER_REC);
-lazy_re!(has_topic, p::HAS_TOPIC);
-lazy_re!(overview, p::OVERVIEW);
-lazy_re!(restart, p::RESTART);
-lazy_re!(wb_crisis, p::WB_CRISIS);
-lazy_re!(wb_stress, p::WB_STRESS);
-lazy_re!(p_ack, p::P_ACK);
+lazy_re!(pers_record, vocab().pers_record);
+lazy_re!(pers_statusq, vocab().pers_statusq);
+lazy_re!(pers_howto, vocab().pers_howto);
+lazy_re!(pers_self, vocab().pers_self);
+lazy_re!(pers_own, vocab().pers_own);
+lazy_re!(pers_other, vocab().pers_other);
+lazy_re!(pers_other_rec, vocab().pers_other_rec);
+lazy_re!(has_topic, vocab().has_topic);
+lazy_re!(overview, vocab().overview);
+lazy_re!(restart, vocab().restart);
+lazy_re!(wb_crisis, vocab().wb_crisis);
+lazy_re!(wb_stress, vocab().wb_stress);
+lazy_re!(p_ack, vocab().p_ack);
 
 fn trim_js(s: &str) -> &str {
     s.trim_matches(|c: char| is_js_space(c))

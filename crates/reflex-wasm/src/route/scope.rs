@@ -1,6 +1,7 @@
 //! The scope guard (chatbot.html `<scope-clarify>`): several entries of the manual answer the SAME question for different academic years / semesters; when the
 //! user did not say which, ask instead of guessing a year. Ports of `scopeYears`, `scopeOf`, `scopeClarify`.
 use super::manual::ManualEntry;
+use super::vocab::vocab;
 use crate::re::compile_src;
 use regex_lite::Regex;
 use std::sync::OnceLock;
@@ -24,15 +25,15 @@ pub enum Scope {
     NoRound,
 }
 
-const TERMS: [(&str, &str); 3] = [
-    ("ภาคต้น", "ภาคต้น|ภาคเรียนที่ ?1|first semester|semester 1"),
-    ("ภาคปลาย", "ภาคปลาย|ภาคเรียนที่ ?2|second semester|semester 2"),
-    ("ฤดูร้อน", "ฤดูร้อน|summer"),
-];
-
 fn term_res() -> &'static Vec<(&'static str, Regex)> {
     static R: OnceLock<Vec<(&'static str, Regex)>> = OnceLock::new();
-    R.get_or_init(|| TERMS.iter().map(|(k, p)| (*k, compile_src(p, "i"))).collect())
+    R.get_or_init(|| {
+        let v = vocab();
+        [(&v.words.term_first, &v.term_first_pat), (&v.words.term_second, &v.term_second_pat), (&v.words.term_summer, &v.term_summer_pat)]
+            .into_iter()
+            .map(|(k, p)| (k.as_str(), compile_src(p.src, p.flags)))
+            .collect()
+    })
 }
 
 fn to_ascii_digits(s: &str) -> String {
@@ -54,9 +55,10 @@ pub fn scope_years(q: &str) -> Vec<String> {
     static REG: OnceLock<Regex> = OnceLock::new();
     static MONEY: OnceLock<Regex> = OnceLock::new();
     static AY: OnceLock<Regex> = OnceLock::new();
-    let reg = REG.get_or_init(|| compile_src(r"(?:เกณฑ์|ข้อบังคับ|regulation)\s*(?:พ\.?ศ\.?\s*)?$", "i"));
-    let money = MONEY.get_or_init(|| compile_src(r"^\s*(?:บาท|baht|thb|฿|%)", "i"));
-    let ay = AY.get_or_init(|| compile_src(r"(?:ปีการศึกษา|academic year|a\.?y\.?)\s*$", "i"));
+    let v = vocab();
+    let reg = REG.get_or_init(|| compile_src(v.scope_reg.src, v.scope_reg.flags));
+    let money = MONEY.get_or_init(|| compile_src(v.scope_money.src, v.scope_money.flags));
+    let ay = AY.get_or_init(|| compile_src(v.scope_ay.src, v.scope_ay.flags));
     let s = to_ascii_digits(q);
     let term = term_of(&s);
     let mut out: Vec<String> = Vec::new();
@@ -77,7 +79,7 @@ pub fn scope_years(q: &str) -> Vec<String> {
         let y = if (2567..=2588).contains(&n) {
             n
         } else if (2024..=2045).contains(&n) {
-            n + 543 - i32::from(term == "ฤดูร้อน" && !ay.is_match(&before))
+            n + 543 - i32::from(term == v.words.term_summer && !ay.is_match(&before))
         } else {
             0
         };
@@ -97,8 +99,9 @@ pub fn scope_of(q: &str) -> (String, &'static str) {
 fn round_named(q: &str) -> Option<String> {
     static TH: OnceLock<Regex> = OnceLock::new();
     static EN: OnceLock<Regex> = OnceLock::new();
-    let th = TH.get_or_init(|| compile_src(r"รอบ\s*(?:ที่\s*)?(\d)(\d?)", ""));
-    let en = EN.get_or_init(|| compile_src(r"round\s*(\d)", "i"));
+    let v = vocab();
+    let th = TH.get_or_init(|| compile_src(v.round_th.src, v.round_th.flags));
+    let en = EN.get_or_init(|| compile_src(v.round_en.src, v.round_en.flags));
     // `String.match` finds the LEFTMOST match of "รอบ… (?!\d)" | "round…": the Thai lookahead is the captured next digit
     let th_hit = th.captures_iter(q).find(|c| c[2].is_empty()).map(|c| (c.get(0).unwrap().start(), c[1].to_string()));
     let en_hit = en.captures(q).map(|c| (c.get(0).unwrap().start(), c[1].to_string()));
@@ -106,19 +109,21 @@ fn round_named(q: &str) -> Option<String> {
         (Some(a), Some(b)) => Some(if a.0 <= b.0 { a } else { b }),
         (a, b) => a.or(b),
     };
-    hit.map(|h| h.1).or_else(|| q.contains("รอบแรก").then(|| "1".to_string()))
+    hit.map(|h| h.1).or_else(|| q.contains(&v.words.round_first).then(|| "1".to_string()))
 }
 
 fn round_in_title(title: &str) -> Option<String> {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile_src(r"รอบ\s*(\d)", "")).captures(title).map(|c| c[1].to_string())
+    let p = &vocab().round_in_title;
+    R.get_or_init(|| compile_src(p.src, p.flags)).captures(title).map(|c| c[1].to_string())
 }
 
 fn term_order(t: Option<&str>) -> i32 {
+    let w = &vocab().words;
     match t {
-        Some("ภาคต้น") => 0,
-        Some("ภาคปลาย") => 1,
-        Some("ฤดูร้อน") => 2,
+        Some(x) if x == w.term_first => 0,
+        Some(x) if x == w.term_second => 1,
+        Some(x) if x == w.term_summer => 2,
         _ => 9,
     }
 }
@@ -138,8 +143,9 @@ pub fn scope_clarify(q: &str, ranked: &[Ranked], kb: &[ManualEntry]) -> Option<S
     }
     // a named admission round the manual has no schedule for
     if let Some(rnd) = round_named(q) {
-        if top.entry.category == "admissions" {
-            let mut rounds: Vec<String> = kb.iter().filter(|e| e.category == "admissions" && !year_of(e).is_empty()).filter_map(|e| round_in_title(&e.title)).collect();
+        let cat = vocab().words.admissions_category.as_str();
+        if top.entry.category == cat {
+            let mut rounds: Vec<String> = kb.iter().filter(|e| e.category == cat && !year_of(e).is_empty()).filter_map(|e| round_in_title(&e.title)).collect();
             rounds.sort();
             rounds.dedup();
             if !rounds.is_empty() && !rounds.contains(&rnd) {
