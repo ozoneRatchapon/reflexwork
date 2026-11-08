@@ -17,6 +17,7 @@ const router = new WASM.Router(KB, PROG);
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const state = { progState: 'ok', aiOff: true, pinnedId: null, programmeInFocus: null, today, agencyHasIt: true };
 
-// the route the Rust side picks for a typed question (null = waiting for the AI rewrite / not found)
-export const routeOf = q => router.decide(q, state, null) ?? null;
+// the route the Rust side picks for a typed question (null = waiting for the AI rewrite / not found); `over` replaces fields of the
+// page state above (e.g. { progState: 'loading' } for a catalogue that has not arrived yet)
+export const routeOf = (q, over) => router.decide(q, over ? { ...state, ...over } : state, null) ?? null;
 export const catalogue = { KB, PROG };

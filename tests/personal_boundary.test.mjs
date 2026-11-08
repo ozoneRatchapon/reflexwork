@@ -29,7 +29,7 @@ check(`none of ${all.length} known questions (manual, FAQ, beginner, odd, progra
 
 // wiring
 const i = h.indexOf('const pers = pinned ? null : personalAsk(q);'), blk = h.slice(i, h.indexOf('const restart = isRestartPhrase(q);', i));
-check('the boundary runs before the programme, fee and knowledge-base paths', i > 0 && i < h.search(/(?:const|let) prog = /) && i < h.indexOf('const _pre = ') && i < h.indexOf('isGenericFeeQuestion(q) &&'));
+check('the boundary runs before the programme, fee and knowledge-base paths', i > 0 && i < h.search(/(?:const|let) prog = /) && i < h.indexOf('const _pre = ') && i < h.indexOf("take('generic_fee')"));
 check('it is never logged as a gap, never counted as answered / not-found, and never calls the AI', !/logGap|auto\+\+|ai\+\+|groundedHybrid|rewriteQuery/.test(blk));
 check('it points to a way to look the data up (staff contact; e-Thesis for thesis questions)', /_btn\(AGENCY\.contact\)/.test(blk) && /id==='ethesis'/.test(blk));
 check('general topics offered under it are labelled as not the person\'s own', /VOICE\.personalGeneral/.test(blk) && /ไม่ใช่ของคุณ/.test(h.match(/personalGeneral:[^\n]*/)[0]));

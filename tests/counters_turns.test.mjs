@@ -7,7 +7,7 @@ const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 's
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const core = html.slice(html.indexOf('function _askCore(){'), html.indexOf('function paintBar(){'));
-const advice = core.slice(core.indexOf('if(isAdvice(q) && !AI_OFF){'), core.indexOf("const mid='hyb'"));
+const advice = core.slice(core.indexOf("if(take(['advice_abstain','advice_strong','advice_hybrid'])){"), core.indexOf("const mid='hyb'"));
 
 // F31: behaviour - run rewriteQuery() against a scripted fetch
 const rwSrc = html.slice(html.indexOf('const _RW_CACHE = new Map();'), html.indexOf('function understand('));
@@ -25,7 +25,7 @@ check('F31: a real answer is still cached (no second request)', hit[0] === 'ค�
 
 // G30: a strong advice hit counts once; 'saved' only where no LLM was called
 check('G30: the advice branch bumps auto exactly once', (advice.match(/auto\+\+/g) || []).length === 1, advice.match(/auto\+\+[^\n]*/g));
-check('G31: the LLM-rephrased mid path earns no "saved"', (advice.match(/saved\+=COST/g) || []).length === 1 && /topScore >= 6[\s\S]*?saved\+=COST/.test(advice));
+check('G31: the LLM-rephrased mid path earns no "saved"', (advice.match(/saved\+=COST/g) || []).length === 1 && /take\('advice_strong'\)\)\{[\s\S]*?saved\+=COST/.test(advice));
 check('G30: a disambiguation list counts and saves like any no-LLM answer', /rethink found two close candidates[^\n]*\n\s*auto\+\+; saved\+=COST;/.test(core));
 // G31: outcome, not code path
 check('G31: an understand-resolved answer moves from not-found to answered', /uid='un'\+\(\+\+fbN\);\n\s*ai--; auto\+\+;/.test(core));

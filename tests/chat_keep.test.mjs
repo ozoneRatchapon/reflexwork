@@ -4,6 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { routeOf, catalogue } from '../scripts/lib/rust_route.mjs';
 const h = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
@@ -16,5 +17,7 @@ check('G28: a reload right after an answer still keeps it (pagehide flush)', /ad
 check('G28: restored chips ask through one delegated listener', /e\.target\.closest\('\.msg\[data-restored\] \.dis'\)/.test(mod));
 check('G28: the clear button wipes chat, evidence, follow-up context and the stored copy', /<button type="button" id="clear-chat"/.test(h) && /function clearChat\(\)\{[\s\S]*?sessionStorage\.removeItem\(CHAT_KEY\)[\s\S]*?\$\('ev-list'\)[\s\S]*?PCTX=null; PIN=null;/.test(mod));
 check('the note under the input says the history stays in this tab', /ประวัติแชตเก็บในแท็บนี้เท่านั้น/.test(h));
-check('follow-up "แล้วค่าเทอมล่ะ" after a programme card skips the generic fee finder', /isGenericFeeQuestion\(q\) && !\(PCTX && followUpAspect\(q\)\)\)\{/.test(h));
+// the route is Rust's since plan 015 step 4b: with a programme card on screen the fee follow-up is for THAT programme
+const card = catalogue.PROG.find(p => /จิตวิทยาคลินิก/.test(p.title));
+check('follow-up "แล้วค่าเทอมล่ะ" after a programme card skips the generic fee finder', !!card && routeOf('แล้วค่าเทอมล่ะ', { programmeInFocus: card.code }) === 'followup' && routeOf('แล้วค่าเทอมล่ะ') === 'generic_fee');
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

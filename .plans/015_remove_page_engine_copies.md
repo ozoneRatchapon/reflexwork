@@ -43,7 +43,7 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Scale: about 70 files reference the page. This plan is several sessions, not one. Each step is its own commit.
 
 ## Status (2026-11-09)
-- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Next: step 4.
+- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Step 4a (a3fe732) and 4b done. Next: step 4c, then 5.
 
 ## Step 2 done (intake part, 2026-11-08)
 - The intake patterns (`_ISSUE_CATS`, `_NOT_PERSONAL`, `_ADVICE`, `_FACTUAL`) moved from the page into `vocab.json` (`intake_issues`,
@@ -80,3 +80,24 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
   `_P_ASPECT`, `_P_TUITION`, `_P_NONTUITION`, `_P_FREEQ`, `_P_FREESTUDY`, `_P_FINDQ`. They go with step 4 (the route copies).
 - Gates: cargo test exit 0; route_golden 2268 / shadow 4629, 0 differences; route_rust_check 2221/2221; chat_e2e 56/56.
 - Still failing, not from this plan: chat_keep, counters_turns (page-text checks, failing before step 2).
+
+## Step 4 (2026-11-09)
+- 4a (a3fe732): `?route=js` removed; routes always come from Rust.
+- 4b: the 28 route sites in `_askCore` ask `take(name)` only; the JS conditions are gone. When the Rust router cannot run (an old cached
+  wasm without `WASM.Router`, or it threw) the page shows a reload message (`VOICE.routerReload`, route `router_unavailable`) instead of
+  guessing; `tests/chat_e2e` checks it with a stamped page (`/chatbot.stale.html`).
+  Removed as unused: `isTuitionQuestion`, `_P_TUITION`, `_P_NONTUITION`, `_P_FREEQ`, `_P_FREESTUDY`, `_P_CAREER`, `isCareerQuestion`,
+  `_P_ACK`, `isNotAQuestion`, `isOtherScript`, `isGenericFeeQuestion`, `isOverviewQuestion`, the page's `isAdvice` wrapper.
+  Tests moved to Rust routes (`scripts/lib/rust_route.mjs`, `routeOf(q, stateOverride)`): overview, followup_scope, personal_boundary,
+  agency_pack, ui_guards, chat_keep, counters_turns (the last two were failing before step 2 and pass now).
+  `benchmark/compare/programme_names.mjs` passes the shipped wasm (broken by 3a; `pitch_claims` runs it and passes again).
+- Plan revised: `take(name)` stays as a one-line name check, and shadow mode stays: `shadowBegin` is where the route is computed, and
+  `route_golden.mjs` reads `window.__shadow` to catch a body that falls through after Rust chose its route.
+- 4c (next): the bodies still compute their render inputs in JS, duplicating part of Rust's decision: `prog` (`isFinderQuestion`,
+  `isLevelOnlyQuestion`, `englishProgrammeAsk`), `aspect` (`followUpAspect`, `_P_ASPECT`), `personalAsk` (`_PERS_*`), `timeIntent`
+  (`_TIME_*`), `stuckTopic` (`_STUCK_*`), `hasStudyIntent` (`_P_TOPIC`, `_P_OTHER`). Removing them needs the Rust router to return the
+  payload with the route (e.g. `{route, aspect, timeIntent, stuck}`), a wasm API change.
+- Still failing, for step 5: `engine_switch` (checks the `_engine` switch that step 5 removes). `benchmark/engine/engine_micro.mjs`
+  reads `ENG.impl.isAdvice`, which has not existed since step 2.
+- Gates: see the commit message.
+

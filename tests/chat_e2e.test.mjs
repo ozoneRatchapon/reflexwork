@@ -30,6 +30,10 @@ const stat = http.createServer((req, res) => {
   if (pathname === '/chatbot.preview.html' || pathname === '/dashboard.preview.html') {   // what submissions/deploy_pages.sh stamps on a deploy of any branch except main
     const src = readFileSync(join(UI, pathname.replace('.preview', '')), 'utf8').replace('<head>', '<head><meta name="robots" content="noindex"><meta name="rw-env" content="preview">');
     res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(src); }
+  if (pathname === '/chatbot.stale.html') {   // an old cached wasm without WASM.Router: the page has no other copy of the route order (plan 015 step 4b)
+    const src = readFileSync(join(UI, 'chatbot.html'), 'utf8'), stale = src.replace("typeof WASM.Router!=='function'", 'true');
+    if (stale === src) { res.writeHead(500); return res.end('chatbot.html: Router check not found'); }
+    res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(stale); }
   const p = normalize(join(UI, pathname));
   if (!p.startsWith(UI) || !existsSync(p)) { res.writeHead(404); return res.end(); }
   try { const body = readFileSync(p); res.writeHead(200, { 'Content-Type': MIME[extname(p)] || 'application/octet-stream' }); res.end(body); }
@@ -185,6 +189,9 @@ for (const eng of ['rust', 'js']) {   // 'rust': Rust helpers (default); 'js': t
   check('preview page: ?api= / ?llm= still connect it on purpose (a staging worker or a mock)', MOCK_REQS > r0 && attempts.length === 0, `mock requests +${MOCK_REQS - r0}`);
   await go(`http://127.0.0.1:${SP}/dashboard.preview.html`);
   check('preview dashboard: the kernel base starts empty (approve / retract cannot touch production)', await ev(`document.getElementById('base').value === ''`) && attempts.length === 0, attempts.join(' '));
+  await go(`http://127.0.0.1:${SP}/chatbot.stale.html`);
+  const stale = await ask('ส่งรูปเล่มภายในกี่วัน');
+  check('stale wasm (no WASM.Router): the page asks for a reload instead of guessing a route', /โหลดหน้าใหม่/.test(stale) && !/21 วัน/.test(stale), stale);
   await go(`http://127.0.0.1:${SP}/dashboard.html`);
   check('production dashboard: base unchanged (points at the production kernel)', /workers\.dev/.test(await ev(`document.getElementById('base').value`))); }
 

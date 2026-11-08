@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { routeOf } from '../scripts/lib/rust_route.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
@@ -30,6 +31,8 @@ check('the three allowed blocks were found', !!t);
 const stray = (t || '').split('\n').filter(l => /graduate\.mahidol|บัณฑิตวิทยาลัย/.test(l)).filter(l => !/^<meta name="description"|^<title>|<div class="org">/.test(l.trim()));
 check('no other line of the chat page names the Graduate School', stray.length === 0, stray.map(l => l.trim().slice(0, 90)).join(' | '));
 check('other organisations default to NO backend (kernel / AI proxy only if agency.json names them)', /AGENCY\.customised \? \(AGENCY\.kernelApi\|\|''\)/.test(src) && /AGENCY\.customised \? \(AGENCY\.llmApi\|\|''\)/.test(src));
-check('a pack without programmes.json skips the catalogue notice (404 -> none, only for other agencies)', /r\.status===404 && AGENCY\.customised\)\{ PROG_STATE='none'/.test(src) && /PROG_STATE!=='ok' && PROG_STATE!=='none'/.test(src));
+check('a pack without programmes.json skips the catalogue notice (404 -> none, only for other agencies)', /r\.status===404 && AGENCY\.customised\)\{ PROG_STATE='none'/.test(src)
+  // the notice itself is decided in Rust (plan 015 step 4b): shown while loading, never for an agency without a catalogue
+  && routeOf('อยากเรียนวิศวกรรม', { progState: 'loading' }) === 'catalogue_not_ready' && routeOf('อยากเรียนวิศวกรรม', { progState: 'none' }) !== 'catalogue_not_ready');
 rmSync(join(out, '..'), { recursive: true, force: true });
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);
