@@ -185,9 +185,9 @@ const result = []; let n = 0, booted = '';
 for (const it of pick) {
   const mode = it.mode || 'ai_off';
   if (mode !== booted || n++ % 60 === 0) { MODE = mode; await boot(); booted = mode; }
-  if (it.kind === 'pin') { const r = await pinAsk(it); if (r) result.push(r); else console.log(`no chip ${it.chip} under ${JSON.stringify(it.typed)}`); continue; }
-  if (it.kind === 'session') { await boot(); const routes = []; for (const q of it.qs) routes.push(await ask(q)); result.push({ kind: 'session', qs: it.qs, routes }); }
-  else { await ask('เริ่มใหม่'); result.push({ kind: 'single', set: it.set, ...(it.mode && it.mode !== 'ai_off' ? { mode: it.mode } : {}), q: it.qs[0], route: await ask(it.qs[0]) }); }
+  if (it.kind === 'pin') { const r = await pinAsk(it); if (r) result.push({ ...r, ai_off: mode === 'ai_off' }); else console.log(`no chip ${it.chip} under ${JSON.stringify(it.typed)}`); continue; }
+  if (it.kind === 'session') { await boot(); const routes = []; for (const q of it.qs) routes.push(await ask(q)); result.push({ kind: 'session', qs: it.qs, routes, ai_off: mode === 'ai_off' }); }
+  else { await ask('เริ่มใหม่'); result.push({ kind: 'single', set: it.set, ...(it.mode && it.mode !== 'ai_off' ? { mode: it.mode } : {}), q: it.qs[0], route: await ask(it.qs[0]), ai_off: mode === 'ai_off' }); }
 }
 done();
 console.log(`shadow (Rust decide_route vs the page): ${SH.n} questions, ${SH.same} same, ${SH.pending} pending (AI rewrite), ${SH.errors} errors, ${SH.diffs.length} differ`);
