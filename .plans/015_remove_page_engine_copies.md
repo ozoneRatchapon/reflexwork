@@ -42,8 +42,8 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - A stale cached wasm in a browser has no fallback after step 5. Mitigation: the page shows "reload" when a Rust export is missing.
 - Scale: about 70 files reference the page. This plan is several sessions, not one. Each step is its own commit.
 
-## Status
-- Not started. Step 1 is the first to do.
+## Status (2026-11-09)
+- Steps 1, 2, 3 done (3 in two commits: 3a c73b199, 3b feec6c8). Next: step 4.
 
 ## Step 2 done (intake part, 2026-11-08)
 - The intake patterns (`_ISSUE_CATS`, `_NOT_PERSONAL`, `_ADVICE`, `_FACTUAL`) moved from the page into `vocab.json` (`intake_issues`,
@@ -65,3 +65,18 @@ copies in `submissions/ui/chatbot.html`. Each step is one commit and runs the ga
 - Not done: recording `ai_off` per entry. That changes `route_golden.mjs` and `route.json`, which have uncommitted edits that are not from
   this work; owner decision needed first.
 - Session and pin entries (24 + 26) still need the page's state carry-over; they stay in shadow mode.
+
+## Step 1 exact (2026-11-09)
+- `route_golden.mjs` records `ai_off` on every entry; `route.json` re-recorded (routes identical to before, 2150 true / 118 false).
+- `route_rust_check.mjs` compares each single question with its own `ai_off`: 2221/2221, 0 differ (commit e48a188).
+- Pins: only chooser questions (topic_picks, disambiguate) are probed; 23 pins recorded, 3 stale pins dropped (a3db2f0).
+
+## Step 3 done (2026-11-09)
+- 3a (c73b199): resolve regexes moved to `vocab.json` (`resolve`); `resolve/patterns_src.rs`, `scripts/gen_rust_pattern_sources.mjs`
+  and `tests/rust_patterns_sync.test.mjs` removed. The page's `resolveProgramme` is a Rust wrapper; its JS body and unused helpers are gone.
+- 3b (feec6c8): fee_premise, tuition_scope, short_input, level_only, not_found_gate check Rust routes (`scripts/lib/rust_route.mjs`).
+  Shipped wasm rebuilt.
+- Still on the page (used by page logic, not the resolver): `_P_TOPIC`, `_P_LEVEL`, `_pLevel`, `_P_OTHER`, `followUpAspect`,
+  `_P_ASPECT`, `_P_TUITION`, `_P_NONTUITION`, `_P_FREEQ`, `_P_FREESTUDY`, `_P_FINDQ`. They go with step 4 (the route copies).
+- Gates: cargo test exit 0; route_golden 2268 / shadow 4629, 0 differences; route_rust_check 2221/2221; chat_e2e 56/56.
+- Still failing, not from this plan: chat_keep, counters_turns (page-text checks, failing before step 2).
