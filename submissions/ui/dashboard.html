@@ -192,7 +192,7 @@ function linkDown(text){ $('dot').classList.remove('up'); $('livetxt').textConte
 async function tick(full=true){
   if(Date.now() < BACKOFF_UNTIL) return;
   const opt = full ? [
-      _opt(getj('/gaps')),
+      _opt(getj('/gaps',{headers:staffHeaders()})),   // samples need the staff token; the public gets counts
       _opt(getj('/kb-drafts',{headers:staffHeaders()})),
       _opt(getj('/entry-conf')),
       _opt(getj('/live-kb',{cache:'no-store'})),
@@ -226,7 +226,7 @@ async function tick(full=true){
     if(g && g.ok){
     const gaprows = clean_gaps(g.v.entries||[]);
     $('gaprows').innerHTML = gaprows.length ? gaprows.map(e=>`<tr>
-      <td>${esc(e.question)} <button class="ans-btn" data-q="${esc(e.question)}" style="margin-left:6px;background:transparent;color:#b07bff;border:1px solid rgba(176,123,255,.5);border-radius:6px;padding:1px 8px;cursor:pointer;font-size:12px">ตอบ</button></td>
+      <td>${e.question==null ? '<span class="empty">🔒 ตัวอย่างคำถามเห็นเฉพาะเจ้าหน้าที่ (ตั้ง staff token)</span>' : `${esc(e.question)} <button class="ans-btn" data-q="${esc(e.question)}" style="margin-left:6px;background:transparent;color:#b07bff;border:1px solid rgba(176,123,255,.5);border-radius:6px;padding:1px 8px;cursor:pointer;font-size:12px">ตอบ</button>`}</td>
       <td class="mono">${Number(e.hits)||0}</td>
       <td class="mono">${e.last_at_unix_ms?fmtTime(e.last_at_unix_ms):'—'}</td>
       <td>${esc(e.source||'—')}</td></tr>`).join('')

@@ -114,7 +114,8 @@ export default {
       if (url.pathname === '/status' && request.method === 'GET') return status(env);
       if (url.pathname === '/audit' && request.method === 'GET') return audit(env);
       if (url.pathname === '/gap' && request.method === 'POST') return logGap(request, env);
-      if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env);
+      // Counts are public; the question samples (masked, but free text) only with the staff token (PDPA check O1, docs/pdpa-check.md).
+      if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env, isStaff(request, env));
       if (url.pathname === '/entry-conf' && request.method === 'GET') return entryConf(env);
       // Public, read-only: staff answers that are LIVE in the chat (approved through the dashboard, not yet in the main manual).
       if (url.pathname === '/live-kb' && request.method === 'GET') return liveKb(env);
@@ -145,6 +146,11 @@ export default {
   // per run to cap LLM cost. Schedule is set in wrangler.toml ([triggers]).
   async scheduled(event, env, ctx) {
     ctx.waitUntil((async () => {
+      try {
+        console.log('cron retention:', JSON.stringify(await pruneOld(env, Date.now())));
+      } catch (e) {
+        console.log('cron retention error:', String(e && e.message || e));
+      }
       try {
         const res = await autodraftCore(env, 3);
         console.log('cron auto-draft:', JSON.stringify(res));
@@ -331,7 +337,7 @@ async function logGap(request, env) {
   const q = String(body.q || '').trim();
   const source = String(body.source || 'web').slice(0, 16);
   if (!q || q.length > 500) return json({ ok: false, error: 'bad q' }, 400);
-  const key = gapKey(q);
+  const key = gapKey(maskPII(q));   // the key is stored too: build it from the masked text (LINE sends the raw question)
   if (!key) return json({ ok: false, error: 'empty' }, 400);
   const sample = maskPII(q.slice(0, 200));   // scrub PII before it is stored
   await env.DB.prepare(
@@ -344,16 +350,32 @@ async function logGap(request, env) {
 }
 
 // GET /gaps — the KB improvement backlog, most-asked unanswered first.
-async function gaps(env) {
+// Retention by age (PDPA check O3, docs/pdpa-check.md), run by the daily cron before the auto-draft. Gap samples are free text,
+// so they go after 180 days; vote de-dup rows (a random vote id or a hash, a reward, a time) after 365 days. Counts and the per-entry
+// vote totals stay: they hold no text.
+const RETENTION_MS = { gap_log: 180 * 86400000, feedback_log: 365 * 86400000 };
+async function pruneOld(env, now) {
+  await ensureSchema(env);
+  const gap = await env.DB.prepare("DELETE FROM gap_log WHERE last_at < ?1").bind(now - RETENTION_MS.gap_log).run();
+  const fb = await env.DB.prepare("DELETE FROM feedback_log WHERE at < ?1").bind(now - RETENTION_MS.feedback_log).run();
+  return { gap_log: gap?.meta?.changes ?? 0, feedback_log: fb?.meta?.changes ?? 0 };
+}
+
+// Staff when STAFF_TOKEN is unset (local demo) or the X-Staff-Token header matches it, as for the /kb-* routes.
+function isStaff(request, env) {
+  return !env.STAFF_TOKEN || request.headers.get('X-Staff-Token') === env.STAFF_TOKEN;
+}
+
+async function gaps(env, staff) {
   await ensureSchema(env);
   const rows = await env.DB.prepare(
     "SELECT sample, hits, last_at, source FROM gap_log ORDER BY hits DESC, last_at DESC LIMIT 30"
   ).all();
   const entries = (rows.results || []).map(r => ({
-    question: r.sample, hits: r.hits, last_at_unix_ms: r.last_at, source: r.source,
+    ...(staff ? { question: r.sample } : {}), hits: r.hits, last_at_unix_ms: r.last_at, source: r.source,
   }));
   const totalRow = await env.DB.prepare("SELECT COUNT(*) c, COALESCE(SUM(hits),0) s FROM gap_log").first();
-  return json({ entries, distinct: totalRow?.c || 0, total_hits: totalRow?.s || 0 });
+  return json({ entries, samples: staff ? 'shown' : 'staff_only', distinct: totalRow?.c || 0, total_hits: totalRow?.s || 0 });
 }
 
 // GET /entry-conf — KB entries ranked by LOWEST confidence first: the entries

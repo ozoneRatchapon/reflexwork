@@ -37,15 +37,15 @@ university's DPO or legal office must sign off before the free-text box (plan 00
 - Addresses, birth dates and free-text health details have no reliable shape; they are not masked.
 
 ## Open, for the owner
-- **O1. `GET /gaps` is public.** Anyone can read the 30 most-asked unanswered questions (masked). The public dashboard shows them.
+- **O1 (fixed 2026-11-09, plan 016 item 2). `GET /gaps` was public.** Anyone can read the 30 most-asked unanswered questions (masked). The public dashboard shows them.
   Option: the public view shows counts and topics only; the samples need the staff token (like `/kb-drafts`). This changes what the
   public dashboard shows, so it is the owner's call.
 - **O2. LINE uses the older JS mask for gaps and sends raw text to the AI for advice questions.** The fix is to load the same wasm
   in the LINE worker (plan 009 "LINE loads the same wasm"; measure the Workers cold start first), then call `mask_pii` before
   `askTeam` and `/gap`. Needs a LINE worker deploy.
-- **O3. Retention by time.** `gap_log` is capped at 200 rows but has no age limit; `feedback_log` has neither. Suggest: delete gap
+- **O3 (fixed 2026-11-09, plan 016 item 3). Retention by time.** `gap_log` is capped at 200 rows but has no age limit; `feedback_log` has neither. Suggest: delete gap
   rows older than 180 days in the daily cron, and vote rows older than a year. Needs a kernel worker deploy.
-- **O4. Notice.** The chat note says what is logged and how to turn the AI off (`?ai=off`). It does not say the AI is a Google
+- **O4 (fixed in part 2026-11-09, plan 016 item 1: the note now says the AI is an outside service that may be abroad; a privacy page with a contact for data requests is still to write). Notice.** The chat note says what is logged and how to turn the AI off (`?ai=off`). It does not say the AI is a Google
   service outside Thailand. Suggest adding that, plus a contact for data requests, in the note and in a short privacy page.
 - **O5. Formal sign-off** by the university (DPO / legal): purpose of each flow, legal basis, the Gemini transfer abroad (section 28),
   retention periods.
