@@ -116,7 +116,7 @@ Progress (2026-11-09): all 34 decided - 33 named routes in `PORTED`, and `not_fo
 - The UI stays JS (view only).
 - `.rs` under 1,024 lines.
 - Use `match` over if-chains.
-- Regex sources are still generated from chatbot.html (`scripts/gen_rust_pattern_sources.mjs`) until step 3 is done. After that, flip the direction: Rust becomes the source and JS is generated or deleted.
+- Regex sources live in `packs/graduate-school/vocab.json` + Rust (flipped in plan 015 step 3a `c73b199`; `scripts/gen_rust_pattern_sources.mjs` is deleted).
 
 ## Step 0 - DONE 2026-11-07 (page-only, no behaviour change)
 - Every branch of `_askCore` names itself: `ROUTE_NAME = '...'` (35 labels). `_add` stamps each bot bubble with `data-route`. The start of an ask sets `'unrouted'`, so a branch nobody labelled shows up in the contract instead of hiding.
