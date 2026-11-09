@@ -25,11 +25,20 @@ const listen = srv => new Promise(r => srv.listen(0, '127.0.0.1', () => r(srv.ad
 // --- static server for submissions/ui ---------------------------------------------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
   '.wasm': 'application/wasm', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png' };
+// The production response headers (submissions/ui/_headers, incl. the generated per-page CSP): the page is tested under the policy it ships with.
+const RULES = {}; { let cur = null; for (const l of readFileSync(join(UI, '_headers'), 'utf8').split('\n')) { if (!l.trim() || l.startsWith('#')) continue;
+  if (!/^\s/.test(l)) { cur = l.trim(); RULES[cur] = {}; } else if (cur) { const i = l.indexOf(':'); RULES[cur][l.slice(0, i).trim()] = l.slice(i + 1).trim(); } } }
+const pageHeaders = route => ({ ...(RULES['/*'] || {}), ...(RULES[route] || {}) });
+check('the chat and dashboard routes carry a Content-Security-Policy in _headers', ['/chatbot.html', '/dashboard.html'].every(r => /script-src /.test(pageHeaders(r)['Content-Security-Policy'] || '')));
 const stat = http.createServer((req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   if (pathname === '/chatbot.preview.html' || pathname === '/dashboard.preview.html') {   // what submissions/deploy_pages.sh stamps on a deploy of any branch except main
     const src = readFileSync(join(UI, pathname.replace('.preview', '')), 'utf8').replace('<head>', '<head><meta name="robots" content="noindex"><meta name="rw-env" content="preview">');
-    res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(src); }
+    res.writeHead(200, { 'Content-Type': MIME['.html'], ...pageHeaders(pathname.replace('.preview', '')) }); return res.end(src); }
+  if (pathname === '/chatbot.cspstale.html') {   // an inline-script edit shipped without `cargo run -p pages-csp`: the old hash must stop the script
+    const src = readFileSync(join(UI, 'chatbot.html'), 'utf8'), edited = src.replace('<script type="module">\n', '<script type="module">\n// edited\n');
+    if (edited === src) { res.writeHead(500); return res.end('chatbot.html: module script not found'); }
+    res.writeHead(200, { 'Content-Type': MIME['.html'], ...pageHeaders('/chatbot.html') }); return res.end(edited); }
   if (pathname === '/chatbot.oldwasm.html') {   // an old cached wasm that lacks an export the page needs: boot stops with the error + retry (plan 015 step 5)
     const src = readFileSync(join(UI, 'chatbot.html'), 'utf8'), old = src.replace("const _WASM_NEEDS = ['kb_search'", "const _WASM_NEEDS = ['no_such_export','kb_search'");
     if (old === src) { res.writeHead(500); return res.end('chatbot.html: _WASM_NEEDS not found'); }
@@ -40,13 +49,13 @@ const stat = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': MIME['.html'] }); return res.end(stale); }
   const p = normalize(join(UI, pathname));
   if (!p.startsWith(UI) || !existsSync(p)) { res.writeHead(404); return res.end(); }
-  try { const body = readFileSync(p); res.writeHead(200, { 'Content-Type': MIME[extname(p)] || 'application/octet-stream' }); res.end(body); }
+  try { const body = readFileSync(p); res.writeHead(200, { 'Content-Type': MIME[extname(p)] || 'application/octet-stream', ...(extname(p) === '.html' ? pageHeaders(pathname) : {}) }); res.end(body); }
   catch { res.writeHead(404); res.end(); }
 });
 
 // --- mock kernel + LLM proxy (one port; the page allows loopback overrides) ------------------------------------------------------
 let MOCK_REQS = 0;
-const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [], live: [] };
+const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [], live: [], votes: [] };
 const mock = http.createServer((req, res) => {
   const h = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
   if (req.method === 'OPTIONS') { res.writeHead(204, h); return res.end(); }
@@ -55,6 +64,7 @@ const mock = http.createServer((req, res) => {
     const u = req.url.split('?')[0];
     if (u === '/live-kb') { res.writeHead(200, h); return res.end(JSON.stringify({ entries: MOCK.live })); }
     if (u === '/gap') { MOCK.gaps.push(b); res.writeHead(200, h); return res.end('{}'); }
+    if (u === '/feedback') { MOCK.votes.push(b); res.writeHead(200, h); return res.end('{}'); }
     if (u === '/rewrite') return setTimeout(() => { res.writeHead(200, h); res.end(JSON.stringify(MOCK.rewrite.body)); }, MOCK.rewrite.delay);
     if (u === '/llm') { res.writeHead(MOCK.llm.status, h); return res.end(MOCK.llm.status === 200 ? JSON.stringify(MOCK.llm.body) : 'x'); }
     res.writeHead(200, h); res.end('{}');
@@ -72,13 +82,14 @@ const wsUrl = await new Promise((res, rej) => { let buf = ''; const t = setTimeo
 const port = new URL(wsUrl).port;
 const tab = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json();
 const ws = new WebSocket(tab.webSocketDebuggerUrl); await new Promise(r => ws.addEventListener('open', r));
-let id = 0; const pend = new Map(), errors = [];
+let id = 0; const pend = new Map(), errors = [], cspLog = [];
 ws.addEventListener('message', e => { const m = JSON.parse(e.data);
   if (m.id && pend.has(m.id)) { pend.get(m.id)(m.result); pend.delete(m.id); }
-  if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text); });
+  if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
+  if (m.method === 'Log.entryAdded' && /Content Security Policy/.test(m.params.entry.text)) cspLog.push(m.params.entry.text); });
 const send = (method, params = {}) => new Promise(r => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 const ev = async x => (await send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true })).result?.value;
-await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable'); await send('Log.enable');
 await send('Network.setBlockedURLs', { urls: ['*workers.dev*'] });   // the real workers are never reached; an attempt is still recorded below
 const attempts = [];
 ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.method === 'Network.requestWillBeSent' && /workers\.dev/.test(m.params.request.url)) attempts.push(m.params.request.url); });
@@ -103,6 +114,10 @@ const ask = async (q, ms = 8000) => { const n = await bots();
 
   const a1 = await ask('ส่งรูปเล่มภายในกี่วัน');
   check(`a manual question is answered from the manual`, /21 วัน/.test(a1) && /ข้อมูลทางการ/.test(a1), a1);
+  MOCK.votes = [];
+  const voted = await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.fb-b.up'); if(!b) return false; b.click(); return true;})()`);
+  await until(`/บันทึกความเห็นแล้ว/.test([...document.querySelectorAll('#chat .fb')].pop()?.innerText||'')`, 4000);
+  check(`👍 (a data-fb button, no inline handler) sends one vote with the question`, voted && MOCK.votes.length === 1 && /"reward":1/.test(MOCK.votes[0]) && /ส่งรูปเล่ม/.test(MOCK.votes[0]), `clicked=${voted} votes=${MOCK.votes.join(' | ')}`);
 
   const card = await ask('จิตวิทยาคลินิก');
   check(`a programme name opens its card`, /จิตวิทยาคลินิก/.test(card) && /สถานะบนเว็บบัณฑิตวิทยาลัย/.test(card), card);
@@ -177,6 +192,7 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   check(`the clear button wipes it (also after a reload)`, await ev(`document.querySelectorAll('#chat .msg:not(.greet)').length`) === 0);
 
   check(`no uncaught page errors`, errors.length === 0, errors.join(' | '));
+  check(`no Content-Security-Policy violation over the whole conversation`, cspLog.length === 0, cspLog.join(' | '));
 }
 
 // ---- PREVIEW builds: no production backend by default (the safe place to develop while the demo build stays untouched) ----------------
@@ -198,8 +214,16 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   await send('Page.navigate', { url: `http://127.0.0.1:${SP}/chatbot.oldwasm.html` });
   const oldBoot = await until(`(()=>{const b=document.getElementById('boot'); return !!b && b.classList.contains('err') && !!b.querySelector('button.retry');})()`, 20000);
   check('old wasm without a needed export: boot stops with the error and a retry button, the input stays off', oldBoot && await ev(`document.getElementById('q').disabled`));
+  await ev(`document.querySelector('#boot button.retry').click()`); await wait(1500);
+  check('the retry button (data-act, no inline handler) reloads the page', /oldwasm/.test(await ev('location.href')) && await ev(`performance.getEntriesByType('navigation')[0].type`) === 'reload');
+  cspLog.length = 0; await send('Page.navigate', { url: `http://127.0.0.1:${SP}/chatbot.cspstale.html` }); await wait(4000);
+  check('an inline script edited without regenerating _headers is refused (the CSP is enforced; CI runs pages-csp --check)', await ev(`!document.getElementById('q') || document.getElementById('q').disabled`) && cspLog.some(t => /script/.test(t)), cspLog.join(' | ').slice(0, 200));
+  cspLog.length = 0;
   await go(`http://127.0.0.1:${SP}/dashboard.html`);
-  check('production dashboard: base unchanged (points at the production kernel)', /workers\.dev/.test(await ev(`document.getElementById('base').value`))); }
+  check('production dashboard: base unchanged (points at the production kernel)', /workers\.dev/.test(await ev(`document.getElementById('base').value`)));
+  const asked = await ev(`(()=>{ let n=0; window.prompt=()=>{ n++; return null; }; document.querySelector('button[data-act="setStaffToken"]').click(); return n; })()`);
+  check('dashboard: a data-act button runs its action (no inline handler)', asked === 1, `prompt calls=${asked}`);
+  check('chat pages and the dashboard ran with no Content-Security-Policy violation', cspLog.length === 0, cspLog.join(' | ').slice(0, 200)); }
 
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
 cleanup(); process.exit(fail ? 1 : 0);

@@ -1,0 +1,20 @@
+[package]
+name = "pages-csp"
+version = "0.1.0"
+edition = "2021"
+description = "Writes and checks the per-page Content-Security-Policy block in submissions/ui/_headers (QA F65): one SHA-256 hash per inline script"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "pages-csp"
+path = "src/main.rs"
+
+[dependencies]
+# CSP hash sources only accept sha256 / sha384 / sha512 (no BLAKE3), as standard base64.
+sha2       = "0.10"
+base64     = "0.22"
+regex-lite = "0.1"

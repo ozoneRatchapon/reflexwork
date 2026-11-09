@@ -24,7 +24,7 @@ for (const f of RAW) {
   const bad = [...live.matchAll(new RegExp('\\$\\{\\s*' + f.replace('.', '\\.') + '\\s*(\\|\\|[^}]*)?\\}', 'g'))].map(m => m[0]);
   check(`dashboard: ${f} is never interpolated raw`, bad.length === 0, bad.join(' | '));
 }
-check('dashboard: draft id in onclick is numeric', /approveDraft\(\$\{Number\(d\.id\)\|\|0\}\)/.test(dash));
+check('dashboard: draft id in the approve button is numeric (and read back as a number)', /data-act="approveDraft" data-arg="\$\{Number\(d\.id\)\|\|0\}"/.test(dash) && /case 'approveDraft': return window\.approveDraft\(Number\(arg\) \|\| 0\)/.test(dash));
 check('student-desk / try never print a fake "0 µs"', !/\$\{us\} µs/.test(read('submissions/ui/student-desk.html')) && !/\$\{us\} µs/.test(read('submissions/ui/try.html')) && !/\$\{a\.us\} µs/.test(read('submissions/ui/try.html')));
 check('try.html cannot print Infinity (the speed-up divides by at least the clock resolution)', /Math\.max\(parseFloat\(a\.us\), 100\)/.test(read('submissions/ui/try.html')));
 // QA F48: manual entry fields are escaped too (a staff-approved draft can carry a student's text into a title)

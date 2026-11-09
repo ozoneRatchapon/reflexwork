@@ -53,6 +53,6 @@ const r2 = sup([{ e: M, cos: 0.7, overlap: 9, s: 5 }, { e: S, cos: 0.6, overlap:
   check('G14: list markers become "• ", markdown hashes and ** are dropped', /\n• ข้อแนะนำ\nหัวข้อ\nสำคัญ เก็บใบเสร็จ$/.test(out), out); }
 check('G07: a manual entry that matches better than the staff one is left alone', r2[0].e === M && r2.length === 2);
 // dashboard
-check('dashboard: answer form, approve-and-publish, live list with retract', /saveAnswer\(true\)/.test(dash) && /function renderLive/.test(dash) && /retractLive\(\$\{Number\(d\.id\)\|\|0\}\)/.test(dash));
+check('dashboard: answer form, approve-and-publish, live list with retract', /data-act="saveAnswer" data-arg="1"/.test(dash) && /case 'saveAnswer': return window\.saveAnswer\(arg === '1'\)/.test(dash) && /function renderLive/.test(dash) && /data-act="retractLive" data-arg="\$\{Number\(d\.id\)\|\|0\}"/.test(dash));
 check('dashboard: "ตอบ" on a gap row fills the form (escaped data attribute)', /class="ans-btn" data-q="\$\{esc\(e\.question\)\}"/.test(dash));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

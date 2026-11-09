@@ -5,6 +5,7 @@ members = [
     "crates/reflex-kernel",
     "crates/reflex-wasm",
     "crates/reflex-gate",
+    "crates/pages-csp",
 ]
 
 [workspace.package]

@@ -406,6 +406,15 @@
 </div>
 
 <script type="module">
+// Buttons built as HTML strings name their action in data attributes, handled here (QA F65: the page CSP allows no inline onclick).
+// First in the module, so the boot-error retry works even when load() fails; sendFeedback is a hoisted function declaration.
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-fb],button[data-act]'); if(!b) return;
+  switch(b.dataset.act || (b.dataset.fb ? 'vote' : '')){
+    case 'vote': return void sendFeedback(b.dataset.fb, Number(b.dataset.vote) > 0 ? 1 : -1);
+    case 'reload': return location.reload();
+    default: console.warn('chat: unknown data-act', b.dataset.act);
+  }
+});
 // QA F34: a static import that fails (glue 404, CDN/cache error) stops this module before load() runs, so the boot spinner
 // spun forever. A guarded dynamic import lets load() fail normally and show the error with a retry button.
 let WASM = {}, WASM_ERR = null;
@@ -562,7 +571,7 @@ load().catch(()=>{
   if(boot){ boot.classList.add('err');
     boot.innerHTML='<div>⚠ โหลด Reflex Kernel ไม่สำเร็จ</div>'
       +`<div style="font-size:.78125rem">${location.protocol==='file:' ? 'ต้องเปิดผ่าน http(s) (ไม่ใช่ file://)' : 'เครือข่ายหรือแคชของเบราว์เซอร์อาจขัดข้อง'} — ลองใหม่อีกครั้ง</div>`
-      +'<button class="retry" onclick="location.reload()">ลองใหม่</button>'; }
+      +'<button class="retry" data-act="reload">ลองใหม่</button>'; }
   $('note').textContent = location.protocol==='file:' ? '⚠ เปิดหน้านี้ผ่าน http(s)' : '⚠ โหลดระบบไม่สำเร็จ';
 });
 
@@ -1549,7 +1558,7 @@ function _askCore(){
     ROUTE_NAME = 'router_unavailable';
     add('b', `<span class="route ai" style="background:rgba(246,169,59,.16);color:#f6a93b">⚠️ ระบบตอบคำถามโหลดไม่ครบ</span>
       <div class="ans">${VOICE.routerReload}</div>
-      <button type="button" class="golink" onclick="location.reload()">🔄 โหลดหน้าใหม่</button>`);
+      <button type="button" class="golink" data-act="reload">🔄 โหลดหน้าใหม่</button>`);
     return;
   }
 
@@ -2124,7 +2133,8 @@ function _askCore(){
 // DISTILLED from katgpt-rs BanditPruner/ReviewMetrics (Test-Time Compute): the
 // FastPath confidence is an exponential moving average of the reward signal, not
 // a raw running sum. ema ← (1-α)·ema + α·reward, reward ∈ {+1 👍, -1 👎}.
-// The votes are sent to the server (/feedback) where the real learning loop persists them; here the EMA is only DISPLAYED, as a
+// The votes are sent to the kernel worker (/feedback), which counts them per entry for the dashboard's 'entries to check' list - no vote
+// changes an answer or a route (plan 008 step 7). Here the EMA is only DISPLAYED, as a
 // satisfaction score. It never changes the ratio bar below - it used to add up to ±18 points to it, which made a count look measured.
 const BANDIT = {
   ema: 0.0,            // reward EMA ∈ [-1, +1], starts neutral
@@ -2246,8 +2256,8 @@ function fbUI(q, proof, entryId){
   window.__fbQ = window.__fbQ || {}; window.__fbQ[id] = {q, proof, entryId, voteId:newVoteId()};
   return receiptUI(q, entryId) + `<div class="fb" id="${id}">
       <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
-      <button class="fb-b up" onclick="sendFeedback('${id}',1)">👍 ใช่</button>
-      <button class="fb-b down" onclick="sendFeedback('${id}',-1)">👎 ไม่</button>
+      <button class="fb-b up" data-fb="${id}" data-vote="1">👍 ใช่</button>
+      <button class="fb-b down" data-fb="${id}" data-vote="-1">👎 ไม่</button>
     </div>`;
 }
 
@@ -2311,9 +2321,6 @@ async function sendFeedback(id, reward){
   updateRatio();
   el.innerHTML = '<span class="fb-done">✅ บันทึกความเห็นแล้ว</span>';
 }
-// The 👍/👎 buttons are inline onclick="sendFeedback(...)" (markup built as strings). This script is a MODULE, so its functions are not
-// global: without this line every click threw ReferenceError and no vote ever reached the kernel (nor the satisfaction score).
-window.sendFeedback = sendFeedback;
 $('send').addEventListener('click', ask);
 // ---- suggestions: (1) after an answer, "ask next"; (2) while typing, matching questions. Deterministic, 0 token, from the KB.
 let _askWait=false;

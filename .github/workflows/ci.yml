@@ -21,6 +21,8 @@ jobs:
         run: python3 -I submissions/build_knowledge_index.py
       - name: reflex-wasm tests (golden contract)
         run: cargo test -p reflex-wasm   # Cargo.lock is not committed (.gitignore), so --locked is not possible
+      - name: Pages CSP is current (one SHA-256 per inline script; a stale hash stops that script on production)
+        run: cargo test -p pages-csp
 
   test:
     runs-on: ubuntu-latest

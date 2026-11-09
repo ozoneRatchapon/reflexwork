@@ -19,6 +19,10 @@ ui="$out/submissions/ui"
 for f in chatbot.html programmes.json knowledge-index.json wasm/reflex_wasm_bg.wasm; do
   [ -s "$ui/$f" ] || { echo "ABORT: missing $f"; exit 1; }
 done
+# The per-page CSP in _headers lists a SHA-256 per inline script: a page whose script changed after the last `cargo run -p pages-csp`
+# would ship with its script refused by the browser. Checked on the staged (committed) files, before the preview stamp (which leaves scripts alone).
+cargo run -q --manifest-path "$repo/Cargo.toml" -p pages-csp -- --check --ui "$ui" \
+  || { echo "ABORT: _headers CSP is stale - run: cargo run -q -p pages-csp, then commit submissions/ui/_headers"; exit 1; }
 # A deploy from any branch other than main is a PREVIEW (its own URL, production untouched). Stamp every page: not indexed, and the chat / dashboard
 # default to NO production backend (see PREVIEW in chatbot.html, dashboard.html). main is the production deploy and is left exactly as committed.
 if [ "$branch" != "main" ]; then
