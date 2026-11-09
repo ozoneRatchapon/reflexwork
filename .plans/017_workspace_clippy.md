@@ -19,3 +19,5 @@ Rule: fix warnings before commit; remove truly unused code; no behaviour change.
 
 ## Result (2026-11-10)
 0 warnings. Kept with a reason (an `allow` at the site): `arc_with_non_send_sync` (anchor-client requires `Arc<DynSigner>`), `too_many_arguments` on `submit_execution_proof` (the on-chain instruction interface). The MCP stdio transport is still a stub: its config fields now appear in the not-connected error; the unused response structs were deleted (re-add them with the transport). `cargo test --workspace`: same results as before.
+
+- [x] `Uuid::new_v4()` -> `Uuid::now_v7()` (10 sites in reflex-kernel; uuid feature v4 -> v7; still 16 bytes for the on-chain `task_id`). Clippy 0, tests pass.

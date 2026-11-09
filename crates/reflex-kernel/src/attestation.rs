@@ -171,7 +171,7 @@ mod tests {
 
     fn sample_task() -> TaskSpec {
         TaskSpec {
-            id: Uuid::new_v4(),
+            id: Uuid::now_v7(),
             category: TaskCategory::DataQuery,
             raw_input: "Fetch sales report for Q3".to_string(),
             token_budget: 1024,

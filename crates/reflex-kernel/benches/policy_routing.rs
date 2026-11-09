@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 fn make_task() -> TaskSpec {
     TaskSpec {
-        id: Uuid::new_v4(),
+        id: Uuid::now_v7(),
         category: TaskCategory::ComplianceCheck,
         raw_input: "Review all PDPA compliance documents for Q3 and flag violations.".into(),
         token_budget: 2048,

@@ -115,7 +115,7 @@ mod tests {
 
     fn make_task(cat: TaskCategory, input: &str, budget: u32, priority: u8) -> TaskSpec {
         TaskSpec {
-            id: Uuid::new_v4(),
+            id: Uuid::now_v7(),
             category: cat,
             raw_input: input.to_string(),
             token_budget: budget,

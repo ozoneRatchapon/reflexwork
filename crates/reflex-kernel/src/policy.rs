@@ -160,7 +160,7 @@ pub struct PersonalitySnapshot {
 impl PersonalitySnapshot {
     pub fn from_policy(policy: &PolicyState, env_tag: &str) -> Self {
         Self {
-            snapshot_id: Uuid::new_v4(),
+            snapshot_id: Uuid::now_v7(),
             policy: policy.clone(),
             created_at_unix_ns: now_unix_ns(),
             environment_tag: env_tag.to_owned(),

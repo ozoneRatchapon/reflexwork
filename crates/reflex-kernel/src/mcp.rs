@@ -121,7 +121,7 @@ impl McpClient {
     async fn call_tool(&self, method: &str, params: Value) -> Result<Value, KernelError> {
         let request = JsonRpcRequest {
             jsonrpc: "2.0",
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::now_v7().to_string(),
             method: method.to_string(),
             params,
         };
