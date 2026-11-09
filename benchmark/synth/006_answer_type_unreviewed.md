@@ -1,5 +1,7 @@
 # Answer-type match signal (lexical, no model)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): the answer-type flag fires on 26.5% of near-misses vs 2.5% of Thai and 7.2% of English paraphrases: worth a note, too costly as a hard rule (shipped as a note, plan 010 item 2). Labels unreviewed.
+
 Candidate entry = the question's source entry. "Flagged" = the question asks for a value type the entry text does not contain.
 
 | set | n | asks a typed value | flagged (type missing in entry) | examples flagged |

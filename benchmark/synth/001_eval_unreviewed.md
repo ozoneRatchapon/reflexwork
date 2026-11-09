@@ -1,5 +1,7 @@
 # Offline labelled questions: search + decision (1056 questions)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): shipped search on 1,056 generated questions (labels unreviewed): right entry first for 52.3% of Thai and 48.5% of English paraphrases; 62.5% of near-misses are answered, 22.0% by the very entry that does not answer them. A baseline, not a comparison.
+
 Questions: `questions_001.json` written by a local model (gemma4:26b, 2026-11-07). Engine: the page's JS twin of the search and decideTier (= Rust).
 **No human review yet** - the labels are the model's; read every number as an estimate with unknown label noise (run review.mjs, fill the sheet).
 

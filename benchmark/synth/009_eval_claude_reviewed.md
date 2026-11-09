@@ -1,5 +1,7 @@
 # Offline labelled questions: search + decision (1053 questions)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): after a second AI read dropped 3 of 60 sampled labels, every number moves by at most 0.2 points vs `001`. Not a human review.
+
 Questions: `questions_001.json` written by a local model (gemma4:26b, 2026-11-07). Engine: the page's JS twin of the search and decideTier (= Rust).
 Spot-check sheet `review_001_claude.tsv` (who filled it in is the sheet's name: *_claude = a second AI read, not a person): 60 sampled questions, 57 ok, 3 bad label (dropped), 0 answered by another entry (re-labelled).
 

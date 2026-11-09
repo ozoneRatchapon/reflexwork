@@ -1,5 +1,7 @@
 # Benchmark Results — ReflexWork search × GradMahidol corpus
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): on another team's 440-entry corpus and 31 real questions: recall@1 81% (one namespace), 87% (namespaces), 94% (FAQ only, 62 entries); 5/5 off-corpus questions abstained; 84% fast path on the FAQ-only set. Small n; the corpus is not ours and is not shipped.
+
 > **วันที่วัด:** 31 ตุลาคม 2569
 > **Corpus:** knowledge markdown ของทีม GradMahidol AI (ประกาศทางการ, ไม่มี PII —
 > provenance + กฎอนุญาต/PDPA ดู `docs/pitching/70-field-evidence-gradmahidol.md`)

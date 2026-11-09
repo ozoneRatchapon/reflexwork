@@ -1,5 +1,7 @@
 # doc2query experiment (offline question expansion, modelless at run time)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): both expansions LOSE to shipped: Thai held-out 42.8% (doc2query) and 33.7% (alias items) vs 53.4%, eval52 76% / 68% vs 84%, FAQ 88.7% vs 94.4%. Not adopted (`benchmark/NEGATIVE_RESULTS.md`). Labels unreviewed.
+
 Questions: `questions_001.json`, unreviewed model labels. Split per entry: Thai paraphrases 0, 2 -> keywords; 1, 3 -> test.
 
 | variant | Thai held-out: 1st right | answered wrong | English: 1st right | near-miss answered with its own entry | eval52: 1st right | official FAQ (th): 1st right |

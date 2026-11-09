@@ -18,7 +18,11 @@ const fs = { readFileSync };
 const load = f => fs.readFileSync(`${root}/benchmark/golden/${f}.json`, 'utf8').trim().split('\n').map(l => l.replace(/,$/, '')).filter(l => l.startsWith('{')).map(l => JSON.parse(l));
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 let failed = false;
-const rep = (name, n, bad) => { failed ||= bad > 0; console.log(`${name.padEnd(14)} ${String(n).padStart(5)} cases  ${bad} differences`); };
+// plan 010 item 6: each contract has a floor (~95% of its size on 2026-11-09), so a truncated or emptied golden file cannot pass as
+// "0 differences". Raise a floor when a contract grows on purpose; lowering one is a decision, say why in the commit.
+const MIN = { intake: 930, understand: 1260, decide_tier: 86, answer_points: 125, schedule_fee: 218, 'resolve (x2)': 2550 };
+const rep = (name, n, bad) => { const short = n < (MIN[name] ?? 1); failed ||= bad > 0 || short;
+  console.log(`${name.padEnd(14)} ${String(n).padStart(5)} cases  ${bad} differences${short ? `  TOO FEW (minimum ${MIN[name] ?? 1})` : ''}`); };
 let bad = 0;
 const I = load('intake'); for (const c of I) { const i = w.classify_issue(c.text); if (!same(i === null ? null : { kind: i.kind, category: i.category, label: i.label }, c.issue) || w.is_advice(c.text) !== c.advice || w.is_english(c.text) !== c.english) bad++; } rep('intake', I.length, bad);
 bad = 0; const U = load('understand'); for (const c of U) { const o = w.understand(c.phrases, c.results); if (!same(JSON.parse(JSON.stringify(o, Object.keys(o).sort())), JSON.parse(JSON.stringify(c.out, Object.keys(c.out).sort())))) bad++; } rep('understand', U.length, bad);

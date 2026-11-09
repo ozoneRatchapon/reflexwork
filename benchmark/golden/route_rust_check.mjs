@@ -48,4 +48,7 @@ for (const x of golden) {
 }
 console.log(`route_rust_check: ${golden.length} single questions, ${exact} match, ${diffs.length} differ (${unflagged} entries without ai_off, checked with either setting)`);
 for (const d of diffs.slice(0, 20)) console.log('  diff:', JSON.stringify(d));
+// plan 010 item 6: a truncated or emptied route.json must not pass as "0 differ" (2221 singles on 2026-11-09)
+const MIN_SINGLES = 2100;
+if (golden.length < MIN_SINGLES) { console.error(`route_rust_check: only ${golden.length} single questions (minimum ${MIN_SINGLES}) - route.json looks truncated`); process.exit(1); }
 process.exit(diffs.length ? 1 : 0);

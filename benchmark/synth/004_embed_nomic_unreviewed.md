@@ -1,5 +1,7 @@
 # Embedding experiment (nomic-embed-text, local)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): nomic-embed-text is far worse than shipped on every set (Thai 11.4% vs 52.3%, eval52 20% vs 84%); answer-or-not AUROC 0.516 (no separation). Rejected. Labels unreviewed.
+
 Questions: `questions_001.json` (unreviewed model labels) + the 52-query eval + official FAQ th. "1st right" = the top entry is the gold one.
 
 | set | lexical (shipped) | embeddings alone | lexical top 10 re-ranked by embeddings | hybrid: lexical if score >= 4, else embeddings | rank fusion (RRF) |

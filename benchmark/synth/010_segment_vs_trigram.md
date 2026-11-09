@@ -1,5 +1,7 @@
 # Thai word vocabulary (ICU dictionary segmentation) vs character trigrams, first-right
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): Thai words lose to character trigrams (45.8% vs 53.8% Thai held-out, FAQ 84.5% vs 94.4%); words + trigrams +0.4 pp (noise). Trigrams stay (`benchmark/NEGATIVE_RESULTS.md`). Labels unreviewed.
+
 Only the feature changes; the cosine arms share one scoring. Labels of the generated questions are unreviewed.
 
 | arm | Thai paraphrases (held-out half) | English paraphrases | eval52 | official FAQ (th) |

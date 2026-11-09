@@ -80,6 +80,8 @@ jobs:
 
       - name: Route contract (each branch of the chat's decision order, sampled)
         run: node tests/route_golden.test.mjs
+      - name: Route contract on the shipped wasm (all single questions, no browser, minimum count)
+        run: node benchmark/golden/route_rust_check.mjs
 
       - name: KB recall eval on the built index
         run: node tests/kb_search.test.mjs
