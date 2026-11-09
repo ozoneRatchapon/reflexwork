@@ -8,13 +8,13 @@
 import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FAQ = JSON.parse(readFileSync(join(root, 'benchmark/field/faq_questions.json'), 'utf8'));
 const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
-const twin = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
-const search = new Function('KB', twin)(KB);
-const decide = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
+const search = pageSearch(KB, html);
+const decide = pageDecideTier(html);
 const GATE = 0.061;
 const rows = FAQ.items.map(it => ({ ...it, gold: new Set(it.gold_kb_ids) }));
 const covered = rows.filter(r => r.student && r.gold.size), uncoveredStudent = rows.filter(r => r.student && !r.gold.size), staffOnly = rows.filter(r => !r.student);

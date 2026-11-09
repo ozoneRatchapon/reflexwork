@@ -1,14 +1,14 @@
 //! `nearSpelling(q, title)` (chatbot.html): how much of the question's core is an approximate substring of a programme title.
 //! A slip in a programme name ("กายอุปกณ์") scores close to 1; a shared fragment ("โรงอาหาร") does not. Sellers' edit distance,
 //! free start in the title, normalised by the question core's length.
-use super::patterns_src::P_CORE_DROP;
+use super::vocab::vocab;
 use crate::re::{compile, is_js_space};
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
 fn core_drop() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&P_CORE_DROP))
+    R.get_or_init(|| compile(&vocab().p_core_drop))
 }
 
 /// Port of `nearSpelling`: 0 when the core is shorter than 4 characters or the title is empty, else `1 - distance / core length`.

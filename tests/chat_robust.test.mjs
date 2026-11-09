@@ -1,11 +1,12 @@
 // Robustness of the chat front door in submissions/ui/chatbot.html: sloppy typing, and never ending on "no answer".
 // Run: node tests/chat_robust.test.mjs   (exit 0 = pass, 1 = fail)
 //   - normChat: elongated Thai letters / zero-width characters are cleaned before matching; trailing ?!.~, emoji and fullwidth ASCII are folded (F28); nothing else is touched
-//   - hasStudyIntent + resolveProgramme: a study-ish question we cannot resolve is routed to the finder, not to staff
+//   - resolveProgramme: a study-ish question we cannot resolve finds no programme (study intent is Rust's: crates/reflex-wasm/tests/route_predicates.rs)
 //   - starterEntries: the "try these" chips for a question we did not understand always answer when tapped
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm, pageSearch } from '../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
@@ -13,7 +14,7 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const block = n => { const m = html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`)); check(`<${n}> block found`, m); if (!m) process.exit(1); return m[1]; };
 const { normChat } = new Function(block('chat-normalize') + '\nreturn {normChat};')();
-const { hasStudyIntent, resolveProgramme } = new Function(block('linkify') + block('programme-resolve') + '\nreturn {hasStudyIntent, resolveProgramme};')();
+const { resolveProgramme } = new Function('WASM', block('linkify') + block('programme-resolve') + '\nreturn {resolveProgramme};')(shippedWasm());
 
 // --- sloppy typing ------------------------------------------------------------------------------------------------
 const cases = [['เรียนรายยย', 'เรียนราย'], ['ขอบคุณครับบบบบ', 'ขอบคุณครับ'], ['ได้้้้ไหม', 'ได้ไหม'], ['จ้าาาา', 'จ้า'],
@@ -31,10 +32,6 @@ check('trailing ?!.~, emoji (with skin tones) and fullwidth ASCII are folded; in
 check('a message that is only punctuation or emoji normalises to empty (the caller then keeps what was typed)', normChat('???') === '' && normChat('🙏') === '');
 
 // --- study-ish but unresolvable -> finder (the caller does that when the KB also finds nothing) --------------------------------
-const yes = ['เรียนราย', 'เรียนรายยย', 'อยากเรียนต่อ', 'สนใจสมัครแต่ไม่รู้สาขา', 'อยากเรียนโท', 'มีหลักสูตรอะไร', 'ปริญญาเอกมีไหม', 'want to study abroad program'];
-const no = ['ค่าเทอมเท่าไหร่', 'ลงทะเบียนเรียนวิชา GRID', 'ส่งเล่มวิทยานิพนธ์กี่วัน', 'ทุนการศึกษามีอะไรบ้าง', 'เปลี่ยนอาจารย์ที่ปรึกษา', 'ร้านกาแฟอยู่ไหน', 'ลืมรหัสผ่าน', 'ลาพักการศึกษาได้ไหม', 'สมัครสอบ TOEFL ITP', 'ขอวุฒิการศึกษา', ''];
-check('study intent is read from study words only, and fee / registration / thesis topics are excluded',
-  yes.every(hasStudyIntent) && !no.some(hasStudyIntent), [...yes.filter(q => !hasStudyIntent(q)), ...no.filter(hasStudyIntent)].join(' | '));
 const progPath = join(root, 'submissions/ui/programmes.json');
 if (existsSync(progPath)) {
   const P = JSON.parse(readFileSync(progPath, 'utf8')).programmes;
@@ -47,8 +44,7 @@ const kbPath = join(root, 'submissions/ui/knowledge-index.json');
 if (!existsSync(kbPath)) check('knowledge-index.json present (python3 submissions/build_knowledge_index.py)', false);
 else {
   const KB = JSON.parse(readFileSync(kbPath, 'utf8'));
-  const sm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
-  const search = new Function('KB', sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
+  const search = pageSearch(KB, html);
   const fm = html.match(/function starterEntries\(\)\{[\s\S]*?\n}\n/);
   check('starterEntries() found in chatbot.html', fm);
   const starters = new Function('KB', 'search', fm[0] + '\nreturn starterEntries;')(KB, search)();

@@ -5,11 +5,12 @@
 // as the PRIMARY ranker + lexical char-n-gram overlap as a tiebreak. This 50-case
 // labeled eval (exact / paraphrase / typo / English + off-corpus) pins the measured
 // quality so a future edit can't silently regress it. We EXTRACT the real search()
-// from the HTML so the test exercises production code, not a copy. Needs the
+// from the HTML (it calls the shipped Rust/WASM kb_search) so the test exercises production code, not a copy. Needs the
 // generated knowledge-index.json (built locally / in CI).
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch } from '../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const idxPath = join(root, 'submissions/ui/knowledge-index.json');
@@ -26,14 +27,8 @@ if (!existsSync(idxPath)) {
 }
 const KB = JSON.parse(readFileSync(idxPath, 'utf8'));
 const html = readFileSync(htmlPath, 'utf8');
-// Extract the headless-runnable JS twin (_jsGramSet..._jsSearch). The production
-// page prefers the Rust/WASM kb_search, but WASM can't load under plain Node, so
-// the test exercises the JS fallback — which is the SAME algorithm, kept in sync.
-const m = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
-truthy('_jsSearch block found in chatbot.html', m);
-if (!m) { console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(1); }
-const block = m[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;');
-const search = new Function('KB', block)(KB);
+// The page's own search() block on the shipped wasm (there is no JS twin since plan 015 step 5).
+const search = pageSearch(KB, html);
 
 // [query, expected_id | null(=off-corpus, must abstain), kind]
 const C = [

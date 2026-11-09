@@ -10,10 +10,11 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, loadGramSet } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const outPath = process.argv[2];
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const { search, gramSet } = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {search:_jsSearch, gramSet:_jsGramSet};'))(KB);
+const search = pageSearch(KB, html), gramSet = loadGramSet();   // search: the page's (Rust); gramSet: the JS trigram set of the plan-015 snapshot (feature only)
 const cache = JSON.parse(readFileSync('/tmp/rw_embed_bge_m3.json', 'utf8')), key = t => createHash('sha256').update(t).digest('hex').slice(0, 20);
 const emb = t => { const v = cache[key(t)]; if (!v) throw new Error('not in bge-m3 cache (run embed.mjs --model bge-m3): ' + t.slice(0, 40)); return v; };
 const docText = e => `${e.title}\n${String(e.answer).slice(0, 400)}`;

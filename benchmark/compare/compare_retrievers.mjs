@@ -2,7 +2,7 @@
 //   python3 submissions/build_knowledge_index.py && node benchmark/compare/compare_retrievers.mjs [--json out.json]
 //
 // What is compared (all see the SAME documents = the `keywords` text of each KB entry, and the SAME queries):
-//   ours        the production search() (JS twin of crates/reflex-wasm::kb_search; lockstep with WASM is tested separately)
+//   ours        the production search() (the page's block on the shipped wasm: crates/reflex-wasm::kb_search, the only copy)
 //   cosine      the same binary TF-IDF vectors, ranked by cosine only            (ablation: drops the symbolic overlap signal)
 //   overlap     the same grams, ranked by lexical overlap count only             (ablation: drops the vector signal)
 //   bm25_char3  BM25 (k1=1.2, b=0.75) over character trigrams                    (standard lexical baseline, Thai-safe tokenisation)
@@ -15,6 +15,7 @@
 import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, shippedWasm } from '../../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const idxPath = join(root, 'submissions/ui/knowledge-index.json');
@@ -24,9 +25,11 @@ const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const evalSrc = readFileSync(join(root, 'tests/kb_search.test.mjs'), 'utf8');
 
 // ---- production code and the labelled eval, taken from their single sources of truth (no copies) ----------------------------------
-const pm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
-const decideTier = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
-const { jsSearch, gramSet } = new Function('KB', pm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {jsSearch:_jsSearch, gramSet:_jsGramSet};'))(KB);
+const jsSearch = pageSearch(KB, html);
+const decideTier = new Function('WASM', html.match(/^function decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/m)[0] + '\nreturn decideTier;')(shippedWasm());
+// The ablations (cosine / overlap) reuse the kernel's grams: whitespace tokens of 2+ chars and character trigrams, lowercased
+// (crates/reflex-wasm/src/lib.rs gram_set; the page's JS copy of it went in plan 015 step 5).
+const gramSet = text => { const s = String(text || '').toLowerCase(), g = new Set(); for (const t of s.split(/\s+/)) if (t.length > 1) g.add(t); for (let i = 0; i < s.length - 2; i++) { const t = s.slice(i, i + 3).trim(); if (t.length === 3) g.add(t); } return g; };
 const CASES = [...evalSrc.matchAll(/^\s*\['([^']+)',\s*(null|'[^']*'),\s*'([^']*)'\],?$/gm)].map(m => ({ q: m[1], exp: m[2] === 'null' ? null : m[2].slice(1, -1), kind: m[3] }));
 const ALT = new Function('return ' + evalSrc.match(/const ALT = (\{[\s\S]*?\n\});/)[1])();
 const ids = new Set(KB.map(e => e.id));

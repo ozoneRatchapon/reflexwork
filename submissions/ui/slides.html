@@ -149,7 +149,7 @@
   .plug span{background:#0f1730;border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:13px;color:var(--muted)}
   @media (max-width:760px){.layer .split2{grid-template-columns:1fr}}
 
-  /* self-learning / ruliology */
+  /* feedback columns (slide 14) */
   .learn{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1060px;margin-top:8px}
   .learn .col{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 22px}
   .learn .col .h{font-weight:800;font-size:clamp(16px,1.8vw,21px);margin-bottom:12px}
@@ -351,8 +351,8 @@
   <!-- Slide 3.7 — Learning loop: 3 signals + auto-draft -->
   <section class="slide">
     <div class="pageno">08 / 19</div>
-    <div class="kicker">ยิ่งใช้ยิ่งฉลาด · corpus โตจากงานจริง</div>
-    <h2>ReflexWork รู้ว่าตัวเองขาดอะไร แล้วปิดช่องเอง</h2>
+    <div class="kicker">คู่มือโตจากงานจริง · เจ้าหน้าที่อนุมัติทุกข้อ</div>
+    <h2>ReflexWork รู้ว่าตัวเองขาดอะไร แล้วส่งให้เจ้าหน้าที่ปิดช่อง</h2>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1040px">
       <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--warn);border-radius:12px;padding:20px">
         <div style="font-weight:800;color:var(--warn)">① Gap</div>
@@ -360,7 +360,7 @@
       </div>
       <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--llm);border-radius:12px;padding:20px">
         <div style="font-weight:800;color:var(--llm)">② 👎 Confidence</div>
-        <div style="color:var(--muted);font-size:clamp(12px,1.3vw,14px);line-height:1.55;margin-top:8px">KB ข้อไหนถูก 👎 บ่อย → confidence ลดอัตโนมัติ = ข้อที่ต้องแก้</div>
+        <div style="color:var(--muted);font-size:clamp(12px,1.3vw,14px);line-height:1.55;margin-top:8px">KB ข้อไหนถูก 👎 บ่อย → ขึ้นรายการ "ข้อที่ควรตรวจ" ในแดชบอร์ด (โหวตไม่เปลี่ยนคำตอบเอง)</div>
       </div>
       <div style="background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--fast);border-radius:12px;padding:20px">
         <div style="font-weight:800;color:var(--fast)">③ Draft → Approve</div>
@@ -368,7 +368,7 @@
       </div>
     </div>
     <div style="margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px;max-width:1040px;text-align:center;font-size:clamp(13px,1.5vw,16px)">
-      ถาม → <b style="color:var(--warn)">ตอบไม่ได้/👎</b> → <b style="color:var(--accent)">AI ร่าง + staff อนุมัติ</b> → <b style="color:var(--fast)">KB โต</b> → ครั้งหน้าตอบได้ · <b>ยิ่งใช้ยิ่งฉลาด โดยไม่ต้อง retrain model</b>
+      ถาม → <b style="color:var(--warn)">ตอบไม่ได้/👎</b> → <b style="color:var(--accent)">AI ร่าง + staff อนุมัติ</b> → <b style="color:var(--fast)">KB โต</b> → ครั้งหน้าตอบได้ · <b>คู่มือโตเมื่อเจ้าหน้าที่อนุมัติ โดยไม่ต้อง retrain model</b>
     </div>
     <div class="foot">ตอบ verdict "corpus ไม่ดีคนไม่ใช้" โดยตรง — ระบบไม่อ้างว่าสมบูรณ์วันแรก แต่เปลี่ยนสิ่งที่ตอบไม่ได้ให้เป็นรายการพัฒนาที่วัดได้</div>
   </section>
@@ -530,26 +530,26 @@
     <div class="foot">📐 60–80% = <b>ประมาณการจากสัดส่วน fast-path ที่ออกแบบไว้</b> (ตอบจาก KB กี่ % คูณค่า token ที่ประหยัด) — <b>ยังไม่ได้วัดจาก production load จริง</b>. อ้างอิง: ทีม GradMahidol AI ยิงทุกคำถามผ่าน Gemini + RAG context เต็ม → token พุ่งเพราะไม่มีชั้นคัด</div>
   </section>
 
-  <!-- Slide 8 — Self-learning / ruliology -->
+  <!-- Slide 8 — Feedback in the native kernel (reflex-serve); not used by the deployed chat (plan 008 step 7) -->
   <section class="slide">
     <div class="pageno">14 / 19</div>
-    <div class="kicker">ไม่ใช่แค่ค้นหา · มันเรียนรู้</div>
-    <h2>Self-learning: ยิ่งใช้ ยิ่งคัด AI แม่นขึ้น</h2>
+    <div class="kicker">kernel แบบ native (reflex-serve) · โหวตปรับ weight ของ gate</div>
+    <h2>reflex-serve: 👍/👎 ปรับ weight ของ gate (EMA)</h2>
     <div class="learn">
       <div class="col up"><div class="h">👍 ตอบถูก → reward +</div>
         <div class="d">ผู้ใช้กดว่าคำตอบ FastPath ถูก → <code>ema_update(x, +1)</code>
-          → kernel มั่นใจขึ้นว่างานแบบนี้ตอบเองได้ ไม่ต้องเปลือง AI</div></div>
+          → gate ของ reflex-serve เอนไปทางตอบเองสำหรับงานแบบนี้</div></div>
       <div class="col down"><div class="h">👎 ตอบผิด → reward −</div>
         <div class="d">ผู้ใช้กดว่าผิด → <code>ema_update(x, −1)</code>
-          → kernel เรียนรู้ว่างานแบบนี้ควรส่ง LLM แทน ครั้งหน้าคัดถูกขึ้น</div></div>
+          → gate ของ reflex-serve เอนไปทางส่ง LLM สำหรับงานแบบนี้</div></div>
     </div>
     <div class="loop">
       คำถาม <span class="ar">→</span> <b class="k">kernel ตัดสิน</b> <span class="ar">→</span> ตอบ
       <span class="ar">→</span> 👍/👎 ผู้ใช้ <span class="ar">→</span> <b>EMA ปรับ weight</b>
       <span class="ar">→</span> <b class="k">policy version +1</b> <span class="ar">↻</span>
-      <br/>ทุกการเรียนรู้มี BLAKE3 fingerprint — ตรวจย้อนได้ว่า "ทำไม weight เปลี่ยน" (ruliology)
+      <br/>ยังไม่ได้วัดว่าการปรับนี้ทำให้คัดแม่นขึ้น · แชทที่เปิดใช้งาน (kernel worker) ไม่ได้ใช้ weight นี้: โหวตในแชทนับเป็นรายการคู่มือที่ควรตรวจ ไม่เปลี่ยนคำตอบหรือเส้นทางเอง
     </div>
-    <div class="foot">LLM ทั่วไปตอบแล้วจบ ไม่เรียนรู้ว่างานไหนเปลืองเงิน — ของเราเรียนรู้ตรงนั้นได้ · POST /feedback พร้อมแล้ว</div>
+    <div class="foot">POST /feedback ของ reflex-serve ปรับ gate ได้ (policy version +1 ต่อโหวต) · ยังไม่เปิดในแชทที่ใช้งานจริง</div>
   </section>
 
   <!-- Slide 9 — Live architecture (deployed, $0) -->

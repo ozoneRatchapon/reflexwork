@@ -254,10 +254,9 @@ async function feedback(request, env) {
   await bump(env, reward >= 0 ? 'feedback_up' : 'feedback_down');
   await bump(env, 'policy_version');
 
-  // Per-ENTRY confidence adjustment: when the answer came from a specific KB
-  // entry, a 👎 lowers that entry's confidence and a 👍 raises it (EMA-style,
-  // clamped). This makes the system learn WHICH entries are weak — the backlog
-  // of entries to fix — without a human marking them. Stored in entry_conf.
+  // Per-ENTRY vote counts: when the answer came from a specific KB entry, a 👎 lowers that entry's confidence and a 👍 raises it.
+  // This only RANKS entries for staff to check (dashboard, /entry-conf); it never changes an answer or a route (plan 008 step 7).
+  // Stored in entry_conf. `policy_version` below is a vote counter, not a model version: this worker has no weights to update.
   const entryId = String(body.entry_id || '').slice(0, 80);
   let entryConfidence;
   if (entryId) {

@@ -8,7 +8,11 @@
 // (3) the 50 KB eval questions are NOT stolen by this path, (4) text from the web is escaped.
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join } from "node:path";
+import * as WASM from "../submissions/ui/wasm/reflex_wasm.js";
+// the abbreviations the Rust resolver expands (crates/reflex-wasm/src/resolve/patterns.rs ALIASES); the page no longer has a copy
+const ALIAS_KEYS = ["mph", "itm"];
+WASM.initSync({ module: readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "submissions/ui/wasm/reflex_wasm_bg.wasm")) });
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const progPath = join(root, 'submissions/ui/programmes.json');
@@ -25,7 +29,8 @@ check('programme-resolve block found in chatbot.html', bm);
 if (!bm) process.exit(1);
 check('programmes.json present (build with submissions/build_programme_catalogue.py)', existsSync(progPath));
 if (!existsSync(progPath)) process.exit(1);
-const { resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml } = new Function(html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + bm[1] + '\nreturn {resolveProgramme, programmeCard, _P_ALIAS, _pFee, followUpAspect, isFinderQuestion, finderInit, finderFacets, finderHtml};')();
+const { resolveProgramme, programmeCard, _pFee, finderInit, finderFacets, finderHtml } = new Function("WASM", html.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + bm[1] + '\nreturn {resolveProgramme, programmeCard, _pFee, finderInit, finderFacets, finderHtml};')(WASM);
+const { decisionOf, routeOf } = await import('../scripts/lib/rust_route.mjs');   // follow-up and finder decisions are Rust's (plan 015 step 4c)
 const DOC = JSON.parse(readFileSync(progPath, 'utf8')), P = DOC.programmes;
 const by = Object.fromEntries(P.map(p => [p.code, p]));
 
@@ -87,7 +92,7 @@ expectIn('clinical psychology master', '2022M04G');                  // English 
   check(`names that start/end with a strippable word survive (${risky.length} programmes)`, risky.length >= 20 && broken.length === 0, `${risky.length} risky; broken ${broken.map(p => p.code).slice(0, 6).join()}`);
 }
 // alias expansions must hit the catalogue (a stale alias is a silent dead end)
-for (const a of Object.keys(_P_ALIAS)) { const r = run('อยากสมัคร ' + a.toUpperCase()); check(`alias ${a.toUpperCase()} resolves to ≥1 programme`, r && codes(r).length >= 1, r ? '' : 'no match'); }
+for (const a of ALIAS_KEYS) { const r = run('อยากสมัคร ' + a.toUpperCase()); check(`alias ${a.toUpperCase()} resolves to ≥1 programme`, r && codes(r).length >= 1, r ? '' : 'no match'); }
 // not a programme question -> leave it to the KB
 for (const q of ['สมัครเรียนได้ไหม', 'อยากเรียนโทที่มหิดล', 'ส่งเล่มวิทยานิพนธ์กี่วัน', 'ลงทะเบียนภาคปลายวันไหน', 'วันนี้อากาศเป็นยังไง', 'ทุนการศึกษามีอะไรบ้าง',
   'ค่าเทอม ป.โท เท่าไหร่', 'ค่าเทอมพยาบาล', 'ค่าสมัครจิตวิทยาคลินิก', 'ค่าธรรมเนียมการสมัครเท่าไหร่']) expectNone(q);   // no programme / too broad / application fee -> KB
@@ -147,15 +152,9 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
 
 // --- follow-up turns: after a programme card, a short aspect question refers to THAT programme ---------------------
 {
-  const want = [['แล้วค่าเทอมล่ะ', 'fee'], ['ค่าเทอมเท่าไหร่', 'fee'], ['มีทุนไหม', 'scholarship'], ['ใช้เอกสารอะไรบ้าง', 'docs'], ['ต้องจบอะไรมา', 'elig'],
-    ['คุณสมบัติผู้สมัครมีอะไรบ้าง', 'elig'], ['ภาษาอังกฤษต้องได้เท่าไหร่', 'english'], ['สอบวันไหน', 'schedule'], ['สัมภาษณ์เมื่อไหร่', 'schedule'], ['ยังเปิดรับอยู่ไหม', 'status'], ['รับกี่คน', 'status']];
-  const bad = want.filter(([q, a]) => followUpAspect(q) !== a).map(([q, a]) => `${q} -> ${followUpAspect(q) || 'none'} (want ${a})`);
-  check(`follow-up aspect read correctly (${want.length} phrasings)`, bad.length === 0, bad.join(' ; '));
-  // a question that brings its own scope is NOT a follow-up: level, code, other topic, university-wide, long, or no aspect at all
-  const not = ['ค่าเทอม ป.โท เท่าไหร่', 'ค่าเทอม 2022M04G', 'ค่าสมัครเท่าไหร่', 'ค่าเทอมทุกหลักสูตรเท่าไหร่', 'ทุนของมหิดลมีอะไรบ้าง', 'ลงทะเบียนภาคปลายวันไหน', 'ส่งเล่มวิทยานิพนธ์กี่วัน',
-    'ขอบคุณครับ', 'โอเค', 'อยากถามเรื่องการลาพักการศึกษาระหว่างภาคเรียนว่าต้องยื่นเอกสารที่ไหนและใช้เวลากี่วัน'];
-  const wrong = not.filter(q => followUpAspect(q));
-  check('questions with their own scope are not read as follow-ups', wrong.length === 0, wrong.map(q => `${q} -> ${followUpAspect(q)}`).join(' ; '));
+  // which aspect a follow-up asks about: crates/reflex-wasm/tests/route_predicates.rs (`follow_up_aspect`); here the router, with a card on screen
+  { const code = P.find(p => /จิตวิทยาคลินิก/.test(p.title)).code, d = decisionOf('แล้วค่าเทอมล่ะ', { programmeInFocus: code });
+    check('a follow-up after a card is decided with its aspect', d.route === 'followup' && d.aspect === 'fee', JSON.stringify(d)); }
   // every aspect renders for every announced programme (the follow-up card can never throw or come out empty)
   const aspects = ['fee', 'scholarship', 'docs', 'elig', 'english', 'schedule', 'status'];
   check('every aspect renders a card for every programme', P.every(p => aspects.every(a => { try { return programmeCard(p, DOC.fetched_at, DOC.year, a).html.length > 40; } catch (e) { return false; } })));
@@ -164,11 +163,11 @@ for (const q of ['สมัครเรียนได้ไหม', 'อยา�
 
 // --- finder ("เรียนไรดี"): narrow the catalogue by official facets, never pick a "best" programme ---------------------
 {
-  const yes = ['เรียนไรดี', 'เรียนอะไรดี', 'อยากเรียนต่อโท เรียนอะไรดี', 'ป.โท สาขาไหนดี', 'มีหลักสูตรอะไรบ้าง', 'ไม่รู้จะเรียนอะไร', 'แนะนำหลักสูตรหน่อย', 'หลักสูตรที่เปิดรับมีอะไรบ้าง', 'what should i study'];
-  const no = ['มีสาขาเคมีไหม', 'จิตวิทยาคลินิกดีไหม', 'ลงทะเบียนวิชาอะไรดี', 'สมัครเรียนจิตวิทยาคลินิก', 'ค่าเทอมเท่าไหร่', 'ส่งเล่มวิทยานิพนธ์กี่วัน'];
-  check('finder triggers on "what should I study" questions only', yes.every(isFinderQuestion) && !no.some(isFinderQuestion), [...yes.filter(q => !isFinderQuestion(q)), ...no.filter(isFinderQuestion)].join(' | '));
+  // which question is a finder question: crates/reflex-wasm/tests/route_predicates.rs (`is_finder_question`); here the router
   const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
-  check('finder takes none of the KB titles', !KB.some(e => isFinderQuestion(e.title)), KB.filter(e => isFinderQuestion(e.title)).map(e => e.id).join());
+  check('"what should I study" opens the finder', ['เรียนไรดี', 'ไม่รู้จะเรียนอะไร', 'แนะนำหลักสูตรหน่อย'].every(q => routeOf(q) === 'finder'));
+  const toFinder = KB.filter(e => routeOf(e.title) === 'finder');
+  check('finder takes none of the KB titles', toFinder.length === 0, toFinder.map(e => e.id).join());
   const isOpen = p => p.announcement && p.announcement.status === 'กำลังเปิดรับสมัคร';
   const f0 = finderInit('เรียนไรดี'), F0 = finderFacets(P, f0);
   check('finder start: all programmes, levels sum to the catalogue', F0.total === P.length && F0.levels.reduce((a, l) => a + l.n, 0) === P.length && F0.open === P.filter(isOpen).length);

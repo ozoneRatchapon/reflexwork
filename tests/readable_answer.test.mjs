@@ -3,16 +3,17 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const page = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
-const src = page.match(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=\/\/ --- Slot-filling)/);
-const slot = page.match(/const _SLOTS=[\s\S]*?\n  return ''; }\n/);
+const src = page.match(/^function answerPoints\(body\)\{[\s\S]*?\n(?=\/\/ --- Slot-filling)/m);   // the Rust call + the page's layout (kbBody)
+const slot = page.match(/^function slotLead\(hit,q\)\{[^\n]*\n/m);
 check('formatter and slot-filling source found', !!src && !!slot);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const { answerPoints, kbBody } = new Function('linkify', 'LINKS', page.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + slot[0] + src[0] + 'return { answerPoints, kbBody };')(t => esc(t), null);
+const { answerPoints, kbBody } = new Function('WASM', 'linkify', 'LINKS', page.match(/\/\/ <today>([\s\S]*?)\/\/ <\/today>/)[1] + slot[0] + src[0] + 'return { answerPoints, kbBody };')(shippedWasm(), t => esc(t), null);
 const norm = t => String(t).replace(/^\s*(?:[-•*]|\d+[.)])\s+/gm, '').replace(/[\s.。·]/g, '');   // " · " joins a label's short values (F17)
 const lost = KB.filter(e => norm(e.answer) !== norm(answerPoints(e.answer).join(' ')));
 check('every entry keeps all of its words (only spaces, full stops and list markers change)', lost.length === 0, lost.map(e => e.id).join(','));

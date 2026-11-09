@@ -4,12 +4,13 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const blk = n => html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1];
-const F = new Function(blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {dateSpan, dateState, todayIso, daysSince, programmeCard, staleLine, timeIntent, datedPicks, resolveProgramme};')();
+const F = new Function('WASM', blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {dateSpan, dateState, todayIso, daysSince, programmeCard, staleLine, datedPicks, resolveProgramme};')(shippedWasm());
 const DOC = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8')), P = DOC.programmes;
 const at = (d, fn) => { globalThis.__today = d; try { return fn(); } finally { delete globalThis.__today; } };
 const txt = h => h.replace(/<[^>]+>/g, '');
@@ -52,8 +53,8 @@ check('every programme renders on a far-future date without throwing',
 check('stale line is empty within 30 days', F.staleLine('2026-11-02', '2026-12-02') === '' && F.staleLine('2026-11-02', '2026-12-03') !== '');
 // --- dated KB schedule entries (kbBody)
 const KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
-const kbSrc = html.match(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=\/\/ --- Slot-filling)/)[0], slotSrc = html.match(/const _SLOTS=[\s\S]*?\n  return ''; }\n/)[0];
-const kbBody = new Function('linkify', 'LINKS', blk('today') + slotSrc + kbSrc + 'return kbBody;')(t => String(t), null);
+const kbSrc = html.match(/^function answerPoints\(body\)\{[\s\S]*?\n(?=\/\/ --- Slot-filling)/m)[0], slotSrc = html.match(/^function slotLead\(hit,q\)\{[^\n]*\n/m)[0];
+const kbBody = new Function('WASM', 'linkify', 'LINKS', blk('today') + slotSrc + kbSrc + 'return kbBody;')(shippedWasm(), t => String(t), null);
 const reg = KB.find(e => e.id === 'gm_registration_2569_second_semester'), r1 = KB.find(e => e.id === 'gm_schedule_2570_round1');
 { const h = at('2026-12-16', () => kbBody(reg, 'ลงทะเบียนภาคปลาย 2569'));
   check('registration window in progress is tagged "อยู่ในช่วงนี้"', /14–21 ธันวาคม 2569 <small class="when when-now">/.test(h), h.slice(0, 300)); }
@@ -62,10 +63,7 @@ const reg = KB.find(e => e.id === 'gm_registration_2569_second_semester'), r1 = 
   check('…the snapshot line "ที่เก็บวันที่ 26 ตุลาคม 2569" is never tagged', !/เก็บวันที่ 26 ตุลาคม 2569[^\n]*\(ผ่านไปแล้ว\)/.test(h)); }
 check('undated entries are untouched', !/class="when/.test(at('2030-01-01', () => kbBody(KB.find(e => e.id === 'thesis_submit_days'), 'x'))));
 // --- "now / still in time" questions (G17)
-const TI = { 'ยังทันไหม': 'any', 'วันนี้ปิดรับหรือยัง': 'admissions', 'ตอนนี้ภาคเรียนอะไร': 'registration', 'ตอนนี้อยู่ในช่วงลงทะเบียนไหม': 'registration',
-  'ตัดรอบสมัครรอบ 1 พ.ย. 2569 ผ่านไปแล้วหรือยัง': 'admissions', 'ตอนนี้ลาพักได้ไหม': null, 'ส่งเล่มหรือยัง': null, 'ลงทะเบียนได้ถึงเมื่อไหร่': null, 'จิตวิทยาคลินิกยังทันไหม': null };
-check('time intent only when nothing but schedule words, fillers and dates is left', Object.entries(TI).every(([q, v]) => F.timeIntent(q) === v),
-  Object.entries(TI).filter(([q, v]) => F.timeIntent(q) !== v).map(([q]) => `${q}=${F.timeIntent(q)}`).join(', '));
+// timeIntent is Rust's since plan 015 step 4c: its cases are in crates/reflex-wasm/tests/route_predicates.rs
 { const p = F.datedPicks(KB, 'registration', '2026-12-16');
   check('registration picks on 2026-12-16: in-progress terms first, then upcoming, all labelled', p.length === 4 && p[0].state === 'now' && p.some(x => x.e.id === 'gm_registration_2569_second_semester' && x.state === 'now') && p[p.length - 1].state === 'ahead', p.map(x => x.e.id + ':' + x.state).join(' ')); }
 { const p = F.datedPicks(KB, 'registration', '2027-11-04');

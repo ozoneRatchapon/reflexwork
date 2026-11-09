@@ -1,5 +1,5 @@
 //! Fee questions and the "which aspect of the programme in focus is asked" reader: `followUpAspect`, `isGenericFeeQuestion`, `_P_FREEQ`.
-use super::patterns_src::{FREESTUDY, NONTUITION, TUITION, ASPECT_DOCS, ASPECT_ELIG, ASPECT_ENGLISH, ASPECT_SCHEDULE, ASPECT_STATUS, FEE_FILLER, FEE_WORDS, FREE_Q, GENERAL_WORDS, PROGRAMME_CODE};
+use super::vocab::vocab;
 use crate::re::{compile, is_js_space};
 use crate::resolve::patterns::patterns;
 use regex_lite::Regex;
@@ -13,14 +13,14 @@ macro_rules! lazy_re {
         }
     };
 }
-lazy_re!(free_q, FREE_Q);
-lazy_re!(programme_code, PROGRAMME_CODE);
-lazy_re!(general_words, GENERAL_WORDS);
-lazy_re!(fee_words, FEE_WORDS);
-lazy_re!(fee_filler, FEE_FILLER);
-lazy_re!(tuition, TUITION);
-lazy_re!(nontuition, NONTUITION);
-lazy_re!(free_study_words, FREESTUDY);
+lazy_re!(free_q, vocab().free_q);
+lazy_re!(programme_code, vocab().programme_code);
+lazy_re!(general_words, vocab().general_words);
+lazy_re!(fee_words, vocab().fee_words);
+lazy_re!(fee_filler, vocab().fee_filler);
+lazy_re!(tuition, vocab().tuition);
+lazy_re!(nontuition, vocab().nontuition);
+lazy_re!(free_study_words, vocab().freestudy);
 
 fn aspects() -> &'static Vec<(&'static str, Regex)> {
     static R: OnceLock<Vec<(&'static str, Regex)>> = OnceLock::new();
@@ -30,11 +30,11 @@ fn aspects() -> &'static Vec<(&'static str, Regex)> {
         vec![
             ("fee", topic("fee")),
             ("scholarship", topic("scholarship")),
-            ("docs", compile(&ASPECT_DOCS)),
-            ("elig", compile(&ASPECT_ELIG)),
-            ("english", compile(&ASPECT_ENGLISH)),
-            ("schedule", compile(&ASPECT_SCHEDULE)),
-            ("status", compile(&ASPECT_STATUS)),
+            ("docs", compile(&vocab().aspect_docs)),
+            ("elig", compile(&vocab().aspect_elig)),
+            ("english", compile(&vocab().aspect_english)),
+            ("schedule", compile(&vocab().aspect_schedule)),
+            ("status", compile(&vocab().aspect_status)),
         ]
     })
 }

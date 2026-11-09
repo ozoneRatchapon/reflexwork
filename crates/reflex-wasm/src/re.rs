@@ -1,4 +1,4 @@
-//! The page's regexes, compiled for Rust. They are used verbatim (the `patterns_src.rs` files are generated from chatbot.html);
+//! The regexes, compiled for Rust. They come from the pack (`vocab.json`), not from the page;
 //! only JS-only syntax is translated: `\s` / `\S` (the ECMAScript whitespace set), `\d` (ASCII digits), `\b` (ASCII word boundary)
 //! and `.` (JS `.` excludes all four line terminators, not just `\n`). Case-insensitive matching folds ASCII only.
 use regex_lite::{Regex, RegexBuilder};

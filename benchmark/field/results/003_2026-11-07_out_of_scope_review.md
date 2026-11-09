@@ -1,5 +1,7 @@
 # Out-of-scope review — per case (2026-11-07)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): of the 26 staff-only FAQ questions the page answers (Thai 14/30, English 12/30), 7 are plain wrong-topic matches and 19 are on topic or close. No scoring change was made; both follow-ups wait on the owner.
+
 Source: the 30 staff-only FAQ items of the official Graduate School FAQ (`benchmark/field/faq_questions.json`), Thai and English wording.
 Method: the same extraction and `decideTier` as `official_faq_eval.mjs` (gate 0.061), one question at a time, listing only the cases where the page would answer (`act`). Read-only; no scoring or KB change. Harness: a throwaway script outside the repo.
 

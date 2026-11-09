@@ -1,19 +1,20 @@
 // Web and LINE must cut KB answers into the same points (until both call one Rust implementation, .plans/002).
-// Compares the inline answerPoints()/slotLead in submissions/ui/chatbot.html with integrations/_shared/answer_points.mjs
+// Compares the page's answerPoints()/slotLead (Rust calls on the shipped wasm since plan 015 step 5) with integrations/_shared/answer_points.mjs
 // over every entry of both knowledge copies, and checks the LINE text format. Run: node tests/answer_points_parity.test.mjs
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { answerPoints, slotLead, readableText } from '../integrations/_shared/answer_points.mjs';
 import { KB as LINE_KB } from '../integrations/line-worker/kb-data.mjs';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const page = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const WEB_KB = JSON.parse(readFileSync(join(root, 'submissions/ui/knowledge-index.json'), 'utf8'));
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
-const src = page.match(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=const _SHOW_POINTS)/), slot = page.match(/const _SLOTS=[\s\S]*?\n  return ''; }\n/);
+const src = page.match(/^function answerPoints\(body\)\{[^\n]*\n/m), slot = page.match(/^function slotLead\(hit,q\)\{[^\n]*\n/m);
 check('web formatter and slot source found', !!src && !!slot);
-const web = new Function(slot[0] + src[0] + 'return { answerPoints, slotLead };')();
+const web = new Function('WASM', slot[0] + src[0] + 'return { answerPoints, slotLead };')(shippedWasm());
 const all = [...WEB_KB, ...LINE_KB];
 const diff = all.filter(e => JSON.stringify(web.answerPoints(e.answer)) !== JSON.stringify(answerPoints(e.answer)));
 check(`web and LINE cut every answer the same way (${all.length} entries)`, diff.length === 0, diff.slice(0, 3).map(e => e.id).join(','));

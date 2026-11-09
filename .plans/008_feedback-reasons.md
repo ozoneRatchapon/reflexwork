@@ -1,6 +1,12 @@
 # 008 - Feedback with reasons: fix answers at the source (after the 2026-11-07 pitch)
 
-Status: plan only, nothing built. It touches the kernel worker, chatbot.html and dashboard.html, which are frozen until after the pitch.
+Status (2026-11-09): step 7 done. Steps 1-5 wait on an owner decision (below); step 6 also needs a PDPA check. The pitch freeze is over.
+
+## Owner decision needed before steps 1-5 (2026-11-09)
+Steps 2, 4 and 5 are new logic in the kernel worker (`integrations/kernel-worker/worker.mjs`, plain JS: no wasm, `ensureWasm` is a no-op); steps 1 and 3 are page / dashboard views that only mean something once step 2 stores the reason. The owner's rule since 2026-11-08 is "new development in Rust from the start", and no worker logic has been added in JS since. Choose one:
+- (a) build steps 2/4/5 in the existing JS worker (an accepted exception, like linkify), with the D1 changes as `ALTER TABLE` / `CREATE TABLE IF NOT EXISTS`; or
+- (b) put the logic in Rust first: the reason enum, the queue order and the fix-event before/after numbers in a crate the worker loads as wasm (needs the cold-start measurement plan 009 asks for LINE), or a Rust worker.
+Either way the worker change reaches production only with a D1 backup + worker deploy (owner go-ahead).
 Goal: a 👎 should tell the owner WHAT is wrong with WHICH entry, so the fix lands in the KB entry (the source), and we can measure that the fix worked.
 
 ## What exists today (checked 2026-11-06 in code)
@@ -31,7 +37,7 @@ Goal: a 👎 should tell the owner WHAT is wrong with WHICH entry, so the fix la
   - Test: extend `tests/faq_drafts.test.mjs`; approve with `target_id` replaces, without it creates.
 - [ ] 5. Close the loop. Record a fix event `(entry_id, fixed_at)`. Show 👎 rate before vs after the fix on the dashboard. After each batch of approved fixes run `node benchmark/field/official_faq_eval.mjs` and `benchmark/compare/run_all.sh`, and file the result under `benchmark/`.
 - [ ] 6. Optional, only after 1–5 work and a PDPA check: an optional short "what is the right answer?" text box, PII-masked before storage, shown only to staff, never served to users directly.
-- [ ] 7. Reword the `/feedback` note (gap 5) and any page text that says the system learns by itself.
+- [x] 7. Reword the `/feedback` note (gap 5) and any page text that says the system learns by itself. (2026-11-09: the `/feedback` note was already honest since 121e086 - 'entry confidence = Beta posterior mean of its vote counts'; its code comment still said 'EMA-style ... makes the system learn', now 'only ranks entries for staff to check; never changes an answer or a route; policy_version is a vote counter'. `slides.html`: slide 08 kicker/heading/footer no longer say 'ยิ่งใช้ยิ่งฉลาด' / 'ปิดช่องเอง' (staff approve every entry; 👎 puts an entry on the 'to check' list); slide 14 'Self-learning: ยิ่งใช้ ยิ่งคัด AI แม่นขึ้น' now says the EMA weight update is in the native `reflex-serve` (true: `serve.rs` calls `ema_update`), is unmeasured, and is NOT used by the deployed chat; the unsupported 'every learning step has a BLAKE3 fingerprint' line is gone. The chat's BANDIT comment no longer says the server 'learns'. `tests/pitch_deck.test.mjs` now also bans the learns-by-itself wording in slides.html (23/23). Not changed (submitted / repo documents, owner's call): `submissions/SUBMISSION-TEXT.md` lines 14 and 34, `submissions/concept-paper.md` 139/188, `README.md` 83 still say 'ยิ่งใช้ยิ่งฉลาด' / 'self-improving KB' / 'entry confidence (EMA)'.)
 
 ## Rules
 - A user's reason never changes an answer by itself. Only a staff-approved entry change does.

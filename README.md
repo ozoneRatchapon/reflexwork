@@ -80,10 +80,12 @@ Never run `wrangler pages deploy ui` on the working folder: it uploads git-ignor
 Secrets via `wrangler secret put` (GEMINI_API_KEY, OLLAMA_URL, STAFF_TOKEN,
 LINE_*). See `docs/` for runbooks.
 
-## Self-improving KB (learning loop)
-The KB grows from real usage: unanswered questions become a PII-masked backlog,
-👎 decays a weak entry's confidence, and the top gaps get AI-drafted candidate
-answers daily — a human approves with one click. See
+## Human-approved KB growth (learning loop)
+The KB grows from real usage, with a person approving every change: unanswered
+questions become a PII-masked backlog, 👍/👎 votes are counted per entry to rank
+the "entries to check" on the dashboard (a vote never changes an answer or route
+by itself; its effect on answer quality is not measured), and the top gaps get
+AI-drafted candidate answers daily — a human approves with one click. See
 `.kiro/specs/learning-loop/` and `docs/learning-loop-design.md`.
 
 ## How it was built

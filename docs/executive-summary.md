@@ -26,10 +26,10 @@ Reflex Kernel (Rust/WASM · sigmoid gate + BLAKE3 fingerprint) ตัดสิ�
 3. **off-corpus / ไม่มั่นใจ** → abstain · ส่ง staff + log gap (ไม่เดา)
 4. **personal** ("login ไม่ได้") → intake เก็บ ชื่อ/ID/ระบบ/อาการ ก่อนส่ง staff
 
-## Learning loop (ยิ่งใช้ยิ่งฉลาด · ไม่ retrain)
+## Learning loop (คนอนุมัติทุกคำตอบใหม่ · ไม่ retrain)
 ```
 ตอบไม่ได้ → gap log (PII-masked, จัดอันดับถามบ่อย)
-👎        → confidence ของ KB entry ลดเอง (รู้ว่าข้อไหนแย่)
+👎        → นับต่อ KB entry → รายการ "ข้อที่ควรตรวจ" (ไม่เปลี่ยนคำตอบเอง)
 auto-draft → AI ร่างคำตอบจาก gap (cron รายวัน)
           → staff กด approve 1 คลิก → KB ใหม่ → ครั้งหน้าตอบได้
 root-cause → dashboard บอก "ระบบต้นทางไหนก่อปัญหาเยอะสุด" → แก้ที่ต้นเหตุ
@@ -37,7 +37,7 @@ root-cause → dashboard บอก "ระบบต้นทางไหนก�
 
 ## สถานะความพร้อม
 - 🦀 engine 4-way + NLG + rethink layer
-- 🔁 learning loop (gap + confidence + auto-draft + cron รายวัน)
+- 🔁 learning loop (gap + นับโหวตต่อ entry + auto-draft + cron รายวัน; ผลของโหวตต่อคุณภาพยังไม่ได้วัด)
 - 💰 local AI (Typhoon 3b, 0 token) ↔ Pages ผ่าน ngrok + health-check
 - 🎤 voice (Web Speech API + hook local Whisper/Thai-TTS)
 - 🎯 **Kiro AI-SDLC**: specs ×2 (requirements→design→tasks) + steering + hooks + CI

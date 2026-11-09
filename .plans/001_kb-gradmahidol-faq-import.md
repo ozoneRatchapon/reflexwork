@@ -33,7 +33,7 @@
 | File | Role |
 |---|---|
 | `submissions/build_knowledge_index.py` | Builds `submissions/ui/knowledge-index.json` (gitignored) from `ui/knowledge/` + `ui/knowledge-public/`. Reads frontmatter + `คำค้นภาษาอังกฤษ:` line. |
-| `submissions/ui/chatbot.html` (~line 396) | `_jsGramSet` / `_cosToScore` / `_jsSearch` — JS twin of the Rust/WASM search. **Must stay lockstep** with `reflex-wasm::cos_to_score`. |
+| `crates/reflex-wasm` (`kb_search`, `cos_to_score`) | The page's only search and scorer. Until 2026-11-09 `chatbot.html` also had a JS twin (`_jsGramSet` / `_cosToScore` / `_jsSearch`), kept in lockstep; plan 015 removed it. |
 | `tests/kb_search.test.mjs` | 50 labeled queries + 2 off-corpus. Floors: recall@1 ≥ 74%, @3 ≥ 90%, FP ≤ ceil(12%) = 6. |
 | `tests/kb_search_floor.test.mjs` | Self-contained CI floor (runs in CI, line 22 of workflow). |
 | `benchmark/gradmahidol/run_benchmark.mjs` + `RESULTS.md` | Cross-corpus benchmark (their 440-doc corpus). |
@@ -79,7 +79,7 @@ Diagnostic script: `/tmp/rw_diag/fp.mjs <repo>` (scratch, outside repo).
 - Read both answers for every pair marked as a candidate — do **not** decide equivalence from titles alone.
 - **Done when:** Appendix A is filled and every row has a human-readable equivalence verdict.
 
-### Task 1.3 — Decide dedup strategy 🛑 (ask user)
+### Task 1.3 — Decide dedup strategy 🛑 (ask user) — [x] DONE (decided 2026-10-31: (A); re-verified 2026-11-08: `ALT` map in `tests/kb_search.test.mjs`, `node tests/kb_search.test.mjs` → 8/8 passed on re-run 2026-11-09)
 Present the Appendix A summary and recommend **one** option:
 - **(A) Recommended — keep both, eval accepts equivalents.** Add an `ALT` map in `tests/kb_search.test.mjs` (`thesis_submit_days: ['gm_thesis_submission_10_deadline']`, …) only for pairs verified equivalent in 1.2. Honest: the user gets the same correct answer either way. Zero algorithm change.
 - **(B) Dedup at build time.** In `build_knowledge_index.py`, when a gm_ doc and our doc share a `source_faq_number`, keep one (prefer the one with newer `last_reviewed` / `source_sha256`). Smaller index, no duplicate-margin effect. Risk: drops our hand-tuned keywords.
@@ -110,7 +110,7 @@ Fix: added `จองวิชา grid ยังไง วิธีจอง จ
 - **Done when:** grid_booking is top-1 again, and the 5 baseline FPs did not get worse.
 
 ### Task 2.4 — (Optional, only if time) pre-existing 5 FPs — [x] DONE (verified 2026-11-07, no code change needed)
-Verified: `หยุดเรียนชั่วคราวได้ไหม` → `leave_of_absence` top-1, s=6 (cos 0.430, overlap 16). `node tests/kb_search.test.mjs` on the current index: recall@1 43 (floor 37), recall@3 48 (floor 45), FP 3 (ceil 6), off-corpus 2/2, 9/9 passed. The FP count fell from 5 to 3 through the later KB alias work (commit `1055b96`), so the keyword fix is no longer needed.
+Verified: `หยุดเรียนชั่วคราวได้ไหม` → `leave_of_absence` top-1, s=6 (cos 0.430, overlap 16). `node tests/kb_search.test.mjs` on the current index: recall@1 43 (floor 37), recall@3 48 (floor 45), FP 3 (ceil 6), off-corpus 2/2, 8/8 passed (re-run 2026-11-09). The FP count fell from 5 to 3 through the later KB alias work (commit `1055b96`), so the keyword fix is no longer needed.
 Original note: same keyword-only approach. `leave_of_absence` not appearing in top-k for "หยุดเรียนชั่วคราวได้ไหม" is the most valuable (it's a common real question). Skip if Phase 3–4 are not done yet.
 
 ### Task 2.5 — Keyword lines for the 20 gm_ docs without `คำค้นภาษาอังกฤษ:` — [x] DONE (2026-10-31)
@@ -197,7 +197,7 @@ Answer each in 1–3 lines, honestly ("doesn't apply" is a valid answer):
 
 ### Stop conditions for auto_prompt
 - Any 🛑 checkpoint reached → stop and ask.
-- A fix would require changing `_cosToScore` / Rust scoring → stop and ask.
+- A fix would require changing the Rust scoring (`cos_to_score` / `kb_search`) → stop and ask.
 - Recall@1 on our 50-case eval drops below 39/50 (current measured) after any change → revert that change, record why.
 - Same test fails 3 iterations in a row with different fixes → stop, summarize attempts.
 
@@ -383,7 +383,7 @@ AFTER the pitch (not started; do as separate PRs, each with before/after screens
 - [ ] Student journey test with 3-5 real students (first-click test: "find if a programme is open"); fix what they stumble on.
 - [x] Re-check the remaining "~80%" claims (slides.html 7.5 already labels it an estimate; README, executive-summary, pitch.html, try.html still state it plainly): measure or label as estimate. (2026-11-04, PR feature/label-estimates: slides.html title/fast-path/local-model lines labelled ประมาณการ; README now gives the measured 44/52 on our own test set; executive-summary, try.html already labelled; pitch.html has none, enforced by tests/pitch_deck.test.mjs.)
 - [ ] English answers via Gemini translation (needs `lang` in llm-proxy + deploy).
-- [~] Rust consolidation: move scoring/decideTier/resolver/linkify into reflex-wasm so JS stops duplicating it (parity gate = 370-probe A/B + wasm_lockstep). (2026-11-04: scoring (kb_search/cos_to_score), decideTier and the resolver are in reflex-wasm and Rust is the default engine (#143-#149); linkify (the HTML escaper) is still JS only — after the pitch, tracked in .plans/002.)
+- [x] Rust consolidation: move scoring/decideTier/resolver/linkify into reflex-wasm so JS stops duplicating it (parity gate = 370-probe A/B + wasm_lockstep). (2026-11-04: scoring (kb_search/cos_to_score), decideTier and the resolver are in reflex-wasm and Rust is the default engine (#143-#149); linkify (the HTML escaper) is still JS only — after the pitch, tracked in .plans/002.) (2026-11-09: plan 015 removed every JS twin; the page runs Rust only, and `tests/rust_engine.test.mjs` replaces the `wasm_lockstep` gate, which became `kb_gate_floor`. Left: linkify, which has no Rust copy (so nothing is duplicated) and returns HTML. `.plans/002` does NOT track it, and its rule keeps HTML in JS. OWNER DECISION: tick this as done with linkify staying JS (view code), or port linkify to reflex-wasm.) (2026-11-09 DECIDED by owner: done. linkify stays in JS as an accepted exception: it is view code that builds HTML, and it has no Rust twin, so nothing is duplicated. Possible follow-up, not planned: port it to reflex-wasm only if a Rust consumer (e.g. LINE replies) ever needs the same links.)
 - [x] Out-of-scope still answered 13% EN / 17% TH: review remaining cases (scoring change -> ask the owner first). (2026-11-07 review done: `benchmark/field/results/003_2026-11-07_out_of_scope_review.md`. 26 of 60 staff-only cases are answered: 7 wrong-topic, 19 on-topic or close. OWNER DECISION: should staff-only topics (procurement, transfer fees, reimbursement) be answered when the KB has an entry? A fix for the 7 wrong-topic cases is a scoring change, so it waits for approval.)
 
 ## Connectors + login idea (added 2026-11-03) — concept only, NOT built
@@ -410,7 +410,7 @@ Checklist (mark when done; each = PR with before/after numbers):
 - [x] 1. Desktop: input box back above the fold. Done: toggle moved into the hero, "ระบบทำงานยังไง" hidden on short laptop screens, input sticky on phones. Measured input bottom/viewport: 1280x800 705/800, 1440x900 777/900, 1366x768 705/768, 390x844 796/844, 360x640 631/640 (all inside).
 - [x] 2. (done) Find out why "ส่งวิทยานิพนธ์เมื่อไหร่" / "วิธีใช้ e-Thesis" find nothing (KB has no entry, or keyword mismatch?) and fix the KEYWORDS only; never invent facts.
 - [x] 3. (done; the hand-over to the owners is still a human step) docs/kb-gap-requests.md for the Graduate School KB owners (35-question probe: 7 not understood, 4-5 off-target).
-- [~] 4. (PARTLY: technical meta lines + kernel strip now follow the show-evidence switch; two-badge unification and a skeleton NOT done) Answer card: technical meta line behind "รายละเอียด"; two badges (ข้อมูลทางการ / AI ช่วยเรียบเรียง); loading skeleton.
+- [x] 4. (PARTLY: technical meta lines + kernel strip now follow the show-evidence switch; two-badge unification and a skeleton NOT done) (DONE, verified 2026-11-09 in `chatbot.html`: the `src-badge` badges ✅ ข้อมูลทางการ / 🤖 AI ช่วยเรียบเรียง (+ 📝 เจ้าหน้าที่ตอบ) shipped by 2026-11-04 (line 382). The shimmer skeleton shipped too, then QA F61 (.plans/003) replaced it on purpose: the manual text shows at once with a "กำลังเรียบเรียงให้อ่านง่ายขึ้น…" note (`hyb-wait`); `tests/hybrid_path.test.mjs` checks there is no skeleton-only wait. The `.skel` CSS is left over and unused.) Answer card: technical meta line behind "รายละเอียด"; two badges (ข้อมูลทางการ / AI ช่วยเรียบเรียง); loading skeleton.
 - [x] 5. (done; verified the pick sends "ค่าเทอม <code>"; a programme with no announcement still shows "announcement not found") After a fee question, picking a programme goes straight to its fee table (not the apply card).
 - [~] 6. (scripted part done: node scripts/demo_smoke.mjs --mobile; real phone check = owner) Scripted rehearsal of the 5 demo journeys at 390x844 (real phone check stays with the owner).
 Measurements to keep (re-run after each KB/UI change): first-screen elements + input position at 3 sizes; 35-question coverage (right / asked / not understood / wrong; needs owner-confirmed expected answers); clicks to answer for 5 journeys; time to answer p50/p95; dead-end rate; suggestion hit rate (chars typed until the right suggestion appears); Lighthouse mobile; 5 real students first-click test.
@@ -531,3 +531,8 @@ Nothing below is executable by the agent without the named input. Each line says
 - `reset_gaps.sh` (470): approval for `DELETE FROM gap_log` on prod, after the D1 export backup. The classifier blocked the agent from running it.
 - Fresh odd-question set (491): 20-30 real questions from staff or students, to confirm 0 wrong holds.
 - Chapters advice line (line 492, the #131 entry): owner confirmation of the wording.
+- ~~Rust consolidation (386)~~: decided 2026-11-09, ticked with linkify staying JS (see line 386).
+- Real-phone rehearsal (415, item 6): the owner runs the 5 demo journeys on a phone.
+
+## Pass 2026-11-09
+Unchecked items read from the top. Done: 413 item 4 (badges shipped; skeleton replaced by QA F61, verified in the page and `tests/hybrid_path.test.mjs`). The key-files table and the scoring stop condition no longer name the removed JS twin. Everything else still open needs the owner input listed above (195 handover, 381, 383, 385, 395-397, 403, 415, 432, 434, 470, 491). Then the owner decided 386: done, linkify stays JS as an accepted exception.

@@ -3,10 +3,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const search = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
-const decide = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
+const search = pageSearch(KB, html);
+const decide = pageDecideTier(html);
 const { missingTypes } = new Function('isEnglish', '_lEsc', html.match(/\/\/ <answer-type>[\s\S]*?\/\/ <\/answer-type>/)[0] + '\nreturn {missingTypes};')(() => false, s => s);
 const faq = JSON.parse(R('benchmark/field/faq_questions.json')).items;
 const SETS = { faq_th: faq.map(x => x.th), faq_en: faq.map(x => x.en), odd: JSON.parse(R('benchmark/odd/odd_questions.json')).items.map(x => x.q),

@@ -1,17 +1,17 @@
 //! `stuckTopic` / `stuckPicks` and the stuck branch of the decision order ("ติดปัญหา", "ช่วยด้วย": stuck, area not said or only an area word).
 use super::manual::{Config, Manual};
-use super::stuck_src::{StuckCat, STUCK_CATS, STUCK_FILL, STUCK_W};
+use super::vocab::{vocab, StuckCatVocab};
 use crate::re::{compile, compile_src, is_js_space};
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
 fn w() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&STUCK_W))
+    R.get_or_init(|| compile(&vocab().stuck_w))
 }
 fn fill() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&STUCK_FILL))
+    R.get_or_init(|| compile(&vocab().stuck_fill))
 }
 fn after_lead() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
@@ -23,7 +23,7 @@ fn left_fill() -> &'static Regex {
 }
 fn topics() -> &'static Vec<(Regex, Regex)> {
     static R: OnceLock<Vec<(Regex, Regex)>> = OnceLock::new();
-    R.get_or_init(|| STUCK_CATS.iter().map(|c| (compile(&c.topic), compile(&c.title))).collect())
+    R.get_or_init(|| vocab().stuck_cats.iter().map(|c| (compile(&c.topic), compile(&c.title))).collect())
 }
 
 /// `null` = not a stuck message -> `None`; `{cat:null}` = stuck, no area named -> `Some(None)`; `{cat}` = stuck + one area word only -> `Some(Some(index))`.
@@ -57,9 +57,9 @@ pub fn stuck_topic(text: &str) -> Option<Option<usize>> {
 
 /// `stuckPicks(c)`: entries of the manual that answer this area - the top hit of a seed phrase, kept when it scores 3+, is not a staff answer and
 /// its title belongs to the area. At most 6.
-pub fn stuck_picks(cat: &StuckCat, idx: usize, manual: &Manual) -> Vec<String> {
+pub fn stuck_picks(cat: &StuckCatVocab, idx: usize, manual: &Manual) -> Vec<String> {
     let mut out: Vec<String> = Vec::new();
-    for seed in cat.seeds {
+    for seed in &cat.seeds {
         if let Some(r) = manual.search(seed).first() {
             if r.hit.s >= 3 && !r.entry.staff && topics()[idx].1.is_match(&r.entry.title) && !out.contains(&r.entry.id) {
                 out.push(r.entry.id.clone());
@@ -74,12 +74,12 @@ pub fn stuck_picks(cat: &StuckCat, idx: usize, manual: &Manual) -> Vec<String> {
 pub fn stuck_fires(q: &str, manual: &Manual, cfg: &Config) -> bool {
     match stuck_topic(q) {
         None => false,
-        Some(Some(i)) => !stuck_picks(&STUCK_CATS[i], i, manual).is_empty(),
-        Some(None) => STUCK_CATS.iter().enumerate().any(|(i, c)| !stuck_picks(c, i, manual).is_empty() || (c.key == "login" && cfg.agency_has_it)),
+        Some(Some(i)) => !stuck_picks(&vocab().stuck_cats[i], i, manual).is_empty(),
+        Some(None) => vocab().stuck_cats.iter().enumerate().any(|(i, c)| !stuck_picks(c, i, manual).is_empty() || (c.key == "login" && cfg.agency_has_it)),
     }
 }
 
 /// The key of an area (`login` | `reg` | `thesis` | `status` | `grad`), for tests and for the view that renders its chips.
 pub fn cat_key(i: usize) -> &'static str {
-    STUCK_CATS[i].key
+    vocab().stuck_cats[i].key.as_str()
 }

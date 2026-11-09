@@ -26,12 +26,19 @@ export class Router {
     [Symbol.dispose](): void;
     /**
      * `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+     * Returns the route name, or `null` for the page's "not found" path.
      */
     decide(q: string, state: any, rewrite: any): any;
     /**
-     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+     * Same arguments as `decide`. Returns `{route, personal, stuck: {key, picks, areas}, programme, aspect, timeIntent, studyIntent}`:
+     * the route (or `null`) and what its view needs; fields a route does not use are `null` (plan 015 step 4c).
      */
-    constructor(kb: any, programmes: any);
+    decision(q: string, state: any, rewrite: any): any;
+    /**
+     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
+     * for the embedded graduate-school pack (install happens once per process, before any route call).
+     */
+    constructor(kb: any, programmes: any, vocab?: string | null);
 }
 
 /**
@@ -56,6 +63,11 @@ export function classify_issue(text: string): any;
  * (a real question / complaint → kernel path). Sigmoid gate, argmax over gate.
  */
 export function classify_smalltalk(text: string): string;
+
+/**
+ * The gate score of one ranked row, for the page's staff-supersede step (it re-scores the new top against the new runner-up).
+ */
+export function cos_to_score(cos: number, margin: number, overlap: number, overlap_lead: number): number;
 
 /**
  * What to do after the search: `{action: "act"|"disambiguate"|"escalate", stage: "reflex"|"rethink"}` (port of `decideTier`).
@@ -118,6 +130,7 @@ export interface InitOutput {
     readonly blake3_text: (a: number, b: number, c: number) => void;
     readonly classify_issue: (a: number, b: number) => number;
     readonly classify_smalltalk: (a: number, b: number, c: number) => void;
+    readonly cos_to_score: (a: number, b: number, c: number, d: number) => number;
     readonly decide_tier: (a: number, b: number, c: number) => number;
     readonly fee_table: (a: number, b: number) => number;
     readonly is_advice: (a: number, b: number) => number;
@@ -127,7 +140,8 @@ export interface InitOutput {
     readonly resolver_resolve: (a: number, b: number, c: number, d: number) => number;
     readonly route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
     readonly router_decide: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-    readonly router_new: (a: number, b: number, c: number) => void;
+    readonly router_decision: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
+    readonly router_new: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly schedule_table: (a: number, b: number) => number;
     readonly slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly understand: (a: number, b: number, c: number) => number;

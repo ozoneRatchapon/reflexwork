@@ -91,16 +91,31 @@ const TOPIC_PROBES = ['ตรวจบทคัดย่อ ยังไง', 'A
 // Each question maps to the search phrases a correct rewrite would give; unknown questions get NONE (no phrases). Phrases are copied
 // from the manual's own vocabulary (rewrite prompt examples), so the KB search decides the route, not the mock.
 const REWRITE_MOCK = JSON.parse(R('benchmark/golden/rewrite_mock.json'));   // question -> phrases the mock /rewrite returns (fixture shared with golden_route.rs)
+// 2026-11-08: more samples for the thin branches (scope_no_round had 1; advice_hybrid 4)
+const SCOPE_NOROUND_MORE = ['รอบ 7 ปิดรับเมื่อไหร่', 'รอบที่ 8 เปิดรับเมื่อไหร่', 'รอบ 7 เปิดรับวันไหน', 'รอบที่ 9 ปิดรับเมื่อไหร่', 'รอบที่ 7 ของภาคต้น ปิดเมื่อไหร่', 'รอบที่ 8 ปิดรับเมื่อไหร่', 'รอบ 9 เปิดรับเมื่อไหร่', 'รอบที่ 9 เปิดรับวันไหน', 'รอบ 8 ปิดรับเมื่อไหร่', 'รอบ 7 ภาคต้นปิดเมื่อไหร่'];
+// 2026-11-08: free_fee (3) and scope_no_year (4) were thin
+const FREE_FEE_MORE = ['ค่าเทอมโทฟรีจริงไหม', 'ค่าเทอมเอกฟรีใช่หรือเปล่า', 'ค่าเทอมฟรีใช่มั้ย', 'ค่าเทอมโทฟรีหรือเปล่า', 'ค่าเทอมเอกฟรีจริงไหม', 'ค่าเทอมพยาบาลฟรีใช่ไหม', 'ค่าเทอมฟรีจริงใช่ไหม', 'ค่าเทอมฟรีหรือเปล่า', 'ค่าเทอมเอกฟรีมั้ย'];
+const SCOPE_NOYEAR_MORE = ['รอบ 1 ภาคต้น 2575 เปิดรับเมื่อไหร่', 'ลงทะเบียนภาคปลาย 2581', 'ลงทะเบียนปี 2579', 'ลงทะเบียนภาคฤดูร้อน 2576', 'ลงทะเบียนภาคต้น 2582', 'ลงทะเบียนภาคปลาย 2579', 'ลงทะเบียนภาคฤดูร้อน 2580', 'ลงทะเบียนภาคต้น 2577', 'ลงทะเบียนภาคปลาย 2576'];
+const ADVICE_HYBRID_MORE = ['ควรเตรียมตัวอย่างไรก่อนเข้าพบอาจารย์ที่ปรึกษา', 'แนะนำวิธีส่งรูปเล่มวิทยานิพนธ์ให้ทันกำหนด', 'ช่วยแนะนำการเตรียมตัวสอบ TOEFL ITP', 'แนะนำวิธีเตรียมเอกสารรูปเล่มวิทยานิพนธ์', 'ช่วยแนะนำวิธีส่งรูปเล่มวิทยานิพนธ์ให้ทันเวลา', 'ช่วยแนะนำการเตรียมตัวสอบ TOEFL ITP อย่างไรดี', 'แนะนำวิธีอ่านหนังสือสอบ TOEFL ITP', 'ช่วยแนะนำวิธีทำข้อสอบ TOEFL ITP', 'แนะนำวิธีเตรียมตัวสอบ TOEFL ITP อย่างไรดี'];
+// 2026-11-08: advice_abstain = a weak KB match on an advice question (TOEFL advice has no entry of its own): the page abstains to staff
+const ADVICE_ABSTAIN_MORE = ['ช่วยแนะนำการเตรียมตัวสอบ TOEFL iBT', 'แนะนำวิธีเตรียมตัวสอบ TOEFL ITP ให้ได้คะแนนดี', 'แนะนำวิธีเตรียมตัวสอบ TOEFL iBT ให้ได้คะแนนสูง', 'ช่วยแนะนำวิธีเตรียมตัวสอบ TOEFL ITP ในเวลาสั้น', 'แนะนำวิธีเตรียมตัวสอบ TOEFL ITP ด้วยตัวเอง', 'แนะนำวิธีเตรียมตัวสอบ TOEFL iBT ด้วยตัวเอง', 'ช่วยแนะนำวิธีเตรียมตัวสอบ TOEFL iBT ในเวลาสั้น', 'ช่วยแนะนำวิธีเตรียมตัวสอบ TOEFL iBT ให้ได้คะแนนดี', 'ช่วยแนะนำการเตรียมตัวสอบ TOEFL ITP ด้วยตัวเอง'];
 const probes = [
-  ['ai_off', [...PREFIX_PROBES, ...TOPIC_PROBES, ...PROGRAMME_PROBES, ...FEE_CAREER_PROBES, ...TIME_PROBES, ...SCOPE_PROBES, ...RESOLVE_PROBES, 'ok', 'https://example.com', '1234', 'มีอะไรน่าสนใจบ้าง', 'ควรรู้อะไรบ้างก่อนเริ่ม', 'ขอดูผลการเรียนของฉัน', 'สถานะใบสมัครของฉันเป็นอย่างไร', '你好 请问学费多少', 'こんにちは', 'มีทุนไหม', 'มีหอพักไหม', 'ทุน', 'ขอบคุณครับ', 'โอเค', '555', 'ครับ', 'ok ได้เลย', 'Здравствуйте', 'مرحبا', '안녕하세요', 'Bonjour, quels sont les frais', 'Thesis submission deadline', 'What is the tuition fee for the PhD?', 'library opening hours', 'ค่าธรรมเนียม', 'หอพัก', 'วิทยานิพนธ์', 'ลงทะเบียน', 'ใบรับรอง', 'ตารางสอบ', 'ค่าสมัคร', 'สถานที่', 'เอกสาร', 'ปริญญานิพนธ์', 'กำหนดการ']],
-  ['ai_on', ['ช่วยแนะนำวิธีวางแผนส่งรูปเล่มให้ทันกำหนด', 'แนะนำหน่อยว่าควรเลือกเรียนอะไรดี', 'ควรเตรียมตัวสอบ TOEFL ยังไงดี', 'ช่วยแนะนำการจัดการเวลาทำวิทยานิพนธ์', 'ลองแนะนำวิธีขอทุนหน่อย', 'ช่วยแนะนำวิธีเตรียมตัวสอบ MU GRAD หน่อย', 'วางแผนทำวิทยานิพนธ์ให้จบทันยังไงดี', 'แนวทางจัดการเวลาตอนเขียนเล่มวิทยานิพนธ์', 'ควรทำอย่างไรถ้า Turnitin เกิน 25%', 'ช่วยแนะนำการลาพักการศึกษา', 'เตรียมตัวสมัครเรียนต่อปริญญาเอกต้องทำอะไรบ้าง', 'ทำยังไงดีถ้าส่งเล่มไม่ทัน', 'ช่วยวางแผนการลงทะเบียนเรียนหน่อย', 'ควรทำอะไรก่อนสอบวิทยานิพนธ์', 'แนะนำที่พักใกล้ศาลายา', 'ช่วยแนะนำวิธีติดต่ออาจารย์ที่ปรึกษา', 'ส่งรูปเล่มภายในกี่วัน', 'ค่าสมัครสอบ TOEFL ITP เท่าไร']],   // understood_by_ai needs a WORKING /rewrite: not reachable without a mock proxy (known hole)
+  ['ai_off', [...SCOPE_NOROUND_MORE, ...FREE_FEE_MORE, ...SCOPE_NOYEAR_MORE, ...PREFIX_PROBES, ...TOPIC_PROBES, ...PROGRAMME_PROBES, ...FEE_CAREER_PROBES, ...TIME_PROBES, ...SCOPE_PROBES, ...RESOLVE_PROBES, 'ok', 'https://example.com', '1234', 'มีอะไรน่าสนใจบ้าง', 'ควรรู้อะไรบ้างก่อนเริ่ม', 'ขอดูผลการเรียนของฉัน', 'สถานะใบสมัครของฉันเป็นอย่างไร', '你好 请问学费多少', 'こんにちは', 'มีทุนไหม', 'มีหอพักไหม', 'ทุน', 'ขอบคุณครับ', 'โอเค', '555', 'ครับ', 'ok ได้เลย', 'Здравствуйте', 'مرحبا', '안녕하세요', 'Bonjour, quels sont les frais', 'Thesis submission deadline', 'What is the tuition fee for the PhD?', 'library opening hours', 'ค่าธรรมเนียม', 'หอพัก', 'วิทยานิพนธ์', 'ลงทะเบียน', 'ใบรับรอง', 'ตารางสอบ', 'ค่าสมัคร', 'สถานที่', 'เอกสาร', 'ปริญญานิพนธ์', 'กำหนดการ']],
+  ['ai_on', [...ADVICE_HYBRID_MORE, ...ADVICE_ABSTAIN_MORE, 'ช่วยแนะนำวิธีวางแผนส่งรูปเล่มให้ทันกำหนด', 'แนะนำหน่อยว่าควรเลือกเรียนอะไรดี', 'ควรเตรียมตัวสอบ TOEFL ยังไงดี', 'ช่วยแนะนำการจัดการเวลาทำวิทยานิพนธ์', 'ลองแนะนำวิธีขอทุนหน่อย', 'ช่วยแนะนำวิธีเตรียมตัวสอบ MU GRAD หน่อย', 'วางแผนทำวิทยานิพนธ์ให้จบทันยังไงดี', 'แนวทางจัดการเวลาตอนเขียนเล่มวิทยานิพนธ์', 'ควรทำอย่างไรถ้า Turnitin เกิน 25%', 'ช่วยแนะนำการลาพักการศึกษา', 'เตรียมตัวสมัครเรียนต่อปริญญาเอกต้องทำอะไรบ้าง', 'ทำยังไงดีถ้าส่งเล่มไม่ทัน', 'ช่วยวางแผนการลงทะเบียนเรียนหน่อย', 'ควรทำอะไรก่อนสอบวิทยานิพนธ์', 'แนะนำที่พักใกล้ศาลายา', 'ช่วยแนะนำวิธีติดต่ออาจารย์ที่ปรึกษา', 'ส่งรูปเล่มภายในกี่วัน', 'ค่าสมัครสอบ TOEFL ITP เท่าไร']],   // understood_by_ai needs a WORKING /rewrite: not reachable without a mock proxy (known hole)
   ['ai_mock', Object.keys(REWRITE_MOCK)],
   ['nocat', ['อยากสมัครเรียนจิตวิทยา', 'ค่าเทอมหลักสูตรพยาบาล', 'หลักสูตรอะไรเปิดรับบ้าง', 'สมัครสอบ TOEFL', 'สมัครสอบ', 'สมัครเรียน', 'สมัครงาน', 'ป.โท', 'ปริญญาเอกสมัครยังไง', 'master program', 'apply for PhD', 'study abroad', 'ค่าเทอม', 'ทุน', 'หลักสูตรอะไรบ้าง', 'เรียนไรดี', 'ทำงานอะไรดี', 'เปิดรับสมัคร', 'พักการเรียน', 'ผลการเรียน', 'ตารางเรียน', 'ลาพัก', 'ส่งเล่มกี่วัน', 'คณะแพทย์', 'ต่อโท', 'ศึกษาต่อ', 'เข้าศึกษา', 'ทุนเรียนต่อ', 'ฝ่ายรับสมัครอยู่ไหน', 'ใบปริญญา', 'ลงทะเบียนเรียน', 'ติดปัญหา', 'สวัสดี', 'เครียดมาก', 'ขอสมัครสอบสมัครเรียน']],
 ];
+// PIN (2026-11-08): a topic chip tapped under a question. One item per (typed question, chip index): the first 3 chips of each topic list
+// only the questions whose golden route shows a chip list (topic_picks, disambiguate): other routes have no chips to tap
+const CHOOSER_ROUTES = new Set(['topic_picks', 'disambiguate']);
+const chooserQs = new Set(JSON.parse(readFileSync(OUT, 'utf8')).filter(x => x.kind === 'single' && CHOOSER_ROUTES.has(x.route)).map(x => x.q));
+const PIN_ITEMS = TOPIC_PROBES.filter(q => chooserQs.has(q)).flatMap(q => [0, 1, 2].map(chip => ({ kind: 'pin', set: 'pin', typed: q, chip, qs: [q] })));
 const items = [...singles.map((s, i) => ({ kind: 'single', set: s.set, qs: [s.q] })),
-  ...probes.flatMap(([mode, qs]) => qs.map(q => ({ kind: 'single', set: 'probe', mode, qs: [q] }))), ...sessions.map((qs, i) => ({ kind: 'session', set: 'session', qs }))];
-const keyOf = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.qs[0]]);
-const goldOld = has('--update') && existsSync(OUT) ? new Map(JSON.parse(readFileSync(OUT, 'utf8')).map(r => [JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]), r])) : new Map();
+  ...probes.flatMap(([mode, qs]) => qs.map(q => ({ kind: 'single', set: 'probe', mode, qs: [q] }))), ...sessions.map((qs, i) => ({ kind: 'session', set: 'session', qs })), ...PIN_ITEMS];
+// one key for items, recorded results and the golden: a session by its turns, a single by its question, a pin by (typed question, chip index)
+const KEY = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.typed ?? r.q ?? r.qs[0], r.chip ?? null]);
+const keyOf = KEY;
+const goldOld = has('--update') && existsSync(OUT) ? new Map(JSON.parse(readFileSync(OUT, 'utf8')).map(r => [KEY(r), r])) : new Map();
 const pick = has('--update') ? items.filter(it => !goldOld.has(keyOf(it))) : TRY ? TRY.map(q => ({ kind: 'single', set: 'try', mode: TRYMODE, qs: [q] })) : LIMIT ? items.filter((_, i) => i % LIMIT === 0) : items;
 
 const mockSrv = http.createServer((q, s) => {
@@ -138,8 +153,6 @@ await send('Page.enable'); await send('Runtime.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{sessionStorage.clear();localStorage.clear();}catch(e){}' });
 // ai=off + a dead kernel/proxy: no gap-log entry, no vote, no AI call; ?now pins nothing - date-dependent routes (time_intent) are decided by words, not by the clock
 const URLS = { ai_mock: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:${MP}`, ai_off: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off`, ai_on: `http://127.0.0.1:${SP}/chatbot.html?api=http://127.0.0.1:9&llm=http://127.0.0.1:9`, nocat: `http://127.0.0.1:${SP}/chatbot.html?nocat=1&api=http://127.0.0.1:9&llm=http://127.0.0.1:9&ai=off` };
-// --route rust: the page takes its route from the Rust decision order (?route=rust), so the same questions must give the same routes
-if (opt('--route')) for (const k of Object.keys(URLS)) URLS[k] += `&route=${opt('--route')}`;   // default page: Rust routes; --route js = the JS fallback
 let MODE = 'ai_off';
 const boot = async () => { shLast = null; await send('Page.navigate', { url: URLS[MODE] }); await until(`!!document.getElementById('q') && !document.getElementById('q').disabled`, 30000); await until(`document.documentElement.classList.contains('agency-pending')===false`, 5000); await wait(300); };
 const bots = () => ev(`document.querySelectorAll('#chat .msg.b').length`);
@@ -153,24 +166,38 @@ const ask = async q => { const n = await bots();
   await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${n}`); await wait(60);
   await shadowSync();
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? (b.dataset.route ?? null) : null;})()`); };
+// PIN: the topic list under the typed question; a tap on chip i sets the page's PIN to that entry and asks its title. The recorded route is the answer to
+// the TITLE (what the page sends), with the entry id the Rust side receives as `pinned`. A typed question with fewer chips records nothing for the rest.
+const pinAsk = async it => {
+  await ask('เริ่มใหม่'); await ask(it.typed);
+  const chip = await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); const c=b&&b.querySelectorAll('.dislist .dis[data-id]')[${it.chip}]; return c ? {id:c.dataset.id, title:c.firstChild.textContent} : null;})()`);
+  if (!chip) return null;
+  const nb = await bots();
+  await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); b.querySelectorAll('.dislist .dis[data-id]')[${it.chip}].click();})()`);
+  await until(`document.querySelectorAll('#chat .msg.b:not(.pending)').length > ${nb}`); await wait(60);
+  await shadowSync();
+  const route = await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop(); return b ? (b.dataset.route ?? null) : null;})()`);
+  return { kind: 'pin', set: 'pin', typed: it.typed, chip: it.chip, q: chip.title, pin: chip.id, route };
+};
 const result = []; let n = 0, booted = '';
 for (const it of pick) {
   const mode = it.mode || 'ai_off';
   if (mode !== booted || n++ % 60 === 0) { MODE = mode; await boot(); booted = mode; }
-  if (it.kind === 'session') { await boot(); const routes = []; for (const q of it.qs) routes.push(await ask(q)); result.push({ kind: 'session', qs: it.qs, routes }); }
-  else { await ask('เริ่มใหม่'); result.push({ kind: 'single', set: it.set, ...(it.mode && it.mode !== 'ai_off' ? { mode: it.mode } : {}), q: it.qs[0], route: await ask(it.qs[0]) }); }
+  if (it.kind === 'pin') { const r = await pinAsk(it); if (r) result.push({ ...r, ai_off: mode === 'ai_off' }); else console.log(`no chip ${it.chip} under ${JSON.stringify(it.typed)}`); continue; }
+  if (it.kind === 'session') { await boot(); const routes = []; for (const q of it.qs) routes.push(await ask(q)); result.push({ kind: 'session', qs: it.qs, routes, ai_off: mode === 'ai_off' }); }
+  else { await ask('เริ่มใหม่'); result.push({ kind: 'single', set: it.set, ...(it.mode && it.mode !== 'ai_off' ? { mode: it.mode } : {}), q: it.qs[0], route: await ask(it.qs[0]), ai_off: mode === 'ai_off' }); }
 }
 done();
 console.log(`shadow (Rust decide_route vs the page): ${SH.n} questions, ${SH.same} same, ${SH.pending} pending (AI rewrite), ${SH.errors} errors, ${SH.diffs.length} differ`);
 for (const d of SH.diffs.slice(0, 12)) console.log('  shadow diff:', JSON.stringify(d));
 if (has('--update')) {
-  const fresh = new Map(result.map(r => [JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]), r]));
+  const fresh = new Map(result.map(r => [KEY(r), r]));
   const merged = items.map(it => { const k = keyOf(it); return fresh.get(k) || goldOld.get(k); }).filter(Boolean);
   writeFileSync(OUT, '[\n' + merged.map(r => JSON.stringify(r)).join(',\n') + '\n]\n');
   console.log(`updated: ${result.length} recorded, ${merged.length - result.length} kept, ${[...goldOld.keys()].filter(k => !items.some(it => keyOf(it) === k)).length} dropped -> ${OUT}`); process.exit(0);
 }
 if (TRY) { for (const r of result) console.log(`${(r.route ?? 'null').padEnd(24)} ${r.q}`); process.exit(0); }
-const key = r => JSON.stringify(r.kind === 'session' ? [r.kind, r.qs] : [r.kind, r.mode || 'ai_off', r.q]);
+const key = KEY;
 const val = r => JSON.stringify(r.kind === 'session' ? r.routes : r.route);
 if (has('--write')) {
   const lines = result.map(r => JSON.stringify(r));

@@ -1,6 +1,6 @@
-//! The programme-matching regexes of the page, compiled once (see `crate::re` for how JS syntax is translated).
-use super::patterns_src::{ASKS, DEGREE, FUNC, INTENT, LEAD, LEVELS, OTHER, PAREN, QUAL, TAIL, TOPICS};
+//! The programme-matching regexes, compiled once from the pack (`vocab.json` `resolve`; see `crate::re` for how JS syntax is translated).
 use crate::re::{compile, compile_src};
+use crate::route::vocab::{vocab, KeyRe};
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
@@ -13,11 +13,12 @@ const LOOKAHEADS: [(&str, &str); 3] = [
 ];
 
 fn compile_lead() -> Regex {
-    let src = LOOKAHEADS.iter().fold(LEAD.src.to_owned(), |s, (from, to)| {
-        assert_eq!(s.matches(from).count(), 1, "_P_LEAD lookahead {from} changed in chatbot.html: port it again");
+    let lead = &vocab().resolve.lead;
+    let src = LOOKAHEADS.iter().fold(lead.src.to_owned(), |s, (from, to)| {
+        assert_eq!(s.matches(from).count(), 1, "resolve lead lookahead {from} changed in the pack: port it again");
         s.replace(from, to)
     });
-    compile_src(&src, LEAD.flags)
+    compile_src(&src, lead.flags)
 }
 
 pub struct Patterns {
@@ -51,25 +52,30 @@ pub const ALIASES: [(&str, [&str; 2]); 2] = [
     ("itm", ["การจัดการเทคโนโลยีสารสนเทศ", "information technology management"]),
 ];
 
+fn labelled(items: &'static [KeyRe]) -> Vec<(&'static str, Regex)> {
+    items.iter().map(|k| (k.key.as_str(), compile(&k.re))).collect()
+}
+
 fn build() -> Patterns {
-    let topics: Vec<_> = TOPICS.iter().map(|(k, r)| (*k, compile(r))).collect();
-    let asks: Vec<_> = ASKS.iter().map(|(k, r)| (*k, compile(r))).collect();
-    let strip_with = |mi: &str| TOPICS.iter().chain(ASKS.iter()).map(|(_, r)| compile_src(&format!("{mi}(?:{})", r.src), "i")).collect();
+    let r = &vocab().resolve;
+    let topics = labelled(&r.topics);
+    let asks = labelled(&r.asks);
+    let strip_with = |mi: &str| r.topics.iter().chain(r.asks.iter()).map(|k| compile_src(&format!("{mi}(?:{})", k.re.src), "i")).collect();
     let (strip, strip_keep_mi) = (strip_with("(?:มี)?"), strip_with(""));
     Patterns {
         lead: compile_lead(),
-        tail: compile(&TAIL),
-        degree: compile(&DEGREE),
-        qual: compile(&QUAL),
-        paren: compile(&PAREN),
-        other: compile(&OTHER),
-        intent: compile(&INTENT),
-        func: compile(&FUNC),
+        tail: compile(&r.tail),
+        degree: compile(&r.degree),
+        qual: compile(&r.qual),
+        paren: compile(&r.paren),
+        other: compile(&r.other),
+        intent: compile(&r.intent),
+        func: compile(&r.func),
         topics,
         asks,
         strip,
         strip_keep_mi,
-        levels: LEVELS.iter().map(|(k, r)| (*k, compile(r))).collect(),
+        levels: r.levels.iter().map(|k| (k.key.chars().next().expect("a level letter"), compile(&k.re))).collect(),
         intl: compile_src("นานาชาติ|international", "i"),
         special: compile_src("ภาคพิเศษ|special program", "i"),
         code: compile_src(r"\b(\d{4}[MDNC]\d{2}[GS])\b", ""),

@@ -325,6 +325,12 @@ fn cos_to_score(c: f32, margin: f32, ov: i32, ov_lead: i32) -> i32 {
     }
 }
 
+/// The gate score of one ranked row, for the page's staff-supersede step (it re-scores the new top against the new runner-up).
+#[wasm_bindgen(js_name = cos_to_score)]
+pub fn kb_row_score(cos: f32, margin: f32, overlap: i32, overlap_lead: i32) -> i32 {
+    cos_to_score(cos, margin, overlap, overlap_lead)
+}
+
 /// Search a KB (passed as `[{id, keywords}]` JSON) for `query`. Returns a ranked
 /// `[{id, s, cos, overlap}]`. The KB is small (tens–hundreds of entries) so a
 /// per-call IDF build is microseconds; no caching needed across the wasm boundary.
@@ -660,9 +666,13 @@ pub struct Router {
 
 #[wasm_bindgen]
 impl Router {
-    /// `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
+    /// `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
+    /// for the embedded graduate-school pack (install happens once per process, before any route call).
     #[wasm_bindgen(constructor)]
-    pub fn new(kb: JsValue, programmes: JsValue) -> Result<Router, JsValue> {
+    pub fn new(kb: JsValue, programmes: JsValue, vocab: Option<String>) -> Result<Router, JsValue> {
+        if let Some(json) = vocab {
+            route::vocab::install(&json).map_err(|e| JsValue::from_str(&e))?;
+        }
         let rows: Vec<route::router::KbIn> = serde_wasm_bindgen::from_value(kb)?;
         let catalogue = match programmes.is_null() || programmes.is_undefined() {
             true => None,
@@ -675,18 +685,27 @@ impl Router {
     }
 
     /// `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+    /// Returns the route name, or `null` for the page's "not found" path.
     pub fn decide(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
+        let d = self.decide_in(q, state, rewrite)?;
+        Ok(d.route.map_or(JsValue::NULL, JsValue::from_str))
+    }
+
+    /// Same arguments as `decide`. Returns `{route, personal, stuck: {key, picks, areas}, programme, aspect, timeIntent, studyIntent}`:
+    /// the route (or `null`) and what its view needs; fields a route does not use are `null` (plan 015 step 4c).
+    pub fn decision(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
+        Ok(to_js(&self.decide_in(q, state, rewrite)?))
+    }
+}
+
+impl Router {
+    fn decide_in(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<route::detail::Decision, JsValue> {
         let state: route::router::StateIn = serde_wasm_bindgen::from_value(state)?;
         let phrases: Option<Vec<String>> = match rewrite.is_null() || rewrite.is_undefined() {
             true => None,
             false => Some(serde_wasm_bindgen::from_value(rewrite)?),
         };
-        let name = route::router::route_name(q, &state, &self.manual, self.catalogue.as_ref(), phrases.as_deref())
-            .map_err(|e| JsValue::from_str(&e))?;
-        Ok(match name {
-            Some(n) => JsValue::from_str(n),
-            None => JsValue::NULL,
-        })
+        route::router::decide(q, &state, &self.manual, self.catalogue.as_ref(), phrases.as_deref()).map_err(|e| JsValue::from_str(&e))
     }
 }
 

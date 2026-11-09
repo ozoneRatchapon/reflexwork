@@ -7,8 +7,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..'), R = f => readF
 const h = R('submissions/ui/chatbot.html');
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
-const src = h.slice(h.indexOf('const _PERS_RECORD='), h.indexOf('function isEnglish(q){'));
-const personalAsk = new Function(src + '\nreturn personalAsk;')();
+import { decisionOf } from '../scripts/lib/rust_route.mjs';
+// the reader is Rust's since plan 015 step 4c (its own cases: crates/reflex-wasm/tests/route_predicates.rs); here: what the router decides
+const personalAsk = q => { const d = decisionOf(q); return d.route === 'personal' ? d.personal : null; };
 
 const self = ['ผลสอบของฉันออกหรือยัง', 'เกรดของผมเท่าไร', 'ค่าเทอมที่ผมค้างจ่ายเท่าไร', 'สถานะคำร้องบฑ.1 ของฉัน', 'อาจารย์ที่ปรึกษาของผมคือใคร', 'ผมสอบผ่านหรือยัง', 'ผมจบหรือยัง', 'ยอดค้างชำระของหนูเท่าไหร่', 'ผมได้ทุนไหม'];
 const other = ['ขอดูข้อมูลของเพื่อนผมหน่อย รหัส 6537001', 'เพื่อนผมสอบผ่านหรือยัง', 'ขอดูผลสอบรหัส 6537001', 'เกรดของน้องผมเท่าไร', 'สถานะคำร้องของแฟนผม'];
@@ -28,8 +29,9 @@ const hit = all.filter(q => personalAsk(q));
 check(`none of ${all.length} known questions (manual, FAQ, beginner, odd, programmes) is diverted`, hit.length === 0, hit.slice(0, 5).join(' | '));
 
 // wiring
-const i = h.indexOf('const pers = pinned ? null : personalAsk(q);'), blk = h.slice(i, h.indexOf('const restart = isRestartPhrase(q);', i));
-check('the boundary runs before the programme, fee and knowledge-base paths', i > 0 && i < h.search(/(?:const|let) prog = /) && i < h.indexOf('const _pre = ') && i < h.indexOf('isGenericFeeQuestion(q) &&'));
+const i = h.indexOf("if(take('personal')){"), blk = h.slice(i, h.indexOf('const restart = isRestartPhrase(q);', i));
+check('the boundary runs before the programme, fee and knowledge-base paths', i > 0 && i < h.indexOf("take(['programme_card','programme_pick'])") && i < h.indexOf('const _pre = ') && i < h.indexOf("take('generic_fee')"));
+check('the view reads which record is asked from the Rust decision', /const pers = RUST_DETAIL\.personal;/.test(blk));
 check('it is never logged as a gap, never counted as answered / not-found, and never calls the AI', !/logGap|auto\+\+|ai\+\+|groundedHybrid|rewriteQuery/.test(blk));
 check('it points to a way to look the data up (staff contact; e-Thesis for thesis questions)', /_btn\(AGENCY\.contact\)/.test(blk) && /id==='ethesis'/.test(blk));
 check('general topics offered under it are labelled as not the person\'s own', /VOICE\.personalGeneral/.test(blk) && /ไม่ใช่ของคุณ/.test(h.match(/personalGeneral:[^\n]*/)[0]));

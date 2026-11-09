@@ -1,5 +1,7 @@
 # Corpus-distance gate on generated questions (unreviewed labels)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): the corpus-distance gate does not separate near-misses (AUROC 0.47-0.54) and is weak on the 46 off-corpus questions (0.64 vs 0.52 shipped). Not adopted (`benchmark/NEGATIVE_RESULTS.md`). Labels unreviewed.
+
 Exemplars per entry: its text + train paraphrases. Test: 264 held-out Thai paraphrases vs 264 near-misses. AUROC, 0.5 = no separation.
 
 **All test questions**

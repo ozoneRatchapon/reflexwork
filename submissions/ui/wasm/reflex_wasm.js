@@ -67,6 +67,7 @@ export class Router {
     }
     /**
      * `state`: `{progState, aiOff, pinnedId, programmeInFocus, today, agencyHasIt}`; `rewrite`: the AI's phrases (array) or null.
+     * Returns the route name, or `null` for the page's "not found" path.
      * @param {string} q
      * @param {any} state
      * @param {any} rewrite
@@ -90,14 +91,43 @@ export class Router {
         }
     }
     /**
-     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null.
-     * @param {any} kb
-     * @param {any} programmes
+     * Same arguments as `decide`. Returns `{route, personal, stuck: {key, picks, areas}, programme, aspect, timeIntent, studyIntent}`:
+     * the route (or `null`) and what its view needs; fields a route does not use are `null` (plan 015 step 4c).
+     * @param {string} q
+     * @param {any} state
+     * @param {any} rewrite
+     * @returns {any}
      */
-    constructor(kb, programmes) {
+    decision(q, state, rewrite) {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.router_new(retptr, addHeapObject(kb), addHeapObject(programmes));
+            const ptr0 = passStringToWasm0(q, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            const len0 = WASM_VECTOR_LEN;
+            wasm.router_decision(retptr, this.__wbg_ptr, ptr0, len0, addHeapObject(state), addHeapObject(rewrite));
+            var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+            var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+            var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return takeObject(r0);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+     * `kb`: the manual rows (array); `programmes`: the programme rows (array) or null; `vocab`: a pack's vocab.json text, or omitted
+     * for the embedded graduate-school pack (install happens once per process, before any route call).
+     * @param {any} kb
+     * @param {any} programmes
+     * @param {string | null} [vocab]
+     */
+    constructor(kb, programmes, vocab) {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            var ptr0 = isLikeNone(vocab) ? 0 : passStringToWasm0(vocab, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+            var len0 = WASM_VECTOR_LEN;
+            wasm.router_new(retptr, addHeapObject(kb), addHeapObject(programmes), ptr0, len0);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
             var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -187,6 +217,19 @@ export function classify_smalltalk(text) {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_export4(deferred2_0, deferred2_1, 1);
     }
+}
+
+/**
+ * The gate score of one ranked row, for the page's staff-supersede step (it re-scores the new top against the new runner-up).
+ * @param {number} cos
+ * @param {number} margin
+ * @param {number} overlap
+ * @param {number} overlap_lead
+ * @returns {number}
+ */
+export function cos_to_score(cos, margin, overlap, overlap_lead) {
+    const ret = wasm.cos_to_score(cos, margin, overlap, overlap_lead);
+    return ret;
 }
 
 /**

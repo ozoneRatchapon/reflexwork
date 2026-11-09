@@ -12,6 +12,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch } from '../scripts/lib/chatbot_fns.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const kbDir = join(root, 'submissions/ui/knowledge-public');
@@ -42,11 +43,8 @@ for (const name of readdirSync(kbDir)) {
 }
 ge('KB fixtures loaded', KB.length, 50);
 
-// --- Extract the production _jsSearch (same algorithm the page ships)
-const html = readFileSync(htmlPath, 'utf8');
-const sm = html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/);
-if (!sm) { console.log('✗ could not extract _jsSearch'); console.log(`\n${pass}/${pass+fail} passed`); process.exit(1); }
-const search = new Function('KB', sm[0].replace(/\nfunction search\(q\)\{$/, '\nreturn _jsSearch;'))(KB);
+// --- The production search() (the page's block, Rust kb_search on the shipped wasm)
+const search = pageSearch(KB, readFileSync(htmlPath, 'utf8'));
 
 // --- Labeled cases over our own KB (category-level; null = off-corpus → abstain)
 const CASES = [

@@ -1,5 +1,7 @@
 # Embedding experiment (bge-m3, local)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): bge-m3 beats shipped on generated paraphrases (Thai 75.2% vs 52.3%, English 76.5% vs 48.5%) but not on eval52 (80% vs 84%) or the FAQ (91.5% vs 94.4%); the lexical/embedding hybrid gives eval52 88% and FAQ 94.4%; answer-or-not AUROC 0.85. Needs a model per question (a direction change); not adopted. Labels unreviewed.
+
 Questions: `questions_001.json` (unreviewed model labels) + the 52-query eval + official FAQ th. "1st right" = the top entry is the gold one.
 
 | set | lexical (shipped) | embeddings alone | lexical top 10 re-ranked by embeddings | hybrid: lexical if score >= 4, else embeddings | rank fusion (RRF) |

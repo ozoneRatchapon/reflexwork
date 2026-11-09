@@ -3,13 +3,14 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { shippedWasm } from '../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8'), py = readFileSync(join(root, 'submissions/build_programme_catalogue.py'), 'utf8');
 const DOC = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8'));
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const blk = n => html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1];
-const F = new Function(blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {programmeCard};')();
+const F = new Function('WASM', blk('today') + blk('linkify') + blk('programme-resolve') + '\nreturn {programmeCard};')(shippedWasm());
 const multi = DOC.programmes.filter(p => Array.isArray(p.sub_announcements) && p.sub_announcements.length);
 check('the catalogue carries per-major announcements', multi.length >= 7, String(multi.length));
 check('each per-major row uses one of its own sub announcements', multi.every(p => p.announcement && p.sub_announcements.some(s => s.id === p.announce_id) && /^\d{4}[MDNC][GS](0[1-9]|1\d|2[01])$/.test(p.announce_id)));

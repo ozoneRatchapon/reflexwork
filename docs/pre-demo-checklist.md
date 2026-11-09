@@ -50,5 +50,5 @@ curl -s -o /dev/null -w "%{http_code}\n" https://reflexwork.pages.dev/chatbot.ht
 
 ## ลำดับ demo (ดู docs/ สำหรับ flow เต็ม)
 1. ปัญหา (สไลด์ 1-2) → 2. FastPath 0-token → 3. grounded hybrid →
-4. intake → 5. voice → 6. self-learning (dashboard) → 7. root-cause report →
+4. intake → 5. voice → 6. gaps + entries to check (dashboard) → 7. root-cause report →
 8. Kiro AI-SDLC (สไลด์ 16)

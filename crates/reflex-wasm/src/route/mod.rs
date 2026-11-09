@@ -3,16 +3,16 @@
 pub mod aspect;
 pub mod branches;
 pub mod dates;
+pub mod detail;
 pub mod manual;
 pub mod near;
-mod patterns_src;
+pub mod vocab;
 pub mod programme;
 pub mod router;
 pub mod scope;
 pub mod study_intent;
 pub mod term_year;
 pub mod stuck;
-mod stuck_src;
 pub mod text;
 pub mod topic;
 pub mod understood;

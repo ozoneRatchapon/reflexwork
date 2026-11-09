@@ -1,5 +1,7 @@
 # Distilling bge-m3 into a model-free trigram map (offline ridge; katgpt-canon source_adapter idea)
 
+**Verdict** (added 2026-11-09, plan 010 item 6, from this file's own numbers; no gates were preregistered for this run): the distilled map beats shipped on Thai held-out (62.9% vs 53.4% at lambda 0.1) but loses in English (28.0% vs 43.9%), on eval52 (74% vs 84%) and the FAQ (88.7% vs 94.4%); the hybrid D gives eval52 +4 pp, FAQ -1.4 pp. Below the >= +10 point bar; open as plan 010 item 3. Labels unreviewed.
+
 Train 528 items (132 entry texts + Thai paraphrases 0, 2 + English 0). Labels unreviewed. Test sets never used in training.
 A = shipped lexical; B = distilled vector (trigrams -> bge-m3 space, cosine to entry vectors); C = trigram linear classifier (one-hot target); D = A if lexical score >= 4 else B; E = real bge-m3 per question (needs a model).
 

@@ -44,6 +44,7 @@
    - ลองในเครื่อง: `cd /path/to/site && python3 -m http.server 8000`
    - ตรวจว่าเป็นของหน่วยงานคุณจริง: `node scripts/adoption_smoke.mjs /path/to/site` (ต้องมี Chrome)
    - เผยแพร่: อัปโหลดโฟลเดอร์ขึ้นที่โฮสต์ใดก็ได้ เช่น `npx wrangler pages deploy /path/to/site`
+   - Content-Security-Policy: เว็บที่สร้างไม่มีไฟล์ `_headers` ของเรา (CSP ของเราผูกกับ worker ของบัณฑิตวิทยาลัย) ถ้าหน่วยงานตั้ง CSP เอง ต้องมี `'wasm-unsafe-eval'` และ hash ของสคริปต์ในหน้าใน `script-src` และใส่ `kernelApi` / `llmApi` ของหน่วยงานใน `connect-src` (ดูตัวอย่างจาก `crates/pages-csp/src/policy.rs`)
 
 ## ค่าเริ่มต้นด้านความเป็นส่วนตัว
 หน่วยงานอื่น **ไม่เรียกเซิร์ฟเวอร์ของเราเลย** ตามค่าเริ่มต้น: ไม่มี kernel (บันทึกคำถามที่ตอบไม่ได้, โหวต) และไม่มี AI proxy การค้นคู่มือทำในเบราว์เซอร์ของผู้ใช้ทั้งหมด (`adoption_smoke` ตรวจว่าไม่มีคำขอออกนอกเว็บ) ถ้าต้องการบันทึกช่องว่างหรือให้ AI ช่วยเรียบเรียง ต้องตั้ง `kernelApi` / `llmApi` ใน `agency.json` เป็นของหน่วยงานเอง (คู่มือติดตั้ง worker อยู่ใน `integrations/` และ `docs/production-hardening-runbook.md`) — เมื่อเปิด AI ข้อความคำถามจะถูกส่งไปยังบริการโมเดลที่เลือก ต้องทบทวน PDPA ก่อน

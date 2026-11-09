@@ -1,6 +1,7 @@
 //! The page-facing entry point of the decision order: the page passes what it knows (the manual, the catalogue, its state),
-//! Rust returns the route name. Pure (no wasm types here): the wasm wrapper lives in `lib.rs`.
-use super::{decide_route, Config, Ctx, Manual, ManualEntry, ProgState};
+//! Rust returns the route name and its view's detail. Pure (no wasm types here): the wasm wrapper lives in `lib.rs`.
+use super::detail::{decision, Decision};
+use super::{decide_route, prepare, Config, Ctx, Manual, ManualEntry, ProgState};
 use crate::resolve::Catalogue;
 use serde::Deserialize;
 
@@ -56,14 +57,15 @@ pub fn parse_prog_state(s: &str) -> Result<ProgState, String> {
     }
 }
 
-/// Decide one question from the page's state. `rewrite`: `None` when the AI step did not run; `Some(phrases)` otherwise.
-pub fn route_name(
+/// Decide one question from the page's state: the route and what its view needs. `rewrite`: `None` when the AI step did not run;
+/// `Some(phrases)` otherwise.
+pub fn decide(
     typed: &str,
     state: &StateIn,
     manual: &Manual,
     catalogue: Option<&Catalogue>,
     rewrite: Option<&[String]>,
-) -> Result<Option<&'static str>, String> {
+) -> Result<Decision, String> {
     let prog_state = parse_prog_state(&state.prog_state)?;
     let mut ctx = Ctx {
         pinned: state.pinned_id.is_some(),
@@ -76,7 +78,19 @@ pub fn route_name(
         manual,
         config: Config { agency_has_it: state.agency_has_it },
     };
-    Ok(decide_route(typed, &mut ctx, rewrite).map(|r| r.name()))
+    let route = decide_route(typed, &mut ctx, rewrite);
+    Ok(decision(route, &prepare(typed), &ctx))
+}
+
+/// The route name only (`decide(...).route`).
+pub fn route_name(
+    typed: &str,
+    state: &StateIn,
+    manual: &Manual,
+    catalogue: Option<&Catalogue>,
+    rewrite: Option<&[String]>,
+) -> Result<Option<&'static str>, String> {
+    decide(typed, state, manual, catalogue, rewrite).map(|d| d.route)
 }
 
 /// The manual the page's KB rows describe.

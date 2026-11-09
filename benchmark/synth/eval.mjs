@@ -1,16 +1,16 @@
-// Score the chat's search + decision on the offline labelled questions (generate.mjs). Read-only. Uses the page's own JS twin of the search
-// and decideTier (identical to the Rust engine: tests/wasm_lockstep.test.mjs), exactly as benchmark/abstain/experiment.mjs does.
+// Score the chat's search + decision on the offline labelled questions (generate.mjs). Read-only. Uses the page's own search and decideTier
+// (the Rust engine in the shipped wasm; the JS twins were removed in plan 015 step 5).
 // Run: node benchmark/synth/eval.mjs [questions.json] [review.tsv] [out.md]
 // review.tsv (review.mjs, filled in by a person): verdict per sampled question - ok | bad (label wrong) | other:<id> (another entry answers it).
 // With a review, the sample's error rate is reported next to every number, so a reader knows how much label noise to expect.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { pageSearch, pageDecideTier } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..'), R = f => readFileSync(join(root, f), 'utf8');
 const [qPath = join(root, 'benchmark/synth/questions_001.json'), rPath = join(root, 'benchmark/synth/review_001.tsv'), outPath] = process.argv.slice(2);
 const KB = JSON.parse(R('submissions/ui/knowledge-index.json')), html = R('submissions/ui/chatbot.html');
-const { jsSearch: search } = new Function('KB', html.match(/function _jsGramSet[\s\S]*?\n}\nfunction search\(q\)\{/)[0].replace(/\nfunction search\(q\)\{$/, '\nreturn {jsSearch:_jsSearch, gramSet:_jsGramSet};'))(KB);
-const decide = new Function(html.match(/const _BAND=[\s\S]*?\nfunction decideTier\(\{gate, ranked\}\)\{[\s\S]*?\n\}\n/)[0] + '\nreturn decideTier;')();
+const search = pageSearch(KB, html), decide = pageDecideTier(html);   // the page's own search and decideTier (Rust, shipped wasm)
 const doc = JSON.parse(readFileSync(qPath, 'utf8'));
 const ids = new Set(KB.map(e => e.id));
 let items = doc.items.filter(x => x.q && x.kind !== 'empty' && ids.has(x.source_id));

@@ -1,17 +1,17 @@
 //! `topicCore` and `topicPicks` (chatbot.html): a short question around one topic word ("มีทุนไหม", "ทุน") names no programme, so the
 //! page offers the manual entries whose TITLE holds that word (1 to 12 of them). No AI, no guess.
-use super::patterns_src::{TOPIC_HEAD, TOPIC_TAIL};
+use super::vocab::vocab;
 use crate::re::{compile, is_js_space};
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
 fn head() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&TOPIC_HEAD))
+    R.get_or_init(|| compile(&vocab().topic_head))
 }
 fn tail() -> &'static Regex {
     static R: OnceLock<Regex> = OnceLock::new();
-    R.get_or_init(|| compile(&TOPIC_TAIL))
+    R.get_or_init(|| compile(&vocab().topic_tail))
 }
 
 /// Port of `topicCore`: whitespace removed, then the request words peeled off both ends until nothing changes.
