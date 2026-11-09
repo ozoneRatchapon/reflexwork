@@ -79,7 +79,7 @@ Diagnostic script: `/tmp/rw_diag/fp.mjs <repo>` (scratch, outside repo).
 - Read both answers for every pair marked as a candidate — do **not** decide equivalence from titles alone.
 - **Done when:** Appendix A is filled and every row has a human-readable equivalence verdict.
 
-### Task 1.3 — Decide dedup strategy 🛑 (ask user) — [x] DONE (decided 2026-10-31: (A); re-verified 2026-11-08: `ALT` map in `tests/kb_search.test.mjs`, `node tests/kb_search.test.mjs` → 9/9 passed)
+### Task 1.3 — Decide dedup strategy 🛑 (ask user) — [x] DONE (decided 2026-10-31: (A); re-verified 2026-11-08: `ALT` map in `tests/kb_search.test.mjs`, `node tests/kb_search.test.mjs` → 8/8 passed on re-run 2026-11-09)
 Present the Appendix A summary and recommend **one** option:
 - **(A) Recommended — keep both, eval accepts equivalents.** Add an `ALT` map in `tests/kb_search.test.mjs` (`thesis_submit_days: ['gm_thesis_submission_10_deadline']`, …) only for pairs verified equivalent in 1.2. Honest: the user gets the same correct answer either way. Zero algorithm change.
 - **(B) Dedup at build time.** In `build_knowledge_index.py`, when a gm_ doc and our doc share a `source_faq_number`, keep one (prefer the one with newer `last_reviewed` / `source_sha256`). Smaller index, no duplicate-margin effect. Risk: drops our hand-tuned keywords.
@@ -110,7 +110,7 @@ Fix: added `จองวิชา grid ยังไง วิธีจอง จ
 - **Done when:** grid_booking is top-1 again, and the 5 baseline FPs did not get worse.
 
 ### Task 2.4 — (Optional, only if time) pre-existing 5 FPs — [x] DONE (verified 2026-11-07, no code change needed)
-Verified: `หยุดเรียนชั่วคราวได้ไหม` → `leave_of_absence` top-1, s=6 (cos 0.430, overlap 16). `node tests/kb_search.test.mjs` on the current index: recall@1 43 (floor 37), recall@3 48 (floor 45), FP 3 (ceil 6), off-corpus 2/2, 9/9 passed. The FP count fell from 5 to 3 through the later KB alias work (commit `1055b96`), so the keyword fix is no longer needed.
+Verified: `หยุดเรียนชั่วคราวได้ไหม` → `leave_of_absence` top-1, s=6 (cos 0.430, overlap 16). `node tests/kb_search.test.mjs` on the current index: recall@1 43 (floor 37), recall@3 48 (floor 45), FP 3 (ceil 6), off-corpus 2/2, 8/8 passed (re-run 2026-11-09). The FP count fell from 5 to 3 through the later KB alias work (commit `1055b96`), so the keyword fix is no longer needed.
 Original note: same keyword-only approach. `leave_of_absence` not appearing in top-k for "หยุดเรียนชั่วคราวได้ไหม" is the most valuable (it's a common real question). Skip if Phase 3–4 are not done yet.
 
 ### Task 2.5 — Keyword lines for the 20 gm_ docs without `คำค้นภาษาอังกฤษ:` — [x] DONE (2026-10-31)
