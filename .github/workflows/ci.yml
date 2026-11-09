@@ -23,6 +23,8 @@ jobs:
         run: cargo test -p reflex-wasm   # Cargo.lock is not committed (.gitignore), so --locked is not possible
       - name: Pages CSP is current (one SHA-256 per inline script; a stale hash stops that script on production)
         run: cargo test -p pages-csp
+      - name: Feedback rules (kernel worker wasm) and offline benches (certified bound, retention gate)
+        run: cargo test -p feedback-core -p reflex-bench
 
   test:
     runs-on: ubuntu-latest

@@ -22,7 +22,7 @@ check('auto-draft never stores the proxy\'s "AI unavailable" apology as a draft'
 check('live list is not cached', /'Cache-Control': 'no-store'/.test(k));
 // chat
 check('chat merges live answers, refreshed every 15 s and when the tab comes back', /setInterval\(\(\)=>\{ if\(!document\.hidden\) refreshLiveKb\(\); \}, 15000\)/.test(chat) && /visibilitychange/.test(chat));
-check('a refresh replaces, never duplicates (KB.filter(!staff).concat(live))', /KB = KB\.filter\(e=>!e\.staff\)\.concat\(live\)/.test(chat));
+check('a refresh replaces, never duplicates (KB rebuilt from the published manual KB_BASE + live, see tests/fix_overlay.test.mjs)', /KB = KB_BASE\.filter\(e=>!fixed\.has\(e\.id\)\)\.concat\(live\)/.test(chat));
 check('staff titles lose markup characters (they are interpolated in bubbles)', /title:String\(e\.title\|\|e\.question\|\|''\)\.replace\(\/\[<>"'&`\]\/g,''\)/.test(chat));
 check('a staff answer is labelled in the bubble and gets its own badge', /📝 คำตอบที่เจ้าหน้าที่เพิ่ม/.test(chat) && /'📝 เจ้าหน้าที่ตอบ'/.test(chat));
 check('no kernel configured (other agencies) = no live answers', /async function refreshLiveKb\(\)\{\n  if\(!KERNEL_API\)\{ LIVE_SETTLED=true; return; \}/.test(chat));

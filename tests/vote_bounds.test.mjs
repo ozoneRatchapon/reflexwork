@@ -1,7 +1,7 @@
 // Best-Belief vote bounds (integrations/_shared/beta_bound.mjs, from katgpt-rs best_belief.rs) and the /entry-conf order built on them.
 // Run: node tests/vote_bounds.test.mjs
 import { beta_quantile, vote_bounds } from '../integrations/_shared/beta_bound.mjs';
-import worker from '../integrations/kernel-worker/worker.mjs';
+import worker from './lib/kernel_worker.mjs';   // the real worker; its Rust rules load as a .wasm module
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };
 const near = (a, b, t = 1e-4) => Math.abs(a - b) < t;

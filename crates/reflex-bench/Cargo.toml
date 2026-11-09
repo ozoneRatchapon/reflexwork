@@ -1,0 +1,13 @@
+[package]
+name = "reflex-bench"
+version = "0.1.0"
+edition = "2021"
+description = "ReflexWork offline benchmarks on the native search (plan 016): certified abstain thresholds, retention gate"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+reflex-wasm = { path = "../reflex-wasm" }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
+regex-lite = "0.1"

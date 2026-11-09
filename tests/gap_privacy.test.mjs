@@ -1,6 +1,6 @@
 // PDPA check O1 (docs/pdpa-check.md): GET /gaps gives the public counts only; the question samples need the staff token.
 // And the stored gap key is built from the MASKED question (LINE sends the raw text).   Run: node tests/gap_privacy.test.mjs
-import worker from '../integrations/kernel-worker/worker.mjs';
+import worker from './lib/kernel_worker.mjs';   // the real worker; its Rust rules load as a .wasm module
 
 let pass = 0, fail = 0, ipN = 0;
 const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' ' + name + (ok ? '' : `  ← ${detail}`)); ok ? pass++ : fail++; };

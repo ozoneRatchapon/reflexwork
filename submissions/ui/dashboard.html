@@ -111,6 +111,7 @@
     <div id="answerform" style="border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px">
       <div style="font-weight:700;margin-bottom:4px">✍️ ตอบคำถามที่คู่มือยังไม่มี</div>
       <div class="cap" style="margin-bottom:6px">กด "ตอบ" ที่รายการคำถามด้านบนเพื่อเติมคำถามให้ · เมื่ออนุมัติ คำตอบจะขึ้นในแชทภายใน ~15 วินาที พร้อมป้าย "📝 เจ้าหน้าที่ตอบ" และถอนได้ · ใส่เฉพาะข้อเท็จจริงที่ตรวจแล้ว</div>
+      <div id="af-target" class="cap" style="display:none;color:#f6a93b;margin-bottom:6px"></div>
       <input id="af-q" placeholder="คำถาม" maxlength="500" style="width:100%;box-sizing:border-box;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;margin:4px 0">
       <textarea id="af-a" placeholder="คำตอบ (ข้อเท็จจริงที่ตรวจแล้วเท่านั้น ใส่ลิงก์ทางการได้)" maxlength="2000" rows="3" style="width:100%;box-sizing:border-box;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;margin:4px 0"></textarea>
       <input id="af-by" placeholder="ชื่อผู้ตรวจ (ไม่บังคับ บันทึกไว้คู่กับการอนุมัติ)" maxlength="40" style="width:100%;box-sizing:border-box;background:#0b1020;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;margin:4px 0">
@@ -131,8 +132,14 @@
   </div>
 
   <div class="card">
+    <h2>🔧 หัวข้อที่ควรแก้ (จาก 👎 และเหตุผล)</h2>
+    <div class="cap">เรียงจาก 👎 มากสุด · ผู้ใช้เลือกเหตุผลได้ 4 แบบ (ไม่มีข้อความอิสระ) · กด "แก้ข้อนี้" เพื่อเขียนคำตอบใหม่แทนหัวข้อเดิม เมื่ออนุมัติ หัวข้อเดิมในแชทถูกแทนด้วยฉบับแก้ (id เดิม ลิงก์ต้นทางเดิม) · โหวตไม่เปลี่ยนคำตอบเอง คนเป็นคนแก้ · หลังแก้แสดงสัดส่วน 👎 ก่อน / หลัง (ไม่นับวันที่แก้ และต้องมีโหวตอย่างน้อย 10 ครั้งต่อฝั่งจึงจะสรุป)</div>
+    <div id="fixrows"><div class="empty">ยังไม่มีหัวข้อที่ถูก 👎</div></div>
+  </div>
+
+  <div class="card">
     <h2>📉 หัวข้อคู่มือที่ถูก 👎 บ่อย (ควรแก้ก่อน)</h2>
-    <div class="cap">ระบบปรับ <b>ความน่าเชื่อถือ</b> ของแต่ละหัวข้อในคู่มือเองจาก 👍/👎 ของผู้ใช้ (ค่าเฉลี่ยแบบถ่วงเวลา) · หัวข้อที่คนไม่พอใจบ่อย = รายการที่ควรแก้/เขียนใหม่ก่อน (ระบบรู้เองว่าข้อไหนอ่อน)</div>
+    <div class="cap">นับ 👍/👎 ของแต่ละหัวข้อในคู่มือ แล้วคำนวณช่วงความน่าเชื่อถือจากจำนวนโหวต · ใช้จัดลำดับว่าข้อไหนควรตรวจก่อน · โหวตไม่เปลี่ยนคำตอบหรือเส้นทางเอง</div>
     <div id="confrows"><div class="empty">ยังไม่มีข้อมูล feedback — เมื่อผู้ใช้กด 👍/👎 จะมาโผล่ที่นี่</div></div>
   </div>
 </div>
@@ -196,15 +203,16 @@ async function tick(full=true){
       _opt(getj('/kb-drafts',{headers:staffHeaders()})),
       _opt(getj('/entry-conf')),
       _opt(getj('/live-kb',{cache:'no-store'})),
+      _opt(getj('/fix-queue')),
     ] : [];
   try{
-    const [s,a,g,kd,ec,lk] = await Promise.all([getj('/status'), getj('/audit'), ...opt]);
-    const limited = [g,kd,ec,lk].some(x=>x && !x.ok && x.e && x.e.status===429);
+    const [s,a,g,kd,ec,lk,fq] = await Promise.all([getj('/status'), getj('/audit'), ...opt]);
+    const limited = [g,kd,ec,lk,fq].some(x=>x && !x.ok && x.e && x.e.status===429);
     if(limited) BACKOFF_UNTIL = Date.now() + BACKOFF_MS;
     LIVE_SEEN = true; $('phase').textContent = PHASE_LIVE;
     $('dot').classList.add('up');
     $('livetxt').textContent = limited ? 'เชื่อมต่อแล้ว · บางส่วนถูกจำกัดความถี่ (แสดงข้อมูลล่าสุด) · ลองใหม่ใน 30 วิ'
-      : [g,kd,ec,lk].some(x=>x && !x.ok) ? 'เชื่อมต่อแล้ว · บางส่วนโหลดไม่สำเร็จ (แสดงข้อมูลล่าสุด)'
+      : [g,kd,ec,lk,fq].some(x=>x && !x.ok) ? 'เชื่อมต่อแล้ว · บางส่วนโหลดไม่สำเร็จ (แสดงข้อมูลล่าสุด)'
       : 'เชื่อมต่อแล้ว · สถิติรีเฟรชทุก 10 วิ · รายการรีเฟรชทุก 30 วิ';
     $('k-total').textContent = s.total_routed;
     $('k-fastpct').textContent = (s.fast_path_pct||0)+'%';
@@ -236,6 +244,7 @@ async function tick(full=true){
     if(kd && kd.ok) renderDrafts(kd.v.drafts||[]);
     if(ec && ec.ok) renderConf(ec.v.entries||[]);
     if(lk && lk.ok) renderLive(lk.v.entries||[]);
+    if(fq && fq.ok) renderFix(fq.v.entries||[]);
     return;   // live data rendered — do not overwrite with demo
   }catch(e){
     if(e && e.status===429){ BACKOFF_UNTIL = Date.now() + BACKOFF_MS; }
@@ -328,6 +337,53 @@ function renderConf(entries){
   }).join('');
 }
 
+// Plan 008 steps 3-5: the entries-to-fix queue (kernel /fix-queue: order and reason counts come from the Rust feedback rules),
+// titles and source links from the published manual, "fix this entry" into the answer form, and 👎 share before / after a fix.
+const REASON_TH = { wrong:'ตอบผิด', off_topic:'ไม่ตรงคำถาม', outdated:'ข้อมูลเก่า', incomplete:'ไม่ครบ' };
+let MANUAL = null, FIX_TARGET = null;
+const manualById = () => MANUAL || (MANUAL = fetch('./knowledge-index.json').then(r=>r.ok?r.json():[]).then(a=>new Map((Array.isArray(a)?a:[]).map(e=>[e.id,e]))).catch(()=>new Map()));
+const safeHttp = u => /^https?:\/\//i.test(String(u||'')) ? String(u) : '';
+function effectText(f){
+  if(!f || !f.fixed) return '';
+  const pc = x => x==null ? '—' : Math.round(x*100)+'%';
+  const side = (s, w) => `${w} 👎 ${pc(s.down_share)} (${Number(s.votes)||0} โหวต)`;
+  const v = f.verdict==='lower' ? '👎 ลดลง' : f.verdict==='not_lower' ? '👎 ไม่ลดลง' : `ยังสรุปไม่ได้ (ต้องมีอย่างน้อย ${Number(f.min_votes)||10} โหวตต่อฝั่ง)`;
+  return `${side(f.before,'ก่อนแก้')} → ${side(f.after,'หลังแก้')} · ${v}`;
+}
+async function renderFix(rows){
+  const el = $('fixrows'); if(!el) return;
+  if(!rows.length){ el.innerHTML = '<div class="empty">ยังไม่มีหัวข้อที่ถูก 👎</div>'; return; }
+  const m = await manualById();
+  const fixed = rows.filter(r=>r.last_fix_at).slice(0,10);
+  const eff = new Map(await Promise.all(fixed.map(r=>getj('/fix-effect?id='+encodeURIComponent(r.id)).then(f=>[r.id,f]).catch(()=>[r.id,null]))));
+  el.innerHTML = rows.map(r=>{
+    const e = m.get(r.id), src = safeHttp(e && e.source_url);
+    const why = Object.entries(REASON_TH).map(([k,label])=>Number(r.reasons&&r.reasons[k])?`<span class="pill" style="margin-right:4px">${label} ${Number(r.reasons[k])}</span>`:'').join('');
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">
+        <span style="font-weight:700">${esc(e ? e.title : r.id)}</span><span class="mono" style="color:var(--muted);font-size:12px">${esc(r.id)}</span>
+        <span style="color:var(--muted);font-size:12px">👍${Number(r.up)||0} 👎${Number(r.down)||0}</span>
+        ${src?`<a href="${esc(src)}" target="_blank" rel="noopener" style="font-size:12px;color:#5b8cff">ต้นทาง</a>`:''}
+        <button data-act="fixEntry" data-arg="${esc(r.id)}" style="margin-left:auto;background:transparent;color:#f6a93b;border:1px solid rgba(246,169,59,.5);border-radius:8px;padding:4px 12px;cursor:pointer">✏️ แก้ข้อนี้</button>
+      </div>
+      <div style="margin-top:4px;font-size:12px">${why || '<span style="color:var(--muted)">ไม่มีเหตุผลที่เลือก</span>'}</div>
+      ${r.last_fix_at?`<div style="margin-top:4px;font-size:12px;color:var(--muted)">แก้ล่าสุด ${esc(new Date(Number(r.last_fix_at)).toLocaleString('th-TH'))} · ${esc(effectText(eff.get(r.id)))}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function setFixTarget(id, title){
+  FIX_TARGET = id || null; const t = $('af-target'); if(!t) return;
+  t.style.display = FIX_TARGET ? 'block' : 'none';
+  t.innerHTML = FIX_TARGET ? `🔧 กำลังแก้หัวข้อ <b>${esc(title||FIX_TARGET)}</b> (${esc(FIX_TARGET)}) — อนุมัติแล้วฉบับนี้แทนหัวข้อเดิมในแชท <button data-act="clearFix" style="margin-left:6px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 8px;cursor:pointer">ยกเลิก</button>` : '';
+}
+async function fixEntry(id){
+  if(!/^[A-Za-z0-9_-]{1,80}$/.test(id)) return;
+  const e = (await manualById()).get(id);
+  setFixTarget(id, e && e.title);
+  $('af-q').value = e ? e.title : id; $('af-a').value = e ? String(e.answer||'') : '';
+  $('af-a').focus(); $('answerform').scrollIntoView({block:'center', behavior:'smooth'});
+}
+
 // Render the KB-draft review list with Approve buttons (closes the loop).
 function renderDrafts(drafts){
   const el = $('draftrows'); if(!el) return;
@@ -336,7 +392,7 @@ function renderDrafts(drafts){
       <div style="font-weight:700">${esc(d.title)}</div>
       <div style="color:var(--muted);font-size:13px;margin:6px 0">${esc(d.answer)}</div>
       <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)">
-        <span>หมวด: ${esc(d.category||'—')} · จาก: ${esc(d.source||'—')}</span>
+        <span>${d.target_id?`🔧 แก้หัวข้อ <b>${esc(d.target_id)}</b> (อนุมัติแล้วแทนหัวข้อเดิม) · `:''}หมวด: ${esc(d.category||'—')} · จาก: ${esc(d.source||'—')}</span>
         <button data-act="approveDraft" data-arg="${Number(d.id)||0}" style="margin-left:auto;background:#22c58b;color:#042a1c;border:0;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer">✅ อนุมัติ → ขึ้นแชท</button>
       </div>
       <pre id="md-${Number(d.id)||0}" style="display:none;white-space:pre-wrap;background:#0b1020;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;overflow:auto"></pre>
@@ -369,6 +425,8 @@ document.addEventListener('click', e => { const b = e.target.closest && e.target
     case 'saveAnswer': return window.saveAnswer(arg === '1');
     case 'approveDraft': return window.approveDraft(Number(arg) || 0);
     case 'retractLive': return window.retractLive(Number(arg) || 0);
+    case 'fixEntry': return fixEntry(String(arg || ''));
+    case 'clearFix': return setFixTarget(null);
     default: console.warn('dashboard: unknown data-act', b.dataset.act);
   }
 });
@@ -382,12 +440,12 @@ window.saveAnswer = async function(approve){
   localStorage.setItem('reflexwork_staff_name', by);
   note.textContent='⏳ กำลังบันทึก…';
   try{
-    const r=await fetch(base()+'/kb-draft',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({question:q,answer:a,source:'dashboard'})});
+    const r=await fetch(base()+'/kb-draft',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({question:q,answer:a,source:FIX_TARGET?'dashboard-fix':'dashboard',...(FIX_TARGET?{target_id:FIX_TARGET}:{})})});
     const j=await r.json(); if(!j.ok){ note.textContent='บันทึกไม่สำเร็จ: '+(j.error||r.status)+(r.status===401?' — ตั้ง Staff Token ก่อน':''); return; }
-    if(!approve){ note.textContent='✅ บันทึกเป็นร่างแล้ว — ตรวจแล้วกดอนุมัติในรายการด้านล่าง'; tick(); return; }
+    if(!approve){ note.textContent='✅ บันทึกเป็นร่างแล้ว — ตรวจแล้วกดอนุมัติในรายการด้านล่าง'; setFixTarget(null); tick(); return; }
     const r2=await fetch(base()+'/kb-approve',{method:'POST',headers:{'Content-Type':'application/json',...staffHeaders()},body:JSON.stringify({id:j.id,by})});
     const j2=await r2.json(); note.textContent = j2.ok ? '✅ อนุมัติแล้ว — ขึ้นในแชทภายใน ~15 วินาที' : 'อนุมัติไม่สำเร็จ: '+(j2.error||r2.status);
-    if(j2.ok){ $('af-q').value=''; $('af-a').value=''; showApproved(j2); } tick();
+    if(j2.ok){ $('af-q').value=''; $('af-a').value=''; setFixTarget(null); showApproved(j2); } tick();
   }catch(e){ note.textContent='⚠ เชื่อมต่อ API ไม่ได้'; }
 };
 function renderLive(entries){
@@ -397,7 +455,7 @@ function renderLive(entries){
       <div style="font-weight:700">${esc(d.title)}</div>
       <div style="color:var(--muted);font-size:13px;margin:6px 0">${esc(d.answer)}</div>
       <div style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)">
-        <span>อนุมัติ ${d.approved_at?esc(new Date(Number(d.approved_at)).toLocaleString('th-TH')):'—'}</span>
+        <span>${d.target_id?`🔧 แทนหัวข้อ <b>${esc(d.target_id)}</b> · `:''}อนุมัติ ${d.approved_at?esc(new Date(Number(d.approved_at)).toLocaleString('th-TH')):'—'}</span>
         <button data-act="retractLive" data-arg="${Number(d.id)||0}" style="margin-left:auto;background:transparent;color:#ff7b7b;border:1px solid rgba(255,123,123,.5);border-radius:8px;padding:5px 12px;cursor:pointer">ถอนออกจากแชท</button>
       </div></div>`).join('');
 }

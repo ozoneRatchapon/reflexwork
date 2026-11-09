@@ -410,7 +410,8 @@
 // First in the module, so the boot-error retry works even when load() fails; sendFeedback is a hoisted function declaration.
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button[data-fb],button[data-act]'); if(!b) return;
   switch(b.dataset.act || (b.dataset.fb ? 'vote' : '')){
-    case 'vote': return void sendFeedback(b.dataset.fb, Number(b.dataset.vote) > 0 ? 1 : -1);
+    case 'vote': return void sendFeedback(b.dataset.fb, Number(b.dataset.vote) > 0 ? 1 : -1, b.dataset.reason || '');
+    case 'reasons': return showReasons(b.dataset.fb);
     case 'reload': return location.reload();
     default: console.warn('chat: unknown data-act', b.dataset.act);
   }
@@ -498,8 +499,8 @@ const EXAMPLE_QS=()=>AGENCY.examples.map(e=>e.q);
 // Live staff answers (2026-11-03): an answer a staff member approves in the dashboard is in the chat within seconds, with its own
 // label, until it is merged into the main manual (or retracted). Read from the kernel's public GET /live-kb and merged into KB;
 // the search reads KB on every question, so nothing else changes. No kernel (other agencies by default) = no live answers.
-let LIVE_N=0, LIVE_SEQ=0, LIVE_SETTLED=false, LIVE_READY=Promise.resolve();
-function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์ · engine: rust</span>'; }
+let LIVE_N=0, LIVE_FIX=0, LIVE_SEQ=0, LIVE_SETTLED=false, LIVE_READY=Promise.resolve(), KB_BASE=[];
+function renderNote(){ $('note').innerHTML='คู่มือที่อนุมัติแล้ว '+(KB.length-LIVE_N)+' หัวข้อ'+(LIVE_N?` + คำตอบจากเจ้าหน้าที่ ${LIVE_N}`:'')+(LIVE_FIX?` · เจ้าหน้าที่แก้ไขแล้ว ${LIVE_FIX} หัวข้อ`:'')+' · ไม่ต้องล็อกอิน<span class="judge-only"> · 🦀 Reflex Kernel (WASM) ค้นคู่มือในเบราว์เซอร์ · engine: rust</span>'; }
 async function refreshLiveKb(){
   if(!KERNEL_API){ LIVE_SETTLED=true; return; }
   const my=++LIVE_SEQ;   // QA G11: overlapping refreshes (tab focus + poll) - only the latest request may write KB, a slow older one is dropped
@@ -509,8 +510,17 @@ async function refreshLiveKb(){
     const live = j.entries.filter(e=>e && e.id && e.answer).map(e=>({ id:'staff_'+Number(e.id), staff:true, approved_at:(Number.isFinite(Number(e.approved_at))&&Number(e.approved_at)>0&&Number(e.approved_at)<8.64e15)?Number(e.approved_at):0,
       // titles are interpolated as-is in several bubbles (they used to come only from our own manual): strip markup characters
       title:String(e.title||e.question||'').replace(/[<>"'&`]/g,'').slice(0,200), answer:String(e.answer).slice(0,2000), category:'staff',
-      keywords:[e.title,e.question,e.keywords].filter(Boolean).join(' ').toLowerCase().slice(0,600) }));
-    KB = KB.filter(e=>!e.staff).concat(live); LIVE_N = live.length; renderNote();
+      keywords:[e.title,e.question,e.keywords].filter(Boolean).join(' ').toLowerCase().slice(0,600),
+      fix_of: /^[A-Za-z0-9_-]{1,80}$/.test(String(e.target_id||'')) ? String(e.target_id) : null }));
+    // Plan 008 step 4: an approved FIX of a manual entry replaces that entry and keeps its id (votes after the fix land on the same
+    // entry, so the dashboard can compare before / after). It keeps the entry's source link. A new staff answer is added as before.
+    // A fix whose entry is not in this manual is shown as a new staff answer. (The kernel keeps one live fix per entry.)
+    const base = new Map(KB_BASE.map(e=>[e.id,e])), fixed = new Set();
+    for(const e of live){
+      const o = e.fix_of && !fixed.has(e.fix_of) ? base.get(e.fix_of) : null; if(!o) continue;
+      fixed.add(o.id); Object.assign(e, { id:o.id, source_url:o.source_url, keywords:[o.keywords, e.keywords].join(' ').slice(0,900) });
+    }
+    KB = KB_BASE.filter(e=>!fixed.has(e.id)).concat(live); LIVE_N = live.length - fixed.size; LIVE_FIX = fixed.size; renderNote();
   }catch(_){ /* kernel down: the manual still answers */ }
   finally{ if(my===LIVE_SEQ) LIVE_SETTLED=true; }
 }
@@ -525,6 +535,7 @@ async function load(){
   KB = await fetch('./knowledge-index.json').then(r=>r.json()).catch(()=>AGENCY.builtinKb?FALLBACK_KB:[]);
   KB = Array.isArray(KB) ? KB.filter(_okKb) : [];
   if(!KB.length) KB = AGENCY.builtinKb?FALLBACK_KB:[];
+  KB_BASE = KB;   // the published manual; live staff answers and fixes are laid over it on every /live-kb refresh
   // ~2 MB catalogue: load in the background so it never delays the first answer; until it arrives the programme path is simply off.
   // Another agency's pack without a catalogue (programmes.json is optional, docs/adopt.md): a 404 means 'none' - the programme notice is
   // skipped and the question goes to that agency's manual. Our own site keeps 'failed' on a 404 (it always ships the catalogue).
@@ -2257,8 +2268,18 @@ function fbUI(q, proof, entryId){
   return receiptUI(q, entryId) + `<div class="fb" id="${id}">
       <span class="fb-q">คำตอบนี้ช่วยได้ไหม?</span>
       <button class="fb-b up" data-fb="${id}" data-vote="1">👍 ใช่</button>
-      <button class="fb-b down" data-fb="${id}" data-vote="-1">👎 ไม่</button>
+      <button class="fb-b down" data-fb="${id}" ${entryId ? 'data-act="reasons"' : 'data-vote="-1"'}>👎 ไม่</button>
     </div>`;
+}
+// Plan 008 step 1: after 👎 on an answer from a manual entry, ask WHY with 4 fixed choices (no free text: nothing personal is typed or
+// stored) or skip. ONE request per answer either way, sent on the choice. The reason only puts the entry on the staff's to-fix list.
+const FB_REASONS = [['wrong','ตอบผิด'], ['off_topic','ไม่ตรงคำถาม'], ['outdated','ข้อมูลเก่า'], ['incomplete','ไม่ครบ']];
+function showReasons(id){
+  const el = document.getElementById(id), rec = (window.__fbQ||{})[id]; if(!el || !rec || rec.sent) return;
+  el.innerHTML = `<span class="fb-q" id="${id}-why">ไม่ช่วยเพราะอะไร?</span><span class="fb-why" role="group" aria-labelledby="${id}-why">`
+    + FB_REASONS.map(([code, label]) => `<button class="fb-b down" data-fb="${id}" data-vote="-1" data-reason="${code}">${label}</button>`).join('')
+    + `<button class="fb-b" data-fb="${id}" data-vote="-1" data-reason="">ข้าม</button></span>`;
+  el.querySelector('button')?.focus();
 }
 
 // kernel endpoint for feedback. Empty = static demo (no backend): record locally
@@ -2299,7 +2320,7 @@ function logGap(q){
   try{ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{ method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ q:scrubForLog(q), source:'web' }), keepalive:true }).catch(()=>{}); }catch(_){}
 }
-async function sendFeedback(id, reward){
+async function sendFeedback(id, reward, reason){
   const el = document.getElementById(id); if(!el) return;
   const rec = (window.__fbQ||{})[id] || {}; const q = rec.q||''; const proof = rec.proof||''; const entryId = rec.entryId||''; const voteId = rec.voteId||'';
   if(rec.sent) return;                      // one vote per answer: repeat clicks sent duplicate / contradictory votes
@@ -2309,7 +2330,7 @@ async function sendFeedback(id, reward){
     try{
       const resp = await fetch(KERNEL_API.replace(/\/$/,'')+'/feedback',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({category:'DataQuery', input:scrubForLog(q), reward, proof, entry_id:entryId, vote_id:voteId})
+        body: JSON.stringify({category:'DataQuery', input:scrubForLog(q), reward, proof, entry_id:entryId, vote_id:voteId, ...(reward < 0 && reason ? {reason} : {})})
       });
       if(!resp.ok) throw new Error(resp.status);
       await resp.json().catch(()=>null);
