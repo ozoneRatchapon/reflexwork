@@ -13,7 +13,7 @@ const advice = core.slice(core.indexOf("if(take(['advice_abstain','advice_strong
 const rwSrc = html.slice(html.indexOf('const _RW_CACHE = new Map();'), html.indexOf('function understand('));
 const replies = [];
 const fakeFetch = async () => { const r = replies.shift(); return { ok: r.status === 200, json: async () => r.body }; };
-const rewriteQuery = new Function('fetch', 'LLM_API', 'AI_OFF', 'AbortSignal', rwSrc + '\nreturn rewriteQuery;')(fakeFetch, 'http://x', false, { timeout: () => null });
+const rewriteQuery = new Function('fetch', 'LLM_API', 'AI_OFF', 'AbortSignal', 'scrubForLog', rwSrc + '\nreturn rewriteQuery;')(fakeFetch, 'http://x', false, { timeout: () => null }, q => q);   // the mask itself: tests/privacy.test.mjs
 const good = { status: 200, body: { queries: ['ค่าเล่าเรียน'], source: 'gemini' } };
 for (const [label, bad] of [['HTTP 500', { status: 500, body: {} }], ['HTTP 429', { status: 429, body: {} }], ['all models failed', { status: 200, body: { queries: [], source: 'fallback' } }]]) {
   const q = 'q-' + label; replies.push(bad, good);

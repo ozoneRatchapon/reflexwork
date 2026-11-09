@@ -564,7 +564,7 @@ async function load(){
 // tables, intake, programme resolver, route order) runs only in the wasm build shipped beside this page; there is no JS copy and no
 // ?engine= switch. load() stops with the boot error and its retry button when the wasm lacks one of these exports (an old cached build).
 // Contract: benchmark/golden (scripts/wasm_golden_check.mjs).
-const _WASM_NEEDS = ['kb_search','cos_to_score','answer_points','slot_lead','decide_tier','schedule_table','fee_table','understand','classify_issue','is_advice','is_english','Resolver','Router'];
+const _WASM_NEEDS = ['kb_search','cos_to_score','answer_points','slot_lead','decide_tier','schedule_table','fee_table','understand','classify_issue','is_advice','is_english','mask_pii','Resolver','Router'];
 
 load().catch(()=>{
   const boot=$('boot');
@@ -1266,7 +1266,7 @@ async function rewriteQuery(q){
   if(_RW_CACHE.has(q)) return _RW_CACHE.get(q);
   try{
     const r = await fetch(LLM_API.replace(/\/$/,'')+'/rewrite',{ method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ input:q }), signal: AbortSignal.timeout(9000) });
+      body: JSON.stringify({ input:scrubForLog(q) }), signal: AbortSignal.timeout(9000) });
     const j = r.ok ? await r.json() : {};
     const qs = (Array.isArray(j.queries) ? j.queries : []).filter(x=>typeof x==='string' && x.trim()).slice(0,3);
     if(r.ok && j.source!=='fallback') _RW_CACHE.set(q, qs);   // QA F31: only a real answer is cached; 5xx / 429 / fallback retry
@@ -1294,7 +1294,7 @@ async function groundedHybrid(q, entries){
   try{
     const r = await fetch(LLM_API.replace(/\/$/,'')+'/llm',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({input:q, context}), signal: ac.signal
+      body: JSON.stringify({input:scrubForLog(q), context}), signal: ac.signal
     });
     if(!r.ok) return null;
     const j = await r.json();
@@ -2292,7 +2292,8 @@ const AI_OFF = (new URLSearchParams(location.search)).get('ai') === 'off';
 // overclaim — we really do persist it. Best-effort; never blocks the UI.
 // Strip what identifies a person before anything leaves the page (the gap log is readable by staff and public-facing tools):
 // e-mail addresses, runs of 6+ digits (student ids, phone numbers, national ids) and a name introduced by 'ชื่อ'. The server masks too.
-function scrubForLog(q){ return String(q||'').replace(/[\w.+-]+@[\w.-]+\.\w+/g,'[email]').replace(/\d[\d\s-]{4,}\d/g,'[id]').replace(/(ชื่อ(?:-สกุล)?\s*)[^\s,;]+(?:\s+[^\s,;]+)?/g,'$1[name]').slice(0,500); }
+// Every copy of a question that leaves the browser (AI proxy, gap list, vote) goes through the Rust mask (reflex-wasm `pii`, PDPA check 2026-11-09).
+function scrubForLog(q){ return WASM.mask_pii(String(q||'')).slice(0,500); }
 function logGap(q){
   if(!KERNEL_API) return;
   try{ fetch(KERNEL_API.replace(/\/$/,'')+'/gap',{ method:'POST', headers:{'Content-Type':'application/json'},
@@ -2308,7 +2309,7 @@ async function sendFeedback(id, reward){
     try{
       const resp = await fetch(KERNEL_API.replace(/\/$/,'')+'/feedback',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({category:'DataQuery', input:q, reward, proof, entry_id:entryId, vote_id:voteId})
+        body: JSON.stringify({category:'DataQuery', input:scrubForLog(q), reward, proof, entry_id:entryId, vote_id:voteId})
       });
       if(!resp.ok) throw new Error(resp.status);
       await resp.json().catch(()=>null);

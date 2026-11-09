@@ -70,7 +70,8 @@ const grab = re => { const m = html.match(re); if (!m) throw new Error('not foun
 const src = [grab(/function newVoteId\(\)\{[^\n]*\n/), grab(/function fbUI\(q, proof, entryId\)\{[\s\S]*?\n\}\n/), grab(/async function sendFeedback\(id, reward\)\{[\s\S]*?\n\}\n/)].join('\n');
 const sent = [];
 // fbUI now prepends the answer receipt (receiptUI, tested in tests/receipt.test.mjs); the vote logic here does not depend on it
-const ctx = { window: {}, fbN: 0, receiptUI: () => '', KERNEL_API: 'https://k.test', BANDIT: { reward() {} }, updateRatio() {}, document: { getElementById: () => ({ innerHTML: '' }) },
+const ctx = { window: {}, fbN: 0, receiptUI: () => '', scrubForLog: q => q,   // the mask itself: tests/privacy.test.mjs
+  KERNEL_API: 'https://k.test', BANDIT: { reward() {} }, updateRatio() {}, document: { getElementById: () => ({ innerHTML: '' }) },
   fetch: async (url, init) => { sent.push(JSON.parse(init.body)); return { json: async () => ({ policy_version: 3 }) }; } };
 const page = new Function(...Object.keys(ctx), src + '\nreturn { fbUI, sendFeedback };')(...Object.values(ctx));
 page.fbUI('ส่งเล่มกี่วัน', 'HASH', 'thesis_submit_days'); page.fbUI('ส่งเล่มกี่วัน', 'HASH', 'thesis_submit_days');

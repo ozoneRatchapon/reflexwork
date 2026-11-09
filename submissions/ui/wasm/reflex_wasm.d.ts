@@ -98,6 +98,12 @@ export function is_english(q: string): boolean;
 export function kb_search(kb: any, query: string): any;
 
 /**
+ * Question text with emails, national ids, phones, account ids, LINE ids and titled names replaced by placeholders.
+ * The page sends only this to the AI proxy and the gap list (PDPA check 2026-11-09, `docs/pdpa-check.md`).
+ */
+export function mask_pii(text: string): string;
+
+/**
  * Route one task entirely in the browser. Returns a JSON object with the
  * decision + a reproducible BLAKE3 proof — no backend, no token cost on the
  * fast path. Mirrors the native Rust kernel's decision exactly.
@@ -136,6 +142,7 @@ export interface InitOutput {
     readonly is_advice: (a: number, b: number) => number;
     readonly is_english: (a: number, b: number) => number;
     readonly kb_search: (a: number, b: number, c: number) => number;
+    readonly mask_pii: (a: number, b: number, c: number) => void;
     readonly resolver_new: (a: number, b: number) => void;
     readonly resolver_resolve: (a: number, b: number, c: number, d: number) => number;
     readonly route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
