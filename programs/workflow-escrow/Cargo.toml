@@ -15,6 +15,13 @@ no-log-ix-name = []
 cpi = ["no-entrypoint"]
 default = []
 idl-build = ["anchor-lang/idl-build"]
+# cfgs the anchor `#[program]` macro checks (declared so rustc does not warn `unexpected_cfgs`)
+custom-heap = []
+custom-panic = []
+anchor-debug = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
 
 [dependencies]
 anchor-lang = { git = "https://github.com/otter-sec/anchor", tag = "v1.2.0", features = ["init-if-needed"] }

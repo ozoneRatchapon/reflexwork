@@ -19,20 +19,6 @@ struct JsonRpcRequest {
     params: Value,
 }
 
-#[derive(Debug, Deserialize)]
-struct JsonRpcResponse {
-    jsonrpc: String,
-    id: String,
-    result: Option<Value>,
-    error: Option<JsonRpcError>,
-}
-
-#[derive(Debug, Deserialize)]
-struct JsonRpcError {
-    code: i64,
-    message: String,
-}
-
 // ─── Tool result types ────────────────────────────────────────────────────────
 
 /// Parsed output from `analyze_task` tool.
@@ -153,9 +139,11 @@ impl McpClient {
         //     .spawn()?;
         // ...
 
-        Err(KernelError::McpError(
-            "MCP stdio transport not yet connected — implement in mcp/transport.rs".into()
-        ))
+        Err(KernelError::McpError(format!(
+            "MCP stdio transport not yet connected (would run: {} {}) — implement in mcp/transport.rs",
+            self.server_command,
+            self.server_args.join(" ")
+        )))
     }
 }
 

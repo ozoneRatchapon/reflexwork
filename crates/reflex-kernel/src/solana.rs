@@ -161,6 +161,8 @@ impl AnchorClient {
             .replace("https://", "wss://")
             .replace("http://",  "ws://");
         let cluster    = Cluster::Custom(self.rpc_url.clone(), ws_url);
+        // anchor-client's own signer type: `Program<C>` wants `Arc<DynSigner>`, and DynSigner is not Send/Sync - the client is used on one thread
+        #[allow(clippy::arc_with_non_send_sync)]
         let payer: Arc<DynSigner> = Arc::new(DynSigner(Arc::new(keypair)));
         Client::new_with_options(cluster, payer, commitment)
             .program(program_id)

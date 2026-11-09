@@ -232,7 +232,7 @@ async fn main() {
             println!("   S1 (Reflex Kernel) → S3 (Anchor devnet) — no LLM invoked");
         }
 
-        "help" | _ => {
+        _ => {   // "help" and anything unknown
             println!("reflex-agent — ReflexWork Reflex Kernel");
             println!();
             println!("USAGE:");
