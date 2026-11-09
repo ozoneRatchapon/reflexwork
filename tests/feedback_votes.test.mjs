@@ -1,7 +1,7 @@
 // Each 👍/👎 must count once per ANSWER shown, not once per question text.   Run: node tests/feedback_votes.test.mjs
 // Server: the real POST /feedback handler (integrations/kernel-worker/worker.mjs) on an in-memory stand-in for D1.
 // Page:   the real fbUI() / sendFeedback() extracted from submissions/ui/chatbot.html, with a fake fetch.
-import worker from '../integrations/kernel-worker/worker.mjs';
+import worker from './lib/kernel_worker.mjs';   // the real worker; its Rust rules load as a .wasm module
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -11,7 +11,7 @@ const check = (name, ok, detail = '') => { console.log((ok ? '✓' : '✗') + ' 
 
 // -- a tiny D1 stand-in that understands exactly the statements the feedback path issues ------------------------------------------------
 function fakeDB() {
-  const feedbackLog = new Set(), metrics = {}, entry = {};
+  const feedbackLog = new Set(), metrics = {}, entry = {}, days = {}, reasons = {};
   const make = (sql, a) => ({
     first: async () => {
       if (sql.startsWith('SELECT 1 FROM feedback_log')) return feedbackLog.has(a[0]) ? { 1: 1 } : null;
@@ -23,12 +23,14 @@ function fakeDB() {
       if (sql.startsWith('INSERT INTO feedback_log')) { feedbackLog.add(a[0]); return {}; }
       if (sql.startsWith('INSERT INTO metrics')) { metrics[a[0]] = (metrics[a[0]] || 0) + a[1]; return {}; }
       if (sql.startsWith('INSERT INTO entry_conf')) { entry[a[0]] = { conf: a[1], up: a[2], down: a[3] }; return {}; }
+      if (sql.startsWith('INSERT INTO entry_vote_day')) { const k = a[0] + '|' + a[1], d = days[k] || { up: 0, down: 0 }; days[k] = { up: d.up + a[2], down: d.down + a[3] }; return {}; }
+      if (sql.startsWith('INSERT INTO entry_reason')) { const k = a[0] + '|' + a[1]; reasons[k] = (reasons[k] || 0) + 1; return {}; }
       throw new Error('unexpected run(): ' + sql);
     },
     all: async () => ({ results: [] }),
   });
   const stmt = sql => ({ bind: (...a) => make(sql, a), ...make(sql, []) });   // D1 allows prepare(sql).first() as well as prepare(sql).bind(...).first()
-  return { exec: async () => ({}), prepare: stmt, _: { feedbackLog, metrics, entry } };
+  return { exec: async () => ({}), prepare: stmt, _: { feedbackLog, metrics, entry, days, reasons } };
 }
 async function vote(env, body) {
   const res = await worker.fetch(new Request('https://k.test/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://reflexwork.pages.dev', 'CF-Connecting-IP': `10.1.0.${++ipN}` }, body: JSON.stringify(body) }), env);
@@ -67,7 +69,7 @@ const uid = n => `aaaaaaaa-bbbb-cccc-dddd-${String(n).padStart(12, '0')}`;
 // -- the page ----------------------------------------------------------------------------------------------------------------------
 const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'submissions/ui/chatbot.html'), 'utf8');
 const grab = re => { const m = html.match(re); if (!m) throw new Error('not found in chatbot.html: ' + re); return m[0]; };
-const src = [grab(/function newVoteId\(\)\{[^\n]*\n/), grab(/function fbUI\(q, proof, entryId\)\{[\s\S]*?\n\}\n/), grab(/async function sendFeedback\(id, reward\)\{[\s\S]*?\n\}\n/)].join('\n');
+const src = [grab(/function newVoteId\(\)\{[^\n]*\n/), grab(/function fbUI\(q, proof, entryId\)\{[\s\S]*?\n\}\n/), grab(/async function sendFeedback\(id, reward, reason\)\{[\s\S]*?\n\}\n/)].join('\n');
 const sent = [];
 // fbUI now prepends the answer receipt (receiptUI, tested in tests/receipt.test.mjs); the vote logic here does not depend on it
 const ctx = { window: {}, fbN: 0, receiptUI: () => '', scrubForLog: q => q,   // the mask itself: tests/privacy.test.mjs
@@ -80,4 +82,19 @@ check('two answers to the SAME question get different vote ids (so two users are
 check('the vote id is long enough for the server to accept it as an identity', sent.every(s => String(s.vote_id).replace(/[^A-Za-z0-9-]/g, '').length >= 16));
 check('the page still sends everything the server needs (input, reward, entry id, proof)', sent[0].input === 'ส่งเล่มกี่วัน' && sent[0].reward === -1 && sent[0].entry_id === 'thesis_submit_days' && sent[0].proof === 'HASH');
 
+// Plan 008 step 2: a 👎 carries one of four reasons (Rust parse_reason), stored per entry; anything else is dropped, the vote still counts.
+{ const env = { DB: fakeDB() };
+  const r1 = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(101), reason: 'outdated' });
+  const r2 = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(102), reason: 'outdated' });
+  const r3 = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(103), reason: 'DROP TABLE' });
+  const r4 = await vote(env, { ...SAME_SENTENCE, reward: 1, vote_id: uid(104), reason: 'wrong' });
+  const dup = await vote(env, { ...SAME_SENTENCE, reward: -1, vote_id: uid(101), reason: 'wrong' });
+  const R = env.DB._.reasons;
+  check('a known reason is stored per entry and counted', R['thesis_submit_days|outdated'] === 2 && r1.reason === 'outdated' && r2.reason === 'outdated', JSON.stringify(R));
+  check('an unknown reason is dropped but the 👎 still counts', r3.accepted === true && r3.reason === undefined && Object.keys(R).length === 1);
+  check('a 👍 never stores a reason', r4.accepted === true && r4.reason === undefined && !R['thesis_submit_days|wrong']);
+  check('a repeated vote id stores no second reason (same de-dup as the vote)', dup.deduped === true && !R['thesis_submit_days|wrong']);
+  const d = Object.values(env.DB._.days)[0] || {};
+  check('votes are also counted per entry per day (for before / after a fix)', d.up === 1 && d.down === 3, JSON.stringify(env.DB._.days));
+}
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

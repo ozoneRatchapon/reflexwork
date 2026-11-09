@@ -14,6 +14,11 @@ import { blake3 } from './vendor/blake3.js';
 import { bytesToHex, utf8ToBytes } from './vendor/utils.js';
 import { buildPayload } from '../_shared/federation.mjs';
 import { vote_bounds } from '../_shared/beta_bound.mjs';
+// Feedback rules in Rust (crates/feedback-core, plan 008 / plan 016): 👎 reason enum, the entries-to-fix queue, before / after a fix.
+// The worker only reads and writes D1. Rebuild: crates/feedback-core/build.sh
+import fbWasm from './fbcore/feedback_core_bg.wasm';
+import { initSync as fbInit, parse_reason, fix_queue, fix_effect, day_of } from './fbcore/feedback_core.js';
+fbInit({ module: fbWasm });
 
 // ── Reflex Kernel routing, ported 1:1 from crates/reflex-wasm/src/lib.rs ──────
 // Same seeded weights, same sigmoid gate (θ=0.72), same category one-hot — so
@@ -117,6 +122,9 @@ export default {
       // Counts are public; the question samples (masked, but free text) only with the staff token (PDPA check O1, docs/pdpa-check.md).
       if (url.pathname === '/gaps' && request.method === 'GET') return gaps(env, isStaff(request, env));
       if (url.pathname === '/entry-conf' && request.method === 'GET') return entryConf(env);
+      // Public, ids + counts only (no text): the entries-to-fix queue and the 👎 share before / after an entry's last fix.
+      if (url.pathname === '/fix-queue' && request.method === 'GET') return fixQueue(env);
+      if (url.pathname === '/fix-effect' && request.method === 'GET') return fixEffect(env, url.searchParams.get('id'));
       // Public, read-only: staff answers that are LIVE in the chat (approved through the dashboard, not yet in the main manual).
       if (url.pathname === '/live-kb' && request.method === 'GET') return liveKb(env);
       // Dry-run preview of what the opt-in federation layer WOULD send — reads
@@ -185,17 +193,20 @@ async function ensureSchema(env) {
   );
   // Live staff answers (2026-11-03): who approved and when. Older databases lack the columns; add them once per isolate.
   if (!schemaMigrated) {
-    for (const col of ['approved_at INTEGER', 'approved_by TEXT']) {
+    for (const col of ['approved_at INTEGER', 'approved_by TEXT', 'target_id TEXT']) {
       try { await env.DB.exec(`ALTER TABLE kb_draft ADD COLUMN ${col};`); } catch (_) { /* already there */ }
     }
     schemaMigrated = true;
   }
-  // entry_conf: per-KB-entry confidence driven by 👍/👎 feedback (EMA). A low
-  // conf flags an entry that keeps disappointing users — the "which entries to
-  // fix" backlog, learned automatically.
+  // entry_conf: per-KB-entry vote counts and their Beta posterior mean. A low value puts an entry on the staff's
+  // "which entries to check" list; it never changes an answer.
   await env.DB.exec(
     "CREATE TABLE IF NOT EXISTS entry_conf (id TEXT PRIMARY KEY, conf REAL NOT NULL DEFAULT 1.0, up INTEGER DEFAULT 0, down INTEGER DEFAULT 0, at INTEGER);"
   );
+  // Plan 008: why a 👎 (a fixed enum, no text), votes per entry per UTC day (for before / after a fix), and each approved fix.
+  await env.DB.exec("CREATE TABLE IF NOT EXISTS entry_reason (id TEXT NOT NULL, reason TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, last_at INTEGER, PRIMARY KEY (id, reason));");
+  await env.DB.exec("CREATE TABLE IF NOT EXISTS entry_vote_day (id TEXT NOT NULL, day INTEGER NOT NULL, up INTEGER NOT NULL DEFAULT 0, down INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (id, day));");
+  await env.DB.exec("CREATE TABLE IF NOT EXISTS entry_fix (id TEXT NOT NULL, draft_id INTEGER NOT NULL, fixed_at INTEGER NOT NULL, PRIMARY KEY (id, draft_id));");
 }
 
 let schemaMigrated = false;
@@ -264,7 +275,7 @@ async function feedback(request, env) {
   // This only RANKS entries for staff to check (dashboard, /entry-conf); it never changes an answer or a route (plan 008 step 7).
   // Stored in entry_conf. `policy_version` below is a vote counter, not a model version: this worker has no weights to update.
   const entryId = String(body.entry_id || '').slice(0, 80);
-  let entryConfidence;
+  let entryConfidence, reasonStored;
   if (entryId) {
     const row = await env.DB.prepare("SELECT conf, up, down FROM entry_conf WHERE id=?1").bind(entryId).first();
     // conf = posterior mean of Beta(1+up, 1+down) (2026-11-07, was an EMA 0.85·prev + 0.15·target: that depended on the ORDER of the
@@ -277,11 +288,23 @@ async function feedback(request, env) {
       "ON CONFLICT(id) DO UPDATE SET conf=?2, up=?3, down=?4, at=?5"
     ).bind(entryId, next, up, down, Date.now()).run();
     entryConfidence = next;
+    const now = Date.now();
+    await env.DB.prepare(
+      "INSERT INTO entry_vote_day (id, day, up, down) VALUES (?1,?2,?3,?4) ON CONFLICT(id, day) DO UPDATE SET up=up+?3, down=down+?4"
+    ).bind(entryId, day_of(now), reward >= 0 ? 1 : 0, reward < 0 ? 1 : 0).run();
+    // A reason only with a 👎, and only one of the four codes (anything else: the vote counts, the reason is dropped).
+    const reason = reward < 0 ? parse_reason(String(body.reason || '')) : undefined;
+    if (reason) {
+      await env.DB.prepare(
+        "INSERT INTO entry_reason (id, reason, n, last_at) VALUES (?1,?2,1,?3) ON CONFLICT(id, reason) DO UPDATE SET n=n+1, last_at=?3"
+      ).bind(entryId, reason, now).run();
+      reasonStored = reason;
+    }
   }
 
   const row = await env.DB.prepare("SELECT v FROM metrics WHERE k='policy_version'").first();
   return json({ accepted: true, policy_version: row ? row.v : 1, reward,
-    entry_id: entryId || undefined, entry_confidence: entryConfidence,
+    entry_id: entryId || undefined, entry_confidence: entryConfidence, reason: reasonStored,
     note: 'feedback recorded; entry confidence = Beta posterior mean of its vote counts' });
 }
 
@@ -436,10 +459,12 @@ async function kbDraft(request, env) {
   const keywords = String(b.keywords || question).toLowerCase().slice(0, 300);
   const category = String(b.category || 'general').slice(0, 64);
   const source = String(b.source || 'staff-reply').slice(0, 32);
+  // Plan 008 step 4: a draft that FIXES an existing manual entry names it; approving it replaces that entry in the chat (same id).
+  const targetId = /^[A-Za-z0-9_-]{1,80}$/.test(String(b.target_id || '')) ? String(b.target_id) : null;
   const r = await env.DB.prepare(
-    "INSERT INTO kb_draft (title, question, answer, keywords, category, status, source, at) " +
-    "VALUES (?1,?2,?3,?4,?5,'pending',?6,?7)"
-  ).bind(title, question, answer, keywords, category, source, Date.now()).run();
+    "INSERT INTO kb_draft (title, question, answer, keywords, category, status, source, at, target_id) " +
+    "VALUES (?1,?2,?3,?4,?5,'pending',?6,?7,?8)"
+  ).bind(title, question, answer, keywords, category, source, Date.now(), targetId).run();
   // bound the drafts table
   await env.DB.exec("DELETE FROM kb_draft WHERE status='pending' AND id NOT IN (SELECT id FROM kb_draft WHERE status='pending' ORDER BY at DESC LIMIT 100);");
   return json({ ok: true, id: r.meta?.last_row_id });
@@ -449,7 +474,7 @@ async function kbDraft(request, env) {
 async function kbDrafts(env) {
   await ensureSchema(env);
   const rows = await env.DB.prepare(
-    "SELECT id, title, question, answer, keywords, category, source, at FROM kb_draft WHERE status='pending' ORDER BY at DESC LIMIT 50"
+    "SELECT id, title, question, answer, keywords, category, source, at, target_id FROM kb_draft WHERE status='pending' ORDER BY at DESC LIMIT 50"
   ).all();
   return json({ drafts: rows.results || [] });
 }
@@ -469,7 +494,13 @@ async function kbApprove(request, env) {
   // Approving makes the answer LIVE in the web chat within seconds (GET /live-kb), labelled as added by staff, retractable
   // (POST /kb-retract). Rows approved before this existed keep status 'approved' and are NOT published.
   const by = String(b.by || '').trim().slice(0, 40);
-  await env.DB.prepare("UPDATE kb_draft SET status='live', approved_at=?2, approved_by=?3 WHERE id=?1").bind(id, Date.now(), by).run();
+  const approvedAt = Date.now();
+  await env.DB.prepare("UPDATE kb_draft SET status='live', approved_at=?2, approved_by=?3 WHERE id=?1").bind(id, approvedAt, by).run();
+  if (d.target_id) {
+    // One live fix per entry: an older live fix of the same entry is retracted, and the fix is recorded for before / after (step 5).
+    await env.DB.prepare("UPDATE kb_draft SET status='retracted' WHERE target_id=?1 AND status='live' AND id<>?2").bind(d.target_id, id).run();
+    await env.DB.prepare("INSERT OR IGNORE INTO entry_fix (id, draft_id, fixed_at) VALUES (?1,?2,?3)").bind(d.target_id, id, approvedAt).run();   // approving twice records one fix
+  }
   // Filename slug: prefer ASCII (latin/digits) from the title; Thai-only titles
   // have no ASCII, so fall back to a stable kb_<id> name the maintainer renames.
   const ascii = String(d.title).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
@@ -495,10 +526,35 @@ async function kbRetract(request, env) {
   return json({ ok: true, id, changed: r.meta?.changes || 0 });
 }
 
+// GET /fix-queue — entries with a 👎 or a reason, most 👎 first (order and reason counts: Rust fix_queue). Ids and counts only.
+async function fixQueue(env) {
+  await ensureSchema(env);
+  const conf = (await env.DB.prepare("SELECT id, up, down FROM entry_conf").all()).results || [];
+  const reasons = (await env.DB.prepare("SELECT id, reason, n FROM entry_reason").all()).results || [];
+  const fixes = (await env.DB.prepare("SELECT id, MAX(fixed_at) AS last FROM entry_fix GROUP BY id").all()).results || [];
+  const rows = new Map(conf.map(r => [String(r.id), { id: String(r.id), up: Number(r.up) || 0, down: Number(r.down) || 0, reasons: {}, last_fix_at: null }]));
+  const row = id => rows.get(id) || rows.set(id, { id, up: 0, down: 0, reasons: {}, last_fix_at: null }).get(id);
+  for (const r of reasons) { const code = parse_reason(String(r.reason)); if (code) row(String(r.id)).reasons[code] = Number(r.n) || 0; }
+  for (const f of fixes) row(String(f.id)).last_fix_at = Number(f.last) || null;
+  return json({ entries: JSON.parse(fix_queue(JSON.stringify([...rows.values()]))).slice(0, 50) });
+}
+
+// GET /fix-effect?id=<entry> — 👎 share before vs after the entry's last approved fix (Rust fix_effect; "too few votes" under 10 a side).
+async function fixEffect(env, rawId) {
+  const id = String(rawId || '');
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(id)) return json({ error: 'id required' }, 400);
+  await ensureSchema(env);
+  const fix = await env.DB.prepare("SELECT MAX(fixed_at) AS last FROM entry_fix WHERE id=?1").bind(id).first();
+  if (!fix || !fix.last) return json({ id, fixed: false });
+  const days = ((await env.DB.prepare("SELECT day, up, down FROM entry_vote_day WHERE id=?1").bind(id).all()).results || [])
+    .map(r => ({ day: Number(r.day), up: Number(r.up) || 0, down: Number(r.down) || 0 }));
+  return json({ id, fixed: true, fixed_at: Number(fix.last), ...JSON.parse(fix_effect(JSON.stringify(days), Number(fix.last))) });
+}
+
 // GET /live-kb — the live staff answers, newest first. Public: this is published content (the chat merges it at load).
 async function liveKb(env) {
   const rows = await env.DB.prepare(
-    "SELECT id, title, question, answer, keywords, category, approved_at FROM kb_draft WHERE status='live' ORDER BY approved_at DESC LIMIT 100"
+    "SELECT id, title, question, answer, keywords, category, approved_at, target_id FROM kb_draft WHERE status='live' ORDER BY approved_at DESC LIMIT 100"
   ).all();
   return new Response(JSON.stringify({ entries: rows.results || [] }),
     { headers: { ...cors(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });

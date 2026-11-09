@@ -55,7 +55,7 @@ const stat = http.createServer((req, res) => {
 
 // --- mock kernel + LLM proxy (one port; the page allows loopback overrides) ------------------------------------------------------
 let MOCK_REQS = 0;
-const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [], live: [], votes: [] };
+const MOCK = { rewrite: { delay: 0, body: { queries: [], source: 'gemini' } }, llm: { status: 500 }, gaps: [], live: [], votes: [], fixQueue: [], drafts: [] };
 const mock = http.createServer((req, res) => {
   const h = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
   if (req.method === 'OPTIONS') { res.writeHead(204, h); return res.end(); }
@@ -65,6 +65,8 @@ const mock = http.createServer((req, res) => {
     if (u === '/live-kb') { res.writeHead(200, h); return res.end(JSON.stringify({ entries: MOCK.live })); }
     if (u === '/gap') { MOCK.gaps.push(b); res.writeHead(200, h); return res.end('{}'); }
     if (u === '/feedback') { MOCK.votes.push(b); res.writeHead(200, h); return res.end('{}'); }
+    if (u === '/fix-queue') { res.writeHead(200, h); return res.end(JSON.stringify({ entries: MOCK.fixQueue })); }
+    if (u === '/kb-draft') { MOCK.drafts.push(b); res.writeHead(200, h); return res.end(JSON.stringify({ ok: true, id: 1 })); }
     if (u === '/rewrite') return setTimeout(() => { res.writeHead(200, h); res.end(JSON.stringify(MOCK.rewrite.body)); }, MOCK.rewrite.delay);
     if (u === '/llm') { res.writeHead(MOCK.llm.status, h); return res.end(MOCK.llm.status === 200 ? JSON.stringify(MOCK.llm.body) : 'x'); }
     res.writeHead(200, h); res.end('{}');
@@ -118,6 +120,21 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   const voted = await ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.fb-b.up'); if(!b) return false; b.click(); return true;})()`);
   await until(`/บันทึกความเห็นแล้ว/.test([...document.querySelectorAll('#chat .fb')].pop()?.innerText||'')`, 4000);
   check(`👍 (a data-fb button, no inline handler) sends one vote with the question`, voted && MOCK.votes.length === 1 && /"reward":1/.test(MOCK.votes[0]) && /ส่งรูปเล่ม/.test(MOCK.votes[0]), `clicked=${voted} votes=${MOCK.votes.join(' | ')}`);
+
+  // Plan 008 step 1: 👎 on a manual answer asks why (4 fixed choices + skip); the choice sends ONE vote with the reason code.
+  await ask('ส่งรูปเล่มภายในกี่วัน'); MOCK.votes = [];
+  await ev(`[...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.fb-b.down').click()`);
+  const chips = await ev(`[...[...document.querySelectorAll('#chat .fb')].pop().querySelectorAll('button')].map(b=>b.textContent.trim()+'='+b.dataset.reason).join(',')`);
+  check(`👎 shows the 4 reasons + skip and sends nothing yet`, chips === 'ตอบผิด=wrong,ไม่ตรงคำถาม=off_topic,ข้อมูลเก่า=outdated,ไม่ครบ=incomplete,ข้าม=' && MOCK.votes.length === 0, `${chips} votes=${MOCK.votes.length}`);
+  check(`the first reason has the keyboard focus`, await ev(`document.activeElement && document.activeElement.dataset.reason === 'wrong'`));
+  await ev(`[...[...document.querySelectorAll('#chat .fb')].pop().querySelectorAll('button')].find(b=>b.dataset.reason==='outdated').click()`);
+  await until(`/บันทึกความเห็นแล้ว/.test([...document.querySelectorAll('#chat .fb')].pop()?.innerText||'')`, 4000);
+  check(`a reason sends one 👎 with reason "outdated" and the entry id`, MOCK.votes.length === 1 && /"reward":-1/.test(MOCK.votes[0]) && /"reason":"outdated"/.test(MOCK.votes[0]) && /"entry_id":"[^"]+"/.test(MOCK.votes[0]), MOCK.votes.join(' | '));
+  await ask('ส่งรูปเล่มภายในกี่วัน'); MOCK.votes = [];
+  await ev(`[...document.querySelectorAll('#chat .msg.b')].pop().querySelector('.fb-b.down').click()`);
+  await ev(`[...[...document.querySelectorAll('#chat .fb')].pop().querySelectorAll('button')].find(b=>b.textContent.trim()==='ข้าม').click()`);
+  await until(`/บันทึกความเห็นแล้ว/.test([...document.querySelectorAll('#chat .fb')].pop()?.innerText||'')`, 4000);
+  check(`skip sends one 👎 with no reason`, MOCK.votes.length === 1 && /"reward":-1/.test(MOCK.votes[0]) && !/"reason"/.test(MOCK.votes[0]), MOCK.votes.join(' | '));
 
   const card = await ask('จิตวิทยาคลินิก');
   check(`a programme name opens its card`, /จิตวิทยาคลินิก/.test(card) && /สถานะบนเว็บบัณฑิตวิทยาลัย/.test(card), card);
@@ -223,6 +240,20 @@ const ask = async (q, ms = 8000) => { const n = await bots();
   check('production dashboard: base unchanged (points at the production kernel)', /workers\.dev/.test(await ev(`document.getElementById('base').value`)));
   const asked = await ev(`(()=>{ let n=0; window.prompt=()=>{ n++; return null; }; document.querySelector('button[data-act="setStaffToken"]').click(); return n; })()`);
   check('dashboard: a data-act button runs its action (no inline handler)', asked === 1, `prompt calls=${asked}`);
+  // Plan 008 steps 3-4: the entries-to-fix queue shows the manual title and reasons; "แก้ข้อนี้" fills the form and the draft names its target.
+  { const kb = JSON.parse(readFileSync(join(UI, 'knowledge-index.json'), 'utf8')), e0 = kb[0];
+    MOCK.fixQueue = [{ id: e0.id, up: 1, down: 4, reasons: { outdated: 3, wrong: 1 }, reason_total: 4, top_reason: 'outdated', last_fix_at: null }]; MOCK.drafts = [];
+    await ev(`document.getElementById('base').value='http://127.0.0.1:${MP}'; tick();`);
+    const shown = await until(`/แก้ข้อนี้/.test(document.getElementById('fixrows').innerText)`, 6000);
+    const row = (await ev(`document.getElementById('fixrows').innerText`)).replace(/\s+/g, ' ');
+    check('dashboard: the to-fix queue shows the manual title, 👎 count and reason counts', shown && row.includes(e0.title) && /👎4/.test(row) && /ข้อมูลเก่า 3/.test(row) && /ตอบผิด 1/.test(row), row.slice(0, 200));
+    await ev(`document.querySelector('#fixrows button[data-act="fixEntry"]').click()`); await wait(300);
+    const form = await ev(`[document.getElementById('af-q').value, document.getElementById('af-a').value.slice(0,40), document.getElementById('af-target').innerText]`);
+    check('dashboard: "แก้ข้อนี้" fills the form with the entry and says it replaces it', form[0] === e0.title && form[1] === String(e0.answer).slice(0, 40) && form[2].includes(e0.id), JSON.stringify(form));
+    await ev(`document.querySelector('button[data-act="saveAnswer"][data-arg="0"]').click()`);
+    await until(`document.getElementById('af-note').innerText.includes('ร่าง')`, 4000);
+    check('dashboard: the draft carries target_id, and the form leaves fix mode', MOCK.drafts.length === 1 && JSON.parse(MOCK.drafts[0]).target_id === e0.id && await ev(`document.getElementById('af-target').style.display === 'none'`), MOCK.drafts.join(' | '));
+  }
   check('chat pages and the dashboard ran with no Content-Security-Policy violation', cspLog.length === 0, cspLog.join(' | ').slice(0, 200)); }
 
 console.log(`\n${pass}/${pass + fail} passed, ${fail} failed`);
