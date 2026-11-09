@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build pii-mask -> integrations/_shared/piimask/ (imported as a Workers wasm module by the kernel and LINE workers).
+# Build pii-mask -> integrations/_shared/piimask/ (imported as a Workers wasm module by the kernel worker; LINE gets the same mask from the router wasm, crates/reflex-wasm/build.sh).
 set -euo pipefail
 cd "$(dirname "$0")"
 export PATH="$HOME/.cargo/bin:$PATH"
