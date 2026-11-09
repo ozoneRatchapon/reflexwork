@@ -1,4 +1,0 @@
-# Local measurement only (wrangler check startup / deploy --dry-run). Never deployed: the name is not a real worker.
-name = "coldstart-probe-baseline"
-main = "baseline.mjs"
-compatibility_date = "2026-01-01"

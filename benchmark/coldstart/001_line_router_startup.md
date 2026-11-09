@@ -38,7 +38,7 @@ Smalltalk and `generic_fee` questions did not change (0.01-0.05 ms: they never s
 | `router_kb.mjs` = + router wasm + manual, Router built at startup, no catalogue | 1429 KiB / 369 KiB | 9.8-10.6 ms |
 | `router.mjs` = + router wasm + manual + `programmes.json`, Router built at startup | 6244 KiB / 578 KiB | 18.0-19.1 ms |
 
-Run: `cd benchmark/coldstart/line_probe && npx wrangler@4 deploy --dry-run --config wrangler.router.toml --outfile /tmp/b.bundle && npx wrangler@4 check startup --worker /tmp/b.bundle`
+Run (the probes were deleted after the port, when the real worker became the `router_kb.mjs` case; restore them with `git checkout 53e0a73 -- benchmark/coldstart/line_probe`): `cd benchmark/coldstart/line_probe && npx wrangler@4 deploy --dry-run --config wrangler.router.toml --outfile /tmp/b.bundle && npx wrangler@4 check startup --worker /tmp/b.bundle`
 (`check startup --config ...` alone fails: it loses the config and looks for a Pages directory).
 
 ## What this does not show
