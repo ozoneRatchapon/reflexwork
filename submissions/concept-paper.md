@@ -136,8 +136,9 @@ provider — **Typhoon (Thai-tuned) รันในเครื่องผ่�
 - **Kiro spec-driven workflow** — ทุกฟีเจอร์ใหญ่มี `.kiro/specs/<feature>/{requirements,design,tasks}.md`
   (learning-loop, voice, distributable-kernel) + `.kiro/steering/{product,tech,structure}.md`
   เป็น always-on context (ดู `docs/kiro-ai-sdlc.md`)
-- **Self-improving KB** — ยิ่งใช้ยิ่งฉลาด: คำถามที่ตอบไม่ได้ → backlog (mask PII),
-  👎 ลด confidence ของ entry, auto-draft คำตอบให้ staff กด approve — ไม่ retrain
+- **KB ที่โตโดยมีคนอนุมัติ** — คำถามที่ตอบไม่ได้ → backlog (mask PII),
+  entry ที่ถูก 👎 บ่อยขึ้นรายการ "ข้อที่ควรตรวจ" (โหวตไม่เปลี่ยนคำตอบเอง; ผลต่อคุณภาพยังไม่ได้วัด),
+  auto-draft คำตอบให้ staff กด approve — ไม่ retrain
 - **แจกจ่ายได้ (distributable)** — `@reflexwork/kernel` (npm) + `reflexwork init`:
   หน่วยงานอื่นติดตั้ง kernel ไปทำแชตบอตบน KB ตัวเองได้
 - **Federated corpus** — หลายหน่วยงานช่วยกันโต corpus กลางผ่าน **signal ที่ mask แล้ว**
