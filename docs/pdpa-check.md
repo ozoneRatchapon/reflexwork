@@ -14,19 +14,19 @@ university's DPO or legal office must sign off before the free-text box (plan 00
 | `/route` audit (D1 `audit`) | category, route, timing, a BLAKE3 hash of question + route | public `GET /audit` (50 rows) | newest 100 rows | ok: a hash of a short question can be guessed by trying candidates, but it does not show the text |
 | auto-draft (cron, staff button) -> Gemini | the masked gap samples | Google | - | ok once the mask is good; same transfer abroad as above |
 | intake (account / system problem) | not logged; the page shows staff contacts | - | - | ok (`tests/privacy.test.mjs` checks it) |
-| LINE -> kernel `/route`, `/gap` | `/gap` sample masked by the worker's older JS `maskPII` | as web | as web | **open** (O2): weaker mask |
-| LINE advice questions -> AI proxy | **raw text** (`integrations/line-worker/worker.mjs`, `askTeam`) | Google | - | **open** (O2) |
+| LINE -> kernel `/route`, `/gap` | `/route`: raw text, only a hash is kept (as web); `/gap`: masked by the Rust mask in the LINE worker, and again in the kernel | as web | as web | fixed 2026-11-10 (O2) |
+| LINE advice questions -> AI proxy | masked question (Rust mask) + manual context | Google | - | fixed 2026-11-10 (O2) |
 | AI proxy logs | the first 80 characters of an input that looks like a prompt injection (`console.log`) | Cloudflare logs (`wrangler tail`; no Logpush in `wrangler.toml`) | Cloudflare's log retention | minor (O3) |
 
 ## Fixed in this change
-- One mask in Rust (`crates/reflex-wasm/src/pii`, `mask_pii`), used by the page for every copy of a question that leaves the
+- One mask in Rust (`crates/pii-mask`, `mask_pii`; the page gets it through reflex-wasm, the workers load it as wasm), used by the page for every copy of a question that leaves the
   browser: the AI proxy (`/rewrite`, `/llm`), the vote and the gap list. It removes emails, Thai national ids (13 digits in any
   grouping), phone numbers (0x, +66), account ids (7+ digits, or a letter + 6+ digits), LINE ids after a label, and names after a
   title (นาย / นาง / นางสาว / น.ส. / Mr / Mrs / Ms / Miss) or after "ชื่อ" / "ชื่อ-สกุล" / "นามสกุล". Roles that start with a
   title (นายทะเบียน, นายจ้าง, ...) stay readable. Money amounts and years stay (ค่าเทอม 100000 บาท, 2569).
 - Before: the gap copy used a JS scrubber (no national id with dashes, no +66, no titles, no LINE ids), and the AI proxy got the
   **unmasked** text.
-- Tests: `cargo test -p reflex-wasm --test pii_mask` (what is masked and what must stay) and `tests/privacy.test.mjs`, which runs
+- Tests: `cargo test -p pii-mask` (what is masked and what must stay) and `tests/privacy.test.mjs`, which runs
   the page's scrubber against the shipped wasm file and fails if any request body carries the raw question.
 
 ## Limits of the mask
@@ -40,7 +40,7 @@ university's DPO or legal office must sign off before the free-text box (plan 00
 - **O1 (fixed 2026-11-09, plan 016 item 2). `GET /gaps` was public.** Anyone can read the 30 most-asked unanswered questions (masked). The public dashboard shows them.
   Option: the public view shows counts and topics only; the samples need the staff token (like `/kb-drafts`). This changes what the
   public dashboard shows, so it is the owner's call.
-- **O2. LINE uses the older JS mask for gaps and sends raw text to the AI for advice questions.** The fix is to load the same wasm
+- **O2 (fixed 2026-11-10, plan 016 item 13: the mask is its own Rust crate `crates/pii-mask`, loaded as wasm by the kernel worker (gap sample and key) and the LINE worker (before `askTeam` and `/gap`); `tests/line_bot.test.mjs`, `tests/line_grounded.test.mjs`). LINE used the older JS mask for gaps and sent raw text to the AI for advice questions.** The fix is to load the same wasm
   in the LINE worker (plan 009 "LINE loads the same wasm"; measure the Workers cold start first), then call `mask_pii` before
   `askTeam` and `/gap`. Needs a LINE worker deploy.
 - **O3 (fixed 2026-11-09, plan 016 item 3). Retention by time.** `gap_log` is capped at 200 rows but has no age limit; `feedback_log` has neither. Suggest: delete gap

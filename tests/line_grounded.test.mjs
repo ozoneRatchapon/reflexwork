@@ -26,7 +26,7 @@ reply = { answer: '', source: 'fallback', detail: ['guard-emptied'] };
 const r2 = await askTeam(q, { TEAM_API_PROVIDER: 'gemini' }, { context, prompt });
 check('F12: a proxy fallback (e.g. guard emptied the answer) is not an answer - LINE shows the manual text', !r2.ok && r2.text === null);
 const line = readFileSync(join(root, 'integrations/line-worker/worker.mjs'), 'utf8');
-check('F12: the LINE advice branch passes the context', /askTeam\(text, bag, \{ context: groundedContext\(near\), prompt: groundedPrompt\(text, near\) \}\)/.test(line));
+check('F12: the LINE advice branch passes the context (and only the masked question, PDPA O2)', /askTeam\(masked, bag, \{ context: groundedContext\(near\), prompt: groundedPrompt\(masked, near\) \}\)/.test(line) && /const masked = mask_pii\(text\)/.test(line) && !/askTeam\(text\b/.test(line));
 
 // F32: the proxy guard (both copies)
 const ctx = 'ยื่นคำร้องภายใน 15 วัน ค่าธรรมเนียม 4,000 บาท ติดต่อ 02-849-6000 ผลคะแนน 3.00 ภายในวันที่ 30 มกราคม 2569 ช่วง 13–20 กรกฎาคม แบบฟอร์ม RA-04';

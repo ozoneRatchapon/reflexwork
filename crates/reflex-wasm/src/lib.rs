@@ -12,7 +12,10 @@ pub mod answer;
 pub mod catalogue;
 pub mod decide;
 pub mod intake;
-pub mod pii;
+/// The personal-data mask (its own crate so the workers load it without the search).
+pub mod pii {
+    pub use pii_mask::{mask_pii, PiiKind};
+}
 pub mod resolve;
 mod re;
 pub mod route;
