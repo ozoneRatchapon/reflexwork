@@ -13,6 +13,7 @@ export const fee_table: (a: number, b: number) => number;
 export const is_advice: (a: number, b: number) => number;
 export const is_english: (a: number, b: number) => number;
 export const kb_search: (a: number, b: number, c: number) => number;
+export const mask_pii: (a: number, b: number, c: number) => void;
 export const resolver_new: (a: number, b: number) => void;
 export const resolver_resolve: (a: number, b: number, c: number, d: number) => number;
 export const route_task: (a: number, b: number, c: number, d: number, e: number, f: number) => number;

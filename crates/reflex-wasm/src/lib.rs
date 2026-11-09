@@ -12,6 +12,7 @@ pub mod answer;
 pub mod catalogue;
 pub mod decide;
 pub mod intake;
+pub mod pii;
 pub mod resolve;
 mod re;
 pub mod route;
@@ -733,4 +734,11 @@ pub fn is_advice(q: &str) -> bool {
 #[wasm_bindgen]
 pub fn is_english(q: &str) -> bool {
     intake::is_english(q)
+}
+
+/// Question text with emails, national ids, phones, account ids, LINE ids and titled names replaced by placeholders.
+/// The page sends only this to the AI proxy and the gap list (PDPA check 2026-11-09, `docs/pdpa-check.md`).
+#[wasm_bindgen]
+pub fn mask_pii(text: &str) -> String {
+    pii::mask_pii(text)
 }
