@@ -141,6 +141,19 @@ export class Router {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
+    /**
+     * The manual's search over the question as `decide` reads it (prepared the same way, the same index): `[{id, s}]`, best first, at most
+     * `n`. For a client without a search of its own (the LINE worker's "nearest topics").
+     * @param {string} q
+     * @param {number} n
+     * @returns {any}
+     */
+    search(q, n) {
+        const ptr0 = passStringToWasm0(q, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.router_search(this.__wbg_ptr, ptr0, len0, n);
+        return takeObject(ret);
+    }
 }
 if (Symbol.dispose) Router.prototype[Symbol.dispose] = Router.prototype.free;
 

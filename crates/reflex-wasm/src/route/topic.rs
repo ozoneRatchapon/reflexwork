@@ -28,13 +28,23 @@ pub fn topic_core(q: &str) -> String {
     s
 }
 
-/// The `topicPicks` test: the core is at least 3 characters and sits inside 1 to 12 entry titles (whitespace removed, lowercased).
-pub fn topic_picks<'a>(q: &str, titles: impl Iterator<Item = &'a str>) -> bool {
+/// The `topicPicks` hits: the indexes of the titles that hold the core (whitespace removed, lowercased); empty when the core is under 3
+/// characters. At most 13 are collected (13 = too many to offer).
+pub fn topic_hits<'a>(q: &str, titles: impl Iterator<Item = &'a str>) -> Vec<usize> {
     let core = topic_core(q);
     if core.chars().count() < 3 {
-        return false;
+        return Vec::new();
     }
     let needle = core.to_lowercase();
-    let hits = titles.filter(|t| t.chars().filter(|c| !is_js_space(*c)).collect::<String>().to_lowercase().contains(&needle)).take(13).count();
-    (1..=12).contains(&hits)
+    titles
+        .enumerate()
+        .filter(|(_, t)| t.chars().filter(|c| !is_js_space(*c)).collect::<String>().to_lowercase().contains(&needle))
+        .map(|(i, _)| i)
+        .take(13)
+        .collect()
+}
+
+/// The `topicPicks` test: the core sits inside 1 to 12 entry titles.
+pub fn topic_picks<'a>(q: &str, titles: impl Iterator<Item = &'a str>) -> bool {
+    (1..=12).contains(&topic_hits(q, titles).len())
 }

@@ -16,6 +16,7 @@ pub mod stuck;
 pub mod text;
 pub mod topic;
 pub mod understood;
+pub mod verdict;
 pub mod types;
 mod unicode_tables;
 

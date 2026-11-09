@@ -44,5 +44,15 @@ Run: `cd benchmark/coldstart/line_probe && npx wrangler@4 deploy --dry-run --con
 ## What this does not show
 - Times on Cloudflare's CPUs (local only).
 - Which plan the LINE worker runs on (the 10 ms Free limit is the only one that matters here).
-- That LINE answers the same once it uses the router: LINE still runs its own `_shared` JS order. Porting it is the next step
-  (plan 009 C4) and needs its own contract (LINE has no programme cards, chips or topic picks).
+- Behaviour on the real LINE platform (the webhook is tested offline: tests/line_bot.test.mjs, tests/line_route.test.mjs).
+
+## After the port (plan 009 C4, 2026-11-10): the real LINE worker on the Router
+The worker now builds `new Router(KB, null)` at module scope from its own KB copy and decides every message with it; the second
+wasm (`_shared/piimask`) is gone from LINE (the router wasm carries the same `mask_pii`). Measured on the real worker bundle
+(`cd integrations/line-worker && npx wrangler deploy --dry-run --outfile /tmp/line_bundle.js && npx wrangler check startup --worker /tmp/line_bundle.js`):
+
+| bundle | upload / gzip | startup active CPU (3 runs) |
+|---|---|---|
+| `integrations/line-worker` | 1003 KiB / 294 KiB | 25.5 ms (first run), 10.0 ms, 10.1 ms |
+
+Active CPU = the profile's non-idle samples (sample spacing ~1.5 ms, so +-1.5 ms). The first run is a cold local start; the 1 s limit is far off either way.

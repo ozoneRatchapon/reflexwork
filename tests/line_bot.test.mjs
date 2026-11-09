@@ -33,13 +33,19 @@ check('LINE_VIEW=judge keeps the engineering footer for the panel', /🦀 FastPa
 const nw = await say('รถรับส่งไปศาลายามีตารางไหม');
 check('an entry that only exists in the synced index is answered (gm_travel_navigation; the old copy said "ค่าปรับส่งเล่ม")', /Shuttle Bus/.test(nw), nw.slice(0, 120));
 llmCalls.length = 0;
-const none = await say('qqqq zzzz xxxx');
+const none = await say('ร้านกาแฟแถวนี้อร่อยไหม');
 check('a question the manual cannot answer: says so, staff continue in this chat', /^เรื่องนี้ยังไม่มีในคู่มือครับ ผมจดคำถามไว้ให้ทีมเติมแล้ว และเจ้าหน้าที่จะตอบต่อในแชทนี้/.test(none), none.slice(0, 120));
 check('...and the AI is NOT asked to make up an answer (no LLM call)', llmCalls.length === 0, llmCalls.join(','));
+const en = await say('qqqq zzzz xxxx');
+check('an English question off the manual gets the web\'s English hand-off (route english_off_corpus), not Thai', /^This is not in the knowledge base yet/.test(en), en.slice(0, 120));
+check('plan 009 C4: a bare topic word lists the manual titles (topic_picks)', /^ในคู่มือมีหัวข้อเหล่านี้ครับ/.test(await say('ทุน')));
+check('plan 009 C4: a stress message gets the caring reply first (wellbeing), not a manual guess', /^ฟังแล้วเป็นห่วงนะครับ/.test(await say('เครียดมาก')));
+check('plan 009 C4: a request for one\'s own grades is refused (personal), never answered from the manual', /ดูให้ไม่ได้ครับ/.test(await say('ขอดูเกรดของผม')));
+check('plan 009 C4: "can\'t log in" collects the intake fields for staff', /รบกวนแจ้งข้อมูลต่อไปนี้/.test(await say('เข้าระบบไม่ได้')));
 check('nearest topics are offered only when they share real words', /หัวข้อใกล้เคียง/.test(notInManualText('ลาพักการศึกษา ต้มยำ')) && !/หัวข้อใกล้เคียง/.test(notInManualText('qqqq')));
 // PDPA check O2: what LINE sends to the kernel's gap list is masked (the Rust mask, same as the web).
 { const gapBodies = []; const KERNEL = { fetch: async req => { const u = new URL(req.url); if (u.pathname === '/gap') gapBodies.push(await req.text()); return new Response('{"decision":{"route":"FastPath"},"proof":"x"}'); } };
-  await say('qqqq zzzz xxxx นางสาวสมหญิง ใจดี', { KERNEL });   // digits or Latin words would match manual entries (an ambiguous pick logs no gap)
+  await say('ร้านกาแฟแถวนี้อร่อยไหม นางสาวสมหญิง ใจดี', { KERNEL });   // a not-found question (an answered or ambiguous one logs no gap)
   await new Promise(r => setTimeout(r, 50));
   check('LINE: the gap list gets the masked question (a titled name is masked; the mask rules are tested in crates/pii-mask)', gapBodies.length === 1 && !/สมหญิง|ใจดี/.test(gapBodies[0]) && /\[name\]/.test(gapBodies[0]), gapBodies.join(' | ')); }
 clearInterval(keep);

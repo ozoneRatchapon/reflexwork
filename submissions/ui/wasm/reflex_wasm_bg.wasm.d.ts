@@ -20,6 +20,7 @@ export const route_task: (a: number, b: number, c: number, d: number, e: number,
 export const router_decide: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const router_decision: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
 export const router_new: (a: number, b: number, c: number, d: number, e: number) => void;
+export const router_search: (a: number, b: number, c: number, d: number) => number;
 export const schedule_table: (a: number, b: number) => number;
 export const slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
 export const understand: (a: number, b: number, c: number) => number;

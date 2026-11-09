@@ -635,6 +635,19 @@ impl Router {
     pub fn decision(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
         Ok(to_js(&self.decide_in(q, state, rewrite)?))
     }
+
+    /// The manual's search over the question as `decide` reads it (prepared the same way, the same index): `[{id, s}]`, best first, at most
+    /// `n`. For a client without a search of its own (the LINE worker's "nearest topics").
+    pub fn search(&self, q: &str, n: usize) -> JsValue {
+        #[derive(Serialize)]
+        struct Hit<'a> {
+            id: &'a str,
+            s: i32,
+        }
+        let q = route::prepare(q);
+        let hits: Vec<Hit> = self.manual.search(&q).into_iter().take(n).map(|f| Hit { id: &f.entry.id, s: f.hit.s }).collect();
+        to_js(&hits)
+    }
 }
 
 impl Router {

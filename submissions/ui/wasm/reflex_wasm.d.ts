@@ -39,6 +39,11 @@ export class Router {
      * for the embedded graduate-school pack (install happens once per process, before any route call).
      */
     constructor(kb: any, programmes: any, vocab?: string | null);
+    /**
+     * The manual's search over the question as `decide` reads it (prepared the same way, the same index): `[{id, s}]`, best first, at most
+     * `n`. For a client without a search of its own (the LINE worker's "nearest topics").
+     */
+    search(q: string, n: number): any;
 }
 
 /**
@@ -149,6 +154,7 @@ export interface InitOutput {
     readonly router_decide: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
     readonly router_decision: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
     readonly router_new: (a: number, b: number, c: number, d: number, e: number) => void;
+    readonly router_search: (a: number, b: number, c: number, d: number) => number;
     readonly schedule_table: (a: number, b: number) => number;
     readonly slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly understand: (a: number, b: number, c: number) => number;
