@@ -16,7 +16,7 @@ university's DPO or legal office must sign off before the free-text box (plan 00
 | intake (account / system problem) | not logged; the page shows staff contacts | - | - | ok (`tests/privacy.test.mjs` checks it) |
 | LINE -> kernel `/route`, `/gap` | `/gap` sample masked by the worker's older JS `maskPII` | as web | as web | **open** (O2): weaker mask |
 | LINE advice questions -> AI proxy | **raw text** (`integrations/line-worker/worker.mjs`, `askTeam`) | Google | - | **open** (O2) |
-| AI proxy logs | the first 80 characters of an input that looks like a prompt injection (`console.log`) | Cloudflare logs (`wrangler tail`; no Logpush is configured) | Cloudflare's log retention | minor (O3) |
+| AI proxy logs | the first 80 characters of an input that looks like a prompt injection (`console.log`) | Cloudflare logs (`wrangler tail`; no Logpush in `wrangler.toml`) | Cloudflare's log retention | minor (O3) |
 
 ## Fixed in this change
 - One mask in Rust (`crates/reflex-wasm/src/pii`, `mask_pii`), used by the page for every copy of a question that leaves the
