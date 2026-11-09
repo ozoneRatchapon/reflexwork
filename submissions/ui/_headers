@@ -17,10 +17,10 @@
   Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-Dogv3JlHTL/lwzYPkMMszQtwRivd0TC8lPVdFB5/Rw4='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://reflexwork-kernel.solana-thailand.workers.dev https://reflexwork-llm-proxy.solana-thailand.workers.dev http://127.0.0.1:* http://localhost:*; object-src 'none'; base-uri 'none'; form-action 'none'
 /dashboard.html
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ltRafVDbE8oLnkJmJYKGfv7gqGHdlZwfCpZ95nUhrJ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://reflexwork-kernel.solana-thailand.workers.dev http://127.0.0.1:* http://localhost:*; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-/hvY5gNGyx03lOj+Ez185xpdzurXYnuFzxpzZ+OnZgQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://reflexwork-kernel.solana-thailand.workers.dev http://127.0.0.1:* http://localhost:*; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 /dashboard
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-ltRafVDbE8oLnkJmJYKGfv7gqGHdlZwfCpZ95nUhrJ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://reflexwork-kernel.solana-thailand.workers.dev http://127.0.0.1:* http://localhost:*; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-/hvY5gNGyx03lOj+Ez185xpdzurXYnuFzxpzZ+OnZgQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://reflexwork-kernel.solana-thailand.workers.dev http://127.0.0.1:* http://localhost:*; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
 /try.html
   Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-Kx7yzLqjv7t78voLU5zlsNwyIPHJH3ULoisvicRz1r0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'
 /try

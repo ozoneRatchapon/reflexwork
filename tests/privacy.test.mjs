@@ -34,4 +34,7 @@ check('no inline /gap POST bypasses logGap (so no double count, no unscrubbed co
 const intakeA = html.indexOf("if(take('intake')){"), intakeB = html.indexOf('} else {\n    logGap(q);', intakeA);
 check('intake branch found (anchors for the next check)', intakeA > 0 && intakeB > intakeA, `${intakeA} ${intakeB}`);
 check('intake messages are not logged', intakeA > 0 && intakeB > intakeA && !/logGap/.test(html.slice(intakeA, intakeB)));
+const note = (html.match(/<div class="privacy-note"[^>]*>([\s\S]*?)<\/div>/) || [])[1] || '';
+check('the privacy note says the AI is an outside service that may be abroad, and how to switch it off', /บริการ AI ภายนอก/.test(note) && /นอกประเทศไทย/.test(note) && /\?ai=off/.test(note), note.slice(0, 120));
+check('the privacy note does not promise a complete mask', /ซ่อนได้ไม่หมด/.test(note));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

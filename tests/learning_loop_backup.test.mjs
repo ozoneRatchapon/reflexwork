@@ -20,7 +20,7 @@ check('the KB file is written by a person, not the edge (kb-approve returns mark
 check('👎 is shown as a list to check, not an automatic change (entry_conf only read by /entry-conf and federation preview)',
   /'\/entry-conf'/.test(worker) && /ไม่ได้เปลี่ยนคำตอบเอง/.test(text));
 check('AI drafts wait for approval (kb_draft default status pending)', /status TEXT NOT NULL DEFAULT 'pending'/.test(worker) && /รออนุมัติ/.test(text));
-check('gap logging masks email and ID numbers (privacy note in chatbot.html)', /ซ่อนอีเมลและเลขรหัส/.test(chat) && /ซ่อนอีเมลและเลขรหัส/.test(text));
+check('gap logging masks email, phone, national id, ids (privacy note in chatbot.html)', /ซ่อนอีเมล เบอร์โทร เลขบัตร รหัส/.test(chat) && /ซ่อนอีเมล เบอร์โทร เลขบัตร รหัส/.test(text));
 check('personal-data questions are refused and pointed to staff (chatbot.html personal* texts)', /personalSelf:/.test(chat) && /ติดต่อเจ้าหน้าที่/.test(chat) && /ติดต่อเจ้าหน้าที่/.test(text));
 const secs = (deck.match(/ไม่เกินราว (\d+) วินาที/) || [])[1];
 check(`the publish time matches the deck (${secs} s on slide 3)`, !!secs && text.includes(`ราว ${secs} วินาที`));
