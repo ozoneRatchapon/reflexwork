@@ -1,6 +1,8 @@
 //! The manual as the decision order sees it: entries (id, title, search keywords, whether a staff member wrote it) and a search over them.
-//! The search is `crate::kb_rank` - the same TF-IDF ranking `kb_search` runs in the browser.
-use crate::{kb_rank, KbEntryIn, KbHit};
+//! The search is `crate::KbIndex` - the same TF-IDF ranking `kb_search` runs in the browser, indexed once in `Manual::new`.
+use std::collections::HashMap;
+
+use crate::{KbEntryIn, KbHit, KbIndex};
 
 #[derive(Clone, Debug)]
 pub struct ManualEntry {
@@ -20,6 +22,9 @@ pub struct ManualEntry {
 #[derive(Clone, Debug, Default)]
 pub struct Manual {
     entries: Vec<ManualEntry>,
+    index: KbIndex,
+    /// a hit's entry = the FIRST entry with its id (two rows may share an id)
+    first_with_id: Vec<usize>,
 }
 
 /// One ranked hit with the entry it points at.
@@ -31,7 +36,10 @@ pub struct Found<'a> {
 
 impl Manual {
     pub fn new(entries: Vec<ManualEntry>) -> Self {
-        Manual { entries }
+        let kb: Vec<KbEntryIn> = entries.iter().map(|e| KbEntryIn { id: e.id.clone(), keywords: e.keywords.clone() }).collect();
+        let mut first: HashMap<&str, usize> = HashMap::with_capacity(entries.len());
+        let first_with_id = entries.iter().enumerate().map(|(i, e)| *first.entry(e.id.as_str()).or_insert(i)).collect();
+        Manual { index: KbIndex::new(&kb), first_with_id, entries }
     }
 
     pub fn entries(&self) -> &[ManualEntry] {
@@ -40,11 +48,7 @@ impl Manual {
 
     /// `search(q)` of the page: ranked entries with the gate score (`s`), cosine and overlap.
     pub fn search(&self, q: &str) -> Vec<Found<'_>> {
-        let kb: Vec<KbEntryIn> = self.entries.iter().map(|e| KbEntryIn { id: e.id.clone(), keywords: e.keywords.clone() }).collect();
-        kb_rank(&kb, q)
-            .into_iter()
-            .filter_map(|hit| self.entries.iter().find(|e| e.id == hit.id).map(|entry| Found { entry, hit }))
-            .collect()
+        self.index.rank_at(q).into_iter().map(|(i, hit)| Found { entry: &self.entries[self.first_with_id[i]], hit }).collect()
     }
 }
 

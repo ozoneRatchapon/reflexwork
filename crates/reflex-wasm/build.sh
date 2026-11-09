@@ -8,7 +8,8 @@ cd "$(dirname "$0")"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 OUT="../../submissions/ui/wasm"
-TARGET_DIR="${CARGO_TARGET_DIR:-target}"
+# cargo's own answer (it also honours `build.target-dir` in ~/.cargo/config.toml, which CARGO_TARGET_DIR alone misses)
+TARGET_DIR="${CARGO_TARGET_DIR:-$(cargo metadata --format-version 1 --no-deps | sed -E 's/.*"target_directory":"([^"]*)".*/\1/')}"
 
 cargo build --release --target wasm32-unknown-unknown
 wasm-bindgen --target web --out-dir "$OUT" \

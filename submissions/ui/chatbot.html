@@ -2359,6 +2359,19 @@ function take(names){
 const SHADOW = { n:0, same:0, pending:0, errors:0, diffs:[], pending_turn:null };
 window.__shadow = SHADOW;
 function _shadowDiff(d){ if(SHADOW.diffs.length<200) SHADOW.diffs.push(d); }
+// One Router per (KB, PROG, vocab): building it copies the manual and the catalogue into wasm and indexes the manual (~5 ms), a decision
+// is <1 ms. KB / PROG / AGENCY are only ever REPLACED (new arrays / objects), never edited in place, so their identity is the cache key.
+// The old Router is not freed here: a pending AI rewrite may still hold it (wasm-bindgen's finalizer frees it).
+let _ROUTER = null, _ROUTER_KEY = null;
+function routerFor(){
+  const k = _ROUTER_KEY;
+  if(_ROUTER && k.kb===KB && k.prog===PROG && k.vocab===AGENCY.vocab) return _ROUTER;
+  // plan 011 step 5: a deployment's agency.json `vocab` (the pack's vocab.json as an object) is the Rust route vocabulary; without it the
+  // embedded graduate-school pack is used (undefined = None on the Rust side).
+  _ROUTER = new WASM.Router(KB, PROG, AGENCY.vocab ? JSON.stringify(AGENCY.vocab) : undefined);
+  _ROUTER_KEY = { kb:KB, prog:PROG, vocab:AGENCY.vocab };
+  return _ROUTER;
+}
 // Before _askCore: the page clears PIN and may move PCTX, so the state is read first.
 function shadowBegin(typed){
   SHADOW.pending_turn = null;
@@ -2366,10 +2379,7 @@ function shadowBegin(typed){
   try{
     const state = { progState: PROG_STATE, aiOff: !!AI_OFF, pinnedId: (PIN && PIN.title===typed) ? PIN.id : null,
       programmeInFocus: (PCTX && PCTX.code) || null, today: todayIso(), agencyHasIt: !!AGENCY.it };
-    // plan 011 step 5: a deployment's agency.json `vocab` (the pack's vocab.json as an object) is the Rust route vocabulary; without it the
-    // embedded graduate-school pack is used (undefined = None on the Rust side).
-    const vocabJson = AGENCY.vocab ? JSON.stringify(AGENCY.vocab) : undefined;
-    const r = new WASM.Router(KB, PROG, vocabJson);
+    const r = routerFor();
     const detail = r.decision(typed, state, null);
     return { typed, state, router:r, rust: detail.route, detail };
   }catch(e){ SHADOW.errors++; console.warn('shadow: Rust route failed', e); return null; }

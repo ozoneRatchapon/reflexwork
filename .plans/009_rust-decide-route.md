@@ -55,7 +55,7 @@ Progress (2026-11-09): all 34 decided - 33 named routes in `PORTED`, and `not_fo
 - [x] Commit `38bec4c` on feature/modelless-npc (2026-11-07). Preview deployed: https://feature-modelless-npc.reflexwork.pages.dev (demo_smoke: all hard checks pass, 1 warning: no LLM on preview by design).
 - [ ] Production: merge to main + `submissions/deploy_pages.sh main` (owner decision; not done) contract identical on all entries (`node benchmark/golden/route_golden.mjs --check`), e2e 56/56, `demo_smoke` x4, `wasm_golden_check`
 - [x] Delete the JS branch order from `chatbot.html`; flip the regex source of truth to Rust (`scripts/gen_rust_pattern_sources.mjs`). (Plan 015: step 4b deleted the branch conditions, 4c/5 the readers; step 3a `c73b199` moved the regexes to `packs/graduate-school/vocab.json` + Rust and deleted `gen_rust_pattern_sources.mjs` and its sync test.)
-- [ ] LINE loads the same wasm (measure Workers cold start first)
+- [ ] LINE loads the same wasm (measure Workers cold start first). MEASURED 2026-11-10 (`benchmark/coldstart/001_line_router_startup.md`): Router built at startup = ~10 ms (manual only) / ~19 ms (with the catalogue) startup CPU locally vs the 1 s limit; bundle 6.2 MB vs 64 MiB. Build it at module scope (a lazy build alone can pass the Free plan's 10 ms per request). Found and fixed on the way: `Manual::search` rebuilt the TF-IDF index on every search (7-9 ms per KB decision -> 0.5-1 ms; `src/kb_index.rs`), and the page built a Router per turn (`routerFor`). Left: port LINE's `_shared` JS order to the router, with a LINE contract.
 - [ ] Deploy (Pages main + any worker) after the above; NOT before
 
 ### D. Decisions that are not ours to make alone
