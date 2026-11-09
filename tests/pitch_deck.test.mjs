@@ -16,6 +16,9 @@ const all = text(html);
 const BAN = [[/ไมโครวินาที|นาโนวินาที|\bµs\b/, 'microsecond boast'], [/BLAKE3/i, 'BLAKE3 on stage (say fingerprint in Q&A)'], [/neuro-?symbolic/i, 'neuro-symbolic'], [/\bproof\b/i, 'proof'], [/ลด\s*~?\s*80\s*%|80\s*%/, 'the unmeasured 80%'],
   [/ยิ่งใช้ยิ่งฉลาด|self-learning/i, 'learns-by-itself claim'], [/bit-for-bit/i, 'bit-for-bit claim'], [/tunnel/i, 'tunnel token (removed)'], [/ทำงานในเบราว์เซอร์ 100%|ข้อมูลไม่ออกนอกเครื่อง/, 'data never leaves the device'], [/federated|Federated/, 'federated corpus as a result'], [/Bedrock/, 'Bedrock (confirm with the team before claiming)']];
 for (const [re, label] of BAN) check(`deck does not contain: ${label}`, !re.test(all));
+// The long deck (slides.html) must not claim the system learns by itself either (plan 008 step 7)
+const long = text(read('submissions/ui/slides.html'));
+for (const [re, label] of [[/ยิ่งใช้ยิ่งฉลาด|self-learning|มันเรียนรู้|คัดถูกขึ้น|ปิดช่องเอง/i, 'learns-by-itself claim']]) check(`slides.html does not contain: ${label}`, !re.test(long), (long.match(re) || [''])[0]);
 check('the next steps are labelled as concept / not built', /แนวคิด ยังไม่ได้พัฒนา/.test(all));
 const en = Math.round(100 * JSON.parse(read('benchmark/field/results/e2e_en_2026-11-03.json')).filter(x => x.covered && x.kind === 'right entry').length / JSON.parse(read('benchmark/field/results/e2e_en_2026-11-03.json')).filter(x => x.covered).length);
 check(`the known limits are on the evidence slide (English ~${en}%, uncovered FAQ)`, /ข้อจำกัดที่เรารู้/.test(text(slides[4] || '')) && /อังกฤษถูก \d+ ?%/.test(text(slides[4] || '')) && /ไทยผิดหัวข้อ/.test(text(slides[4] || '')));
