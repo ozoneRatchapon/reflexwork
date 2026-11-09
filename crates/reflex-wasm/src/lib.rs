@@ -223,8 +223,8 @@ fn hex_encode(bytes: &[u8]) -> String {
 // dominate → paraphrase/typo/EN match); lexical overlap is a tiebreak. 0 token,
 // deterministic, auditable — latent is the MATCHER, never the fact source.
 
-/// char-trigrams + space tokens (len>1), lowercased. Mirrors the JS _gramSet.
-fn gram_set(text: &str) -> Vec<String> {
+/// char-trigrams + space tokens (len>1), lowercased. Mirrors the JS _gramSet. Public for the offline benches (crates/reflex-bench).
+pub fn gram_set(text: &str) -> Vec<String> {
     let s = text.to_lowercase();
     let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     for tok in s.split_whitespace() {
