@@ -8,6 +8,7 @@ members = [
     "crates/pages-csp",
     "crates/reflex-bench",
     "crates/feedback-core",
+    "crates/pii-mask",
 ]
 
 [workspace.package]

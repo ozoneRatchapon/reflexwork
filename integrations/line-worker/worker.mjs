@@ -19,6 +19,11 @@ import { readableText } from '../_shared/answer_points.mjs';
 import { decide } from '../_shared/rethink.mjs';
 import { classifyIssue, intakePrompt, isAdvice, groundedPrompt, groundedContext } from '../_shared/intake.mjs';
 import { createMood, classifySmalltalk, smalltalkReply } from '../_shared/smalltalk.mjs';
+// PDPA check O2 (docs/pdpa-check.md): mask personal data before the question goes to the AI proxy or the gap list - the same Rust
+// mask as the page and the kernel (crates/pii-mask). Rebuild: crates/pii-mask/build.sh
+import piiWasm from '../_shared/piimask/pii_mask_bg.wasm';
+import { initSync as piiInit, mask_pii } from '../_shared/piimask/pii_mask.js';
+piiInit({ module: piiWasm });
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
@@ -103,7 +108,7 @@ async function routeViaKernel(env, text) {
 // Record a question the KB could not answer, so staff get a backlog of what to
 // add. Uses the kernel's /gap endpoint (via service binding when available).
 async function logGapViaKernel(env, text) {
-  const payload = JSON.stringify({ q: text, source: 'line' });
+  const payload = JSON.stringify({ q: mask_pii(String(text || '')), source: 'line' });
   const req = new Request(`${KERNEL}/gap`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Origin': 'https://reflexwork.pages.dev' },
@@ -225,7 +230,8 @@ async function processEvents(raw, env) {
           const near = searchKB(text).map(r => r.e);
           const bag = { LLM_PROXY, ...(env || {}) };
           // QA F12: question + manual context separately, so the proxy grounds and guards the answer (see askTeam)
-          const r = await askTeam(text, bag, { context: groundedContext(near), prompt: groundedPrompt(text, near) }).catch(() => ({ ok: false }));
+          const masked = mask_pii(text);   // only the masked question leaves for the AI; the manual context is ours
+          const r = await askTeam(masked, bag, { context: groundedContext(near), prompt: groundedPrompt(masked, near) }).catch(() => ({ ok: false }));
           if (r.ok && r.text) {
             answer = `${r.text}${src}`;
             footer = footerFor(env, `\n\n🤖 AI ช่วยเรียบเรียงจากคู่มือ · อ้างอิง: ${pick.entry.title}`, `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`);

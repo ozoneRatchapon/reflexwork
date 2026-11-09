@@ -1,4 +1,4 @@
-use reflex_wasm::pii::mask_pii;
+use pii_mask::mask_pii;
 
 #[test]
 fn masks_values_with_a_shape() {

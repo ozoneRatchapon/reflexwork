@@ -19,6 +19,10 @@ import { vote_bounds } from '../_shared/beta_bound.mjs';
 import fbWasm from './fbcore/feedback_core_bg.wasm';
 import { initSync as fbInit, parse_reason, fix_queue, fix_effect, day_of } from './fbcore/feedback_core.js';
 fbInit({ module: fbWasm });
+// The personal-data mask (Rust, crates/pii-mask; the same rules the page uses through reflex-wasm). Rebuild: crates/pii-mask/build.sh
+import piiWasm from '../_shared/piimask/pii_mask_bg.wasm';
+import { initSync as piiInit, mask_pii } from '../_shared/piimask/pii_mask.js';
+piiInit({ module: piiWasm });
 
 // ── Reflex Kernel routing, ported 1:1 from crates/reflex-wasm/src/lib.rs ──────
 // Same seeded weights, same sigmoid gate (θ=0.72), same category one-hot — so
@@ -341,17 +345,9 @@ function gapKey(q) {
     .slice(0, 80);
 }
 
-// PII mask for the stored gap sample. The gist.rs "better together" principle:
-// pool COUNTS, never raw text. We still keep a short sample so staff know what
-// the gap is about, but scrub the obvious personal identifiers first so the
-// backlog never accumulates emails / phones / student IDs.
-function maskPII(s) {
-  return String(s || '')
-    .replace(/[\w.+-]+@[\w.-]+\.\w+/g, '[email]')              // emails
-    .replace(/\b0\d[\d\s-]{7,}\d\b/g, '[phone]')               // TH phone numbers
-    .replace(/\b\d{7,}\b/g, '[id]')                            // long digit runs (student/account IDs)
-    .replace(/\b[gG]\d{6,}\b/g, '[id]');                       // Gxxxxxx-style account ids
-}
+// PII mask for the stored gap sample and key: the Rust mask (emails, national ids, phones, account ids, LINE ids, titled names).
+// The gist.rs "better together" principle: pool COUNTS; the short sample stays so staff know what the gap is about.
+const maskPII = s => mask_pii(String(s || ''));
 
 // POST /gap { q, source } — record a question the KB could not answer.
 async function logGap(request, env) {

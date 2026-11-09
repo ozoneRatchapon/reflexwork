@@ -1,0 +1,18 @@
+[package]
+name = "pii-mask"
+version = "0.1.0"
+edition = "2021"
+description = "ReflexWork personal-data mask for question text that leaves the browser or a worker (PDPA check, docs/pdpa-check.md)"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+regex-lite = "0.1"
+wasm-bindgen = { version = "=0.2.118", optional = true }
+
+[features]
+# the wasm export for the workers (crates/pii-mask/build.sh); off when reflex-wasm links the crate, which exports its own mask_pii
+worker = ["dep:wasm-bindgen"]
