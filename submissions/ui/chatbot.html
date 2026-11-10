@@ -379,7 +379,7 @@
         <div class="sg" id="sg" role="listbox" hidden></div>
         <button id="send" disabled>ถาม</button>
       </div>
-      <div class="privacy-note" style="font-size:.75rem;color:var(--muted);margin:4px 2px 0">คำถามที่ตอบไม่ได้จะถูกบันทึกให้ทีมคู่มือ · เมื่อ AI ช่วยเรียบเรียง คำถามจะถูกส่งไปยังบริการ AI ภายนอก (อาจอยู่นอกประเทศไทย) · ทุกครั้งที่ส่งออกจะซ่อนอีเมล เบอร์โทร เลขบัตร รหัส และชื่อที่มีคำนำหน้าก่อน แต่ซ่อนได้ไม่หมด อย่าพิมพ์ข้อมูลส่วนตัวในแชต · ประวัติแชตเก็บในแท็บนี้เท่านั้น (ปิดแท็บแล้วหาย ไม่ส่งขึ้นเซิร์ฟเวอร์) <button type="button" id="clear-chat" class="clear-chat">🗑️ ล้างประวัติแชต</button> · เติม <code>?ai=off</code> ท้าย URL เพื่อไม่ส่งให้ AI</div>
+      <div class="privacy-note" style="font-size:.75rem;color:var(--muted);margin:4px 2px 0">คำถามที่ตอบไม่ได้จะถูกบันทึกให้ทีมคู่มือ · เมื่อ AI ช่วยเรียบเรียง คำถามจะถูกส่งไปยังบริการ AI ภายนอก (อาจอยู่นอกประเทศไทย) · ทุกครั้งที่ส่งออกจะซ่อนอีเมล เบอร์โทร เลขบัตร รหัส และชื่อที่มีคำนำหน้าก่อน แต่ซ่อนได้ไม่หมด อย่าพิมพ์ข้อมูลส่วนตัวในแชต · ประวัติแชตเก็บในแท็บนี้เท่านั้น (ปิดแท็บแล้วหาย ไม่ส่งขึ้นเซิร์ฟเวอร์) <button type="button" id="clear-chat" class="clear-chat">🗑️ ล้างประวัติแชต</button> · เติม <code>?ai=off</code> ท้าย URL เพื่อไม่ส่งให้ AI<span id="privacy-rights"></span></div>
       <div class="bar"><span>ตอบจากคู่มือ/ข้อมูลทางการ: <b id="b-auto">0</b></span><span>ไม่พบในคู่มือ (ส่งต่อเจ้าหน้าที่): <b id="b-ai">0</b></span><span title="ประมาณการ ไม่ใช่ค่าที่วัดจากบิลจริง: สมมติว่าถ้าให้ LLM ตอบ แต่ละคำถามจะมีต้นทุนราว ฿2">ประหยัดโดยประมาณ (฿2/คำถาม): <b id="b-saved">฿0</b></span></div>
       <div class="ratio-wrap" id="ratio-wrap" style="display:none">
         <div class="ratio-head"><span>สัดส่วนที่ตอบจากข้อมูลทางการได้ (นับจริงในเซสชันนี้)</span><b id="ratio-pct">—</b></div>
@@ -449,6 +449,9 @@ const DEFAULT_AGENCY = {
     howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?'
   },
   contact:{label:'☎️ ติดต่อบัณฑิตวิทยาลัย',url:'https://graduate.mahidol.ac.th/thai/?p=aboutUs&g=2'},
+  // PDPA O4: where a person asks to see / correct / delete their data. The university's own page (Data Subject Request Form); the form says the
+  // university acts within 30 days of a complete request (form v1.0, 13 Dec 2564, read 2026-11-10). null for other agencies (NEUTRAL_AGENCY).
+  privacy:{label:'ขอใช้สิทธิในข้อมูลส่วนบุคคล (ดู แก้ ลบ) ด้วยแบบคำร้องของมหาวิทยาลัยมหิดล', note:'มหาวิทยาลัยดำเนินการภายใน 30 วันหลังได้รับคำร้องครบ', url:'https://privacy.mahidol.ac.th/how-do-i-submit-a-subject-access-request/'},
   it:{name:'กองไอที', phone:'02-849-6022', email:'account@mahidol.ac.th'},
   // Talk to a person now: the Graduate School's own LINE Official Accounts, as listed on its contact page (?p=aboutUs&g=2, checked
   // 2026-11-06). general = "ติดต่อสอบถามข้อมูลทั่วไป", admissions = รับสมัคร/รายงานตัว, it = the Graduate School's own web / information systems
@@ -470,7 +473,7 @@ const NEUTRAL_AGENCY = {
   metaTitle:'ถาม-ตอบ — ReflexWork', metaDescription:'ผู้ช่วยตอบคำถามจากข้อมูลทางการของหน่วยงาน',
   placeholder:'พิมพ์คำถามของคุณ', greeting:'ถามได้เลยครับ', examples:[],
   persona:{hello:'ผมเป็นผู้ช่วยตอบคำถามจากข้อมูลทางการครับ — มีเรื่องอะไรให้ช่วยไหมครับ?', bye:'ด้วยความยินดีครับ 🦀', whatCan:'ผมตอบคำถามจากข้อมูลทางการของหน่วยงานครับ ถ้าไม่มีในข้อมูล ผมจะบอกและพาไปหาเจ้าหน้าที่ ลองถามมาได้เลย', howAreYou:'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องอะไรให้ช่วยไหมครับ?'},
-  contact:null, faq:null, english:null, it:null, line:null, scopeLinks:{}, builtinKb:false, customised:true
+  contact:null, privacy:null, faq:null, english:null, it:null, line:null, scopeLinks:{}, builtinKb:false, customised:true
 };
 let AGENCY = DEFAULT_AGENCY;
 async function loadAgency(){
@@ -491,6 +494,10 @@ function applyAgency(){
   set('.top .org',AGENCY.orgLine); set('.top h1',AGENCY.title); set('.top p',AGENCY.subtitle);
   $('q').setAttribute('placeholder',AGENCY.placeholder);
   const first=(AGENCY.examples[0]||{}).q||''; const st=document.querySelector('#swlane .swrow.swu .swstep'); if(st) st.innerHTML='<b>1.</b> พิมพ์คำถาม'+(first?' เช่น "'+_lEsc(first)+'"':'');
+  // PDPA O4: the deployment's own data-rights page (built as DOM nodes: agency.json text is never parsed as HTML)
+  const pr=document.getElementById('privacy-rights'), P=AGENCY.privacy;
+  if(pr){ pr.textContent=''; if(P && P.url){ const a=document.createElement('a'); a.href=P.url; a.target='_blank'; a.rel='noopener'; a.textContent=P.label||P.url;
+    pr.append(' · ', a); if(P.note) pr.append(' (', P.note, ')'); } }
   if(AGENCY.customised){ const ex=document.querySelector('.ev-example'); if(ex) ex.remove(); }   // the sample card in the evidence panel is about our own entries
   document.documentElement.classList.remove('agency-pending');
 }

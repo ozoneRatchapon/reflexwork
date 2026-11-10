@@ -45,7 +45,7 @@ university's DPO or legal office must sign off before the free-text box (plan 00
   `askTeam` and `/gap`. Needs a LINE worker deploy.
 - **O3 (fixed 2026-11-09, plan 016 item 3). Retention by time.** `gap_log` is capped at 200 rows but has no age limit; `feedback_log` has neither. Suggest: delete gap
   rows older than 180 days in the daily cron, and vote rows older than a year. Needs a kernel worker deploy.
-- **O4 (fixed in part 2026-11-09, plan 016 item 1: the note now says the AI is an outside service that may be abroad; a privacy page with a contact for data requests is still to write). Notice.** The chat note says what is logged and how to turn the AI off (`?ai=off`). It does not say the AI is a Google
+- **O4 (fixed 2026-11-10: the note says the AI is an outside service that may be abroad (plan 016 item 1), and links the university's data-rights page https://privacy.mahidol.ac.th/how-do-i-submit-a-subject-access-request/ (Data Subject Request Form v1.0: the university acts within 30 days of a complete request). Left open: the form leaves the submission e-mail blank for each unit to fill in, so the Graduate School's own address for these requests is still to confirm with the school). Notice.** The chat note says what is logged and how to turn the AI off (`?ai=off`). It does not say the AI is a Google
   service outside Thailand. Suggest adding that, plus a contact for data requests, in the note and in a short privacy page.
 - **O5. Formal sign-off** by the university (DPO / legal): purpose of each flow, legal basis, the Gemini transfer abroad (section 28),
   retention periods.
