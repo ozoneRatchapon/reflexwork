@@ -49,7 +49,7 @@ jobs:
             integrations/llm-proxy/local-llm-proxy.mjs \
             integrations/line-worker/worker.mjs \
             integrations/_shared/answer_points.mjs \
-            integrations/_shared/rethink.mjs \
+            integrations/line-worker/views.mjs \
             integrations/_shared/intake.mjs \
             integrations/_shared/team-adapter.mjs; do
             echo "checking $f"
