@@ -17,7 +17,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{error::KernelError, types::TaskSpec};
+use crate::error::KernelError;
 
 /// Number of route classes for multi-class routing.
 pub const ROUTE_CLASSES: usize = 4;
@@ -160,7 +160,7 @@ pub struct PersonalitySnapshot {
 impl PersonalitySnapshot {
     pub fn from_policy(policy: &PolicyState, env_tag: &str) -> Self {
         Self {
-            snapshot_id: Uuid::new_v4(),
+            snapshot_id: Uuid::now_v7(),
             policy: policy.clone(),
             created_at_unix_ns: now_unix_ns(),
             environment_tag: env_tag.to_owned(),
@@ -217,14 +217,14 @@ impl PolicyRouter {
         let k = ROUTE_CLASSES;
         let mut logits = vec![0.0f32; k];
 
-        for c in 0..k {
+        for (c, logit) in logits.iter_mut().enumerate() {
             let row_start = c * n;
             let dot: f32 = policy.multi_weights[row_start..row_start + n]
                 .iter()
                 .zip(x.iter())
                 .map(|(w, xi)| w * xi)
                 .sum();
-            logits[c] = dot + policy.multi_bias[c];
+            *logit = dot + policy.multi_bias[c];
         }
 
         softmax_inplace(&mut logits);

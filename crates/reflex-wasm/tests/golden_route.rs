@@ -66,6 +66,23 @@ fn ported_prefix_matches_the_recorded_routes() {
             bad.push(format!("{q:?}: page {want_name}, rust {:?}", got.map(|g| g.name())));
         }
     }
+    // PIN: a tapped topic chip. The recorded question is the chip's title, the entry id is what the page passes as `pinnedId`
+    let mut pins = 0usize;
+    for r in all.iter().filter(|r| r["kind"] == "pin") {
+        let (q, want_name, pin_id) = (r["q"].as_str().unwrap(), r["route"].as_str().unwrap(), r["pin"].as_str().unwrap());
+        let want = Route::from_name(want_name).unwrap_or_else(|| panic!("unknown route {want_name:?} in the contract"));
+        let mut ctx = Ctx { pinned: true, prog_state: ProgState::Ok, ai_off: true, pinned_entry: Some(pin_id.to_string()), programme_in_focus: None, today: TODAY.into(), catalogue: Some(&catalogue), manual: &manual, config: Config::default() };
+        let got = decide_route(q, &mut ctx, None);
+        pins += 1;
+        let ok = if PORTED.contains(&want) { got == Some(want) } else { got.is_none() };
+        if PORTED.contains(&want) {
+            ported_seen += 1;
+        }
+        if !ok {
+            bad.push(format!("pin {pin_id:?} title {q:?}: page {want_name}, rust {:?}", got.map(|g| g.name())));
+        }
+    }
+    assert!(pins >= 20, "contract has too few PIN samples: {pins}");
     // sessions: the programme in focus carries over from one turn to the next, exactly as in the page (a fresh page per session)
     let mut turns = 0usize;
     for r in all.iter().filter(|r| r["kind"] == "session") {

@@ -2,13 +2,16 @@
 //! in JS (`personalAsk`, `stuckTopic` / `stuckPicks`, the programme match, `followUpAspect`, `timeIntent`, `hasStudyIntent`).
 //! Computed from the same prepared question and the same state as the route, so the view cannot disagree with the decision.
 use super::aspect::follow_up_aspect;
-use super::branches::{personal_ask, staff_first, Personal};
-use super::dates::{time_intent, TimeIntent};
+use super::branches::{personal_ask, smalltalk_kind, staff_first, wellbeing_kind, Personal};
+use super::dates::{dated_picks, time_intent, TimeIntent};
+use super::topic::topic_hits;
 use super::manual::Ctx;
 use super::programme::programme_match;
 use super::stuck::{cat_key, stuck_picks, stuck_topic};
 use super::study_intent::has_study_intent;
 use super::types::Route;
+use super::verdict::manual_verdict;
+use crate::decide::Stage;
 use super::vocab::vocab;
 use crate::resolve::Resolution;
 use serde::Serialize;
@@ -37,6 +40,14 @@ pub struct Decision {
     pub time_intent: Option<&'static str>,
     /// unsure_programme: the question reads as a study question (the finder opens with the study wording)
     pub study_intent: Option<bool>,
+    /// kb_act / advice_*: the id of the entry answered (the top hit, or the entry of the year / term the user named)
+    pub entry: Option<String>,
+    /// disambiguate / scope_ask / advice_* / time_intent / topic_picks: the ids of the entries offered (or grounding the AI rephrase), best first
+    pub offered: Option<Vec<String>>,
+    /// the manual's verdict routes: "reflex" (the gate alone) | "rethink" (the second look in the borderline band)
+    pub stage: Option<&'static str>,
+    /// wellbeing: "crisis" | "stress"; smalltalk: the kind of `classifySmalltalk` ("greet", "thanks", "bye", "whatcan", "howareyou", ...)
+    pub kind: Option<String>,
 }
 
 fn stuck_view(q: &str, ctx: &Ctx) -> Option<Stuck> {
@@ -59,6 +70,8 @@ pub fn decision(route: Option<Route>, q: &str, ctx: &Ctx) -> Decision {
     let mut d = Decision { route: route.map(Route::name), ..Decision::default() };
     let catalogue = ctx.catalogue;
     match route {
+        Some(Route::Wellbeing) => d.kind = wellbeing_kind(q).map(String::from),
+        Some(Route::Smalltalk) => d.kind = smalltalk_kind(q),
         Some(Route::Personal) => {
             d.personal = personal_ask(q).map(|p| match p {
                 Personal::Other => "other",
@@ -72,13 +85,31 @@ pub fn decision(route: Option<Route>, q: &str, ctx: &Ctx) -> Decision {
         Some(Route::FieldFee) => d.programme = catalogue.and_then(|c| c.resolve(q, true)),
         Some(Route::Followup) => d.aspect = follow_up_aspect(q),
         Some(Route::TimeIntent) => {
-            d.time_intent = time_intent(q).map(|t| match t {
+            let intent = time_intent(q);
+            d.time_intent = intent.map(|t| match t {
                 TimeIntent::Registration => "registration",
                 TimeIntent::Admissions => "admissions",
                 TimeIntent::Any => "any",
-            })
+            });
+            d.offered = intent.map(|t| dated_picks(ctx.manual.entries(), t, &ctx.today).into_iter().map(|(e, _)| e.id.clone()).collect());
+        }
+        Some(Route::TopicPicks) => {
+            let entries = ctx.manual.entries();
+            d.offered = Some(topic_hits(q, entries.iter().map(|e| e.title.as_str())).into_iter().map(|i| entries[i].id.clone()).collect());
         }
         Some(Route::UnsureProgramme) => d.study_intent = Some(has_study_intent(q)),
+        Some(
+            Route::Disambiguate | Route::ScopeAsk | Route::ScopeNoYear | Route::ScopeNoRound | Route::AdviceAbstain | Route::AdviceStrong
+            | Route::AdviceHybrid | Route::KbAct,
+        ) => {
+            let v = manual_verdict(q, ctx);
+            d.entry = v.entry.map(|e| e.id.clone());
+            d.offered = (!v.offered.is_empty()).then(|| v.offered.iter().map(|e| e.id.clone()).collect());
+            d.stage = Some(match v.stage {
+                Stage::Reflex => "reflex",
+                Stage::Rethink => "rethink",
+            });
+        }
         _ => {}
     }
     d

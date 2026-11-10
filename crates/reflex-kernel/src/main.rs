@@ -88,7 +88,7 @@ async fn main() {
                 .unwrap_or_else(|| "Check that the student request form has all required fields.".to_string());
 
             let task = TaskSpec {
-                id: Uuid::new_v4(),
+                id: Uuid::now_v7(),
                 category: category.clone(),
                 raw_input: raw_input.clone(),
                 token_budget: 2048,
@@ -149,9 +149,9 @@ async fn main() {
             info!("S3: Anchor devnet  → initialize_workflow + submit_execution_proof");
 
             // ── Step 1: Build a sample task ──────────────────────────────────
-            let workflow_id = Uuid::new_v4();
+            let workflow_id = Uuid::now_v7();
             let task = TaskSpec {
-                id:               Uuid::new_v4(),
+                id:               Uuid::now_v7(),
                 category:         TaskCategory::OnchainSettlement,
                 raw_input:        "Settle bounty for completed AI workflow execution".to_string(),
                 token_budget:     1,       // fast-path: budget set but no tokens consumed
@@ -232,7 +232,7 @@ async fn main() {
             println!("   S1 (Reflex Kernel) → S3 (Anchor devnet) — no LLM invoked");
         }
 
-        "help" | _ => {
+        _ => {   // "help" and anything unknown
             println!("reflex-agent — ReflexWork Reflex Kernel");
             println!();
             println!("USAGE:");

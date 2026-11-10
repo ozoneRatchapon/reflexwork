@@ -12,7 +12,7 @@
 
 use std::collections::HashMap;
 
-use crate::{error::KernelError, types::{TaskCategory, TaskSpec}};
+use crate::{error::KernelError, types::TaskSpec};
 
 pub const FEATURE_DIM: usize = 64;
 pub const CATEGORY_DIM: usize = 8;    // [0..8]
@@ -115,7 +115,7 @@ mod tests {
 
     fn make_task(cat: TaskCategory, input: &str, budget: u32, priority: u8) -> TaskSpec {
         TaskSpec {
-            id: Uuid::new_v4(),
+            id: Uuid::now_v7(),
             category: cat,
             raw_input: input.to_string(),
             token_budget: budget,

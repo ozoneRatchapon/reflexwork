@@ -36,7 +36,7 @@ pub mod workflow_escrow {
             ReflexError::DeadlineTooSoon
         );
         require!(
-            max_proofs >= 1 && max_proofs <= MAX_PROOF_COUNT,
+            (1..=MAX_PROOF_COUNT).contains(&max_proofs),
             ReflexError::InvalidMaxProofs
         );
 
@@ -81,6 +81,8 @@ pub mod workflow_escrow {
     /// Accepts a BLAKE3 composite proof from a Reflex Agent.
     /// Verifies hash integrity and records the attestation onchain.
     /// Auto-settles if proof_count reaches max_proofs.
+    // the instruction's arguments are its on-chain interface (IDL): grouping them would change every client
+    #[allow(clippy::too_many_arguments)]
     pub fn submit_execution_proof(
         ctx: Context<SubmitExecutionProof>,
         task_id: [u8; 16],

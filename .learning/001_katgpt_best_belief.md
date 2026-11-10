@@ -17,6 +17,7 @@ Feature flag: `best_belief` in `katgpt-core` (`lib.rs:154`).
 | 5 | With a fixed observation count n, selection by Beta lower bound equals selection by the MLE rate S/n (a monotone function). So no gain there. | katgpt-rs `.benchmarks/010_best_belief_floor_comparison.md`, Method and TL;DR | NOT re-run here; read only | medium |
 | 6 | With variable n (heteroscedastic), selection regret drops 15-30% compared with the MLE rate, and up to 77% in a low-data stress test. | same benchmark file | NOT re-run here; katgpt-rs's reported figure | medium |
 | 7 | ReflexWork uses this for entry confidence (commit `121e086`): `conf` = Beta posterior mean, and the dashboard shows 95% bounds from vote counts. | `integrations/kernel-worker/worker.mjs`, `submissions/ui/dashboard.html:314` | rg for `best_belief` / `Beta` in both files | high (use); the Rust code is not called directly, the logic is ported |
+| 8 | JS port of the bounds (`integrations/_shared/beta_bound.mjs`) equals the Rust function | scratch Rust crate calling `best_belief_score` at eps 0.05 and 0.95, compared with the JS output | high |
 
 ## What this means for us
 - The lower bound is useful when entries have different numbers of votes. An entry with 2 up and 0 down should not outrank one with 50 up and 10 down just because its rate is higher. Claim 5 says that with equal vote counts the ranking does not change, so the effect is on new or rarely voted entries.
@@ -24,7 +25,7 @@ Feature flag: `best_belief` in `katgpt-core` (`lib.rs:154`).
 
 ## Open questions (for the owner)
 - Do the vote logs for the 132 FAQ entries have enough variation in n to show any gain? If most entries have 0-2 votes, the bound mostly reflects the prior.
-- Is the ported formula in `worker.mjs` the same as claim 1 (same ε, same +1 pseudocount)? Not checked line by line in this entry.
+- RESOLVED 2026-11-08: `integrations/_shared/beta_bound.mjs` (used by worker.mjs `/entry-conf`) gives the same lower and upper bounds as the Rust `best_belief_score` for 8 vote pairs (0/0, 2/0, 2/2, 50/10, 8/1, 0/5, 100/100, 3/40), worst difference 2e-7 (f32 precision). Scratch check outside the repos: /tmp/bbcheck. Note: the worker stores `conf` as the posterior MEAN a/(a+b), not the 5% lower bound; the lower bound is shown as `lo` in /entry-conf.
 
 ## Not claimed
 - That the bound improves answer correctness. It only changes how entry confidence is ranked.

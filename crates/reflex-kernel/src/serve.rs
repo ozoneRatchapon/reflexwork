@@ -174,7 +174,7 @@ async fn route(
         .collect();
 
     let task = TaskSpec {
-        id: Uuid::new_v4(),
+        id: Uuid::now_v7(),
         category: category.clone(),
         raw_input: req.input.clone(),
         token_budget: req.token_budget,
@@ -290,7 +290,7 @@ async fn feedback(
         .map(|s| s.to_lowercase())
         .collect();
     let task = TaskSpec {
-        id: Uuid::new_v4(),
+        id: Uuid::now_v7(),
         category,
         raw_input: req.input.clone(),
         token_budget: 2048,

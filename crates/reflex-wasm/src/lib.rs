@@ -17,10 +17,12 @@ pub mod pii {
     pub use pii_mask::{mask_pii, PiiKind};
 }
 pub mod resolve;
+mod kb_index;
 mod re;
 pub mod route;
 pub mod understand;
 
+pub use kb_index::KbIndex;
 use blake3::Hasher;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
@@ -252,7 +254,7 @@ const QUERY_FILLERS: [&str; 17] = [
     "นะคะ", "ครับ", "ค่ะ", "คะ", "บ้าง", "หน่อย", "ไหม", "มั้ย",
 ];
 
-fn strip_query_fillers(q: &str) -> String {
+pub(crate) fn strip_query_fillers(q: &str) -> String {
     let chars: Vec<char> = q.chars().collect();
     let fillers: Vec<Vec<char>> = QUERY_FILLERS.iter().map(|f| f.chars().collect()).collect();
     let mut out = String::new();
@@ -307,7 +309,7 @@ const OVERLAP_LIFT_MIN_COS: f32 = 0.15;
 /// `OVERLAP_LIFT_MIN_COS`: high overlap with a clear overlap lead over the runner-up
 /// means "confident", even if the cosine is diluted.
 /// `margin` = cosine gap; `ov`/`ov_lead` = overlap + lead.
-fn cos_to_score(c: f32, margin: f32, ov: i32, ov_lead: i32) -> i32 {
+pub(crate) fn cos_to_score(c: f32, margin: f32, ov: i32, ov_lead: i32) -> i32 {
     // strong lexical match with a clear lead (and some vector support) → humanize-grade
     if c >= OVERLAP_LIFT_MIN_COS && ov >= 8 && ov_lead >= 4 {
         return 6;
@@ -347,77 +349,10 @@ pub fn kb_search(kb: JsValue, query: &str) -> JsValue {
     serde_wasm_bindgen::to_value(&kb_rank(&entries, query)).unwrap()
 }
 
-/// The ranking behind `kb_search`, callable from Rust (the decision order in `route` searches the manual with it).
+/// The ranking behind `kb_search`, callable from Rust. Builds the index for one search; a caller that searches the same
+/// entries again should keep a `KbIndex` (`route::Manual` does).
 pub fn kb_rank(entries: &[KbEntryIn], query: &str) -> Vec<KbHit> {
-    let n = entries.len().max(1) as f32;
-    // document grams + document frequency
-    let doc_grams: Vec<Vec<String>> = entries.iter().map(|e| gram_set(&e.keywords)).collect();
-    let mut df: std::collections::HashMap<&str, f32> = std::collections::HashMap::new();
-    for gs in &doc_grams {
-        for g in gs {
-            *df.entry(g.as_str()).or_insert(0.0) += 1.0;
-        }
-    }
-    let idf = |g: &str| ((n + 1.0) / (df.get(g).copied().unwrap_or(0.0) + 1.0)).ln() + 1.0;
-    // normalized tf-idf doc vectors
-    let norm_vec = |gs: &[String]| -> std::collections::HashMap<String, f32> {
-        let mut v = std::collections::HashMap::new();
-        let mut n2 = 0.0f32;
-        for g in gs {
-            let w = idf(g);
-            v.insert(g.clone(), w);
-            n2 += w * w;
-        }
-        let nr = n2.sqrt().max(1e-9);
-        for w in v.values_mut() {
-            *w /= nr;
-        }
-        v
-    };
-    let doc_vecs: Vec<_> = doc_grams.iter().map(|gs| norm_vec(gs)).collect();
-    let qgrams = gram_set(&strip_query_fillers(query));
-    let qv = norm_vec(&qgrams);
-
-    let mut scored: Vec<KbHit> = Vec::new();
-    for (i, e) in entries.iter().enumerate() {
-        let mut overlap = 0i32;
-        for g in &qgrams {
-            if e.keywords.to_lowercase().contains(g.as_str()) {
-                overlap += 1;
-            }
-        }
-        let dv = &doc_vecs[i];
-        let mut cos = 0.0f32;
-        for (g, w) in &qv {
-            if let Some(dw) = dv.get(g) {
-                cos += w * dw;
-            }
-        }
-        if overlap > 0 || cos > 0.0 {
-            scored.push(KbHit {
-                id: e.id.clone(),
-                s: 0,
-                cos,
-                overlap,
-            });
-        }
-    }
-    // rank by cosine (primary), overlap (tiebreak)
-    scored.sort_by(|a, b| {
-        b.cos
-            .partial_cmp(&a.cos)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then(b.overlap.cmp(&a.overlap))
-    });
-    // assign the gate score from cosine + margin to runner-up
-    let runner = scored.get(1).map(|h| h.cos).unwrap_or(0.0);
-    let runner_overlap = scored.get(1).map(|h| h.overlap).unwrap_or(0);
-    for (i, h) in scored.iter_mut().enumerate() {
-        let margin = if i == 0 { h.cos - runner } else { 0.0 };
-        let ov_lead = if i == 0 { h.overlap - runner_overlap } else { 0 };
-        h.s = cos_to_score(h.cos, margin, h.overlap, ov_lead);
-    }
-    scored
+    KbIndex::new(entries).rank(query)
 }
 
 // ─── Smalltalk intent scorer: sigmoid-gated, signed weights (never softmax) ──
@@ -699,6 +634,19 @@ impl Router {
     /// the route (or `null`) and what its view needs; fields a route does not use are `null` (plan 015 step 4c).
     pub fn decision(&self, q: &str, state: JsValue, rewrite: JsValue) -> Result<JsValue, JsValue> {
         Ok(to_js(&self.decide_in(q, state, rewrite)?))
+    }
+
+    /// The manual's search over the question as `decide` reads it (prepared the same way, the same index): `[{id, s}]`, best first, at most
+    /// `n`. For a client without a search of its own (the LINE worker's "nearest topics").
+    pub fn search(&self, q: &str, n: usize) -> JsValue {
+        #[derive(Serialize)]
+        struct Hit<'a> {
+            id: &'a str,
+            s: i32,
+        }
+        let q = route::prepare(q);
+        let hits: Vec<Hit> = self.manual.search(&q).into_iter().take(n).map(|f| Hit { id: &f.entry.id, s: f.hit.s }).collect();
+        to_js(&hits)
     }
 }
 

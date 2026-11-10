@@ -1,8 +1,8 @@
 // ReflexWork — LINE adapter on Cloudflare Workers
 //
-// Edge version of integrations/line/adapter.mjs: a LINE Messaging API webhook
-// that routes each message through the live kernel Worker, answers from the KB
-// on FastPath (0 token) and forwards only LLM-path questions to the LLM proxy.
+// Edge version of integrations/line/adapter.mjs: a LINE Messaging API webhook. Each message goes through the SAME Rust decision order
+// as the web chat (the Router of crates/reflex-wasm); views.mjs turns the decision into LINE text. Manual answers cost 0 token; only
+// advice questions are rephrased by the grounded LLM proxy. The kernel Worker still counts each question (dashboard, audit, proof).
 //
 // Deploy:
 //   cd integrations/line-worker && npx wrangler deploy
@@ -15,68 +15,42 @@
 
 import { KB } from './kb-data.mjs';
 import { askTeam } from '../_shared/team-adapter.mjs';
-import { readableText } from '../_shared/answer_points.mjs';
-import { decide } from '../_shared/rethink.mjs';
-import { classifyIssue, intakePrompt, isAdvice, groundedPrompt, groundedContext } from '../_shared/intake.mjs';
-import { createMood, classifySmalltalk, smalltalkReply } from '../_shared/smalltalk.mjs';
-// PDPA check O2 (docs/pdpa-check.md): mask personal data before the question goes to the AI proxy or the gap list - the same Rust
-// mask as the page and the kernel (crates/pii-mask). Rebuild: crates/pii-mask/build.sh
-import piiWasm from '../_shared/piimask/pii_mask_bg.wasm';
-import { initSync as piiInit, mask_pii } from '../_shared/piimask/pii_mask.js';
-piiInit({ module: piiWasm });
+import { groundedContext, groundedPrompt } from '../_shared/intake.mjs';
+import { lineView, notInManualText as notInManualReply } from './views.mjs';
+// The SAME Rust decision order as the web page (plan 009 C4): crates/reflex-wasm, built by crates/reflex-wasm/build.sh into
+// submissions/ui/wasm (one build for both). It also carries the PDPA mask (crates/pii-mask, docs/pdpa-check.md O2): the question is
+// masked before it goes to the AI proxy or the gap list.
+import routerWasm from '../../submissions/ui/wasm/reflex_wasm_bg.wasm';
+import { initSync, Router, mask_pii, classify_issue } from '../../submissions/ui/wasm/reflex_wasm.js';
+initSync({ module: routerWasm });
 
 const KERNEL = 'https://reflexwork-kernel.solana-thailand.workers.dev';
 const LLM_PROXY = 'https://reflexwork-llm-proxy.solana-thailand.workers.dev';
 
-// Score each KB entry against the query. Thai has no word spaces, so we match
-// on character tri-grams plus any space-separated tokens — the SAME scoring the
-// web chatbot uses, kept in lockstep so LINE and web answer identically.
-// Generic Thai connective/filler fragments that create false tri-gram matches
-// against unrelated titles. Excluded from scoring so "วิธีทำ…" doesn't score
-// every entry whose title contains "วิธี".
-const STOP_GRAMS = new Set(['วิธี', 'ทำอ', 'ทำย', 'การ', 'ได้', 'อย่', 'ย่า', 'งไร', 'ไหม', 'เท่', 'ท่า', 'าไร']);
+// Built ONCE per isolate, at module scope: ~10 ms of startup CPU (limit 1 s), then a decision is <1 ms. Built lazily inside a request it
+// could use up the Free plan's 10 ms request CPU (benchmark/coldstart/001_line_router_startup.md). No programme catalogue: LINE shows no
+// programme cards (that would be ~19 ms of startup and a 6 MB bundle).
+const ROUTER = new Router(KB, null, undefined);
+const BY_ID = new Map(KB.map(e => [e.id, e]));
 
-export function searchKB(q, kb = KB) {
-  const ql = (q || '').toLowerCase();
-  const grams = new Set();
-  // Space-separated tokens. Latin/number tokens (turnitin, 25, grad) are highly
-  // discriminative, so weight them more than a bare Thai tri-gram.
-  const weight = new Map();
-  for (const tok of ql.split(/\s+/)) {
-    if (tok.length > 1) {
-      grams.add(tok);
-      weight.set(tok, /^[a-z0-9]/.test(tok) ? 3 : 1);
-    }
-  }
-  for (let i = 0; i < ql.length - 2; i++) {
-    const g = ql.slice(i, i + 3).trim();
-    if (g.length === 3 && !STOP_GRAMS.has(g)) { grams.add(g); if (!weight.has(g)) weight.set(g, 1); }
-  }
-  const scored = [];
-  for (const e of kb) {
-    let s = 0;
-    for (const g of grams) if (e.keywords.includes(g)) s += (weight.get(g) || 1);
-    if (s > 0) scored.push({ e, s });
-  }
-  scored.sort((a, b) => b.s - a.s);
-  return scored;
+/** Today in Asia/Bangkok (UTC+7, no DST), YYYY-MM-DD: the decision reads dates against it and never reads a clock itself. */
+export const todayBangkok = (now = Date.now()) => new Date(now + 7 * 3600e3).toISOString().slice(0, 10);
+
+/** LINE's state for the router: no catalogue, no tapped topic, no programme in focus; the AI is on (the grounded proxy). */
+export const lineState = today => ({ progState: 'none', aiOff: false, pinnedId: null, programmeInFocus: null, today, agencyHasIt: true });
+
+/** The router's decision for one LINE message: {route, entry, offered, kind, stage, personal, stuck, ...} (route null = not found). */
+export function decideLine(text, today = todayBangkok()) {
+  return ROUTER.decision(String(text || ''), lineState(today), null);
 }
 
-// 3-tier decision mirroring the web chatbot:
-//   confident  -> answer from the manual (0 token)
-//   ambiguous  -> offer the top matches so the user picks (guards typos/ambiguity)
-//   escalate   -> no KB hit, hand to the LLM
-export function pickFromKB(q, gate, kb = KB) {
-  const ranked = searchKB(q, kb);
-  if (!ranked.length) return { tier: 'escalate', stage: 'reflex', reason: 'ไม่พบในคู่มือ' };
-  // Delegate to the shared rethink layer (System 1 / System 2). It recovers a
-  // FastPath answer in the borderline band instead of paying for an LLM.
-  const v = decide({ gate, ranked });
-  const tier = v.action === 'act' ? 'confident'
-             : v.action === 'disambiguate' ? 'ambiguous'
-             : 'escalate';
-  return { tier, stage: v.stage, reason: v.reason, entry: v.entry, candidates: v.candidates };
+/** Titles of the nearest entries that share real words with the question (score >= 3), at most 3. */
+export function nearTitles(q) {
+  return ROUTER.search(String(q || ''), 3).filter(h => h.s >= 3).map(h => BY_ID.get(h.id)?.title).filter(Boolean);
 }
+
+// Reply when the manual has no answer (exported for tests).
+export const notInManualText = q => notInManualReply(nearTitles(q));
 
 async function verify(bodyRaw, signature, secret) {
   if (!secret) {
@@ -133,13 +107,6 @@ async function saveKbDraft(env, question, answer) {
   return r.json().catch(() => ({ ok: false }));
 }
 
-// Reply when the manual has no answer (exported for tests). Nearest titles only when they share real words with the question.
-export function notInManualText(q, kb = KB) {
-  const near = searchKB(q, kb).filter(r => r.s >= 3).slice(0, 3).map(r => r.e.title);
-  return ['เรื่องนี้ยังไม่มีในคู่มือครับ ผมจดคำถามไว้ให้ทีมเติมแล้ว และเจ้าหน้าที่จะตอบต่อในแชทนี้',
-    near.length ? `ระหว่างนี้ หัวข้อใกล้เคียงที่ถามได้:\n${near.map((t, i) => `${i + 1}. ${t}`).join('\n')}` : ''].filter(Boolean).join('\n\n');
-}
-
 // Footers: students see a plain source label (like the web's "✅ ข้อมูลทางการ"); the engineering trail (route, 0 token,
 // rethink, BLAKE3 fingerprint) only when the worker runs with LINE_VIEW=judge (the web's ?view=judge). Staff, 2026-11-03.
 const footerFor = (env, student, judge) => (env && env.LINE_VIEW === 'judge') ? judge : student;
@@ -188,94 +155,31 @@ async function processEvents(raw, env) {
         continue;
       }
 
-      // Smalltalk first — a greeting/thanks is not a knowledge question and not
-      // a staff case. Greet back and invite the user to say what they need,
-      // instead of coldly routing to the LLM/staff fallback. Deterministic,
-      // 0 token. (LINE is stateless per webhook, so mood starts fresh each turn;
-      // that only affects the greeting word, which is correct for a new message.)
-      const _st = classifySmalltalk(text);
-      if (_st) {
-        const mood = createMood().felt(_st === 'thanks' ? 'thanks' : 'neutral');
-        await reply(ev.replyToken, smalltalkReply(_st, mood), footerFor(env, '', '\n\n💬 คุยทั่วไป · ไม่เรียก AI · 0 token'), token);
-        continue;
-      }
-
-      // The kernel still makes the real routing decision (fast-path gate +
-      // BLAKE3 proof) — we keep its proof as tamper-evidence on the reply.
-      const decision = await routeViaKernel(env, text).catch(() => ({}));
-      const proof = String(decision.blake3_proof || '').slice(0, 16);
-
-      // Prefer the kernel's raw sigmoid gate score g; fall back to a proxy from
-      // fast_path + complexity only if an older kernel build lacks the field.
-      const cNum = typeof decision.gate_dim8_complexity === 'number' ? decision.gate_dim8_complexity : 0.5;
-      const gateProxy = (typeof decision.gate_score === 'number')
-        ? decision.gate_score
-        : (decision.fast_path ? Math.min(0.59, 0.30 + cNum * 0.25)
-                              : Math.max(0.70, 0.60 + cNum * 0.35));
-
-      // Answer from the verified manual when we can; the rethink layer decides,
-      // recovering a FastPath answer in the borderline band instead of paying
-      // for an LLM. The footer shows the true path + reflex/rethink stage.
-      const pick = pickFromKB(text, gateProxy);
-      const stageTag = pick.stage === 'rethink' ? ' 🔁 rethink' : '';
-      let answer, footer;
-
-      if (pick.tier === 'confident') {
-        const src = pick.entry.source_url ? `\n📎 ${pick.entry.source_url}` : '';
-        // Grounded hybrid: for ADVICE questions ("แนะนำ/วางแผน/ยังไง") a raw KB
-        // dump reads wrong — rephrase via the LLM GROUNDED on the matched KB
-        // entries only (facts stay from KB). Factual questions keep the exact
-        // FastPath answer (numbers must not be rephrased), 0 token.
-        if (isAdvice(text)) {
-          const near = searchKB(text).map(r => r.e);
-          const bag = { LLM_PROXY, ...(env || {}) };
-          // QA F12: question + manual context separately, so the proxy grounds and guards the answer (see askTeam)
-          const masked = mask_pii(text);   // only the masked question leaves for the AI; the manual context is ours
-          const r = await askTeam(masked, bag, { context: groundedContext(near), prompt: groundedPrompt(masked, near) }).catch(() => ({ ok: false }));
-          if (r.ok && r.text) {
-            answer = `${r.text}${src}`;
-            footer = footerFor(env, `\n\n🤖 AI ช่วยเรียบเรียงจากคู่มือ · อ้างอิง: ${pick.entry.title}`, `\n\n🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${pick.entry.title}${proof ? `\n🔒 ${proof}…` : ''}`);
-          } else {
-            // AI unavailable → fall back to the raw KB answer (still correct)
-            answer = `${readableText(pick.entry, text)}${src}`;
-            footer = footerFor(env, '\n\n✅ ข้อมูลทางการจากคู่มือ', `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
-          }
-        } else {
-          // Guided steps as a numbered list when the entry carries them.
-          const steps = Array.isArray(pick.entry.steps) && pick.entry.steps.length
-            ? `\n\nทำตามขั้นตอน:\n${pick.entry.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
-            : '';
-          answer = `${readableText(pick.entry, text)}${steps}${src}`;
-          footer = footerFor(env, '\n\n✅ ข้อมูลทางการจากคู่มือ', `\n\n🦀 FastPath · ตอบจากคู่มือ · 0 token${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
-        }
-      } else if (pick.tier === 'ambiguous') {
-        const list = pick.candidates.map((c, i) => `${i + 1}. ${c.title}`).join('\n');
-        answer = `🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:\n${list}`;
-        footer = footerFor(env, '', `\n\n🦀 ต้องการความชัดเจน · ยังไม่เรียก AI${stageTag}`);
-      } else {
-        // Gap log: KB could not answer → record it for the staff backlog
-        // (fire-and-forget; a logging failure must never block the reply).
-        logGapViaKernel(env, text).catch(() => {});
-
-        // Intake: most unanswered messages here are PERSONAL/TECHNICAL issues
-        // (account locked, data stuck, can't use a system) — not knowledge
-        // questions. Instead of guessing with an LLM, collect the exact fields
-        // staff always ask for, in one shot, then hand off to the human in this
-        // same chat. Deterministic, 0 token. (No ticket system needed — LINE's
-        // own chat is the hand-off channel.)
-        const issue = classifyIssue(text);
-        if (issue) {
-          answer = intakePrompt(issue.category);
-          footer = footerFor(env, '', `\n\n🦀 คัดเป็น “${issue.label}” · ส่งต่อเจ้าหน้าที่ (เก็บข้อมูลให้ครบก่อน)${proof ? `\n🔒 ${proof}…` : ''}`);
-        } else {
-          // Not in the manual: say so, show the nearest topics, and leave it to staff in this chat. The LLM is NOT asked to
-          // improvise an answer (its facts would be unverifiable) - same rule as the web chat. The question is already in the
-          // gap log above, which is how the manual learns it (AI drafts, staff approve).
-          answer = notInManualText(text);
-          footer = footerFor(env, '', `\n\n🦀 ไม่พบในคู่มือ · ไม่ให้ AI เดา · ส่งต่อเจ้าหน้าที่${stageTag}${proof ? `\n🔒 ${proof}…` : ''}`);
+      // Count the question on the kernel (dashboard totals + audit, and its BLAKE3 proof as tamper-evidence in the judge footer) in
+      // parallel: the decision itself is local (the gate the kernel computes is the same sigmoid gate, inside the Router).
+      const kernel = routeViaKernel(env, text).catch(() => ({}));
+      const today = todayBangkok();
+      const d = decideLine(text, today);
+      const v = lineView(d, text, { byId: BY_ID, near: () => nearTitles(text), issue: () => classify_issue(text), today });
+      // Gap log: the manual could not answer -> the staff backlog (fire-and-forget; a logging failure never blocks the reply)
+      if (v.gap) logGapViaKernel(env, text).catch(() => {});
+      let answer = v.text, foot = v.footer;
+      // Grounded hybrid: an ADVICE question ("แนะนำ/วางแผน/ยังไง") is rephrased by the AI GROUNDED on the matched entries only (facts stay
+      // from the manual); the manual text above stays the fallback. Factual questions keep the exact manual answer, 0 token.
+      if (v.ai) {
+        const near = v.ai.offered.length ? v.ai.offered : [v.ai.entry];
+        const bag = { LLM_PROXY, ...(env || {}) };
+        // QA F12: question + manual context separately, so the proxy grounds and guards the answer (see askTeam)
+        const masked = mask_pii(text);   // only the masked question leaves for the AI; the manual context is ours
+        const r = await askTeam(masked, bag, { context: groundedContext(near), prompt: groundedPrompt(masked, near) }).catch(() => ({ ok: false }));
+        if (r.ok && r.text) {
+          const src = v.ai.entry.source_url ? `\n📎 ${v.ai.entry.source_url}` : '';
+          answer = `${r.text}${src}`;
+          foot = { student: `🤖 AI ช่วยเรียบเรียงจากคู่มือ · อ้างอิง: ${v.ai.entry.title}`, judge: `🦀 KB-grounded + เรียบเรียงโดย AI · อ้างอิง: ${v.ai.entry.title}` };
         }
       }
-
+      const proof = String((await kernel).blake3_proof || '').slice(0, 16);
+      const footer = footerFor(env, foot.student ? `\n\n${foot.student}` : '', `\n\n${foot.judge}${proof ? `\n🔒 ${proof}…` : ''}`);
       await reply(ev.replyToken, answer, footer, token);
     }
   } catch (e) {

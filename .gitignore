@@ -73,3 +73,8 @@ backups/
 benchmark/gradmahidol/corpus/
 benchmark/**/*-corpus/
 *.pid
+# wrangler's local cache, wherever a wrangler.toml lives (plan 009 C4: one was committed under benchmark/coldstart)
+**/.wrangler/
+# Python bytecode (python3 submissions/build_*.py)
+__pycache__/
+*.pyc

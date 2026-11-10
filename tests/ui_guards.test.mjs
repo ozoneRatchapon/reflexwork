@@ -17,8 +17,8 @@ const sd = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'sub
 check('student-desk says it is a simulation and sends nothing', /ไม่ได้ส่งคำร้องจริง/.test(sd) && !/Bedrock/.test(sd) && !/>ส่งคำร้อง</.test(sd));
 check('a greeting in front of a question does not swallow it', /function stripLeadIn/.test(html) && /stripLeadIn\(normChat\(typed(?:\.slice\(0,\d+\))?\)/.test(html));
 check('restart phrases are whole-utterance only', /function isRestartPhrase[\s\S]*\^\(\?:ยกเลิก\|/.test(html));
-// both decisions are Rust's since plan 015 step 4b (route/branches.rs); the page only renders them
-const branches = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'crates/reflex-wasm/src/route/branches.rs'), 'utf8');
-check('staff answers are not rephrased by the AI path', /top_score >= 6 \|\| ranked\.iter\(\)\.take\(3\)\.any\(\|r\| r\.entry\.staff\)\s*\{\s*Route::AdviceStrong/.test(branches) && /take\('advice_strong'\)/.test(html));
+// both decisions are Rust's since plan 015 step 4b (the manual's verdict: route/verdict.rs since plan 009 C4); the page only renders them
+const branches = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'crates/reflex-wasm/src/route/verdict.rs'), 'utf8');
+check('staff answers are not rephrased by the AI path', /top_score >= 6 \|\| ranked\.iter\(\)\.take\(OFFERED\)\.any\(\|r\| r\.entry\.staff\)\s*\{\s*Route::AdviceStrong/.test(branches) && /const OFFERED: usize = 3;/.test(branches) && /take\('advice_strong'\)/.test(html));
 check('programme questions get an honest notice while the catalogue is loading or failed', ['loading', 'failed'].every(s => routeOf('อยากเรียนวิศวกรรม', { progState: s }) === 'catalogue_not_ready') && /PROG_STATE='failed'/.test(html));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

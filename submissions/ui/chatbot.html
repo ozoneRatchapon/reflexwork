@@ -1581,6 +1581,7 @@ function _askCore(){
   // programme finder so none of them can swallow it with a cold "ไม่เข้าใจ". No hotline number is invented (none is confirmed).
   const wb = wellbeingKind(q);
   if(take('wellbeing')){
+    shadowDetail(q, { kind: wb });
     const wbHit = KB.find(e=>e.id==='gm_mental_wellbeing_navigation');
     const lead = wb==='crisis'
       ? 'ขอบคุณที่บอกนะครับ เรื่องนี้สำคัญมาก ถ้าตอนนี้ไม่ปลอดภัยหรือกำลังคิดทำร้ายตัวเอง โปรดติดต่อบริการฉุกเฉิน (1669) หรือคนที่ไว้ใจให้มาอยู่ด้วยทันที ไม่ต้องอยู่คนเดียวนะครับ'
@@ -1595,6 +1596,7 @@ function _askCore(){
   }
   const st = classifySmalltalk(q);
   if(take('smalltalk')){
+    shadowDetail(q, { kind: st || null });
     MOOD.felt(st==='thanks' ? 'thanks' : 'neutral');
     renderMood(true);
     const moodTag = MOOD.valence>0.5 ? '😊' : '🙂';
@@ -1785,6 +1787,7 @@ function _askCore(){
   if(take('time_intent')){
     const tIntent=RUST_DETAIL.timeIntent;
     const today=todayIso(), picks=datedPicks(KB, tIntent, today);
+    shadowDetail(q, { offered: _ids(picks.map(p=>p.e)) });
     if(picks.length){
       const lead = VOICE.timeLead.replace('{today}', _pDate(today)) + (tIntent!=='registration' ? VOICE.timeAdmissionsHint : '');
       ROUTE_NAME = 'time_intent';
@@ -1821,6 +1824,7 @@ function _askCore(){
   // Scope guard: same question, different academic year/semester → ask, never guess a year.
   const scope = verdict.action==='act' ? scopeClarify(q, ranked, KB) : null;
   if(scope && scope.kind==='pick') verdict.entry = scope.entry;
+  shadowVerdict(q, verdict, scope, ranked);
   if(take(['scope_ask','scope_no_year','scope_no_round'])){
     auto++; saved+=COST;
     const en = isEnglish(q);
@@ -2065,6 +2069,7 @@ function _askCore(){
     // tri-gram, so the search scores ~1 everywhere. If the word is in the TITLE of 1-12 entries, offer those (no AI, no guess).
     const tp = topicPicks(q);
     if(take('topic_picks')){
+      shadowDetail(q, { offered: _ids(tp.hits) });
       const cid='tp'+(++fbN);
       ROUTE_NAME = 'topic_picks';
       add('b', `${kstrip}
@@ -2359,6 +2364,35 @@ function take(names){
 const SHADOW = { n:0, same:0, pending:0, errors:0, diffs:[], pending_turn:null };
 window.__shadow = SHADOW;
 function _shadowDiff(d){ if(SHADOW.diffs.length<200) SHADOW.diffs.push(d); }
+// plan 009 C4: what a view shows (the entry answered, the entries offered, reflex / rethink) vs the router's detail. The LINE worker renders
+// from that detail alone (it has no search of its own), so a difference here is a LINE answer that differs from the web's.
+function shadowDetail(q, page){
+  const r = RUST_DETAIL; if(!r) return;
+  const rust = Object.fromEntries(Object.keys(page).map(k=>[k, r[k] ?? null]));
+  if(JSON.stringify(page)!==JSON.stringify(rust)) _shadowDiff({typed:q, route:RUST_TURN, page, rust});
+}
+const _ids = es => es.map(e=>e.id);
+function shadowVerdict(q, verdict, scope, ranked){
+  if(!RUST_DETAIL || !RUST_DETAIL.stage) return;
+  const advice = String(RUST_TURN).startsWith('advice_');
+  shadowDetail(q, { stage: verdict.stage,
+    entry: (RUST_TURN==='kb_act' || advice) && verdict.entry ? verdict.entry.id : null,
+    offered: RUST_TURN==='disambiguate' ? _ids(verdict.candidates) : RUST_TURN==='scope_ask' ? _ids(scope.candidates)
+      : advice ? _ids(ranked.slice(0,3).map(x=>x.e)) : null });
+}
+// One Router per (KB, PROG, vocab): building it copies the manual and the catalogue into wasm and indexes the manual (~5 ms), a decision
+// is <1 ms. KB / PROG / AGENCY are only ever REPLACED (new arrays / objects), never edited in place, so their identity is the cache key.
+// The old Router is not freed here: a pending AI rewrite may still hold it (wasm-bindgen's finalizer frees it).
+let _ROUTER = null, _ROUTER_KEY = null;
+function routerFor(){
+  const k = _ROUTER_KEY;
+  if(_ROUTER && k.kb===KB && k.prog===PROG && k.vocab===AGENCY.vocab) return _ROUTER;
+  // plan 011 step 5: a deployment's agency.json `vocab` (the pack's vocab.json as an object) is the Rust route vocabulary; without it the
+  // embedded graduate-school pack is used (undefined = None on the Rust side).
+  _ROUTER = new WASM.Router(KB, PROG, AGENCY.vocab ? JSON.stringify(AGENCY.vocab) : undefined);
+  _ROUTER_KEY = { kb:KB, prog:PROG, vocab:AGENCY.vocab };
+  return _ROUTER;
+}
 // Before _askCore: the page clears PIN and may move PCTX, so the state is read first.
 function shadowBegin(typed){
   SHADOW.pending_turn = null;
@@ -2366,10 +2400,7 @@ function shadowBegin(typed){
   try{
     const state = { progState: PROG_STATE, aiOff: !!AI_OFF, pinnedId: (PIN && PIN.title===typed) ? PIN.id : null,
       programmeInFocus: (PCTX && PCTX.code) || null, today: todayIso(), agencyHasIt: !!AGENCY.it };
-    // plan 011 step 5: a deployment's agency.json `vocab` (the pack's vocab.json as an object) is the Rust route vocabulary; without it the
-    // embedded graduate-school pack is used (undefined = None on the Rust side).
-    const vocabJson = AGENCY.vocab ? JSON.stringify(AGENCY.vocab) : undefined;
-    const r = new WASM.Router(KB, PROG, vocabJson);
+    const r = routerFor();
     const detail = r.decision(typed, state, null);
     return { typed, state, router:r, rust: detail.route, detail };
   }catch(e){ SHADOW.errors++; console.warn('shadow: Rust route failed', e); return null; }

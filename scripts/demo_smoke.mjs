@@ -116,6 +116,8 @@ else (REQUIRE_LLM ? bad : soft)('8. the LLM did NOT answer - the page showed the
 // 9) the meter and the thumbs
 const m0 = await ev(`document.getElementById('ratio-pct').textContent`);
 await ev(`(()=>{ const b=[...document.querySelectorAll('.fb-b')].filter(x=>/ไม่/.test(x.innerText)).pop(); if(b) b.click(); return !!b; })()`); await wait(1200);
+// since plan 008 a 👎 first asks why (the reasons panel); skipping the reason sends the vote
+await ev(`(()=>{ const b=[...document.querySelectorAll('.fb-why .fb-b')].filter(x=>x.innerText.trim()==='ข้าม').pop(); if(b) b.click(); return !!b; })()`); await wait(1200);
 const m1 = await ev(`({pct:document.getElementById('ratio-pct').textContent, note:document.getElementById('ratio-note').textContent, fb:([...document.querySelectorAll('.fb')].pop()||{innerText:''}).innerText})`);
 // The kernel API is a dead port here, so the vote cannot be delivered: the meter stays a plain count and the page says the vote failed
 // (QA F39: it used to claim "the kernel learned" anyway). Against a live kernel the note would show the satisfaction score instead.
