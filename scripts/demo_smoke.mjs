@@ -75,6 +75,9 @@ if (!prog) bad('programmes.json loads'); else {
 }
 const leak = await ev(`fetch('./knowledge/registration_2569.md?nc='+Math.random()).then(r=>r.headers.get('content-type')||'').catch(()=>'err')`);
 /markdown/.test(leak) ? bad('knowledge/ is NOT served (private drafts)', 'IT IS SERVED - stop and redeploy from committed files') : ok('knowledge/ is not served');
+// PDPA O4: the privacy note links the university's data-rights request page
+const pr = await ev(`(()=>{ const a=document.querySelector('#privacy-rights a'); return a ? a.href+' | '+document.getElementById('privacy-rights').textContent : ''; })()`);
+/^https:\/\/privacy\.mahidol\.ac\.th\/how-do-i-submit-a-subject-access-request\/ \| .*30 วัน/.test(pr) ? ok('privacy note links the data-rights request page (30-day reply)') : bad('privacy note data-rights link', pr || 'missing');
 
 // 1) programme card
 let r = await ask('อยากสมัครเรียนจิตวิทยาคลินิก');

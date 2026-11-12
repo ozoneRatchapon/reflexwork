@@ -37,4 +37,8 @@ check('intake messages are not logged', intakeA > 0 && intakeB > intakeA && !/lo
 const note = (html.match(/<div class="privacy-note"[^>]*>([\s\S]*?)<\/div>/) || [])[1] || '';
 check('the privacy note says the AI is an outside service that may be abroad, and how to switch it off', /บริการ AI ภายนอก/.test(note) && /นอกประเทศไทย/.test(note) && /\?ai=off/.test(note), note.slice(0, 120));
 check('the privacy note does not promise a complete mask', /ซ่อนได้ไม่หมด/.test(note));
+// PDPA O4: the note links the university's data-rights page (Data Subject Request Form); another agency's pack has none unless its agency.json says so
+check('O4: the note has a slot for the data-rights link, filled from AGENCY.privacy as DOM (no innerHTML)', /<span id="privacy-rights"><\/span>/.test(note) && /pr\.append\(' · ', a\)/.test(html) && !/privacy-rights[^\n]*innerHTML/.test(html));
+check('O4: the Graduate School default points at the university\'s official request page and says 30 days', /privacy:\{label:'[^']*', note:'[^']*30 วัน[^']*', url:'https:\/\/privacy\.mahidol\.ac\.th\/how-do-i-submit-a-subject-access-request\/'\}/.test(html));
+check('O4: other agencies get no Mahidol link by default (NEUTRAL_AGENCY privacy:null)', /const NEUTRAL_AGENCY = \{[\s\S]*?privacy:null/.test(html));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);
