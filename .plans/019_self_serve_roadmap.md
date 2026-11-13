@@ -179,10 +179,12 @@ branch `feature/music-college-pack`; CI/workflow run still to be seen after push
 Done when: every topic the College's public site covers has a draft entry with its source.
 
 ## Phase 6 - the platform side
-- [~] 6.1 `adoption_smoke.mjs` in CI (Chrome on ubuntu runners) for `examples/library-demo` and `packs/music-college --draft`.
+- [x] 6.1 `adoption_smoke.mjs` in CI (Chrome on ubuntu runners) for `examples/library-demo` and `packs/music-college --draft`.
       2026-11-14: new `adoption` job in `ci.yml` (Rust + Node 24; `tests/agency_pack` and `tests/music_pack`, which CI did not run
       before; then the smoke on both sites with `CHROME=/usr/bin/google-chrome`; AppArmor userns sysctl for Chrome's sandbox).
-      Local: both sites 17/17. Not yet seen green on a runner: mark [x] after the first push.
+      Local: both sites 17/17. First push (run 43522376379) failed: the adoption job never built the published index that
+      `scripts/lib/rust_route.mjs` reads at import; the job now builds it first (9415ff4). Green on a runner: run 43523345830
+      (test, adoption, rust-golden all success), branch feature/music-college-pack, not merged into main yet.
 - [x] 6.2 LINE worker reads a pack (plan 009 C4 left it on the Graduate School copy `kb-data.mjs`): `integrations/line-worker` builds
       its KB from a pack dir; one test per pack like `tests/line_route.test.mjs`. No new LINE account is connected (that is gated).
       2026-11-14: `line_core.mjs` `makeLine(kb, Router)` is the decision (worker.mjs uses it; line_route 5/5, line_kb_eval unchanged).
