@@ -74,7 +74,7 @@ score = cov + 1[h=n] + 0.3·1[h ⊇ n] − min(0.2, ||h|−|n||/200);  also: who
 pool = candidates within 0.15 of the best, filtered by level / international / special if the question says so
 |pool| = 1 → card ·  2–12 → picker (≤ 6 shown) ·  > 12 → "too broad, narrow it" ·  loose mode → always a picker, never a card
 ```
-Data are the Graduate School's own pages (379 programmes, 239 with a 2570 announcement - 9 of them only per major, e.g. one announcement per nursing / dentistry major; fetched 2026-11-04), stored verbatim, stamped with the fetch date; status is a snapshot, not live. A fee/scholarship/other-topic question naming a programme is answered from that programme's own announcement; the follow-up layer ("แล้วค่าเทอมล่ะ") binds a short aspect question to the last single programme shown and always says how it was read (with an undo).
+Data are the Graduate School's own pages (379 programmes, 253 with a 2570 announcement - 9 of them only per major, e.g. one announcement per nursing / dentistry major; fetched 2026-11-13), stored verbatim, stamped with the fetch date; status is a snapshot, not live. A fee/scholarship/other-topic question naming a programme is answered from that programme's own announcement; the follow-up layer ("แล้วค่าเทอมล่ะ") binds a short aspect question to the last single programme shown and always says how it was read (with an undo).
 
 ### 3.4 Link layer
 
