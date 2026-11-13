@@ -31,15 +31,15 @@ const T = {
   personalPrep:  'ถ้าต้องการให้เจ้าหน้าที่ดูให้ เตรียมรหัสนักศึกษา ชื่อหลักสูตร และเรื่องที่ต้องการไว้ เจ้าหน้าที่จะตอบต่อในแชทนี้ครับ',
   stuckLead:     'ไม่เป็นไรครับ ติดปัญหาเรื่องไหนครับ พิมพ์หัวข้อด้านล่าง หรือเล่าสั้น ๆ ว่าติดตรงไหนก็ได้:',
   stuckTopic:    'เรื่อง{w}ในคู่มือมีหัวข้อเหล่านี้ครับ พิมพ์หัวข้อที่ใกล้ที่สุดได้เลย ถ้ายังไม่ตรง เล่าสั้น ๆ ว่าติดตรงไหนครับ:',
-  restart:       'ได้ครับ เริ่มใหม่ได้เลย พิมพ์เรื่องที่อยากถาม เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',
-  overview:      'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว พิมพ์เรื่องที่อยากรู้ได้เลย เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',
+  restart:       'ได้ครับ เริ่มใหม่ได้เลย พิมพ์เรื่องที่อยากถาม เช่น {topics}',
+  overview:      'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว พิมพ์เรื่องที่อยากรู้ได้เลย เช่น {topics}',
   timeLead:      'วันนี้ {today} ครับ นี่คือกำหนดการในคู่มือที่ใกล้วันนี้ที่สุด พิมพ์หัวข้อเพื่อดูวันที่ครบ:',
   scopeAsk:      'เรื่องนี้คำตอบไม่เหมือนกันในแต่ละปีการศึกษาหรือภาคเรียนครับ หมายถึงอันไหน? พิมพ์หัวข้อที่ตรงได้เลย:',
   scopeNoYear:   'ตอนนี้คู่มือยังไม่มีข้อมูลที่ยืนยันแล้วของปีการศึกษาที่ถามครับ ผมจึงไม่เอาข้อมูลของปีอื่นมาตอบแทน เจ้าหน้าที่จะตอบต่อในแชทนี้',
   scopeNoRound:  'คู่มือยังไม่มีกำหนดการรับสมัครของรอบที่ถามครับ ผมจึงไม่เอาข้อมูลของรอบอื่นมาตอบแทน พิมพ์ชื่อหลักสูตรเพื่อดูตัดรอบของหลักสูตรนั้น หรือรอเจ้าหน้าที่ตอบในแชทนี้ได้ครับ',
   adviceAbstain: 'เรื่องนี้เป็นคำถามขอคำแนะนำที่คู่มือยังตอบได้ไม่ครบครับ ผมไม่อยากตอบพลาด เลยจดคำถามไว้ให้ทีมคู่มือแล้ว และเจ้าหน้าที่จะตอบต่อในแชทนี้',
   disambiguate:  '🤔 ไม่แน่ใจว่าหมายถึงข้อไหน ลองพิมพ์หัวข้อที่ตรงที่สุด:',
-  notAQuestion:  'พิมพ์คำถามที่อยากรู้ได้เลยครับ เช่น "ลาพักการศึกษาต้องทำอย่างไร"',
+  notAQuestion:  'พิมพ์คำถามที่อยากรู้ได้เลยครับ เช่น "{ex}"',
   otherScript:   'ขออภัยครับ ตอนนี้ผมตอบได้เป็นภาษาไทยและภาษาอังกฤษ ผมจดคำถามไว้ให้ทีมแล้ว และเจ้าหน้าที่จะตอบต่อในแชทนี้\nSorry, I can answer in Thai or English only. Staff will reply in this chat.',
   english:       'This is not in the knowledge base yet. I have noted your question for the team, and staff will reply in this chat.',
   topicPick:     'ในคู่มือมีหัวข้อเหล่านี้ครับ พิมพ์หัวข้อที่ต้องการได้เลย:',
@@ -53,6 +53,11 @@ const STUCK = {
   grad:   { name: 'การขอจบและเอกสาร', asks: 'ติดปัญหาเรื่องขอจบ' },
 };
 const WELLBEING_ENTRY = 'gm_mental_wellbeing_navigation';
+// The Graduate School's example topics. Another agency's worker passes ctx.voice = {persona, examples} from its agency.json (pack-line-kb
+// --agency writes it into the KB module as LINE_VOICE), so restart / overview / small talk name its own topics (plan 019 item 6.2).
+const GRAD_TOPICS = 'สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์', GRAD_EXAMPLE = 'ลาพักการศึกษาต้องทำอย่างไร', VOICE_EXAMPLES = 4;
+const examplesOf = voice => (voice && Array.isArray(voice.examples) ? voice.examples : []).filter(q => typeof q === 'string' && q.trim());
+const topicsOf = voice => { const ex = examplesOf(voice).slice(0, VOICE_EXAMPLES); return ex.length ? ex.map(q => `"${q}"`).join(' · ') : GRAD_TOPICS; };
 
 const numbered = titles => titles.map((t, i) => `${i + 1}. ${t}`).join('\n');
 const thaiDate = iso => new Intl.DateTimeFormat('th-TH', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
@@ -70,7 +75,8 @@ export function notInManualText(near) {
 }
 
 /**
- * One LINE reply for one decision. Pure: no network. `ctx` = {byId: Map id->entry, near: () => titles, issue: () => {category,label}|null, today}.
+ * One LINE reply for one decision. Pure: no network. `ctx` = {byId: Map id->entry, near: () => titles, issue: () => {category,label}|null, today,
+ * voice?: {persona, examples} of another agency (absent: the Graduate School's lines)}.
  * Returns {text, footer: {student, judge}, gap: log the question for the staff backlog, ai: {entry, offered} when the answer may be rephrased
  * by the grounded AI (the caller does that, and keeps `text` as the fallback)}.
  */
@@ -87,7 +93,7 @@ export function lineView(d, q, ctx) {
     }
     case 'smalltalk': {
       const mood = createMood().felt(d.kind === 'thanks' ? 'thanks' : 'neutral');   // LINE is stateless per webhook: the mood starts fresh
-      return view(smalltalkReply(d.kind, mood), '💬 คุยทั่วไป · ไม่เรียก AI · 0 token');
+      return view(smalltalkReply(d.kind, mood, ctx.voice?.persona || null), '💬 คุยทั่วไป · ไม่เรียก AI · 0 token');
     }
     case 'personal':
       return view(`${d.personal === 'other' ? T.personalOther : `${T.personalSelf}\n${T.personalWhy}`}\n\n${T.personalPrep}`, '🔒 ข้อมูลส่วนตัว — ดูให้ไม่ได้ · ไม่เรียก AI');
@@ -97,9 +103,9 @@ export function lineView(d, q, ctx) {
       return view(`${area ? T.stuckTopic.replace('{w}', area.name) : T.stuckLead}\n${numbered(list)}\n\n${T.staffHere}`, '🧭 ติดปัญหา → ถามกลับว่าเรื่องไหน · ไม่เรียก AI');
     }
     case 'restart':
-      return view(T.restart, '🧭 เริ่มใหม่ · ไม่เรียก AI');
+      return view(T.restart.replace('{topics}', topicsOf(ctx.voice)), '🧭 เริ่มใหม่ · ไม่เรียก AI');
     case 'overview':
-      return view(T.overview, '🧭 คำถามกว้าง · ไม่เรียก AI');
+      return view(T.overview.replace('{topics}', topicsOf(ctx.voice)), '🧭 คำถามกว้าง · ไม่เรียก AI');
     case 'time_intent':
       return view(`${T.timeLead.replace('{today}', thaiDate(ctx.today))}\n${numbered(titles(d.offered))}`, '📅 เทียบกับวันนี้ · ไม่เรียก AI');
     case 'scope_ask':
@@ -121,7 +127,7 @@ export function lineView(d, q, ctx) {
     case 'disambiguate':
       return view(`${T.disambiguate}\n${numbered(titles(d.offered))}`, `🦀 ต้องการความชัดเจน · ยังไม่เรียก AI${tag}`);
     case 'not_a_question':
-      return view(T.notAQuestion, '💬 ยังไม่ใช่คำถาม · ไม่เรียก AI');
+      return view(T.notAQuestion.replace('{ex}', examplesOf(ctx.voice)[0] || GRAD_EXAMPLE), '💬 ยังไม่ใช่คำถาม · ไม่เรียก AI');
     case 'other_script':
       return view(T.otherScript, '🦀 ภาษาอื่น · ไม่ให้ AI แปลเดา · ส่งต่อเจ้าหน้าที่', { gap: true });
     case 'english_off_corpus':

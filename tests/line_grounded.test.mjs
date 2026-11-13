@@ -25,7 +25,7 @@ check('an ungrounded call is unchanged ({input} only)', sent.input === q && !('c
 reply = { answer: '', source: 'fallback', detail: ['guard-emptied'] };
 const r2 = await askTeam(q, { TEAM_API_PROVIDER: 'gemini' }, { context, prompt });
 check('F12: a proxy fallback (e.g. guard emptied the answer) is not an answer - LINE shows the manual text', !r2.ok && r2.text === null);
-const line = readFileSync(join(root, 'integrations/line-worker/worker.mjs'), 'utf8');
+const line = readFileSync(join(root, 'integrations/line-worker/app.mjs'), 'utf8');   // the worker's app (worker.mjs is the Graduate School entry)
 check('F12: the LINE advice branch passes the context (and only the masked question, PDPA O2)', /askTeam\(masked, bag, \{ context: groundedContext\(near\), prompt: groundedPrompt\(masked, near\) \}\)/.test(line) && /const masked = mask_pii\(text\)/.test(line) && !/askTeam\(text\b/.test(line));
 
 // F32: the proxy guard (both copies)

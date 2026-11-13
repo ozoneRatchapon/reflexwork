@@ -85,7 +85,10 @@ function routeTask(category, input, tokenBudget, priority) {
 }
 async function ensureWasm() { /* pure JS port — no wasm init */ }
 
-const ORIGIN = 'https://reflexwork.pages.dev';
+// The site allowed to call this kernel: the Graduate School's, or [vars] SITE_ORIGIN of another agency's kernel (new_agency --with-kernel,
+// plan 019 item 6.5). Set once per request from env; env is the same for every request of one deployment.
+const ORIGIN_DEFAULT = 'https://reflexwork.pages.dev';
+let ORIGIN = ORIGIN_DEFAULT;
 function cors() {
   return {
     'Access-Control-Allow-Origin': ORIGIN,
@@ -108,6 +111,7 @@ function rateOk(ip, cap = 60, refill = 1) {
 
 export default {
   async fetch(request, env) {
+    ORIGIN = (env && env.SITE_ORIGIN) || ORIGIN_DEFAULT;
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors() });
     const url = new URL(request.url);
     const ip = request.headers.get('CF-Connecting-IP') || 'anon';
