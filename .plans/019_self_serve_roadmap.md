@@ -225,7 +225,14 @@ Done when: every topic the College's public site covers has a draft entry with i
 Done when: a second agency gets site + LINE + kernel configs from one pack, with its own tests in CI.
 
 ## Phase 7 - hygiene that is ours to do
-- [ ] 7.1 The 9-day-old programme catalogue: `gh workflow run programmes-refresh.yml`, review the PR (deploy asked separately).
+- [~] 7.1 The 9-day-old programme catalogue: `gh workflow run programmes-refresh.yml`, review the PR (deploy asked separately).
+      2026-11-14: run 43524235144 green (the 2026-11-09 scheduled run had failed on a link-rot timeout to the Graduate School
+      site). The workflow pushed `bot/programmes-20261113` but could not open the PR (repo setting "Allow GitHub Actions to create
+      and approve pull requests" is off); opened by hand as PR #152. Changes: 3 programme codes replaced by a new revision (same
+      titles), 13 announcements appeared, 4 statuses closed -> open, 2 fee tables. Follow-ups in the PR: the route / LINE golden
+      probe `สมัคร 2101D04G` -> `2101D05G`, page claims 239 -> 253 announced and 1,923 -> 1,931 names. PR CI: rust-golden green,
+      test red only on G05 (`a11y_chat`, already red on main; fixed on this branch). Open: merge #152 (yours), then deploy (asked
+      separately); the repo setting, if the weekly run should open its own PR.
 - [ ] 7.2 The untracked files at the repo root and `integrations/kernel-worker/` (list with sizes; ask keep/delete in one question).
 - [x] 7.3 `docs/adopt.md` "not done yet" section: update after phases 3 and 6 (second real agency now exists, as a draft).
       2026-11-14: the status line and the first "not done" item name the College draft (28 entries, none approved, dev-written questions).
