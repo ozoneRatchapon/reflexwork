@@ -91,3 +91,8 @@ order is still JS (route switch is `take()`, default rust).
 - Not effective until `submissions/ui/wasm/` is rebuilt from current source (owner decision, see the owner questions).
 - Still open in step 5: remove the page's own regex copies (`_P_*`, `_ISSUE_CATS`, `_STUCK_*`, ...). They back `?route=js` and the JS fallback, and
   `tests/` and `scripts/dump_route_text_golden.mjs` slice them out of the page, so this needs its own pass.
+
+## Partial vocab and load-time check (2026-11-14, plan 019 steps 3.1-3.2)
+- A pack lists only the keys it changes (`route/vocab.rs` `parse` overlays the embedded default; unknown key = error with its path).
+- `vocab::check` compiles every pattern at load (`Router::new`) and at build (`new_agency.mjs` via wasm `vocab_check`), naming the bad key.
+- Step 5 rest done 2026-11-14 (plan 019 step 3.5: the page's decision copies are gone; view presets stay). Still open: step 6 (second pack with its own vocab: the music pack, plan 019 step 3.3).
