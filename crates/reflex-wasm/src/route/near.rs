@@ -3,6 +3,7 @@
 //! free start in the title, normalised by the question core's length.
 use super::vocab::vocab;
 use crate::re::{compile, is_js_space};
+use crate::resolve::{Catalogue, Resolution};
 use regex_lite::Regex;
 use std::sync::OnceLock;
 
@@ -31,4 +32,12 @@ pub fn near_spelling(q: &str, title: &str) -> f64 {
     }
     let best = prev.iter().copied().min().unwrap_or(0);
     1.0 - best as f64 / a.len() as f64
+}
+
+/// The nearest programme names for a not-found question, only when the question READS as a misspelt one: the loose pass of the resolver
+/// and at least one of its titles scoring `near_spelling >= 0.8`. Used by the route (`unsure_programme`) and its view (the names offered).
+pub fn near_programmes(q: &str, cat: &Catalogue) -> Option<Resolution> {
+    let r = cat.resolve(q, true)?;
+    let near = cat.titles(&r).any(|t| near_spelling(q, t) >= 0.8);
+    near.then_some(r)
 }

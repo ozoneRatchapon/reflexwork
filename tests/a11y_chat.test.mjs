@@ -16,5 +16,7 @@ check('the viewport allows zoom (no user-scalable=no)', !/user-scalable\s*=\s*no
 check('chips and choices are keyboard operable (role=button, tabindex, Enter/Space)', /_a11yClickables/.test(html) && /e\.key==='Enter'\|\|e\.key===' '/.test(html));
 // QA G05: the dialled number and the shown one come from one config value (AGENCY.it.phone); a neutral agency has no IT box of ours
 check('the IT call link dials the number it shows', /href="tel:\$\{String\(it\.phone\)\.replace\(\/\[\^\\d\+\]\/g,''\)\}">☎️ [^`]*?โทร\$\{itName\} \$\{_lEsc\(it\.phone\)\}/.test(html) && /phone:'02-849-6022'/.test(html) && !/tel:028496022/.test(html));
-check('a neutral agency config carries no IT contact (G05)', /contact:null, faq:null, english:null, it:null,/.test(html));
+// key order free: another null key (e.g. privacy, PDPA O4) between them must not fail this
+const neutral = (html.match(/const NEUTRAL_AGENCY = \{[\s\S]*?\n\};/) || [''])[0];
+check('a neutral agency config carries no IT contact (G05)', ['contact', 'it', 'line'].every(k => new RegExp(`\\b${k}:null\\b`).test(neutral)), neutral ? 'a key is not null' : 'NEUTRAL_AGENCY not found');
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

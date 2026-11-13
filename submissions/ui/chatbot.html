@@ -662,7 +662,8 @@ const VOICE = {
   timeLead:      'วันนี้ {today} ครับ — นี่คือกำหนดการในคู่มือที่ใกล้วันนี้ที่สุด เลือกเพื่อดูวันที่ครบ (วันที่ผ่านไปแล้วจะมีป้ายบอก)',
   timeAdmissionsHint: ' ตัดรอบรับสมัครของแต่ละหลักสูตรไม่เท่ากัน — พิมพ์ชื่อหลักสูตร เช่น "จิตวิทยาคลินิก ปิดรับวันไหน" เพื่อดูของหลักสูตรนั้น',
   noRound:       'คู่มือมีกำหนดการรับสมัครกลางเฉพาะรอบ {rounds} ครับ ยังไม่มีของรอบ {round} ดูหน้าทางการด้านล่าง หรือพิมพ์ชื่อหลักสูตรเพื่อดูตัดรอบของหลักสูตรนั้น',
-  overviewLead:  'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว ลองเลือกหัวข้อที่ใกล้ที่สุดด้านล่าง หรือพิมพ์เรื่องที่อยากรู้ เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',
+  overviewLead:  'คำถามกว้างแบบนี้มีหลายเรื่องครับ ผมไม่อยากเดาคำตอบเดียว ลองเลือกหัวข้อที่ใกล้ที่สุดด้านล่าง หรือพิมพ์เรื่องที่อยากรู้',
+  overviewTopics:' เช่น สมัครเรียน ค่าเทอม ทุน ลงทะเบียน ส่งวิทยานิพนธ์',   // the Graduate School's own topics: never on another agency's page
   careerIntro:   'คำถามแบบนี้ไม่มีคำตอบเดียวสำหรับทุกคนครับ และผมไม่ได้ทำนายงานหรือรายได้ แต่ช่วยแคบรายการหลักสูตรทางการตามด้านที่สนใจให้ได้',
 };
 let lastUserQ = '';
@@ -1041,22 +1042,13 @@ function linkify(text, links){
 // particle after (no look-arounds: the Rust twin uses regex_lite). 'ไปเอกสาร', 'วิชาเอก', 'โทร' are not levels.
 const _P_LEVEL=[['N',/ประกาศนียบัตรบัณฑิตชั้นสูง|ป\.?\s?บ\.?\s?ช\.?\s?สูง/i],['C',/ประกาศนียบัตร|certificate|diploma/i],['D',/ปริญญาเอก|ป\.\s?เอก|(?:^|\s)ป?\s?เอก(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับเอก|ดุษฎี|ด็อกเตอร์|ดอกเตอร์|ต่อเอก|doctor|ph\.?\s?d/i],['M',/ปริญญาโท|ป\.\s?โท|(?:^|\s)ป?\s?โท(?:\s|$|ครับ|ค่ะ|คะ|นะ)|ระดับโท|มหาบัณฑิต|ต่อโท|master|m\.\s?sc|\bmsc\b/i]];
 function _pLevel(q){ for(const [k,re] of _P_LEVEL) if(re.test(q)) return k; return ''; }
-// loose=true: used ONLY after the strict pass AND the KB found nothing (a slip such as "กายอุปกณ์"). Lower bar (>= 0.5 of the
-// question's trigrams), but the answer is always a picker of the nearest names, never a single card - it cannot assert a wrong programme.
-// The programme resolver is the Rust one (the page's own catalogue only). Built once per catalogue.
-let _resolver = null;
-function resolveProgramme(q, P, loose){
-  if(!Array.isArray(P) || !P.length) return null;
-  if(!_resolver || _resolver.src!==P) _resolver={src:P, r:new WASM.Resolver(P), by:new Map(P.map(p=>[p.code,p]))};
-  return _progView(_resolver.r.resolve(String(q==null?'':q), !!loose), loose, _resolver.by);
-}
-// A Rust resolution ({kind, codes, topic, via, levelMissing, total}) as the page's rows: from the resolver above, or from the router's
-// decision (codes of the page's own catalogue PROG).
+// A Rust resolution ({kind, codes, topic, via, levelMissing, total}) from the router's decision as the page's rows (codes of the page's
+// own catalogue PROG). loose: the nearest names of a not-found question (never a single card, so it cannot assert a wrong programme).
 let _progBy = null;
-function _progView(r, loose, by){
+function _progView(r, loose){
   if(r==null) return null;
-  if(!by){ if(!_progBy || _progBy.src!==PROG) _progBy={src:PROG, by:new Map(PROG.map(p=>[p.code,p]))}; by=_progBy.by; }
-  const rows = r.codes.map(c=>by.get(c));
+  if(!_progBy || _progBy.src!==PROG) _progBy={src:PROG, by:new Map(PROG.map(p=>[p.code,p]))};
+  const by=_progBy.by, rows = r.codes.map(c=>by.get(c));
   return r.kind==='one' ? {kind:'one', row:rows[0], via:r.via, topic:r.topic, levelMissing:r.levelMissing}
     : r.kind==='broad' ? {kind:'broad', total:r.total, rows, levelMissing:r.levelMissing}
     : {kind:'many', rows, total:r.total, levelMissing:r.levelMissing, topic:r.topic, ...(loose ? {near:true} : {})};
@@ -1181,19 +1173,6 @@ function programmeCard(p, asOf, year, topic, q){
 // official catalogue by facets the site itself publishes (level, faculty, open now, international, special
 // programme) with live counts, until a handful of programmes is left to open as cards. Pure; the chat wires clicks.
 const _P_LV=[['M','ปริญญาโท'],['D','ปริญญาเอก'],['C','ประกาศนียบัตรบัณฑิต'],['N','ป.บัณฑิตชั้นสูง']];
-// A loose programme match is used for a not-found question only when the question READS as a misspelt programme name: the
-// question core is an approximate substring of the title (edits < 20% of its length, Sellers DP). 'กายอุปกณ์' -> กายอุปกรณ์ passes;
-// 'โรงอาหาร' (โภชนาการและการกำหนดอาหาร) and 'ปฏิทินการศึกษา' (การจัดการการศึกษา) share only a fragment and do not.
-const _P_CORE_DROP=/ครับ|ค่ะ|คะ|นะ|หน่อย|ยังไง|อย่างไร|ไหม|มั้ย|ได้|อยาก|เรียน(?:ต่อ)?|สมัคร|สาขา(?:วิชา)?|หลักสูตร|ป\.?\s?(?:โท|เอก)|ปริญญา(?:โท|เอก)|[\s?!.,]/g;
-function nearSpelling(q, title){
-  const a=String(q||'').toLowerCase().replace(_P_CORE_DROP,''), b=String(title||'').toLowerCase().replace(/\s/g,'');
-  if(a.length<4 || !b) return 0;
-  let prev=new Array(b.length+1).fill(0);   // row 0 = 0 everywhere: the match may start anywhere in the title
-  for(let i=1;i<=a.length;i++){ const cur=[i];
-    for(let j=1;j<=b.length;j++) cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
-    prev=cur; }
-  return 1-Math.min(...prev)/a.length;
-}
 // Career-first questions ("ทำงานอะไรดี", "อยากทำเกี่ยวกับคอม", "อยากพัฒนา skill อะไร"): there is no single right answer and this
 // system does NOT predict jobs or pay. It narrows the OFFICIAL list by an area of interest (matched on the programme title) and
 // points to the university's own career-based tool. Areas overlap on purpose; they are search aids, not a taxonomy.
@@ -1675,7 +1654,7 @@ function _askCore(){
   if(take(['restart','overview'])){
     if(restart){ PCTX=null; PIN=null; }
     ROUTE_NAME = restart ? 'restart' : 'overview';
-    renderChooser(q, d, kstrip, '🧭 คำถามกว้าง · ไม่เรียก AI', restart?VOICE.restartLead:VOICE.overviewLead,
+    renderChooser(q, d, kstrip, '🧭 คำถามกว้าง · ไม่เรียก AI', restart?VOICE.restartLead:VOICE.overviewLead+(AGENCY.builtinKb?VOICE.overviewTopics:''),
       starterEntries().map(e=>({e})), 'คำถามกว้างที่ไม่ระบุหัวข้อ → เสนอจุดเริ่มต้นจากคู่มือให้เลือก แทนการเดาคำตอบเดียว (deterministic, 0 token)');
     return;
   }
@@ -2057,11 +2036,11 @@ function _askCore(){
     // no programme we can find -> the finder; (2) otherwise the nearest KB entries or the common starting points; always
     // with the staff hand-off. The question is already in the gap log, which is how the KB learns it (LLM drafts, staff approve).
     paintBar();
-    const nearP = PROG.length ? resolveProgramme(q, PROG, true) : null;   // a slip in a programme name ("กายอุปกณ์") -> the nearest names
-    const nearOk = nearP && nearP.rows.some(p=>nearSpelling(q, p.title)>=0.8);
+    // a slip in a programme name ("กายอุปกณ์") -> the nearest names: Rust's (route/near.rs `near_programmes`, via the router's decision)
+    const nearP = _progView(RUST_DETAIL.programme, true);
     if(take('unsure_programme')){
       ROUTE_NAME = 'unsure_programme';
-      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearOk ? nearP.rows : null, RUST_DETAIL.studyIntent, undefined, undefined, _line('admissions'));
+      renderFinder(q, d, kstrip, VOICE.unsureProgramme, false, nearP ? nearP.rows : null, RUST_DETAIL.studyIntent, undefined, undefined, _line('admissions'));
       return;
     }
     // a TUITION question that names no programme: fees differ per programme, so help find it. Only tuition words or a bare fee question:

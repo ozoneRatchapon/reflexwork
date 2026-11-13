@@ -10,7 +10,7 @@ use super::verdict::manual_verdict;
 use super::programme::{is_career_question, is_finder_question, is_level_only_question, resolve_programme_branch, ProgrammeOutcome};
 use super::vocab::vocab;
 use super::study_intent::{catalogue_notice, has_study_intent};
-use super::near::near_spelling;
+use super::near::near_programmes;
 use super::topic::topic_picks;
 use super::stuck::stuck_fires;
 use super::term_year::norm_term_year;
@@ -254,8 +254,7 @@ fn not_found_family(q: &str, ctx: &Ctx) -> Option<Route> {
 /// `unsure_programme`, `tuition_finder_nomatch` (both need the catalogue; the page checks `PROG.length`), then `topic_picks` (any catalogue state).
 fn finder_branches(q: &str, ctx: &Ctx) -> Option<Route> {
     if let Some(cat) = ctx.catalogue {
-        let near_ok = cat.loose_titles(q).iter().any(|t| near_spelling(q, t) >= 0.8);
-        if has_study_intent(q) || near_ok {
+        if has_study_intent(q) || near_programmes(q, cat).is_some() {
             return Some(Route::UnsureProgramme);
         }
         if is_tuition_question(q) {

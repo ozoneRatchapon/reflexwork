@@ -406,6 +406,27 @@ export function understand(phrases, results) {
     const ret = wasm.understand(ptr0, len0, addHeapObject(results));
     return takeObject(ret);
 }
+
+/**
+ * Check a pack's `vocab` (JSON text) without installing it: unknown keys, wrong shapes and patterns that do not compile are an error
+ * naming the key. `scripts/new_agency.mjs` runs it at build time (plan 019 step 3.2).
+ * @param {string} json
+ */
+export function vocab_check(json) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(json, wasm.__wbindgen_export, wasm.__wbindgen_export2);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.vocab_check(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        if (r1) {
+            throw takeObject(r0);
+        }
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,

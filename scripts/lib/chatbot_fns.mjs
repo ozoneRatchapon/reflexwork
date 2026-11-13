@@ -23,7 +23,7 @@ export function loadChatbotFns(html = readFileSync(join(root, 'submissions/ui/ch
   const points = need(/const _SPLIT_BEFORE[\s\S]*?\n}\n(?=const _SHOW_POINTS)/, 'answerPoints');
   const tier = need(/const _BAND=[\s\S]*?\nfunction decideTier[\s\S]*?\n}\n/, 'decideTier');
   wasmReady();
-  return new Function("WASM", "ENG", `${today}\n${linkify}\n${prog}\n${slots}\n${points}\n${tier}\nreturn { answerPoints, slotLead, _pSchedule, _pFee, resolveProgramme, decideTier };`)(WASM, {});
+  return new Function("WASM", "ENG", `${today}\n${linkify}\n${prog}\n${/function resolveProgramme\(/.test(prog) ? "" : RESOLVE_SHIM}\n${slots}\n${points}\n${tier}\nreturn { answerPoints, slotLead, _pSchedule, _pFee, resolveProgramme, decideTier };`)(WASM, {});
 }
 
 // The page's search() over a given KB array: its own block (Rust kb_search + the staff-supersede step) on the shipped wasm.
@@ -82,6 +82,16 @@ export function loadUnderstand(search, html = readFileSync(join(root, 'submissio
 export function loadIntake() {
   return { classifyIssue, isAdvice, isEnglish };
 }
+
+// resolveProgramme(q, P, loose) for scripts that evaluate the page's <programme-resolve> block: the Rust resolver (WASM.Resolver) over a
+// catalogue P, shown as the page's rows by the block's own _progView. The page has no such function: it reads the resolution from the
+// router's decision (plan 019 step 3.5). Append it after the block, in the same Function body (it declares the PROG that _progView reads).
+export const RESOLVE_SHIM = `let PROG = [], _shimR = null;
+function resolveProgramme(q, P, loose){
+  if(!Array.isArray(P) || !P.length) return null;
+  if(!_shimR || _shimR.src!==P){ _shimR = {src:P, r:new WASM.Resolver(P)}; PROG = P; }
+  return _progView(_shimR.r.resolve(String(q==null?'':q), !!loose), loose);
+}`;
 
 // The shipped Rust engine (submissions/ui/wasm), for page blocks that call the Rust resolver. Pass as `WASM` to the block's Function.
 export function shippedWasm() { wasmReady(); return WASM; }
