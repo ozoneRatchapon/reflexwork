@@ -9,6 +9,7 @@ members = [
     "crates/reflex-bench",
     "crates/feedback-core",
     "crates/pii-mask",
+    "crates/pack-tools",
 ]
 
 [workspace.package]
