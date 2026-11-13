@@ -42,7 +42,9 @@ jobs:
           node-version: "24"   # adoption_smoke drives Chrome over the global WebSocket (Node >= 22)
       - name: Allow Chrome's sandbox (Ubuntu 24.04 AppArmor blocks unprivileged user namespaces)
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - name: Pack builds (library demo; College of Music draft with its review page, lint and 29 answers)
+      - name: Build the published manual index (scripts/lib/rust_route.mjs, imported by the pack tests, reads it; it is not in git)
+        run: python3 -I submissions/build_knowledge_index.py
+      - name: Pack builds (library demo; College of Music draft with its review page, lint and 95 answers)
         run: |
           node tests/agency_pack.test.mjs
           node tests/music_pack.test.mjs
