@@ -30,7 +30,13 @@ await send('Runtime.enable'); await send('Network.enable'); await send('Emulatio
 // NO ?api= / ?ai=off here on purpose: the DEFAULTS of an adopted site must not reach any server of ours
 await send('Page.navigate', { url: `http://127.0.0.1:${SP}/?view=judge` }); await wait(1500);
 for (let i = 0; i < 40 && await ev(`!document.getElementById('q') || document.getElementById('q').disabled`); i++) await wait(250);
-const GS = /บัณฑิตวิทยาลัย|วิทยานิพนธ์|Turnitin|MU GRAD|graduate\.mahidol|mahidol/i;
+// What of the Graduate School must never show. A bare "mahidol" counts too, unless the organisation is itself part of Mahidol: then a
+// Mahidol link is a leak only when its host is none of the organisation's own (agency.json, its entries), e.g. the College of Music.
+const own_text = readFileSync(join(dir, 'agency.json'), 'utf8') + readFileSync(join(dir, 'knowledge-index.json'), 'utf8');
+const OWN_HOSTS = new Set([...own_text.matchAll(/https?:\/\/([^\/\s"')]+)/g)].map(m => m[1].toLowerCase()));
+const IS_MAHIDOL = /mahidol/i.test(own_text);
+const GS = IS_MAHIDOL ? /บัณฑิตวิทยาลัย|วิทยานิพนธ์|Turnitin|MU GRAD|graduate\.mahidol/i : /บัณฑิตวิทยาลัย|วิทยานิพนธ์|Turnitin|MU GRAD|graduate\.mahidol|mahidol/i;
+const gs_link = h => { if (GS.test(h)) return true; let host = ''; try { host = new URL(h).hostname.toLowerCase(); } catch { return false; } return /mahidol/.test(host) && !OWN_HOSTS.has(host); };
 const ask = async q => { await ev(`(()=>{const i=document.getElementById('q'); i.value=${JSON.stringify(q)}; document.getElementById('send').click();})()`); await wait(1500);
   return ev(`(()=>{const b=[...document.querySelectorAll('#chat .msg.b')], l=b[b.length-1]; return { text:l.innerText.replace(/\\s+/g,' '), topic:((l.querySelector('.topic')||{}).textContent||'').replace(/^(?:ที่มา|หัวข้อ|อ้างอิง):\\s*/,'').trim(), links:[...l.querySelectorAll('a')].map(a=>a.href), declined:/จับใจความคำถามนี้ไม่ได้|I couldn't find this/.test(l.innerText) }; })()`); };
 // 1) the page speaks for the organisation
@@ -38,10 +44,10 @@ const vis = await ev(`document.body.innerText`); const links0 = await ev(`[...do
 (await ev(`document.title`)) === agency.metaTitle ? ok('title is the organisation\'s', agency.metaTitle) : bad('title', await ev(`document.title`));
 vis.includes(agency.title) && vis.includes(agency.greeting) ? ok('hero title and greeting come from agency.json') : bad('hero/greeting not applied');
 !GS.test(vis) ? ok('no word of the Graduate School anywhere on the page') : bad('Graduate School words still visible', (vis.match(GS) || [])[0] + ' … ' + vis.split('\n').find(l => GS.test(l)));
-!links0.some(h => GS.test(h)) ? ok('no link to the Graduate School before any question') : bad('Graduate School link on the page', links0.find(h => GS.test(h)));
+!links0.some(gs_link) ? ok('no link to the Graduate School before any question') : bad('Graduate School link on the page', links0.find(gs_link));
 // 2) its own example questions are answered from its own knowledge base
 let answered = 0; const asked = agency.examples || [];
-for (const ex of asked) { const r = await ask(ex.q); if (r.topic) answered++; else console.log('   not answered from an entry:', ex.q, '->', r.text.slice(0, 80)); if (r.links.some(h => GS.test(h))) bad('a Graduate School link in an answer', ex.q); }
+for (const ex of asked) { const r = await ask(ex.q); if (r.topic) answered++; else console.log('   not answered from an entry:', ex.q, '->', r.text.slice(0, 80)); if (r.links.some(gs_link)) bad('a Graduate School link in an answer', ex.q + ' ' + r.links.filter(gs_link).join(' ')); }
 asked.length && answered === asked.length ? ok(`all ${asked.length} example questions are answered from the organisation's own entries`) : bad('example questions', `${answered}/${asked.length}`);
 // an advice-style question would go to the AI proxy on our own site; on an adopted site there is no proxy unless agency.json names one
 { const r = await ask('ช่วยแนะนำวิธีจองห้องประชุมกลุ่มหน่อย'); r.topic || r.text.length > 20 ? ok('an advice-style question is answered without an AI proxy', r.topic ? 'from ' + r.topic : r.text.slice(0, 50)) : bad('advice question', r.text.slice(0, 80)); }
@@ -49,7 +55,7 @@ asked.length && answered === asked.length ? ok(`all ${asked.length} example ques
 for (const q of ['เมืองหลวงของฝรั่งเศสคืออะไร', 'ส่ง Turnitin เกิน 25% ทำยังไง', 'what is the tuition fee for the master programme?']) {
   const r = await ask(q);
   !r.topic && r.declined ? ok(`declines: "${q}"`) : bad(`should decline: "${q}"`, `${r.topic ? 'answered from ' + r.topic : r.text.slice(0, 80)}`);
-  if (r.links.some(h => GS.test(h))) bad('a Graduate School link in a decline', q);
+  if (r.links.some(gs_link)) bad('a Graduate School link in a decline', q + ' ' + r.links.filter(gs_link).join(' '));
   if (agency.contact && agency.contact.url && !r.links.includes(agency.contact.url)) bad('the decline lacks the organisation\'s contact button', q); }
 // 4) a pack without programmes.json: programme words must not show our "catalogue failed to load" notice (bug found 2026-11-06)
 for (const q of ['ทุนการศึกษามีไหม', 'ค่าเทอมเท่าไร', 'มีหลักสูตรอะไรบ้าง', 'ปริญญาโท']) {

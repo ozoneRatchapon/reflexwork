@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 // Coverage probe: asks every question in benchmark/coverage/beginner_questions.txt on a page (fresh page per question, so one
 // miss cannot colour the next) and reports WHAT KIND of answer came back + how long it took. Writes an auto-numbered result file.
-//   node scripts/coverage_probe.mjs [--url http://127.0.0.1:8000/chatbot.html] [--no-write]
+//   node scripts/coverage_probe.mjs [--url http://127.0.0.1:8000/chatbot.html] [--questions <file>] [--no-write]   (--questions: another organisation's list)
 // Needs Node >= 22 and Chrome (CHROME=/path). Uses a dead ?api= port: nothing is written to the production kernel.
 // It does NOT know the correct answers: "answered" means the page gave an answer of that kind, not that it is right. Pair with the owner's list.
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
 const BASE = arg('--url') || 'https://reflexwork.pages.dev/chatbot';
 const URL_ = BASE + (BASE.includes('?') ? '&' : '?') + 'api=http://127.0.0.1:9';
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const QS = readFileSync(join(root, 'benchmark/coverage/beginner_questions.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
+const QFILE = arg('--questions') || join(root, 'benchmark/coverage/beginner_questions.txt');
+const QS = readFileSync(QFILE, 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
 const PORT = 9455, wait = ms => new Promise(r => setTimeout(r, ms));
 const prof = mkdtempSync(join(tmpdir(), 'rw-cov-'));
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${prof}`, 'about:blank'], { stdio: 'ignore' });
@@ -51,7 +52,7 @@ for (const q of QS) {
 const n = rows.length, cnt = k => rows.filter(r => r.kind === k).length;
 const ms = rows.map(r => r.ms).sort((a, b) => a - b), p = f => ms[Math.min(n - 1, Math.floor(f * n))];
 const dead = rows.filter(r => !r.hasNext).length;
-const lines = [`# Coverage probe — ${new Date().toISOString().slice(0, 10)}`, '', `Page: ${BASE} · questions: ${n} (benchmark/coverage/beginner_questions.txt) · fresh page per question · "answered" = a page of that kind came back, NOT that it is correct (no owner-confirmed key yet).`, '',
+const lines = [`# Coverage probe — ${new Date().toISOString().slice(0, 10)}`, '', `Page: ${BASE} · questions: ${n} (${relative(root, QFILE)}) · fresh page per question · "answered" = a page of that kind came back, NOT that it is correct (no owner-confirmed key yet).`, '',
   '| kind of response | questions |', '|---|---|', ...KINDS.map(k => `| ${k} | ${cnt(k)} |`), '',
   `Time to final answer (deterministic paths; no LLM in these questions): p50 ${p(0.5)} ms · p95 ${p(0.95)} ms · max ${ms[n - 1]} ms`,
   `Dead ends (response with no button/suggestion to continue): ${dead} of ${n}`, '', '| question | kind | ms | first words |', '|---|---|---|---|', ...rows.map(r => `| ${r.q} | ${r.kind} | ${r.ms} | ${String(r.text).replace(/\|/g, '/')} |`)];
