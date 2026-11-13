@@ -12,3 +12,4 @@ approval_status: "draft"
 คำค้นภาษาอังกฤษ: pre-college YAMP majors
 
 หลักสูตรเตรียมอุดมดนตรี (Pre-College) มี 6 สาขา: Classical Performance, Thai Music, Sound and Music Production, Popular Music, Jazz, Composition
+ค่าเล่าเรียน: หน้ารับสมัครเตรียมอุดมดนตรีทั้ง 6 สาขาไม่ได้ประกาศค่าเล่าเรียน (อ่าน 2026-11-14) และบอกเพียงว่าต้องชำระค่าสมัคร โดยไม่รวมค่าสมัครสอบ TIME ถามจำนวนเงินกับวิทยาลัยโดยตรง

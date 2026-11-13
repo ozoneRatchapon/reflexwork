@@ -52,7 +52,8 @@ asked.length && answered === asked.length ? ok(`all ${asked.length} example ques
 // an advice-style question would go to the AI proxy on our own site; on an adopted site there is no proxy unless agency.json names one
 { const r = await ask('ช่วยแนะนำวิธีจองห้องประชุมกลุ่มหน่อย'); r.topic || r.text.length > 20 ? ok('an advice-style question is answered without an AI proxy', r.topic ? 'from ' + r.topic : r.text.slice(0, 50)) : bad('advice question', r.text.slice(0, 80)); }
 // 3) off-topic and foreign questions are declined, with THIS organisation's contact button and nothing of ours
-for (const q of ['เมืองหลวงของฝรั่งเศสคืออะไร', 'ส่ง Turnitin เกิน 25% ทำยังไง', 'what is the tuition fee for the master programme?']) {
+// the English one is a Graduate School-only topic: a master's tuition question is not, an agency with master programmes answers it (College of Music)
+for (const q of ['เมืองหลวงของฝรั่งเศสคืออะไร', 'ส่ง Turnitin เกิน 25% ทำยังไง', 'how do I submit my thesis to Turnitin?']) {
   const r = await ask(q);
   !r.topic && r.declined ? ok(`declines: "${q}"`) : bad(`should decline: "${q}"`, `${r.topic ? 'answered from ' + r.topic : r.text.slice(0, 80)}`);
   if (r.links.some(gs_link)) bad('a Graduate School link in a decline', q + ' ' + r.links.filter(gs_link).join(' '));

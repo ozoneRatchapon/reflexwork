@@ -2,7 +2,7 @@
 // and that the Graduate School's words/links live ONLY in the places meant for them (DEFAULT_AGENCY, the programme resolver, the built-in fallback KB,
 // and three static defaults that agency.json replaces at start-up). The live behaviour is proven by scripts/adoption_smoke.mjs (needs Chrome).
 // Run: node tests/agency_pack.test.mjs
-import { readFileSync, existsSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync, rmSync, readdirSync, cpSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -34,5 +34,20 @@ check('other organisations default to NO backend (kernel / AI proxy only if agen
 check('a pack without programmes.json skips the catalogue notice (404 -> none, only for other agencies)', /r\.status===404 && AGENCY\.customised\)\{ PROG_STATE='none'/.test(src)
   // the notice itself is decided in Rust (plan 015 step 4b): shown while loading, never for an agency without a catalogue
   && routeOf('อยากเรียนวิศวกรรม', { progState: 'loading' }) === 'catalogue_not_ready' && routeOf('อยากเรียนวิศวกรรม', { progState: 'none' }) !== 'catalogue_not_ready');
+// agency.json "vocab" (plan 019 step 3.2): only the words a pack changes; the engine's own check runs at build time
+const vocabBuild = (vocab) => {
+  const dir = mkdtempSync(join(tmpdir(), 'rw-vocab-')), pk = join(dir, 'pack');
+  cpSync(join(root, 'examples/library-demo'), pk, { recursive: true });
+  const ag = JSON.parse(readFileSync(join(pk, 'agency.json'), 'utf8')); writeFileSync(join(pk, 'agency.json'), JSON.stringify({ ...ag, vocab }));
+  try { return { ok: true, log: execFileSync('node', [join(root, 'scripts/new_agency.mjs'), pk, join(dir, 'site')], { encoding: 'utf8', stdio: 'pipe' }) }; }
+  catch (e) { return { ok: false, log: String(e.stdout || '') + String(e.stderr || '') }; }
+  finally { rmSync(dir, { recursive: true, force: true }); }
+};
+const okV = vocabBuild({ words: { round_first: 'รอบที่หนึ่ง' } });
+check('a pack vocab that lists only the words it changes builds', okV.ok, okV.log.slice(0, 200));
+const typo = vocabBuild({ words: { round_frist: 'x' } });
+check('an unknown vocab key fails the build and names the key', !typo.ok && /words\.round_frist/.test(typo.log), typo.log.slice(0, 200));
+const badRe = vocabBuild({ round_th: { src: 'รอบ(', flags: '' } });
+check('a vocab pattern that does not compile fails the build and names the key', !badRe.ok && /round_th/.test(badRe.log) && /does not compile/.test(badRe.log), badRe.log.slice(0, 200));
 rmSync(join(out, '..'), { recursive: true, force: true });
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

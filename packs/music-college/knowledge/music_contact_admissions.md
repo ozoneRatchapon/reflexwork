@@ -14,4 +14,3 @@ approval_status: "draft"
 งานรับสมัคร: โทร 02 800 2525 ต่อ 1128, 1109 · อีเมล msadmission@mahidol.ac.th
 ผู้สมัครต่างชาติ: msinteradmission@mahidol.ac.th
 ติดต่อทั่วไป: โทร 02 800 2525 · อีเมล prmusic@mahidol.ac.th
-ที่อยู่: 25/25 ถนนพุทธมณฑลสาย 4 ตำบลศาลายา อำเภอพุทธมณฑล จังหวัดนครปฐม 73170
