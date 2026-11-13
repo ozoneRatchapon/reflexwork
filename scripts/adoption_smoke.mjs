@@ -17,7 +17,11 @@ await new Promise(r => server.listen(0, '127.0.0.1', r)); const SP = server.addr
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', PORT = 9481, wait = ms => new Promise(r => setTimeout(r, ms));
 const prof = mkdtempSync(join(tmpdir(), 'rw-adopt-')); const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${prof}`, 'about:blank'], { stdio: 'ignore' });
 const cleanup = () => { try { chrome.kill(); } catch {} try { rmSync(prof, { recursive: true, force: true }); } catch {} try { server.close(); } catch {} }; process.on('exit', cleanup);
-for (let i = 0; i < 60; i++) { try { await fetch(`http://127.0.0.1:${PORT}/json/version`); break; } catch { await wait(250); } }
+// a cold CI runner can take well over 15 s to start Chrome (run 43524078404 failed with ECONNREFUSED after the old 15 s wait):
+// wait up to 60 s, and say so when it never comes up instead of failing later on the first tab
+let up = false;
+for (let i = 0; i < 240 && !up; i++) { try { up = (await fetch(`http://127.0.0.1:${PORT}/json/version`)).ok; } catch { await wait(250); } }
+if (!up) { console.error(`adoption_smoke: Chrome (${CHROME}) did not open its debugging port ${PORT} within 60 s`); chrome.kill(); process.exit(1); }
 const tab = await (await fetch(`http://127.0.0.1:${PORT}/json/new?about:blank`, { method: 'PUT' })).json(); const ws = new WebSocket(tab.webSocketDebuggerUrl); await new Promise(r => ws.addEventListener('open', r));
 let id = 0; const pend = new Map(), errs = [], hosts = new Set();
 ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.id && pend.has(m.id)) { pend.get(m.id)(m.result); pend.delete(m.id); }
