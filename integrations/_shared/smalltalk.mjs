@@ -144,19 +144,37 @@ export function classifySmalltalk(text) {
   return r && !HAS_TOPIC.test(String(text || '')) ? r.kind : null;
 }
 
-export function smalltalkReply(kind, mood) {
+// The Graduate School's own lines (the LINE worker's default). Another agency passes its agency.json "persona" (same keys as the page's
+// AGENCY.persona: hello, bye, whatCan, howAreYou), so its bot never introduces itself as the Graduate School (plan 019 item 6.2).
+const GRAD_PERSONA = {
+  hello: 'ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน',
+  bye: 'ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀',
+  whatCan: 'ผมตอบคำถามเรื่องบัณฑิตวิทยาลัยได้ครับ — กำหนดส่งวิทยานิพนธ์ · Turnitin/การตรวจความซ้ำ · บทคัดย่อ · การลงทะเบียน · ค่าสอบ/ค่าธรรมเนียม และถ้าเป็นปัญหาบัญชี/ระบบ ผมจะช่วยเก็บข้อมูลส่งต่อเจ้าหน้าที่ให้ครับ ลองถามมาได้เลย',
+  howAreYou: 'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?',
+};
+// What a key the agency left out falls back to (the page's NEUTRAL_AGENCY.persona, submissions/ui/chatbot.html): never the Graduate School's.
+const NEUTRAL_PERSONA = {
+  hello: 'ผมเป็นผู้ช่วยตอบคำถามจากข้อมูลทางการครับ — มีเรื่องอะไรให้ช่วยไหมครับ?',
+  bye: 'ด้วยความยินดีครับ 🦀',
+  whatCan: 'ผมตอบคำถามจากข้อมูลทางการของหน่วยงานครับ ถ้าไม่มีในข้อมูล ผมจะบอกและพาไปหาเจ้าหน้าที่ ลองถามมาได้เลย',
+  howAreYou: 'สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องอะไรให้ช่วยไหมครับ?',
+};
+
+/** One small-talk reply. `persona` null: the Graduate School's lines; an object: that agency's, with neutral lines for missing keys. */
+export function smalltalkReply(kind, mood, persona = null) {
   const op = mood ? mood.greetOpener() : 'สวัสดีครับ';
+  const p = persona ? { ...NEUTRAL_PERSONA, ...persona } : GRAD_PERSONA;
   switch (kind) {
     case 'greet':
-      return `${op} 🦀 ผมเป็นผู้ช่วยตอบคำถามเรื่องลงทะเบียนและวิทยานิพนธ์ของบัณฑิตวิทยาลัยครับ — มีเรื่องอะไรให้ช่วยไหมครับ? เล่ามาได้เลย เช่น กำหนดส่งรูปเล่ม · Turnitin · ค่าสอบ · การลงทะเบียน`;
+      return `${op} 🦀 ${p.hello}`;
     case 'thanks':
       return `ยินดีครับ 🙂 ถ้ามีอะไรให้ช่วยอีกถามได้เลยนะครับ`;
     case 'bye':
-      return `ด้วยความยินดีครับ ขอให้ทำวิทยานิพนธ์ราบรื่นนะครับ 🦀`;
+      return p.bye;
     case 'whatcan':
-      return `ผมตอบคำถามเรื่องบัณฑิตวิทยาลัยได้ครับ — กำหนดส่งวิทยานิพนธ์ · Turnitin/การตรวจความซ้ำ · บทคัดย่อ · การลงทะเบียน · ค่าสอบ/ค่าธรรมเนียม และถ้าเป็นปัญหาบัญชี/ระบบ ผมจะช่วยเก็บข้อมูลส่งต่อเจ้าหน้าที่ให้ครับ ลองถามมาได้เลย`;
+      return p.whatCan;
     case 'howareyou':
-      return `สบายดีครับ พร้อมช่วยเต็มที่ 🦀 มีเรื่องวิทยานิพนธ์หรือการลงทะเบียนอะไรให้ช่วยไหมครับ?`;
+      return p.howAreYou;
     default:
       return `${op} มีอะไรให้ช่วยไหมครับ?`;
   }

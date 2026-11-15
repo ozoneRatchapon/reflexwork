@@ -139,9 +139,9 @@ def main() -> int:
             skipped.append((md.stem, approval or "(no approval_status)"))
             continue
 
-        # Title line (## ...) + the English keyword line + first paragraph.
+        # Title line (## ...) + the keyword line (คำค้นภาษาอังกฤษ: / คำค้นภาษาไทย: ..., as pack-lint reads it) + first paragraph.
         title = fm.get("title", md.stem)
-        kw_match = re.search(r"คำค้นภาษาอังกฤษ:\s*(.+)", body)
+        kw_match = re.search(r"^\s*คำค้น[^:\n]*:\s*(.+)", body, re.M)
         en_keywords = kw_match.group(1).strip() if kw_match else ""
         answer = extract_answer(body)
 

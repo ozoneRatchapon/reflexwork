@@ -1,6 +1,7 @@
 //! The chat's decision order in Rust (plan 009): which branch answers a question. Ported from `_askCore` branch by branch, each step checked
 //! against the recorded contract benchmark/golden/route.json (crates/reflex-wasm/tests/golden_route.rs).
 pub mod aspect;
+pub mod body_terms;
 pub mod branches;
 pub mod dates;
 pub mod detail;

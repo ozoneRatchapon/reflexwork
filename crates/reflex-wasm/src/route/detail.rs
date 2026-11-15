@@ -6,6 +6,7 @@ use super::branches::{personal_ask, smalltalk_kind, staff_first, wellbeing_kind,
 use super::dates::{dated_picks, time_intent, TimeIntent};
 use super::topic::topic_hits;
 use super::manual::Ctx;
+use super::near::near_programmes;
 use super::programme::programme_match;
 use super::stuck::{cat_key, stuck_picks, stuck_topic};
 use super::study_intent::has_study_intent;
@@ -32,7 +33,8 @@ pub struct Decision {
     /// personal: "self" | "other"
     pub personal: Option<&'static str>,
     pub stuck: Option<Stuck>,
-    /// programme_card / programme_pick (strict match), field_fee (loose match)
+    /// programme_card / programme_pick (strict match), field_fee / tuition_finder_nomatch (loose match), unsure_programme (the nearest
+    /// names, only when the question reads as a misspelt programme name)
     pub programme: Option<Resolution>,
     /// followup: "fee" | "scholarship" | "docs" | "elig" | "english" | "schedule" | "status"
     pub aspect: Option<&'static str>,
@@ -97,7 +99,11 @@ pub fn decision(route: Option<Route>, q: &str, ctx: &Ctx) -> Decision {
             let entries = ctx.manual.entries();
             d.offered = Some(topic_hits(q, entries.iter().map(|e| e.title.as_str())).into_iter().map(|i| entries[i].id.clone()).collect());
         }
-        Some(Route::UnsureProgramme) => d.study_intent = Some(has_study_intent(q)),
+        Some(Route::UnsureProgramme) => {
+            d.study_intent = Some(has_study_intent(q));
+            d.programme = catalogue.and_then(|c| near_programmes(q, c));
+        }
+        Some(Route::TuitionFinderNomatch) => d.programme = catalogue.and_then(|c| c.resolve(q, true)),
         Some(
             Route::Disambiguate | Route::ScopeAsk | Route::ScopeNoYear | Route::ScopeNoRound | Route::AdviceAbstain | Route::AdviceStrong
             | Route::AdviceHybrid | Route::KbAct,

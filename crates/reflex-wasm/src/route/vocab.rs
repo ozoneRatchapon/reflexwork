@@ -1,6 +1,7 @@
 //! The route vocabulary: the regex sources of the chat's decision order (the words and phrases each branch matches).
 //! They are DATA, not code. The default is the graduate-school pack, `packs/graduate-school/vocab.json`, embedded at build time, so the
-//! default behaviour is unchanged; a deployment may install another pack's `vocab.json` through `Router::new` (plan 011 step 1).
+//! default behaviour is unchanged; a deployment may install another pack's `vocab.json` through `Router::new` (plan 011 step 1). A pack's
+//! file lists only the keys it changes; the rest are the default's (`parse`, plan 019 step 3.1).
 //!
 //! Copied from chatbot.html (2026-11-07) and rewritten where JS used lookaheads, which `regex-lite` lacks: `X(?!c)` -> `X(?:[^c]|$)`
 //! and `ท้อ(?!ง)` -> `ท้อ(?:[^ง]|$)`; the match is only ever read as yes/no.
@@ -80,6 +81,8 @@ pub struct Vocab {
     pub not_personal: Re,
     pub advice: Re,
     pub factual: Re,
+    /// "มีสาขา X ไหม", "is there ...": a question whether something exists (the body-list lookup, `route::body_terms`)
+    pub exists_q: Re,
     pub resolve: ResolveVocab,
 }
 
@@ -155,20 +158,87 @@ impl<'de> Deserialize<'de> for Re {
     }
 }
 
-/// Parse a pack's `vocab.json`. Unknown or missing keys are errors: a pack must state every pattern.
+/// A value replaced whole by a pack: a pattern (`{src, flags}`), a string, a list. Only the other objects (`words`) are merged key by key,
+/// so a pack can never give a pattern's `src` and silently keep the default's `flags`.
+fn is_leaf(v: &serde_json::Value) -> bool {
+    !v.is_object() || v.get("src").is_some()
+}
+
+/// Lay `pack` over `base` (the default). A key the default lacks is an error naming its path (`words.round_first`).
+fn overlay(base: &mut serde_json::Value, pack: serde_json::Value, path: &str) -> Result<(), String> {
+    let (serde_json::Value::Object(b), serde_json::Value::Object(p)) = (&mut *base, pack) else {
+        return Err(format!("vocab.json: `{}` must be an object", if path.is_empty() { "(top level)" } else { path }));
+    };
+    for (k, v) in p {
+        let at = if path.is_empty() { k.clone() } else { format!("{path}.{k}") };
+        let slot = b.get_mut(&k).ok_or_else(|| format!("vocab.json: unknown key `{at}`"))?;
+        match is_leaf(slot) {
+            true => *slot = v,
+            false => overlay(slot, v, &at)?,
+        }
+    }
+    Ok(())
+}
+
+/// Parse a pack's `vocab.json` (plan 019 step 3.1): the keys it gives replace the embedded graduate-school default, the keys it leaves out
+/// keep the default, an unknown key is an error. So a pack lists only the words it changes.
 pub fn parse(json: &str) -> Result<Vocab, String> {
-    serde_json::from_str(json).map_err(|e| format!("vocab.json: {e}"))
+    serde_json::from_value(merged(json)?).map_err(|e| format!("vocab.json: {e}"))
+}
+
+fn merged(json: &str) -> Result<serde_json::Value, String> {
+    let mut base: serde_json::Value = serde_json::from_str(DEFAULT_JSON).map_err(|e| format!("embedded vocab.json: {e}"))?;
+    let pack: serde_json::Value = serde_json::from_str(json).map_err(|e| format!("vocab.json: {e}"))?;
+    overlay(&mut base, pack, "")?;
+    Ok(base)
+}
+
+/// Patterns the engine rewrites before compiling (lookaheads `regex-lite` lacks), with the same rewrite the engine uses.
+type Prepare = fn(&str) -> Result<String, String>;
+const PREPARED: [(&str, Prepare); 1] = [("resolve.lead", crate::resolve::patterns::lead_src)];
+
+/// Every pattern of the merged vocabulary compiles here; the first that does not is named by its path (`stuck_cats[2].topic`).
+fn compile_all(v: &serde_json::Value, path: &str) -> Result<(), String> {
+    use serde_json::Value;
+    match v {
+        Value::Object(o) => match (o.get("src").and_then(Value::as_str), o.get("flags").and_then(Value::as_str)) {
+            (Some(src), Some(flags)) => {
+                let bad = |e: String| format!("vocab.json: `{path}` does not compile: {e}");
+                let src = match PREPARED.iter().find(|(p, _)| *p == path) {
+                    Some((_, prepare)) => prepare(src).map_err(bad)?,
+                    None => src.to_owned(),
+                };
+                crate::re::try_compile(&src, flags).map(|_| ()).map_err(bad)
+            }
+            _ => o.iter().try_for_each(|(k, x)| compile_all(x, &if path.is_empty() { k.clone() } else { format!("{path}.{k}") })),
+        },
+        Value::Array(a) => a.iter().enumerate().try_for_each(|(i, x)| compile_all(x, &format!("{path}[{i}]"))),
+        _ => Ok(()),
+    }
+}
+
+/// Parse a pack's vocabulary and compile every pattern in it, so a bad pack fails when it is loaded (the build, `Router::new`), never
+/// in the middle of a conversation.
+pub fn check(json: &str) -> Result<Vocab, String> {
+    let m = merged(json)?;
+    compile_all(&m, "")?;
+    serde_json::from_value(m).map_err(|e| format!("vocab.json: {e}"))
+}
+
+/// The default goes through the same `from_value` as a pack: one `Deserialize` instantiation in the wasm, not two (-37 KB of wasm, 2026-11-14).
+fn parse_default() -> Vocab {
+    parse("{}").expect("embedded graduate-school vocab.json is valid")
 }
 
 static VOCAB: OnceLock<Vocab> = OnceLock::new();
 
 /// Install the pack for this process. Fails if a different pack was already installed (or the default was already used).
 pub fn install(json: &str) -> Result<(), String> {
-    let v = parse(json)?;
+    let v = check(json)?;
     VOCAB.set(v).map_err(|_| "a vocabulary is already installed in this process".to_string())
 }
 
 /// The installed pack, or the embedded graduate-school default.
 pub fn vocab() -> &'static Vocab {
-    VOCAB.get_or_init(|| parse(DEFAULT_JSON).expect("embedded graduate-school vocab.json is valid"))
+    VOCAB.get_or_init(parse_default)
 }

@@ -24,6 +24,7 @@ export const router_search: (a: number, b: number, c: number, d: number) => numb
 export const schedule_table: (a: number, b: number) => number;
 export const slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
 export const understand: (a: number, b: number, c: number) => number;
+export const vocab_check: (a: number, b: number, c: number) => void;
 export const __wbindgen_export: (a: number, b: number) => number;
 export const __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_export3: (a: number) => void;

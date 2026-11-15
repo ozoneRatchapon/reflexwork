@@ -35,6 +35,14 @@ const build = (name, files) => {
 { const r = build('pending', { a_old: entry('a_old', 'เก่า'), a_new: entry('a_new', 'ใหม่', 'supersedes: "a_old"\n', 'pending_owner_approval') });
   check('an unapproved replacement does not hide the live entry', r.code === 0 && (r.idx || []).some(e => e.id === 'a_old'), JSON.stringify(r.idx)); }
 
+// 2b) the keyword line is searched whatever its language label (pack-lint reads any `คำค้น...:` line), and is not part of the answer
+{ const kw = (id, line) => entry(id, id).replace('\n\nคำตอบ', `\n\n${line}\n\nคำตอบ`);
+  const r = build('keywords', { en: kw('en', 'คำค้นภาษาอังกฤษ: tuition fee'), th: kw('th', 'คำค้นภาษาไทย: นักศึกษาต่างชาติ') });
+  const by = id => (r.idx || []).find(e => e.id === id) || {};
+  check('an English keyword line is searched', r.code === 0 && /tuition fee/.test(by('en').keywords), JSON.stringify(by('en')));
+  check('a Thai keyword line is searched', /นักศึกษาต่างชาติ/.test(by('th').keywords || ''), JSON.stringify(by('th')));
+  check('neither keyword line is in the answer', !/คำค้น/.test((by('en').answer || '') + (by('th').answer || ''))); }
+
 // 3) mistakes stop the build (no index written)
 for (const [name, files, re] of [
   ['missing', { x: entry('x', 'x', 'supersedes: "no_such"\n') }, /no no_such\.md/],

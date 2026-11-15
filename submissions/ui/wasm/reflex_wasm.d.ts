@@ -131,6 +131,12 @@ export function slot_lead(answer: string, question: string): string;
  */
 export function understand(phrases: string[], results: any): any;
 
+/**
+ * Check a pack's `vocab` (JSON text) without installing it: unknown keys, wrong shapes and patterns that do not compile are an error
+ * naming the key. `scripts/new_agency.mjs` runs it at build time (plan 019 step 3.2).
+ */
+export function vocab_check(json: string): void;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -158,6 +164,7 @@ export interface InitOutput {
     readonly schedule_table: (a: number, b: number) => number;
     readonly slot_lead: (a: number, b: number, c: number, d: number, e: number) => void;
     readonly understand: (a: number, b: number, c: number) => number;
+    readonly vocab_check: (a: number, b: number, c: number) => void;
     readonly __wbindgen_export: (a: number, b: number) => number;
     readonly __wbindgen_export2: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_export3: (a: number) => void;

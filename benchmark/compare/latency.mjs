@@ -6,12 +6,13 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ui = join(root, 'submissions/ui');
+import { RESOLVE_SHIM } from "../../scripts/lib/chatbot_fns.mjs";
 const wasm = await import(join(ui, 'wasm/reflex_wasm.js'));
 wasm.initSync({ module: readFileSync(join(ui, 'wasm/reflex_wasm_bg.wasm')) });
 const KB = JSON.parse(readFileSync(join(ui, 'knowledge-index.json'), 'utf8')), P = JSON.parse(readFileSync(join(ui, 'programmes.json'), 'utf8')).programmes;
 const html = readFileSync(join(ui, 'chatbot.html'), 'utf8');
 const blk = n => html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1];
-const { resolveProgramme, normChat, linkify } = new Function('WASM', blk('chat-normalize') + blk('linkify') + blk('programme-resolve') + '\nreturn {resolveProgramme, normChat, linkify};')(wasm);   // resolveProgramme is the Rust resolver
+const { resolveProgramme, normChat, linkify } = new Function('WASM', blk('chat-normalize') + blk('linkify') + blk('programme-resolve') + RESOLVE_SHIM + '\nreturn {resolveProgramme, normChat, linkify};')(wasm);   // resolveProgramme is the Rust resolver
 const lite = KB.map(e => ({ id: e.id, keywords: e.keywords }));
 const links = JSON.parse(readFileSync(join(ui, 'system-links.json'), 'utf8')).links;
 const Qs = ['ส่งรูปเล่มวิทยานิพนธ์ภายในกี่วัน', 'ค่าสมัครสอบ MU GRAD Plus เท่าไร', 'ลาพักการศึกษาต้องทำอย่างไร', 'turnitin กีเปอเซน', 'how to apply for admission', 'อยากสมัครเรียนจิตวิทยาคลินิก', 'ค่าเทอมวิศวกรรมชีวการแพทย์ ปริญญาเอก', 'เรียนรายยย'];

@@ -2,7 +2,8 @@
 // Regenerate the LINE worker's KB copy (integrations/line-worker/kb-data.mjs) from the SAME approved-only index the web serves.
 // LINE was 70 entries behind (70 vs 132, found 2026-11-03). Run after build_knowledge_index.py:
 //   python3 submissions/build_knowledge_index.py && node scripts/gen_line_kb.mjs [--check]
-// --check exits 1 if kb-data.mjs is out of date (used by tests/line_kb_sync.test.mjs).
+// --check exits 1 if kb-data.mjs is out of date. Another agency's LINE manual comes from its pack: crates/pack-tools `pack-line-kb`
+// (same bytes; crates/pack-tools/tests/line_kb.rs checks the body against kb-data.mjs).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { root } from './lib/chatbot_fns.mjs';

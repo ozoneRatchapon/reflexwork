@@ -1,0 +1,42 @@
+[package]
+name = "pack-tools"
+version = "0.1.0"
+edition = "2021"
+description = "Tools for an agency's content owner: read a pack's knowledge entries and build the static review page (plan 019 Phase 4)"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "pack-review"
+path = "src/main.rs"
+
+[[bin]]
+name = "pack-expiry"
+path = "src/bin/pack_expiry.rs"
+
+[[bin]]
+name = "pack-lint"
+path = "src/bin/pack_lint.rs"
+
+[[bin]]
+name = "pack-watch"
+path = "src/bin/pack_watch.rs"
+
+[[bin]]
+name = "pack-line-kb"
+path = "src/bin/pack_line_kb.rs"
+
+[[bin]]
+name = "pack-workers"
+path = "src/bin/pack_workers.rs"
+
+[[bin]]
+name = "pack-golden"
+path = "src/bin/pack_golden.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+reflex-wasm = { path = "../reflex-wasm" }
