@@ -16,7 +16,8 @@ Order = dependency order; each phase starts when the one before is merged and CI
 ## Phase 0 - close what is open (branch `feature/music-college-pack`)
 - [x] 0.1 Commit the CI fix (`tests/a11y_chat.test.mjs`), the pack changes and `tests/music_pack.test.mjs`; push; CI green on the branch.
       2026-11-14: pushed; run 43523345830 test / adoption / rust-golden green (plus the smoke wait fix 0b0727f).
-- [ ] 0.2 Merge into `main`; CI green on `main`.
+- [x] 0.2 Merge into `main`; CI green on `main`.
+      2026-11-15: fe3746c (--no-ff), main CI run 43688746835 green (test / adoption / rust-golden).
 - [x] 0.3 Memory: "check CI on main after every merge before saying done".
 Done when: `main` CI is green.
 
@@ -229,7 +230,7 @@ Done when: every topic the College's public site covers has a draft entry with i
 Done when: a second agency gets site + LINE + kernel configs from one pack, with its own tests in CI.
 
 ## Phase 7 - hygiene that is ours to do
-- [~] 7.1 The 9-day-old programme catalogue: `gh workflow run programmes-refresh.yml`, review the PR (deploy asked separately).
+- [x] 7.1 The 9-day-old programme catalogue: `gh workflow run programmes-refresh.yml`, review the PR (deploy asked separately).
       2026-11-14: run 43524235144 green (the 2026-11-09 scheduled run had failed on a link-rot timeout to the Graduate School
       site). The workflow pushed `bot/programmes-20261113` but could not open the PR (repo setting "Allow GitHub Actions to create
       and approve pull requests" is off); opened by hand as PR #152. Changes: 3 programme codes replaced by a new revision (same
@@ -237,7 +238,13 @@ Done when: a second agency gets site + LINE + kernel configs from one pack, with
       probe `สมัคร 2101D04G` -> `2101D05G`, page claims 239 -> 253 announced and 1,923 -> 1,931 names. PR CI: rust-golden green,
       test red only on G05 (`a11y_chat`, already red on main; fixed on this branch). Open: merge #152 (yours), then deploy (asked
       separately); the repo setting, if the weekly run should open its own PR.
-- [ ] 7.2 The untracked files at the repo root and `integrations/kernel-worker/` (list with sizes; ask keep/delete in one question).
+      2026-11-15: PR #152 updated with main; its test job then failed on docs/pitching/cheatsheet.html (generated from pitch.html,
+      not regenerated in the PR); regenerated there, PR CI green, merged 566cb00, main CI run 43690200220 green. Deploy not done (ask).
+- [x] 7.2 The untracked files at the repo root and `integrations/kernel-worker/` (list with sizes; ask keep/delete in one question).
+      2026-11-15 (owner: ok): backup-demo-1/2 .mp4 committed (README and the judge playbook cite them); kernel-worker `wasm/` (a
+      16 Oct build the worker does not import), `.pnp.cjs.disabled` (empty) and `package-lock.json` deleted; `benchmark/rules/type_*.mjs`,
+      `benchmark/synth/011_*`, `q_extra.json` left alone (another session's work).
+- [x] 7.4 OCR check (asked 2026-11-15): `benchmark/ocr/001_2026-11-15_openthai_ocr.md`, not built (row in NEGATIVE_RESULTS.md).
 - [x] 7.3 `docs/adopt.md` "not done yet" section: update after phases 3 and 6 (second real agency now exists, as a draft).
       2026-11-14: the status line and the first "not done" item name the College draft (28 entries, none approved, dev-written questions).
       Re-read it when the College approves entries or sends real questions.
