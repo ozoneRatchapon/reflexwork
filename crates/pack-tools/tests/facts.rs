@@ -1,7 +1,7 @@
 //! The College's English schedule page and the Thai entries must read to the same dates (plan 019 item 4.3).
 
 use pack_tools::dates::parse_ymd;
-use pack_tools::facts::{dates_in, html_text, paren_names};
+use pack_tools::facts::{dates_in, html_text, links_in, page_key, paren_names};
 
 fn days(list: &[&str]) -> Vec<i64> {
     list.iter().map(|s| parse_ymd(s).unwrap()).collect()
@@ -38,4 +38,19 @@ fn a_spaced_day_range_gives_both_ends() {
     assert_eq!(dates_in("หยุดสงกรานต์: 10 – 14 เม.ย. 2571"), dates_in("10–14 April 2028"));
     assert_eq!(dates_in("10 – 14 เม.ย. 2571").into_iter().collect::<Vec<_>>(), days(&["2028-04-10", "2028-04-14"]));
     assert_eq!(dates_in("31 ต.ค. – 6 พ.ย. 2569").into_iter().collect::<Vec<_>>(), days(&["2026-11-06"]));
+}
+
+#[test]
+fn notes_in_parentheses_are_not_names() {
+    // site watch 2026-11-15: these were reported as "names not on the page"
+    let t = "ค่าเล่าเรียน (Thai and international students), สอบ (with a written observation), (classical), (Bachelor of Music)";
+    assert_eq!(paren_names(t), ["Bachelor of Music"]);
+}
+
+#[test]
+fn links_are_absolute_page_keys() {
+    let h = r#"<a href="https://c.test/a/">a</a> <a href='/b/#top'>b</a> <a href="c.html">c</a> <a href="//cdn.test/x">x</a>"#;
+    let got: Vec<String> = links_in(h, "https://c.test/academic/").into_iter().collect();
+    assert_eq!(got, ["https://c.test/a", "https://c.test/b"]);
+    assert_eq!(page_key("https://c.test/a/#x"), page_key("https://c.test/a"));
 }

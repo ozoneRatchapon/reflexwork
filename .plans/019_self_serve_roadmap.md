@@ -100,6 +100,13 @@ Done when: a pack changes how questions are understood by listing only the words
       apart; a refusal is listed, not retried another way. Tests `crates/pack-tools/tests/{facts,watch}.rs` (8). Baseline (live
       2026-11-14): the schedule page matches all 4 round entries; one gap - "Bachelor of Music" (in `music_bachelor_majors.md`) is not on
       /academic/admission-bachelor/ (College to confirm the English degree name; plan 018).
+- [x] 4.5 First site-watch run on a runner (2026-11-15, run 43693629685): green, but the PR could not be opened (Actions may not
+      create PRs; branch `bot/site-watch-music-college-20261115` pushed) and its report had 3 false differences, none a site change:
+      notes in parentheses read as names ("Thai and international students", "with a written observation") and names that the
+      cited summary page leaves to its major pages (Voice, Western Music). Fixed in `pack-tools`: `facts::paren_names` keeps only
+      name-shaped text (capitalised words and and/of/for/the/in); `watch::compare` counts a name shown on a page the cited page links
+      to and the same run read (`linked_texts`, `facts::links_in`); dates must still be on the cited page. Live: 22 pages, 0 differ
+      (the "Bachelor of Music" gap closed too, see plan 018). Tests in `tests/facts.rs` (+2), `tests/watch.rs` (+1). Stale bot branch deleted.
 - [x] 4.4 Pack lint in `new_agency.mjs`: duplicate titles, titles sharing most words (the dilution found in 018), empty keyword lines,
       dates in the answer that disagree with `valid_to`.
       Done 2026-11-14 in Rust: `crates/pack-tools/src/lint.rs`, bin `pack-lint <pack|knowledge-dir>... [--github]`; `new_agency.mjs`

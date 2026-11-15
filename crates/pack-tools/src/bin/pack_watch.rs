@@ -10,7 +10,7 @@ use std::time::Duration;
 
 use pack_tools::dates::{parse_ymd, today};
 use pack_tools::entry::read_pack;
-use pack_tools::watch::{by_source, compare, markdown, pack_dates, Fetched};
+use pack_tools::watch::{by_source, compare, linked_texts, markdown, pack_dates, Fetched};
 
 const USAGE: &str = "usage: pack-watch <pack> [--report out.md] [--save dir | --pages dir] [--today YYYY-MM-DD]";
 const USER_AGENT: &str = "reflexwork-pack-watch/0.1 (weekly check of pages a knowledge pack cites)";
@@ -102,25 +102,33 @@ fn main() -> ExitCode {
         }
     }
     let known = pack_dates(&entries);
-    let mut reports = Vec::new();
-    for (i, (url, cited)) in by_source(&entries).into_iter().enumerate() {
+    let sources = by_source(&entries);
+    let mut pages = Vec::new();
+    for (i, url) in sources.keys().enumerate() {
         let fetched = match &args.pages {
-            Some(dir) => fs::read_to_string(dir.join(slug(&url))).map_or_else(|_| Fetched::Refused(format!("not saved in {}", dir.display())), Fetched::Html),
+            Some(dir) => fs::read_to_string(dir.join(slug(url))).map_or_else(|_| Fetched::Refused(format!("not saved in {}", dir.display())), Fetched::Html),
             None => {
                 if i > 0 {
                     std::thread::sleep(Duration::from_secs(1));
                 }
-                fetch(&url)
+                fetch(url)
             }
         };
         if let (Some(dir), Fetched::Html(html)) = (&args.save, &fetched) {
-            let _ = fs::write(dir.join(slug(&url)), html);
+            let _ = fs::write(dir.join(slug(url)), html);
         }
         if let Fetched::Refused(reason) = &fetched {
             println!("::warning::pack-watch could not read {url} ({reason})");
         }
-        reports.push(compare(&url, &cited, &fetched, &known, today));
+        pages.push((url.clone(), fetched));
     }
+    // Second pass: a page is compared once every page is read, so a name its linked pages print counts (see `compare`).
+    let linked = linked_texts(&pages);
+    let reports: Vec<_> = pages
+        .iter()
+        .zip(&linked)
+        .map(|((url, fetched), linked)| compare(url, &sources[url], fetched, linked, &known, today))
+        .collect();
     let md = markdown(&pack.display().to_string(), &reports);
     print!("{md}");
     if let Some(path) = &args.report {
