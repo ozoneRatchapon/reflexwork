@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use crate::dates::civil_from_days;
-use crate::facts::{dates_in, html_text, paren_names};
+use crate::facts::{dates_in, html_text, links_in, page_key, paren_names};
 use crate::types::Entry;
 
 /// What fetching one URL gave.
@@ -65,8 +65,10 @@ pub fn pack_dates(entries: &[Entry]) -> BTreeSet<i64> {
 }
 
 /// Compare the entries citing `url` with what the page shows. New dates are those from `today` on that are not in `known`
-/// (see [`pack_dates`]).
-pub fn compare(url: &str, entries: &[&Entry], fetched: &Fetched, known: &BTreeSet<i64>, today: i64) -> PageReport {
+/// (see [`pack_dates`]). `linked` = the visible text of pages this page links to that the same run read (see [`linked_texts`]):
+/// a name shown there counts as shown (a summary page cited for facts its major pages print). Dates must be on the cited page
+/// itself, so a moved deadline is never hidden by another page that still shows the old one.
+pub fn compare(url: &str, entries: &[&Entry], fetched: &Fetched, linked: &[String], known: &BTreeSet<i64>, today: i64) -> PageReport {
     let html = match fetched {
         Fetched::Refused(reason) => {
             return PageReport::Refused {
@@ -80,18 +82,41 @@ pub fn compare(url: &str, entries: &[&Entry], fetched: &Fetched, known: &BTreeSe
     let text = html_text(html);
     let page_dates = dates_in(&text);
     let page_names = norm_name(&text);
+    let linked_names: Vec<String> = linked.iter().map(|t| norm_name(t)).collect();
+    let shown = |n: &str| page_names.contains(n) || linked_names.iter().any(|t| t.contains(n));
     let mut stale = Vec::new();
     for e in entries {
         let dates = dates_in(&e.body);
         let missing_dates: Vec<String> = dates.difference(&page_dates).map(|&d| civil_from_days(d)).collect();
         let missing_names: Vec<String> =
-            paren_names(&e.body).into_iter().filter(|n| !page_names.contains(&norm_name(n))).collect();
+            paren_names(&e.body).into_iter().filter(|n| !shown(&norm_name(n))).collect();
         if !missing_dates.is_empty() || !missing_names.is_empty() {
             stale.push(Stale { file_name: e.file_name.clone(), missing_dates, missing_names });
         }
     }
     let new_dates = page_dates.iter().filter(|&&d| d >= today && !known.contains(&d)).map(|&d| civil_from_days(d)).collect();
     PageReport::Read { url: url.to_string(), stale, new_dates }
+}
+
+/// For each fetched page, the visible text of the other fetched pages it links to (same order as `pages`).
+pub fn linked_texts(pages: &[(String, Fetched)]) -> Vec<Vec<String>> {
+    let texts: BTreeMap<String, String> = pages
+        .iter()
+        .filter_map(|(u, f)| match f {
+            Fetched::Html(h) => Some((page_key(u), html_text(h))),
+            Fetched::Refused(_) => None,
+        })
+        .collect();
+    pages
+        .iter()
+        .map(|(u, f)| match f {
+            Fetched::Html(h) => {
+                let me = page_key(u);
+                links_in(h, u).into_iter().filter(|l| *l != me).filter_map(|l| texts.get(&l).cloned()).collect()
+            }
+            Fetched::Refused(_) => Vec::new(),
+        })
+        .collect()
 }
 
 /// The report as Markdown. It holds no run date on purpose: the workflow commits it as `site_watch.md` and opens a pull request

@@ -4,7 +4,7 @@
 use pack_tools::dates::parse_ymd;
 use pack_tools::entry::parse_entry;
 use pack_tools::types::Entry;
-use pack_tools::watch::{by_source, compare, markdown, pack_dates, Fetched, PageReport};
+use pack_tools::watch::{by_source, compare, linked_texts, markdown, pack_dates, Fetched, PageReport};
 
 const URL: &str = "https://college.test/schedule/";
 
@@ -28,7 +28,7 @@ fn unchanged_page_reports_nothing_and_old_dates_are_not_new() {
     let today = parse_ymd("2026-11-14").unwrap();
     let sources = by_source(&es);
     assert_eq!(sources.len(), 2, "an entry without an http(s) source is not watched");
-    let r = compare(URL, &sources[URL], &Fetched::Html(PAGE.to_string()), &pack_dates(&es), today);
+    let r = compare(URL, &sources[URL], &Fetched::Html(PAGE.to_string()), &[], &pack_dates(&es), today);
     assert!(!r.changed(), "7 Nov. 2026 is before today, so it is not a new date: {r:?}");
 }
 
@@ -37,7 +37,7 @@ fn moved_deadline_names_the_entry_and_the_new_date() {
     let es = entries();
     let today = parse_ymd("2026-09-01").unwrap();
     let moved = PAGE.replace("19 Sep. 2026", "26 Sep. 2026");
-    let r = compare(URL, &by_source(&es)[URL], &Fetched::Html(moved), &pack_dates(&es), today);
+    let r = compare(URL, &by_source(&es)[URL], &Fetched::Html(moved), &[], &pack_dates(&es), today);
     let PageReport::Read { stale, new_dates, .. } = &r else { panic!("{r:?}") };
     assert_eq!(stale.len(), 1);
     assert_eq!(stale[0].file_name, "r1.md");
@@ -53,7 +53,7 @@ fn names_match_ignoring_case_and_ampersand() {
     let es = entries();
     let url = "https://college.test/majors/";
     let page = Fetched::Html("<li>JAZZ</li><li>Thai and Eastern Music</li>".to_string());
-    let r = compare(url, &by_source(&es)[url], &page, &pack_dates(&es), 0);
+    let r = compare(url, &by_source(&es)[url], &page, &[], &pack_dates(&es), 0);
     let PageReport::Read { stale, .. } = &r else { panic!("{r:?}") };
     assert_eq!(stale[0].missing_names, ["Music Business"]);
 }
@@ -61,9 +61,30 @@ fn names_match_ignoring_case_and_ampersand() {
 #[test]
 fn refused_page_is_reported_not_counted_as_change() {
     let es = entries();
-    let r = compare(URL, &by_source(&es)[URL], &Fetched::Refused("HTTP 403".to_string()), &pack_dates(&es), 0);
+    let r = compare(URL, &by_source(&es)[URL], &Fetched::Refused("HTTP 403".to_string()), &[], &pack_dates(&es), 0);
     assert!(!r.changed());
     let md = markdown("pack", &[r]);
     assert!(md.contains("Could not be read (HTTP 403); not retried another way. Entries citing it: r1.md"));
     assert!(md.contains("0 pages read, 0 differ from their entries, 1 could not be read."));
+}
+
+#[test]
+fn a_name_on_a_linked_page_counts_but_a_date_does_not() {
+    let summary = "https://college.test/fees/";
+    let major = "https://college.test/fees-voice/";
+    let es = vec![entry("fees.md", summary, "ร้อง (Voice) ปีละ 1 รอบ, ปิดรับ 19 ก.ย. 2569")];
+    let pages = vec![
+        (summary.to_string(), Fetched::Html(format!("<a href=\"{major}\">more</a> <p>fees</p>"))),
+        (major.to_string(), Fetched::Html("<h1>Voice</h1><p>Deadline 19 Sep. 2026</p>".to_string())),
+    ];
+    let linked = linked_texts(&pages);
+    let r = compare(summary, &by_source(&es)[summary], &pages[0].1, &linked[0], &pack_dates(&es), 0);
+    let PageReport::Read { stale, .. } = r else { panic!("read") };
+    assert_eq!(stale.len(), 1);
+    assert!(stale[0].missing_names.is_empty(), "Voice is on the linked page");
+    assert_eq!(stale[0].missing_dates, ["2026-09-19"], "a date must be on the cited page itself");
+    // without the link, the name is missing
+    let alone = compare(summary, &by_source(&es)[summary], &pages[0].1, &[], &pack_dates(&es), 0);
+    let PageReport::Read { stale, .. } = alone else { panic!("read") };
+    assert_eq!(stale[0].missing_names, ["Voice"]);
 }

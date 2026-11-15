@@ -82,8 +82,19 @@ pub fn dates_in(text: &str) -> BTreeSet<i64> {
     out
 }
 
+/// Lower-case words a name may hold between capitalised ones: "Thai and Eastern Music", "Bachelor of Music".
+const NAME_JOINERS: [&str; 7] = ["and", "of", "for", "the", "in", "&", "-"];
+
+/// A name reads like one: it starts with a capital and every other word is capitalised or a joiner. "Thai and international
+/// students" or "with a written observation" are notes in parentheses, not names a page would print.
+fn name_shaped(inner: &str) -> bool {
+    let mut words = inner.split_whitespace();
+    let starts_upper = |w: &str| w.chars().next().is_some_and(|c| c.is_ascii_uppercase());
+    words.next().is_some_and(starts_upper) && words.all(|w| starts_upper(w) || NAME_JOINERS.contains(&w))
+}
+
 /// English names an entry gives in parentheses after a Thai name: "แจ๊ส (Jazz)" → "Jazz". Only letters, spaces, `&` and `-`, at
-/// least two letters; anything else in parentheses (numbers, URLs, Thai) is not a name.
+/// least two letters, name-shaped (see [`name_shaped`]); anything else in parentheses (numbers, URLs, Thai, notes) is not a name.
 pub fn paren_names(text: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut rest = text;
@@ -92,12 +103,39 @@ pub fn paren_names(text: &str) -> Vec<String> {
         let Some(close) = after.find(')') else { break };
         let inner = after[..close].trim();
         let letters = inner.chars().filter(char::is_ascii_alphabetic).count();
-        if letters >= 2 && inner.chars().all(|c| c.is_ascii_alphabetic() || matches!(c, ' ' | '&' | '-')) {
+        if letters >= 2 && inner.chars().all(|c| c.is_ascii_alphabetic() || matches!(c, ' ' | '&' | '-')) && name_shaped(inner) {
             out.push(inner.to_string());
         }
         rest = &after[close + 1..];
     }
     out
+}
+
+/// The http(s) pages an HTML page links to, absolute, without `#fragment` and trailing `/`. A root-relative `href="/x/"` is
+/// resolved against `base`'s origin; other relative links are left out (the watched sites link absolute or root-relative).
+pub fn links_in(html: &str, base: &str) -> BTreeSet<String> {
+    let origin = base.splitn(4, '/').take(3).collect::<Vec<_>>().join("/");
+    let mut out = BTreeSet::new();
+    let mut rest = html;
+    while let Some(at) = rest.find("href=") {
+        rest = &rest[at + 5..];
+        let Some(quote) = rest.chars().next().filter(|c| matches!(c, '"' | '\'')) else { continue };
+        let Some(end) = rest[1..].find(quote) else { break };
+        let href = &rest[1..1 + end];
+        let abs = match href {
+            h if h.starts_with("https://") || h.starts_with("http://") => h.to_string(),
+            h if h.starts_with('/') && !h.starts_with("//") => format!("{origin}{h}"),
+            _ => continue,
+        };
+        out.insert(page_key(&abs));
+        rest = &rest[1 + end..];
+    }
+    out
+}
+
+/// A URL as a page identity: no `#fragment`, no trailing `/` ("…/admission-master/" == "…/admission-master").
+pub fn page_key(url: &str) -> String {
+    url.split('#').next().unwrap_or(url).trim_end_matches('/').to_string()
 }
 
 /// The visible text of an HTML page: no script/style/comments, tags as spaces, common entities decoded, whitespace collapsed.
