@@ -239,7 +239,10 @@ Done when: a second agency gets site + LINE + kernel configs from one pack, with
       test red only on G05 (`a11y_chat`, already red on main; fixed on this branch). Open: merge #152 (yours), then deploy (asked
       separately); the repo setting, if the weekly run should open its own PR.
       2026-11-15: PR #152 updated with main; its test job then failed on docs/pitching/cheatsheet.html (generated from pitch.html,
-      not regenerated in the PR); regenerated there, PR CI green, merged 566cb00, main CI run 43690200220 green. Deploy not done (ask).
+      not regenerated in the PR); regenerated there, PR CI green, merged 566cb00, main CI run 43690200220 green.
+      Deployed 2026-11-15: D1 backup `backups/reflexwork-20261115-145719.sql` (exit 0, 44 KB); preview `preview-20261115` demo_smoke hard
+      checks pass (1 warning: no LLM on preview, by design); production Pages `4a34d965` from `5730be6` (was `9dff14c6` from `db6afad`),
+      run by the owner; demo_smoke on production: all hard checks pass, no warning. LINE / kernel workers not redeployed (no answer change).
 - [x] 7.2 The untracked files at the repo root and `integrations/kernel-worker/` (list with sizes; ask keep/delete in one question).
       2026-11-15 (owner: ok): backup-demo-1/2 .mp4 committed (README and the judge playbook cite them); kernel-worker `wasm/` (a
       16 Oct build the worker does not import), `.pnp.cjs.disabled` (empty) and `package-lock.json` deleted; `benchmark/rules/type_*.mjs`,
