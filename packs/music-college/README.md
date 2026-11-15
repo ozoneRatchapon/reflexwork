@@ -13,17 +13,18 @@ cargo run -q -p pack-tools --bin pack-watch -- packs/music-college     # re-read
 node scripts/adoption_smoke.mjs /tmp/mus-site                              # all 16 checks pass (2026-11-13)
 cargo run -q -p pack-tools --bin pack-line-kb -- /tmp/mus-site/knowledge-index.json /tmp/mus-line-kb.mjs --agency packs/music-college/agency.json   # LINE manual + voice (DRAFT header: never deploy)
 node tests/line_pack.test.mjs                                              # LINE replies on this pack: only its entries, never the Graduate School (16/16 2026-11-14)
-cargo run -q -p pack-tools --bin pack-golden -- packs/music-college /tmp/mus-site benchmark/golden/college-of-music/route.json   # route + entry per question vs this pack's own golden (227 questions, 0 differences 2026-11-14)
+cargo run -q -p pack-tools --bin pack-golden -- packs/music-college /tmp/mus-site benchmark/golden/college-of-music/route.json   # route + entry per question vs this pack's own golden (231 questions, 0 differences 2026-11-14)
 cd /tmp/mus-site && python3 -m http.server 8765 &
 node scripts/coverage_probe.mjs --url http://127.0.0.1:8765/chatbot.html --questions packs/music-college/questions.txt --no-write
 ```
 
-## What is in it (38 entries; facts re-read from the live pages 2026-11-13, the last 17 read 2026-11-14)
+## What is in it (39 entries; facts re-read from the live pages 2026-11-13, the last 18 read 2026-11-14)
 | entries | source |
 |---|---|
 | admission rounds 1-4 of AY 2570 (deadline, audition, interview, results, registration; `valid_to` = last registration day), round overview, on-site audition, graduate round 5 note | /admission-schedule/ |
 | how to apply (COMMAS steps) | /academic/admission-bachelor/ (same text on the master and pre-college pages) |
 | majors: bachelor (9 + MEI), master (11), doctoral (7), pre-college (6) | /academic/admission-bachelor/, -master/, -doctoral/, -pre-college/ |
+| all four levels in one answer (`music_programmes_overview`: "มีหลักสูตรอะไรบ้าง" was not answered; the level entries stay as they are, so "มีสาขาแจ๊สไหม" still offers its levels) | the home page menu, which links the four admission pages |
 | admissions and general contact; the address (its own entry) | /admission-schedule/, /contact-us/ |
 | privacy notice | /privacy-policy/ |
 | scholarships (Prem fund, merit, special instruments, bursaries, ThaiBev, Love Is Music, student loans, exchange); the call dates on the page are 2565 and 2567, so the entry names no open dates | /academic/scholarships/ |

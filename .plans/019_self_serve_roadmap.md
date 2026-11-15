@@ -14,7 +14,8 @@ Order = dependency order; each phase starts when the one before is merged and CI
 - Deploys are not part of this plan's steps; each deploy is asked for, with the D1 backup first.
 
 ## Phase 0 - close what is open (branch `feature/music-college-pack`)
-- [ ] 0.1 Commit the CI fix (`tests/a11y_chat.test.mjs`), the pack changes and `tests/music_pack.test.mjs`; push; CI green on the branch.
+- [x] 0.1 Commit the CI fix (`tests/a11y_chat.test.mjs`), the pack changes and `tests/music_pack.test.mjs`; push; CI green on the branch.
+      2026-11-14: pushed; run 43523345830 test / adoption / rust-golden green (plus the smoke wait fix 0b0727f).
 - [ ] 0.2 Merge into `main`; CI green on `main`.
 - [x] 0.3 Memory: "check CI on main after every merge before saying done".
 Done when: `main` CI is green.
@@ -176,6 +177,9 @@ branch `feature/music-college-pack`; CI/workflow run still to be seen after push
 - [~] 5.3 Extend `packs/music-college/questions.txt` per new topic; `tests/music_pack.test.mjs` gets each new right answer.
       2026-11-14: 14 questions for the 13 new entries; expected.json 29 -> 59 answers, "มีทุนไหม" and "ค่าเทอมเท่าไร" off the no-data list,
       "กู้ กยศ ได้ไหม" known_wrong.
+      Then `music_programmes_overview` (the 4 levels, source = the home page menu): "มีหลักสูตรอะไรบ้าง" was not_found. Tried first:
+      "หลักสูตร" on the 4 majors keyword lines -> it offered only 3 of the 4 levels (no master) and "มีสาขาแจ๊สไหม" lost its offer;
+      reverted. 98 right answers, golden 231 (only the 5 new rows and that one question changed); pack-lint 0, smoke 17/17.
 Done when: every topic the College's public site covers has a draft entry with its source.
 
 ## Phase 6 - the platform side

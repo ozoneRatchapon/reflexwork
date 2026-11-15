@@ -95,7 +95,10 @@
     "master jazz audition requirements": "music_master_auditions_en",
     "musicology master exam": "music_master_auditions_en",
     "PhD tuition": "music_doctoral_fees_en",
-    "round 2 audition date": "music_rounds_2570_en"
+    "round 2 audition date": "music_rounds_2570_en",
+    "มีหลักสูตรอะไรบ้าง": "music_programmes_overview",
+    "เปิดสอนหลักสูตรอะไรบ้าง": "music_programmes_overview",
+    "what programmes do you offer": "music_programmes_overview"
   },
   "pick": {
     "มีสาขาแจ๊สไหม": [

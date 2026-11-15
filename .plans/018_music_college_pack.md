@@ -21,7 +21,7 @@ with no code change of the engine. Pack: `packs/music-college/` (see its README 
 - [x] "ปริญญาโทมีรอบ 5 ไหม" -> master majors: not a tie (6 vs 3, see `benchmark/tie/001_2026-11-13_tie_census.md`). Fixed by the round
       selector (plan 019 step 1.4); no data change, no golden changed. Probe: 19 right, 0 wrong, 4 declined, 1 missed.
 - [x] "มีสาขา X ไหม" misses: fixed by the body-list lookup (plan 019 phase 2, 2026-11-14).
-- [~] adoption_smoke (needs Chrome) on the music pack in CI: `adoption` job added 2026-11-14 (plan 019 6.1); first runner result pending a push.
+- [x] adoption_smoke (needs Chrome) on the music pack in CI: `adoption` job added 2026-11-14 (plan 019 6.1); green on a runner (run 43523345830).
 
 ## Gated (the College)
 - [ ] Entry approval, Thai formal name, admissions email, fees/scholarships, IT contact, real questions (pack README, "Needs the College").
