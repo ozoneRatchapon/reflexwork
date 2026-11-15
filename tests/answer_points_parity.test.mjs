@@ -27,5 +27,5 @@ const days = all.find(e => e.id === 'thesis_submit_days');
 check('LINE text leads with the asked number', readableText(days, 'ส่งเล่มภายในกี่วัน').startsWith('👉 ภายใน 21 วัน'));
 const long = { answer: Array.from({ length: 10 }, (_, i) => `ข้อ${i}.`).join(' '), source_url: '' };
 check('more than 6 points: says how many are left and, with no link, invites a follow-up', /มีรายละเอียดอีก 4 ข้อ พิมพ์ถามต่อได้เลยครับ/.test(readableText(long, '')), readableText(long, ''));
-check('the old humanize module is gone from the LINE worker', !/humanize/.test(readFileSync(join(root, 'integrations/line-worker/worker.mjs'), 'utf8')));
+check('the old humanize module is gone from the LINE worker', ['worker.mjs', 'app.mjs'].every(f => !/humanize/.test(readFileSync(join(root, 'integrations/line-worker', f), 'utf8'))));
 console.log(`\n${pass}/${pass + fail} passed`); process.exit(fail ? 1 : 0);

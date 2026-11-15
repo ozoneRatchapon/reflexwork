@@ -12,13 +12,17 @@ const LOOKAHEADS: [(&str, &str); 3] = [
     (r"(?=\s)", r"(?P<la3>\s)"),
 ];
 
+/// The pack's `resolve.lead` with its three lookaheads ported to named groups; an error if the pack changed one (port it again).
+pub(crate) fn lead_src(src: &str) -> Result<String, String> {
+    LOOKAHEADS.iter().try_fold(src.to_owned(), |s, (from, to)| match s.matches(from).count() {
+        1 => Ok(s.replace(from, to)),
+        _ => Err(format!("resolve lead lookahead {from} changed in the pack: port it again")),
+    })
+}
+
 fn compile_lead() -> Regex {
     let lead = &vocab().resolve.lead;
-    let src = LOOKAHEADS.iter().fold(lead.src.to_owned(), |s, (from, to)| {
-        assert_eq!(s.matches(from).count(), 1, "resolve lead lookahead {from} changed in the pack: port it again");
-        s.replace(from, to)
-    });
-    compile_src(&src, lead.flags)
+    compile_src(&lead_src(lead.src).unwrap_or_else(|e| panic!("{e}")), lead.flags)
 }
 
 pub struct Patterns {

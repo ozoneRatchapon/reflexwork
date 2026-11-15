@@ -562,6 +562,13 @@ pub fn decide_tier(gate: f64, scores: Vec<f64>) -> JsValue {
     to_js(&decide::decide_tier(g, &scores))
 }
 
+/// Check a pack's `vocab` (JSON text) without installing it: unknown keys, wrong shapes and patterns that do not compile are an error
+/// naming the key. `scripts/new_agency.mjs` runs it at build time (plan 019 step 3.2).
+#[wasm_bindgen]
+pub fn vocab_check(json: &str) -> Result<(), JsValue> {
+    route::vocab::check(json).map(|_| ()).map_err(|e| JsValue::from_str(&e))
+}
+
 /// Admission schedule of one programme as `{cols, rows, notes, list}` (port of `_pSchedule`, data part).
 #[wasm_bindgen]
 pub fn schedule_table(lines: Vec<String>) -> JsValue {

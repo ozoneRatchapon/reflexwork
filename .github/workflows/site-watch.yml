@@ -1,0 +1,70 @@
+name: site-watch
+
+# Weekly (plan 019 item 4.3): re-read every page a draft/approved pack cites and compare the facts its entries state (full dates,
+# English names in parentheses) with what the page shows. The report is committed as packs/<pack>/site_watch.md; a pull request is
+# opened only when the report differs from the committed one, so a gap that stays the same is reported once.
+# Plain fetch (curl, 1 s apart, no bot-check bypass): a page that refuses is listed in the report, never worked around.
+# It never edits an entry and never deploys: the owner updates the entry, its valid_to, and approves again.
+
+on:
+  schedule:
+    - cron: "30 1 * * 1"       # Mondays 01:30 UTC = 08:30 Bangkok (after programmes-refresh)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: site-watch
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        pack: [music-college]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Re-read the cited pages and compare
+        id: watch
+        run: |
+          set +e
+          cargo run -q -p pack-tools --bin pack-watch -- "packs/${{ matrix.pack }}" \
+            --report "packs/${{ matrix.pack }}/site_watch.md" --save "$RUNNER_TEMP/pages"
+          code=$?
+          cat "packs/${{ matrix.pack }}/site_watch.md" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$code" != 0 ] && [ "$code" != 10 ]; then echo "::error::pack-watch failed ($code)"; exit 1; fi
+          if git diff --quiet -- "packs/${{ matrix.pack }}/site_watch.md"; then echo "changed=no" >> "$GITHUB_OUTPUT"; else echo "changed=yes" >> "$GITHUB_OUTPUT"; fi
+          exit 0
+
+      - name: Open a pull request with the new report
+        if: steps.watch.outputs.changed == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          day="$(date -u +%Y%m%d)"
+          branch="bot/site-watch-${{ matrix.pack }}-$day"
+          git config user.name "reflexwork-bot"
+          git config user.email "reflexwork-bot@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add "packs/${{ matrix.pack }}/site_watch.md"
+          git commit -m "chore(data): site watch for ${{ matrix.pack }} $day"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "chore(data): ${{ matrix.pack }} site changed ($day)" \
+            --body-file "packs/${{ matrix.pack }}/site_watch.md" \
+            || echo "::warning::Could not open the PR. Enable Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'. The branch $branch was pushed."
+
+      - name: Keep the fetched pages for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-watch-${{ matrix.pack }}
+          path: ${{ runner.temp }}/pages
+          retention-days: 14
+          if-no-files-found: ignore

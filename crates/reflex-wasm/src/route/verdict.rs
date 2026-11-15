@@ -3,9 +3,34 @@
 //! One computation gives both the route and what its view shows (the entry answered, the entries offered), so a client without its own
 //! search (the LINE worker) renders exactly what was decided.
 use super::manual::{Ctx, ManualEntry};
-use super::scope::{scope_clarify, Ranked, Scope};
+use super::scope::{level_tie, scope_clarify, Ranked, Scope};
 use super::types::Route;
 use crate::decide::{decide_tier, Action, Stage};
+use crate::re::compile;
+use regex_lite::Regex;
+use std::sync::OnceLock;
+
+fn exists_q() -> &'static Regex {
+    static R: OnceLock<Regex> = OnceLock::new();
+    R.get_or_init(|| compile(&super::vocab::vocab().exists_q))
+}
+
+/// After the search gave up: "มีสาขาแจ๊สไหม" names an item of a list in an entry's body (`body_terms`). One entry lists it -> that
+/// entry is answered; two or three -> they are offered; more, or a question that does not ask whether something exists -> `None`.
+/// Never for a tapped chip (it already named its entry).
+fn body_list_verdict<'a>(q: &str, ctx: &Ctx<'a>) -> Option<ManualVerdict<'a>> {
+    if ctx.pinned || !exists_q().is_match(q) {
+        return None;
+    }
+    let found = super::body_terms::entries_naming(q, ctx.manual.entries());
+    let (route, entry, offered) = match found.as_slice() {
+        [] => return None,
+        [one] => (Route::KbAct, Some(*one), Vec::new()),
+        few if few.len() <= OFFERED => (Route::Disambiguate, None, found.clone()),
+        _ => return None,
+    };
+    Some(ManualVerdict { route: Some(route), stage: Stage::Rethink, entry, offered })
+}
 
 /// How many entries a disambiguation offers, and how many ground an advice answer (the page's `slice(0,3)` / `groundedContext`).
 const OFFERED: usize = 3;
@@ -61,8 +86,12 @@ pub fn manual_verdict<'a>(q: &str, ctx: &Ctx<'a>) -> ManualVerdict<'a> {
     }
     let none = |stage| ManualVerdict { route: None, stage, entry: None, offered: Vec::new() };
     let mut v = none(tier.stage);
+    // a tie between two levels' entries (bachelor / doctoral fees) offers both; a tapped chip already chose
+    if action == Action::Act && !ctx.pinned && level_tie(q, &ranked) {
+        action = Action::Disambiguate;
+    }
     match action {
-        Action::Escalate => return v,
+        Action::Escalate => return body_list_verdict(q, ctx).unwrap_or(v),
         Action::Disambiguate => {
             v.route = Some(Route::Disambiguate);
             v.offered = top(&ranked, OFFERED);

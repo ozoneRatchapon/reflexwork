@@ -7,12 +7,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { shippedWasm } from '../../scripts/lib/chatbot_fns.mjs';
+import { shippedWasm, RESOLVE_SHIM } from '../../scripts/lib/chatbot_fns.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const html = readFileSync(join(root, 'submissions/ui/chatbot.html'), 'utf8');
 const blk = n => html.match(new RegExp(`// <${n}>([\\s\\S]*?)// </${n}>`))[1];
 // the page's resolveProgramme is the Rust wrapper (plan 015 step 3a): it needs the shipped wasm
-const { resolveProgramme, normChat } = new Function('WASM', blk('chat-normalize') + blk('linkify') + blk('programme-resolve') + '\nreturn {resolveProgramme, normChat};')(shippedWasm());
+const { resolveProgramme, normChat } = new Function('WASM', blk('chat-normalize') + blk('linkify') + blk('programme-resolve') + RESOLVE_SHIM + '\nreturn {resolveProgramme, normChat};')(shippedWasm());
 const P = JSON.parse(readFileSync(join(root, 'submissions/ui/programmes.json'), 'utf8')).programmes;
 
 function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }

@@ -124,10 +124,9 @@ fn codes(entries: &[&Entry]) -> Vec<String> {
 }
 
 impl Catalogue {
-    /// The titles of `resolveProgramme(q, P, true).rows` (the page's "nearest names"); empty when the loose pass finds nothing.
-    pub fn loose_titles(&self, q: &str) -> Vec<String> {
-        let Some(r) = self.resolve(q, true) else { return Vec::new() };
-        r.codes.iter().filter_map(|c| self.entries.iter().find(|e| &e.code == c)).map(|e| e.title.clone()).collect()
+    /// The titles of the programmes of `r` (a resolution of this catalogue), in its order.
+    pub fn titles<'a>(&'a self, r: &'a Resolution) -> impl Iterator<Item = &'a str> + 'a {
+        r.codes.iter().filter_map(|c| self.entries.iter().find(|e| &e.code == c)).map(|e| e.title.as_str())
     }
 
     /// Port of `resolveProgramme(q, P, loose)`. `loose` is used only after the strict pass AND the manual found nothing: it answers
