@@ -1987,7 +1987,7 @@
 {"kind":"single","set":"probe","q":"สมัคร 2047M02S","route":"programme_card","ai_off":true},
 {"kind":"single","set":"probe","q":"สมัคร 2050D02G","route":"programme_card","ai_off":true},
 {"kind":"single","set":"probe","q":"สมัคร 2052M01S","route":"programme_card","ai_off":true},
-{"kind":"single","set":"probe","q":"สมัคร 2101D04G","route":"programme_card","ai_off":true},
+{"kind":"single","set":"probe","q":"สมัคร 2101D05G","route":"programme_card","ai_off":true},
 {"kind":"single","set":"probe","q":"สมัคร 2104D03G","route":"programme_card","ai_off":true},
 {"kind":"single","set":"probe","q":"MPH international","route":"programme_pick","ai_off":true},
 {"kind":"single","set":"probe","q":"จุชลีววิทยาการแพทย์และโมเลกุล","route":"programme_pick","ai_off":true},
