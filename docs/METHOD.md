@@ -18,7 +18,7 @@ A student-facing assistant for a university graduate school whose design rule is
 | input cleaning | NFC, strip zero-width chars, collapse runs of 3+ identical Thai letters | string rules | yes | `chatbot.html` `<chat-normalize>` |
 | kernel gate | route decision + reproducibility fingerprint | logistic gate on 64-d features (§3.1) | yes | `crates/reflex-wasm`, `crates/reflex-kernel` |
 | KB retrieval | find the approved FAQ entry | char-trigram TF-IDF cosine + overlap (§3.2) | yes | `crates/reflex-wasm::kb_search` (the page's only search; no JS copy since 2026-11-09) |
-| programme resolver | 379 graduate programmes: card / picker / finder | trigram coverage + rules over an official catalogue (§3.3) | yes | `crates/reflex-wasm` (`Resolver`; the page's `<programme-resolve>` block renders the cards), `submissions/build_programme_catalogue.py` |
+| programme resolver | 380 graduate programmes: card / picker / finder | trigram coverage + rules over an official catalogue (§3.3) | yes | `crates/reflex-wasm` (`Resolver`; the page's `<programme-resolve>` block renders the cards), `submissions/build_programme_catalogue.py` |
 | link layer | systems named in prose become official links | allowlisted regex registry (§3.4) | yes | `<linkify>`, `submissions/ui/system-links.json` |
 | learning loop | unanswered questions → PII-masked gap log → LLM *drafts* → human approves | server side | LLM only drafts, a human publishes | `integrations/kernel-worker`, `docs/learning-loop-design.md` |
 | LLM | rephrase an already-retrieved KB answer (grounded), guarded by `groundedGuard` | Gemini / local model | **no** | `integrations/llm-proxy` |
@@ -74,7 +74,7 @@ score = cov + 1[h=n] + 0.3·1[h ⊇ n] − min(0.2, ||h|−|n||/200);  also: who
 pool = candidates within 0.15 of the best, filtered by level / international / special if the question says so
 |pool| = 1 → card ·  2–12 → picker (≤ 6 shown) ·  > 12 → "too broad, narrow it" ·  loose mode → always a picker, never a card
 ```
-Data are the Graduate School's own pages (379 programmes, 253 with a 2570 announcement - 9 of them only per major, e.g. one announcement per nursing / dentistry major; fetched 2026-11-13), stored verbatim, stamped with the fetch date; status is a snapshot, not live. A fee/scholarship/other-topic question naming a programme is answered from that programme's own announcement; the follow-up layer ("แล้วค่าเทอมล่ะ") binds a short aspect question to the last single programme shown and always says how it was read (with an undo).
+Data are the Graduate School's own pages (380 programmes, 253 with a 2570 announcement - 9 of them only per major, e.g. one announcement per nursing / dentistry major; fetched 2026-11-16), stored verbatim, stamped with the fetch date; status is a snapshot, not live. A fee/scholarship/other-topic question naming a programme is answered from that programme's own announcement; the follow-up layer ("แล้วค่าเทอมล่ะ") binds a short aspect question to the last single programme shown and always says how it was read (with an undo).
 
 ### 3.4 Link layer
 
