@@ -27,6 +27,12 @@ ticket plan on Google Sheets + Apps Script). Their screenshots: "ลงทะเ
       by hand. Now the pool also probes "สมัคร 2101D05G" (`PROGRAMME_PROBES`) and the golden has both (04G -> unsure_programme,
       05G -> programme_card): 2269 checked, 0 differences, 0 not in golden. `--update` was not kept: it also relabels 24 rows' `set`.
 
+- [x] Deployed 2026-11-21 (owner go): D1 backups `reflexwork-20261121-160421.sql` and `-203958.sql` (exit 0, 44 KB each); Pages
+      `7eb025c3` from `09382f6` (this plan's fix), then `e4764d07` from `1a85067` (PR #153, the 2026-11-16 catalogue: 380 programmes,
+      12 codes revised, 7 of them renamed by the university, 1 new; 4 route-golden probes and the page claims followed, cheatsheet
+      regenerated). Each preview-first; demo_smoke on production: all hard checks pass, no warning. The weekly run could not open
+      its PR (repo setting off); opened by hand as #153.
+
 ## Open
 - [ ] The 3 open misses are retrieval limits, not missing data (except results dates). Options, none ours alone:
       the run-time embedding decision (plan 009 D: bge-m3, Thai 52% -> 75% first-right, owner), or the other team's LLM as the
