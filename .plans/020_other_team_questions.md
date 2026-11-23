@@ -11,7 +11,7 @@ ticket plan on Google Sheets + Apps Script). Their screenshots: "ลงทะเ
 | คุณทราบประกาศเกี่ยวกับทุนของบัณฑิตวิทยาลัยไหมครับ | offers scholarship_types, contact_line, **purchase_methods** | same (open) |
 | ลงทะเบียนล่าช้ามีค่าปรับไหม | **wrong**: thesis_late_penalty | same (open) |
 | ถอน W ได้ถึงวันไหน | not found (the 6 registration entries hold it) | same (open) |
-| วันประกาศผลสอบ | **wrong**: gm_military_deferment_directory_2570 (no entry has results dates) | same (open) |
+| วันประกาศผลสอบ | **wrong**: gm_military_deferment_directory_2570 | same (open). Correction 2026-11-23: gm_schedule_2570_round1 does hold the date (admitted applicants: 13 Jan 2027) and "ประกาศผลสอบวันไหน" reaches it; with a programme name ("ประกาศผลสอบ ทันตกรรมหัตถการ วันไหน") the programme card answers from the catalogue. Only the bare 3-word form misses; exam-result keywords fix it but break the MU GRAD result question (NEGATIVE_RESULTS) |
 | เกรดผมออกยัง | not found | **personal** (fixed) |
 
 ## Done

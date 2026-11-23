@@ -88,3 +88,13 @@ fn a_name_on_a_linked_page_counts_but_a_date_does_not() {
     let PageReport::Read { stale, .. } = alone else { panic!("read") };
     assert_eq!(stale[0].missing_names, ["Voice"]);
 }
+
+#[test]
+fn a_post_stamped_with_the_run_day_is_not_a_new_date() {
+    let es = entries();
+    let page = format!("{PAGE}<h2>News</h2><p>Journal 23 Nov 2026</p><p>Round 3 deadline 24 Nov 2026</p>");
+    let today = parse_ymd("2026-11-23").unwrap();
+    let r = compare(URL, &by_source(&es)[URL], &Fetched::Html(page), &[], &pack_dates(&es), today);
+    let PageReport::Read { new_dates, .. } = &r else { panic!("{r:?}") };
+    assert_eq!(new_dates, &["2026-11-24"], "the run day is a post stamp; the day after is a schedule");
+}
