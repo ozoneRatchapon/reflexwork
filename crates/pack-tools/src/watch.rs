@@ -31,7 +31,7 @@ pub enum PageReport {
     Read {
         url: String,
         stale: Vec<Stale>,
-        /// Dates from today on that the page shows and no entry citing it has (a new round, a moved deadline).
+        /// Dates after today that the page shows and no entry citing it has (a new round, a moved deadline).
         new_dates: Vec<String>,
     },
 }
@@ -64,7 +64,8 @@ pub fn pack_dates(entries: &[Entry]) -> BTreeSet<i64> {
     entries.iter().flat_map(|e| dates_in(&e.body)).collect()
 }
 
-/// Compare the entries citing `url` with what the page shows. New dates are those from `today` on that are not in `known`
+/// Compare the entries citing `url` with what the page shows. New dates are those after `today` that are not in `known`; a date
+/// of the run day itself is left out: it is what a page stamps on a post published that day ("News: 23 Nov 2026"), not a schedule.
 /// (see [`pack_dates`]). `linked` = the visible text of pages this page links to that the same run read (see [`linked_texts`]):
 /// a name shown there counts as shown (a summary page cited for facts its major pages print). Dates must be on the cited page
 /// itself, so a moved deadline is never hidden by another page that still shows the old one.
@@ -94,7 +95,7 @@ pub fn compare(url: &str, entries: &[&Entry], fetched: &Fetched, linked: &[Strin
             stale.push(Stale { file_name: e.file_name.clone(), missing_dates, missing_names });
         }
     }
-    let new_dates = page_dates.iter().filter(|&&d| d >= today && !known.contains(&d)).map(|&d| civil_from_days(d)).collect();
+    let new_dates = page_dates.iter().filter(|&&d| d > today && !known.contains(&d)).map(|&d| civil_from_days(d)).collect();
     PageReport::Read { url: url.to_string(), stale, new_dates }
 }
 
